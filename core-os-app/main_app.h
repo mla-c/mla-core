@@ -1,0 +1,28 @@
+//
+// Created by christian on 9/10/25.
+//
+
+#ifndef MAIN_APP_H
+#define MAIN_APP_H
+
+// Include Global Storage
+#include "../core-os/mla_globals.h"
+#include "../core-os/log/mla_logger_console.h"
+#include "../core-os/log/mla_logging.h"
+
+
+int run() {
+
+    // Low Level Setup
+    mla_log_to_console_activate();
+
+    mla_info("Starting Test Application...");
+    mla_info("Test Application started successfully!");
+
+
+    mla_task_manager_process_all_tasks();
+
+    return 0;
+}
+
+#endif //MAIN_APP_H

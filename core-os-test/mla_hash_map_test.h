@@ -1,0 +1,394 @@
+//
+// Created by christian on 8/4/25.
+//
+
+#ifndef COREOS_MLA_HASH_MAP_TEST_H
+#define COREOS_MLA_HASH_MAP_TEST_H
+
+
+#include "../core-os/hash/mla_hash.h"
+#include "../core-os/system/mla_hash_map.h"
+#include "../core-os-test-support/mla_test_executor.h"
+#include "../core-os-test-support/mla_benchmark_executor.h"
+
+struct my_hash_map_test_struct {
+    mla_int32_t test1;
+    mla_int32_t test2;
+
+};
+
+/**
+ * You should never build a struc with const. The const are never copied.
+ * This here is only an ugly trick for testing
+ */
+struct my_hash_map_with_const_test_struct {
+    const mla_int32_t test1 = 0;
+    mla_int32_t test2 = 0;
+
+    my_hash_map_with_const_test_struct(mla_int32_t t1, mla_int32_t t2) : test1(t1), test2(t2) {}
+    my_hash_map_with_const_test_struct() = default;
+    my_hash_map_with_const_test_struct& operator=(const my_hash_map_with_const_test_struct &other) {
+
+        if (this != &other) {
+            mla_int32_t* nonConstTest1 = const_cast<mla_int32_t*>(&test1);
+            *nonConstTest1 = other.test1; // test1 is const, so we cannot assign it
+            this->test2 = other.test2; // test1 is const, so we cannot assign it
+        }
+        return *this;
+    }
+
+    my_hash_map_with_const_test_struct(const my_hash_map_with_const_test_struct& other) {
+        // Either implement copying logic here or just call your assignment operator
+        *this = other;
+    }
+
+
+};
+
+
+void HashMapContainsTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    mla_hash_map_push(map, 1l, 100l);
+    mla_hash_map_push(map, 2l, 200l);
+    mla_hash_map_push(map, 3l, 300l);
+    mla_hash_map_push(map, 4l, 400l);
+    mla_hash_map_push(map, 5l, 500l);
+
+    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
+    assert_true(mla_hash_map_contains(map, 4l), "HashMap should contain key 4");
+    assert_true(mla_hash_map_contains(map, 5l), "HashMap should contain key 5");
+    assert_false(mla_hash_map_contains(map, 6l), "HashMap should not contain key 6");
+
+}
+
+void HashMapGetTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    mla_hash_map_push(map, 1l, 100l);
+    mla_hash_map_push(map, 2l, 200l);
+    mla_hash_map_push(map, 3l, 300l);
+
+    // Try Get
+    mla_int32_t value;
+    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_equal(value, 200l, "HashMap should return value 200 for key 2");
+    assert_false(mla_hash_map_get(map, 6l, value), "HashMap should not find key 6");
+    assert_equal(value, 0l, "Value should be default value for non-existing key 6");
+
+}
+
+void HashMapAddMuchItemsTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(16);
+
+    for (mla_int32_t i = 0; i < 1000; ++i) {
+        mla_hash_map_push(map, i, i + 1000);
+    }
+
+    for (mla_int32_t i = 0; i < 1000; ++i) {
+
+        assert_true(mla_hash_map_contains(map, i), "HashMap should contain key");
+
+    }
+
+}
+
+void HashMapRemoveTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    mla_hash_map_push(map, 1l, 100l);
+    mla_hash_map_push(map, 2l, 200l);
+    mla_hash_map_push(map, 3l, 300l);
+
+    assert_true(mla_hash_map_remove(map, 2l), "HashMap should successfully remove key 2");
+    assert_false(mla_hash_map_contains(map, 2l), "HashMap should not contain key 2 after removal");
+
+    assert_false(mla_hash_map_remove(map, 4l), "HashMap should not remove non-existing key 4");
+
+}
+
+void HashMapClearTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    mla_hash_map_push(map, 1l, 100l);
+    mla_hash_map_push(map, 2l, 200l);
+    mla_hash_map_push(map, 3l, 300l);
+
+    mla_hash_map_clear(map);
+
+    assert_equal(mla_hash_map_size(map), 0l, "HashMap should be empty after clear");
+
+}
+
+
+void HashMapContainsMlaStringTest() {
+
+    mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>(10);
+
+    mla_hash_map_push(map,  mla_string("key1"), mla_string("value1"));
+    mla_hash_map_push(map,  mla_string("key2"), mla_string("value2"));
+    mla_hash_map_push(map,  mla_string("key3"), mla_string("value3"));
+
+    assert_true(mla_hash_map_contains(map, mla_string("key1")), "HashMap should contain key1");
+    assert_true(mla_hash_map_contains(map, mla_string("key2")), "HashMap should contain key2");
+
+    assert_false(mla_hash_map_contains(map, mla_string("key4")), "HashMap should not contain key4");
+}
+
+
+void HashMapWithValueStructTest() {
+
+    mla_hash_map_t<mla_int32_t, my_hash_map_test_struct, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, my_hash_map_test_struct, mla_int32_hash_t>(10);
+
+    my_hash_map_test_struct item1 = {1, 100};
+    my_hash_map_test_struct item2 = {2, 200};
+    my_hash_map_test_struct item3 = {3, 300};
+
+    mla_hash_map_push(map, 1l, item1);
+    mla_hash_map_push(map, 2l, item2);
+    mla_hash_map_push(map, 3l, item3);
+
+    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
+
+    my_hash_map_test_struct value;
+    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+
+    my_hash_map_test_struct* valueRef = mla_hash_map_get_ref(map, 2l);
+    valueRef->test2 = 0; // Reset value for next check
+
+    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+
+    assert_null(mla_hash_map_get_ref(map, 4l), "HashMap should return null for non-existing key 4");
+}
+
+
+void HashMapWithValueConstStructTest() {
+
+    mla_hash_map_t<mla_int32_t, my_hash_map_with_const_test_struct, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, my_hash_map_with_const_test_struct, mla_int32_hash_t>(10);
+
+    my_hash_map_with_const_test_struct item1 = {1, 100};
+    my_hash_map_with_const_test_struct item2 = {2, 200};
+    my_hash_map_with_const_test_struct item3 = {3, 300};
+
+    mla_hash_map_push(map, 1l, item1);
+    mla_hash_map_push(map, 2l, item2);
+    mla_hash_map_push(map, 3l, item3);
+
+    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
+
+    my_hash_map_with_const_test_struct value;
+    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+
+    my_hash_map_with_const_test_struct* valueRef = mla_hash_map_get_ref(map, 2l);
+    valueRef->test2 = 0; // Reset value for next check
+
+    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+
+    assert_null(mla_hash_map_get_ref(map, 4l), "HashMap should return null for non-existing key 4");
+}
+
+void HashMapItemMemoryManagementTest() {
+
+    // Make sure that the string has its own memory management
+    mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
+    mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
+
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+
+    mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> mla_map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
+    mla_hash_map_push(mla_map, mla_str1, mla_str2);
+    mla_hash_map_push(mla_map, mla_str2, mla_str1);
+
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 2 after adding to list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 2 after adding to list");
+
+    mla_hash_map_remove(mla_map, mla_str1);
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 1 after removal from list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should still have refCount of 2 after removal of String 1");
+
+    mla_hash_map_clear(mla_map);
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after clearing list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after clearing list");
+
+
+}
+
+void HashMapItemMemoryManagementDestroyTest() {
+
+    // Make sure that the string has its own memory management
+    mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
+    mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
+
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+
+    {
+        mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> mla_map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
+        mla_hash_map_push(mla_map, mla_str1, mla_str2);
+        mla_hash_map_push(mla_map, mla_str2, mla_str1);
+
+        assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 2 after adding to list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 2 after adding to list");
+    }
+
+    // After the array list is destroyed, the strings should be destroyed as well
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+
+}
+
+
+void HashMapItemMemoryManagementDestroy2Test() {
+
+    // Make sure that the string has its own memory management
+    mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
+    mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
+
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+
+    {
+
+        mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> other = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
+
+        {
+            mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> mla_map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
+            mla_hash_map_push(mla_map, mla_str1, mla_str2);
+            mla_hash_map_push(mla_map, mla_str2, mla_str1);
+
+            assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+
+            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, 1, "Map buckets should have refCount of 1 after creation");
+            other = mla_map;
+            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, 2, "Map buckets should have refCount of 2 after assignment to other list");
+
+            // Ref COunter should not change because we are assigning the map to another variable
+            // The strings are still owned by the internal array
+            assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+        }
+
+        assert_equal(other.buckets.itemsOwner.buffer->refCount, 1, "refcount should be 1 after map destruction");
+
+        assert_equal(mla_hash_map_size(other), 2, "Other list should have size 2 after assignment");
+
+        assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+    }
+
+    // After the array list is destroyed, the strings should be destroyed as well
+    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+
+
+}
+
+
+void RegisterHashMapTests(mla_test_executor_t &p_TestExecutor) {
+
+    mla_test_t test = mla_test("Contains", test_category, HashMapContainsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Get", test_category, HashMapGetTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("AddMuchItems", test_category, HashMapAddMuchItemsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Remove", test_category, HashMapRemoveTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Clear", test_category, HashMapClearTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ContainsMlaString", test_category, HashMapContainsMlaStringTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("WithValueStruct", test_category, HashMapWithValueStructTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("WithValueConstStruct", test_category, HashMapWithValueConstStructTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ItemMemoryManagement", test_category, HashMapItemMemoryManagementTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("HashMapItemMemoryManagementDestroy", test_category, HashMapItemMemoryManagementDestroyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("HashMapItemMemoryManagementDestroy2", test_category, HashMapItemMemoryManagementDestroy2Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+}
+
+static mla_hash_map_t<int, int, mla_int16_hash_t> mla_map = mla_hash_map_empty<int, int, mla_int16_hash_t>();
+
+void SetupHashMapContainsBenchmark() {
+
+    mla_map = mla_hash_map<int, int, mla_int16_hash_t>(16);
+
+    for (int i = 0; i < 10000; ++i) {
+        mla_hash_map_push(mla_map, i, i);
+    }
+}
+
+void HashMapContainsBenchmark() {
+
+
+    for (int i = 0; i < 10000; ++i) {
+
+        mla_bool_t found = mla_hash_map_contains(mla_map, i);
+
+        if (!found) {
+            // Fail
+            static_assert(true, "Element not found in array");
+        }
+    }
+}
+
+void TearDownHashMapContainsBenchmark() {
+
+    mla_map = mla_hash_map_empty<int, int, mla_int16_hash_t>();
+}
+
+
+void HashMapAddMuchItemsBenchmark() {
+
+    mla_map = mla_hash_map<int, int, mla_int16_hash_t>(16);
+
+    for (int i = 0; i < 1000; ++i) {
+        mla_hash_map_push(mla_map, i, i);
+    }
+}
+
+
+void RegisterHashMapBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("Contains", benchmark_category, HashMapContainsBenchmark, SetupHashMapContainsBenchmark, TearDownHashMapContainsBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("AddMuchItems", benchmark_category, HashMapAddMuchItemsBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+}
+
+
+#endif
