@@ -6,7 +6,7 @@
 #define COREOS_MLA_GLOBAL_PLATFORM_GENERIC_H
 
 // Including necessary headers
-#include "cstring"
+#include <cstring>
 #include <cstdio>
 #include <cstdarg>
 #include <cstdlib>
