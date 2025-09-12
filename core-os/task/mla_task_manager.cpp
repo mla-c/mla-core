@@ -155,6 +155,8 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
         return result;
     }
 
+    mla_bool_t found = false;
+
     for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
@@ -163,12 +165,17 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
             result.priority = task.priority;
             result.stack_size = task.stack_size;
             result.state = task.sharedStates->processingState;
+            found = true;
             break;
         }
 
     }
 
     mla_rw_unlock_read(g_TaskManager.taskLock);
+
+    if (!found) {
+        mla_debug(mla_string_concat("Task ", name, " not found"));
+    }
 
     return result;
 }

@@ -8,13 +8,12 @@
 
 #include "../mla_data_types.h"
 
-#ifndef USE_NAVTIVE_LOGGING_MANAGER
-
-
 // Macro to get the filename and the method
 #define __FILENAME_AND_METHOD__()\
 char temp[256]; \
 mla_snprintf(temp, sizeof(temp), "%s::%s", __FILENAME_ONLY__, __func__); \
+
+#if (!defined(mla_logging_use_native) || (mla_logging_use_native == 0))
 
 #include "mla_logger.h"
 
@@ -69,12 +68,30 @@ mla_snprintf(temp, sizeof(temp), "%s::%s", __FILENAME_ONLY__, __func__); \
 
 #else
 
-#define mla_log_msg(level, msg) mla_printf("%s[%s] - %s\n", level, msg, __FILENAME_AND_METHOD__)
-#define mla_verbose(msg) mla_printf("v[%s] - %s\n", __FILENAME_AND_METHOD__, msg)
-#define mla_debug(msg) mla_printf("d[%s] - %s\n", __FILENAME_AND_METHOD__, msg)
-#define mla_info(msg) mla_printf("i[%s] - %s\n", __FILENAME_AND_METHOD__, msg)
-#define mla_warning(msg) mla_printf("w[%s] - %s\n", __FILENAME_AND_METHOD__, msg)
-#define mla_error(msg) mla_printf("e[%s] - %s\n", __FILENAME_AND_METHOD__, msg)
+#include "mla_logger.h"
+
+inline void __mla_logging_native(const mla_log_level level, const mla_char_t* message) {
+    __FILENAME_AND_METHOD__()\
+    mla_printf("[%s] %s - %s\n", mla_log_level_to_string(level), temp, message);\
+}
+
+inline void __mla_logging_native(const mla_log_level level, const mla_string_t& message) {
+    __FILENAME_AND_METHOD__()\
+    mla_string_t copy = message; \
+    const mla_c_string_t c_message = mla_string_to_cString(copy, false);
+    mla_printf("[%s] %s - %s\n", mla_log_level_to_string(level), temp, c_message);\
+    if (c_message.isOwner) {\
+        mla_free(const_cast<mla_char_t*>(c_message.c_str));\
+    }\
+}
+
+#define mla_log_msg(level, msg) __mla_logging_native(level, msg)
+#define mla_verbose(msg) __mla_logging_native(MLA_LOG_LEVEL_VERBOSE, msg)
+#define mla_debug(msg) __mla_logging_native(MLA_LOG_LEVEL_DEBUG, msg)
+#define mla_info(msg) __mla_logging_native(MLA_LOG_LEVEL_INFO, msg)
+#define mla_warning(msg) __mla_logging_native(MLA_LOG_LEVEL_WARNING, msg)
+#define mla_error(msg) __mla_logging_native(MLA_LOG_LEVEL_ERROR, msg)
+
 
 #endif
 

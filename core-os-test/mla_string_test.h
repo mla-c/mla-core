@@ -11,7 +11,16 @@
 
 void SizeOfTest() {
 
-    assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)32, "Size of mla_string_t should be 32 bytes");
+    if (sizeof(mla_pointer_t) == 8) {
+        // 64 bit
+        assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)32, "Size of mla_string_t should be 32 bytes");
+    } else if (sizeof(mla_pointer_t) == 4) {
+        // 32 bit
+        assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)16, "Size of mla_string_t should be 16 bytes");
+    } else {
+        assert_true(false, "Unknown pointer size");
+    }
+
 }
 
 void ContainsCLayoutTest() {

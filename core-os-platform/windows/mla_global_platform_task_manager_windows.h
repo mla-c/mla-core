@@ -58,7 +58,7 @@ DWORD WINAPI __mla_task_manager_windows_native_worker(LPVOID lpParam) {
             shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
             mla_task_process_result_state result_state = thread_data->worker(thread_data->userData, thread_data->userData2); // Call the worker function
 
-            if (!result_state == TASK_PROCESS_RESULT_CONTINUE) {
+            if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
                 shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
                 break; // Exit the loop after completion
             }
