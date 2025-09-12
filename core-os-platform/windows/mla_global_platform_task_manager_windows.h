@@ -19,6 +19,7 @@ struct mla_task_manager_windows_native_data_t {
 
 mla_buffer_cleanup_mode __mla_task_manager_windows_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
 
+    (void)userData;
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(data);
 
     if (thread_data) {
@@ -71,7 +72,7 @@ DWORD WINAPI __mla_task_manager_windows_native_worker(LPVOID lpParam) {
 }
 
 
-SIZE_T mla_task_manager_windows_native_get_stack_size(mla_task_stack_size stackSize) {
+SIZE_T mla_task_manager_windows_native_get_stack_size(const mla_task_stack_size stackSize) {
 
     switch (stackSize) {
         case TASK_STACK_SIZE_TINY:
