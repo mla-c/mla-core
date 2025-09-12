@@ -36,7 +36,7 @@ void __mla_benchmark_print_into_text() {
 
 #endif
 
-#ifdef mla_memory_benchmark
+#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
     printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
            "No",
            "Category",

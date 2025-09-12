@@ -8,6 +8,7 @@
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
+#include <stdlib.h>
 
 static mla_bool_t m_hook_called = false;
 

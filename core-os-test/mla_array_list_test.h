@@ -9,6 +9,7 @@
 #include "../core-os/system/mla_array_list.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
+#include "mla_list_contains_const.h"
 
 struct my_array_list_container_t {
     mla_array_list_t<int> arr;
@@ -441,9 +442,9 @@ mla_array_list_t<int>  mla_array = mla_array_list_empty<int>();
 
 void SetupArrayListContainsBenchmark() {
 
-    mla_array_list_t<int> mla_arr = mla_array_list<int>(10000);
+    mla_array_list_t<int> mla_arr = mla_array_list<int>(CONST_LIST_CONTAINS_COUNT);
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_array_list_add(mla_arr, i);
     }
 
@@ -451,7 +452,7 @@ void SetupArrayListContainsBenchmark() {
 
 void ArrayListContainsBenchmark() {
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_bool_t found = mla_array_list_contains<int>(mla_array, i);
 
         if (!found) {

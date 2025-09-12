@@ -5,10 +5,14 @@
 #ifndef COREOS_NATIVE_STRING_TEST_H
 #define COREOS_NATIVE_STRING_TEST_H
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 #include "string"
+#endif
+
 #include "cstring"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 void StdStringConcatBenchmark() {
 
     std::string str1("Hello, ");
@@ -19,6 +23,29 @@ void StdStringConcatBenchmark() {
     mla_test_int32_t length = (mla_test_int32_t)result.length();
     (void)length; // Prevent unused variable warning
 }
+
+void StdStringContainsBenchmark() {
+
+    std::string str("Hello, World! This is a test string for benchmarking.");
+    std::string subString("for");
+
+    if (str.find(subString) == std::string::npos) {
+        static_assert(true, "Substring not found in StdStringContainsBenchmark");
+    }
+}
+
+void StdStringIndexOfBenchmark() {
+
+    std::string str("Hello, World! This is a test string for benchmarking.");
+    std::string subString("for");
+
+    size_t index = str.find(subString);
+    if (index == std::string::npos || index != 38) {
+        static_assert(true, "Index of substring not found in StdStringIndexOfBenchmark");
+    }
+}
+
+#endif
 
 void CStringConcatBenchmark() {
 
@@ -38,15 +65,7 @@ void CStringConcatBenchmark() {
 }
 
 
-void StdStringContainsBenchmark() {
 
-    std::string str("Hello, World! This is a test string for benchmarking.");
-    std::string subString("for");
-
-    if (str.find(subString) == std::string::npos) {
-        static_assert(true, "Substring not found in StdStringContainsBenchmark");
-    }
-}
 
 void CStringContainsBenchmark() {
 
@@ -55,17 +74,6 @@ void CStringContainsBenchmark() {
 
     if (strstr(str, subString) == nullptr) {
         static_assert(true, "Substring not found in CStringContainsBenchmark");
-    }
-}
-
-void StdStringIndexOfBenchmark() {
-
-    std::string str("Hello, World! This is a test string for benchmarking.");
-    std::string subString("for");
-
-    size_t index = str.find(subString);
-    if (index == std::string::npos || index != 38) {
-        static_assert(true, "Index of substring not found in StdStringIndexOfBenchmark");
     }
 }
 
@@ -80,29 +88,40 @@ void CStringIndexOfBenchmark() {
     }
 }
 
+
 void RegisterNativeStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     // Concat Benchmarks
     ////////////////////////////////////////////
-    mla_benchmark_t benchmark = mla_benchmark("StdStringConcat", benchmark_category, StdStringConcatBenchmark);
+
+    mla_benchmark_t benchmark = mla_benchmark("CStringConcatBenchmark", benchmark_category, CStringConcatBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
-    benchmark = mla_benchmark("CStringConcatBenchmark", benchmark_category, CStringConcatBenchmark);
+
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
+    benchmark = mla_benchmark("StdStringConcat", benchmark_category, StdStringConcatBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+#endif
+
 
     // Contains Benchmarks
     ////////////////////////////////////////////
-    benchmark = mla_benchmark("StdStringContains", benchmark_category, StdStringContainsBenchmark);
-    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
     benchmark = mla_benchmark("CStringContains", benchmark_category, CStringContainsBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
+    benchmark = mla_benchmark("StdStringContains", benchmark_category, StdStringContainsBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+#endif
+
     // IndexOf Benchmarks
     ////////////////////////////////////////////
-    benchmark = mla_benchmark("StdStringIndexOf", benchmark_category, StdStringIndexOfBenchmark);
-    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
     benchmark = mla_benchmark("CStringIndexOf", benchmark_category, CStringIndexOfBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
+    benchmark = mla_benchmark("StdStringIndexOf", benchmark_category, StdStringIndexOfBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+#endif
 
 }
 

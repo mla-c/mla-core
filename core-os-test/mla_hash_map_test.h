@@ -10,6 +10,7 @@
 #include "../core-os/system/mla_hash_map.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
+#include "mla_list_contains_const.h"
 
 struct my_hash_map_test_struct {
     mla_int32_t test1;
@@ -343,7 +344,7 @@ void SetupHashMapContainsBenchmark() {
 
     mla_map = mla_hash_map<int, int, mla_int16_hash_t>(16);
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_hash_map_push(mla_map, i, i);
     }
 }
@@ -351,7 +352,7 @@ void SetupHashMapContainsBenchmark() {
 void HashMapContainsBenchmark() {
 
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
 
         mla_bool_t found = mla_hash_map_contains(mla_map, i);
 

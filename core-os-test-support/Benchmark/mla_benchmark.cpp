@@ -4,11 +4,11 @@
 
 #include "mla_benchmark.h"
 
-#ifdef mla_memory_benchmark
+#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 #include "../../core-os/mla_data_types.h"
 #endif
 
-#include <chrono>
+
 
 typedef mla_test_pointer_t (*test_benchmark_malloc_hook_t)(mla_test_uint32_t size);
 
@@ -64,15 +64,15 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
 
     // Min, Max, and Average time tracking
-    std::chrono::nanoseconds minTime = (std::chrono::nanoseconds::max)();
-    std::chrono::nanoseconds maxTime = (std::chrono::nanoseconds::min)();
-    std::chrono::nanoseconds totalTime(0);
+    mla_test_uint64_t minTime = 18446744073709551615ULL;
+    mla_test_uint64_t maxTime = 0;
+    mla_test_uint64_t totalTime(0);
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
-        auto start = std::chrono::high_resolution_clock::now();
+        auto start = g_benchmark_timer.current_nanoseconds();
         benchmark.run();
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        auto end = g_benchmark_timer.current_nanoseconds();
+        auto elapsed = end - start;
 
         if (elapsed < minTime) {
             minTime = elapsed;
@@ -85,7 +85,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
 
     auto averageTime = totalTime / benchmarkIterations;
 
-#ifdef mla_memory_benchmark
+#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_stat_hook;
@@ -105,14 +105,14 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
         benchmark.tearDown();
     }
 
-#ifdef mla_memory_benchmark
+#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
     printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
            benchmark.category,
            benchmark.name,
-           (long long int)minTime.count(),
-           (long long int)maxTime.count(),
-           (long long int)averageTime.count(),
+           minTime,
+           maxTime,
+           averageTime,
            (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
            benchmarkIterations);
 
@@ -121,9 +121,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
     printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
            benchmark.category,
            benchmark.name,
-           (long long int)minTime.count(),
-           (long long int)maxTime.count(),
-           (long long int)averageTime.count(),
+           minTime,
+           maxTime,
+           averageTime,
            benchmarkIterations);
 
 #endif

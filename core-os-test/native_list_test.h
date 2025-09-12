@@ -5,8 +5,11 @@
 #ifndef COREOS_NATIVE_LIST_TEST_H
 #define COREOS_NATIVE_LIST_TEST_H
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 #include "vector"
 #include <algorithm>
+#endif
+
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 void CArrayContainsBenchmark() {
@@ -44,6 +47,7 @@ void CArrayAddMuchItemsBenchmark() {
     delete[] l_Array;
 }
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 void StdVectorContainsBenchmark() {
 
     std::vector<int>* l_Vector = new std::vector<int>(100);
@@ -70,6 +74,7 @@ void StdVectorAddMuchItemsBenchmark() {
 
     delete l_Vector;
 }
+#endif
 
 static mla_char_t* g_StringList[1000];
 
@@ -102,6 +107,7 @@ void RegisterNativeListBenchmark(mla_benchmark_executor_t &p_BenchmarkExecutor) 
     mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
+#if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
     benchmark = mla_benchmark("StdVectorContains", "NativeList", StdVectorContainsBenchmark);
     mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
@@ -109,6 +115,7 @@ void RegisterNativeListBenchmark(mla_benchmark_executor_t &p_BenchmarkExecutor) 
     benchmark = mla_benchmark("StdVectorAddMuchItems", "NativeList", StdVectorAddMuchItemsBenchmark);
     mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+#endif
 
     // Memory Managment
     ////////////////////////////////////////////

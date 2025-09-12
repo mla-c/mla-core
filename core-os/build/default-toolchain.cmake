@@ -22,6 +22,3 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     add_compile_definitions(mla_debug_build=1)
     message("Debug build enabled")
 endif()
-
-# Track memory allocations in benchmarks
-add_compile_definitions(mla_memory_benchmark=1)

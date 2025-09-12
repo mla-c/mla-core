@@ -9,6 +9,7 @@
 #include "../core-os/system/mla_link_list.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
+#include "mla_list_contains_const.h"
 
 struct my_link_list_test_struct {
     mla_int32_t test1;
@@ -349,7 +350,7 @@ static mla_link_list_t<int> mla_arr_data = mla_link_list_empty<int>();
 
 void SetupLinkListContainsBenchmark() {
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_link_list_add(mla_arr_data, i);
     }
 
@@ -357,7 +358,7 @@ void SetupLinkListContainsBenchmark() {
 
 void LinkListContainsBenchmark() {
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_bool_t found = mla_link_list_contains<int>(mla_arr_data, i);
 
         if (!found) {
