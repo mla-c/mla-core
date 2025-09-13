@@ -9,15 +9,19 @@
 
 #include "../mla_test_data_types.h"
 
-void arduino_printf(const mla_test_char_t* format, ...) {
+// Simple printf implementation for Arduino Serial
+// Note: This implementation uses a fixed buffer size of 2048 bytes.
+
+inline void arduino_printf(const mla_test_char_t* format, ...) {
 
     mla_test_char_t* l_Result = new mla_test_char_t[2048];
 
     va_list args;
     va_start(args, format);
-    snprintf(l_Result, 2048, format, args);
+    vsnprintf(l_Result, 2048, format, args);
     va_end(args);
     Serial.print(l_Result);
+    Serial.flush();
 }
 
 mla_test_print_t g_test_print = {

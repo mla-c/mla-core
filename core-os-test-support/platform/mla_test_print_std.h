@@ -9,6 +9,9 @@
 #include <cstdarg>
 #include <cstdio>
 
+// Simple printf implementation for standard output
+// Note: This implementation directly uses vprintf.
+
 inline void std_printf(const mla_test_char_t* format, ...) {
     va_list args;
     va_start(args, format);
