@@ -7,6 +7,7 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_hash_map.h"
 #include "../system/mla_string_concat.h"
+#include "mla_inject_services.h"
 
 #define CONST_DEFAULT_SERVICE_FACTORY_LIST_CAPACITY 1
 
@@ -141,10 +142,44 @@ mla_array_list_t<mla_inject_service_t<mla_void_t>, mla_inject_service_initialize
 }
 
 void mla_inject_lock() {
+
     g_inject_container.isLocked = true;
+
+    // Setup the inject containers
+
+    auto bootstrap_services = mla_inject_get_all_services<mla_inject_bootstrap_service_t>();
+
+    for (mla_size_t i = 0; i < mla_array_list_size(bootstrap_services); ++i) {
+
+        mla_inject_service_t<mla_inject_bootstrap_service_t> service = mla_array_list_get_unsafe(bootstrap_services, i);
+
+        if (service.service && service.service->setup) {
+
+            mla_debug(mla_string_concat("Start bootstrap service: ", service.service->real_service_name));
+            service.service->setup(service.service);
+        }
+
+    }
 }
 
 void mla_inject_unlock() {
+
+    // Teardown the inject containers in reverse order
+    auto bootstrap_services = mla_inject_get_all_services<mla_inject_bootstrap_service_t>();
+
+    for (mla_int32_t i = (mla_int32_t)mla_array_list_size(bootstrap_services) - 1; i >= 0; --i) {
+
+        mla_inject_service_t<mla_inject_bootstrap_service_t> service = mla_array_list_get_unsafe(bootstrap_services, i);
+
+        if (service.service && service.service->teardown) {
+
+            mla_debug(mla_string_concat("Stop bootstrap service: ", service.service->real_service_name));
+
+            service.service->teardown(service.service);
+        }
+
+    }
+
     g_inject_container.isLocked = false;
 }
 

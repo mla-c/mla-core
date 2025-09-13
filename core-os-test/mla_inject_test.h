@@ -7,6 +7,7 @@
 
 #include "../core-os/inject/mla_inject.h"
 #include "../core-os-test-support/mla_test_executor.h"
+#include "../core-os/inject/mla_inject_services.h"
 
 // Define a simple service struct
 struct mla_test_service_singleton_t {
@@ -619,6 +620,79 @@ inline void GetAllServicesTemplateVersionTest() {
     mla_inject_reset();
 }
 
+// ---- Bootstrap service declarations ----
+void mla_test_bootstrap_service_boot(mla_inject_bootstrap_service_t* bootstrap);
+void mla_test_bootstrap_service_teardown(mla_inject_bootstrap_service_t* bootstrap);
+
+struct mla_test_bootstrap_service_t {
+
+    static mla_string_t get_service_name();
+    static mla_inject_service_t<void> get_instance();
+    static mla_inject_service_t<void> get_boot_strap_instance();
+    mla_inject_bootstrap_service_t bootstrap;
+    mla_test_int32_t value;
+};
+
+// Static method definitions
+inline mla_string_t mla_test_bootstrap_service_t::get_service_name() {
+    static mla_string_t serviceName = mla_string("MyBootstrapService");
+    return serviceName;
+}
+
+// Static global
+static mla_test_bootstrap_service_t g_my_bootstrap_service_instance = {
+    { mla_test_bootstrap_service_t::get_service_name(), mla_test_bootstrap_service_boot, mla_test_bootstrap_service_teardown, 0 },
+    -1
+};
+
+
+inline mla_inject_service_t<void> mla_test_bootstrap_service_t::get_instance() {
+    return { get_service_name(), &g_my_bootstrap_service_instance, mla_buffer_reference_noOwner() };
+}
+
+inline mla_inject_service_t<void> mla_test_bootstrap_service_t::get_boot_strap_instance() {
+    return { get_service_name(), &g_my_bootstrap_service_instance.bootstrap, mla_buffer_reference_noOwner() };
+}
+
+// Boot / teardown implementations
+inline void mla_test_bootstrap_service_boot(mla_inject_bootstrap_service_t* bootstrap) {
+    (void)bootstrap;
+    g_my_bootstrap_service_instance.value = 1234;
+}
+
+inline void mla_test_bootstrap_service_teardown(mla_inject_bootstrap_service_t* bootstrap) {
+    (void)bootstrap;
+    g_my_bootstrap_service_instance.value = -1;
+}
+
+
+inline void BootstrapTest() {
+
+    mla_inject_reset();
+
+    assert_true(mla_inject_register_service<mla_test_bootstrap_service_t>(), "Failed to register bootstrap service.");
+    assert_true(mla_inject_register_service(mla_inject_bootstrap_service_t::get_service_name(), mla_test_bootstrap_service_t::get_boot_strap_instance), "Failed to register bootstrap instance.");
+
+    auto service = mla_inject_get_service<mla_test_bootstrap_service_t>();
+    assert_not_null(service.service, "Service should be available after registration.");
+    assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+
+    mla_inject_lock();
+
+    service = mla_inject_get_service<mla_test_bootstrap_service_t>();
+    assert_not_null(service.service, "Service should be available after locking.");
+    assert_equal(service.service->value, (mla_test_int32_t)1234, "Service value should be 1234 after bootstrap.");
+
+    mla_inject_unlock();
+
+    service = mla_inject_get_service<mla_test_bootstrap_service_t>();
+    assert_not_null(service.service, "Service should be available after unlocking.");
+    assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+
+    mla_inject_reset();
+
+}
+
 inline void RegisterInjectTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("Register/Get/Unregister Singleton", test_category, RegisterGetUnregisterSingletonTest);
@@ -664,6 +738,9 @@ inline void RegisterInjectTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Get All Services - Template Version", test_category, GetAllServicesTemplateVersionTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Bootstrap Test", test_category, BootstrapTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

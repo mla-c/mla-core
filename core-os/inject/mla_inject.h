@@ -76,9 +76,11 @@ mla_array_list_t<mla_inject_service_t<T>, mla_inject_service_initializer<T>> mla
     mla_string_t serviceName = T::get_service_name();
     auto services = mla_inject_get_all_services(serviceName);
 
-    auto serviceList = mla_array_list<mla_inject_service_t<T>, mla_inject_service_initializer<T>>(mla_array_list_size(services));
+    mla_size_t size = mla_array_list_size(services);
 
-    for (mla_size_t i = 0; i < mla_array_list_size(serviceList); ++i) {
+    auto serviceList = mla_array_list<mla_inject_service_t<T>, mla_inject_service_initializer<T>>(size);
+
+    for (mla_size_t i = 0; i < size; ++i) {
         mla_inject_service_t<mla_void_t> userdata = *mla_array_list_get_ref(services, i);
 
         mla_array_list_add(serviceList, {
