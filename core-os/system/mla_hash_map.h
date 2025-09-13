@@ -215,6 +215,27 @@ mla_bool_t mla_hash_map_remove(mla_hash_map_t<mla_hash_map_t_param_full> &map, c
     return false; // Key not found
 }
 
+template< mla_hash_map_template_full >
+mla_array_list_t<TKey, TKeyInit> mla_hash_map_keys(const mla_hash_map_t<mla_hash_map_t_param_full> &map) {
+
+    mla_array_list_t<TKey, TKeyInit> keys = mla_array_list< TKey, TKeyInit >(map.size);
+
+    for (mla_size_t i = 0; i < mla_array_list_size(map.buckets); ++i) {
+
+        auto bucketItem = mla_array_list_get_ref(map.buckets, i);
+
+        for (mla_size_t j = 0; j < mla_array_list_size(bucketItem->items); ++j) {
+
+            auto item = mla_array_list_get_ref(bucketItem->items, j);
+            mla_array_list_add(keys, item->key);
+        }
+
+    }
+
+    return keys;
+
+}
+
 template < mla_hash_map_template_full >
 mla_bool_t mla_hash_map_get(const mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, TValue &value) {
 

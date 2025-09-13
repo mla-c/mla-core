@@ -124,6 +124,23 @@ void HashMapClearTest() {
 
 }
 
+void HashMapGetKeysTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    mla_hash_map_push(map, 1l, 100l);
+    mla_hash_map_push(map, 2l, 200l);
+    mla_hash_map_push(map, 3l, 300l);
+
+    mla_array_list_t<mla_int32_t> keys = mla_hash_map_keys(map);
+
+    assert_equal(mla_array_list_size(keys), 3l, "HashMap should have 3 keys");
+    assert_true(mla_array_list_contains(keys, 1l), "Keys should contain 1");
+    assert_true(mla_array_list_contains(keys, 2l), "Keys should contain 2");
+    assert_true(mla_array_list_contains(keys, 3l), "Keys should contain 3");
+    assert_false(mla_array_list_contains(keys, 4l), "Keys should not contain 4");
+
+}
+
 
 void HashMapContainsMlaStringTest() {
 
@@ -317,6 +334,9 @@ void RegisterHashMapTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Clear", test_category, HashMapClearTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("GetKeys", test_category, HashMapGetKeysTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ContainsMlaString", test_category, HashMapContainsMlaStringTest);

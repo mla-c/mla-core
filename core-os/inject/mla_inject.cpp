@@ -98,6 +98,48 @@ mla_bool_t mla_inject_unregister_service(const mla_string_t& serviceName, mla_in
     return true;
 }
 
+mla_array_list_t<mla_inject_service_t<mla_void_t>, mla_inject_service_initializer<mla_void_t>> mla_inject_get_all_services(const mla_string_t& serviceName) {
+
+    mla_array_list_t<mla_inject_service_t<mla_void_t>, mla_inject_service_initializer<mla_void_t>> result = mla_array_list_empty<mla_inject_service_t<mla_void_t>, mla_inject_service_initializer<mla_void_t>>();
+
+    if (serviceName.length == 0) {
+        // Get all services
+        auto keys = mla_hash_map_keys(g_inject_container.services);
+
+        for (mla_size_t i = 0; i < mla_array_list_size(keys); ++i) {
+            mla_string_t key = *mla_array_list_get_ref(keys, i);
+            mla_array_list_t<mla_inject_factory_fn> factories = mla_array_list_empty<mla_inject_factory_fn>();
+
+            if (mla_hash_map_get(g_inject_container.services, key, factories)) {
+                for (mla_size_t j = 0; j < mla_array_list_size(factories); ++j) {
+                    mla_inject_factory_fn factory = *mla_array_list_get_ref(factories, j);
+                    if (factory != nullptr) {
+                        mla_inject_service_t<mla_void_t> service = factory();
+                        mla_array_list_add(result, service);
+                    }
+                }
+            }
+        }
+
+    } else {
+        // Get services by name
+        mla_array_list_t<mla_inject_factory_fn> factories = mla_array_list_empty<mla_inject_factory_fn>();
+
+        if (mla_hash_map_get(g_inject_container.services, serviceName, factories)) {
+
+            for (mla_size_t j = 0; j < mla_array_list_size(factories); ++j) {
+                mla_inject_factory_fn factory = *mla_array_list_get_ref(factories, j);
+                if (factory != nullptr) {
+                    mla_inject_service_t<mla_void_t> service = factory();
+                    mla_array_list_add(result, service);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 void mla_inject_lock() {
     g_inject_container.isLocked = true;
 }

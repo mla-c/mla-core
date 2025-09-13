@@ -33,7 +33,7 @@ typedef mla_inject_service_t<mla_void_t> (*mla_inject_factory_fn)(void);
 // Read functions
 mla_inject_service_t<mla_void_t> mla_inject_get_service(const mla_string_t& serviceName);
 mla_bool_t mla_inject_is_service_registered(const mla_string_t& serviceName);
-const mla_array_list_t<mla_inject_service_t<mla_void_t>, mla_inject_service_initializer<mla_void_t>> mla_inject_get_all_services(const mla_string_t& serviceName);
+mla_array_list_t<mla_inject_service_t<mla_void_t>, mla_inject_service_initializer<mla_void_t>> mla_inject_get_all_services(const mla_string_t& serviceName);
 
 // Modify functions
 mla_bool_t mla_inject_register_service(const mla_string_t& serviceName, mla_inject_factory_fn factory);
