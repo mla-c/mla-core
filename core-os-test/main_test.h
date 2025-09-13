@@ -30,7 +30,7 @@
 
 int run() {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(100);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(150);
     RegisterStringTests(l_TestExecutor);
     RegisterBufferTests(l_TestExecutor);
     RegisterReferenceTests(l_TestExecutor);

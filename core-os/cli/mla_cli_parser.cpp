@@ -135,10 +135,15 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
         mla_string_t paramValue = mla_string_empty();
 
-        if (paramNameEnd == command.length - 1) {
-            paramValue = mla_string_substr(command, paramValueStart, paramValueEnd);
-        } else {
+        if (isQuoted) {
             paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - 1);
+            paramValueEnd++; // Skip the ending quote
+        } else {
+            if (paramNameEnd == command.length - 1) {
+                paramValue = mla_string_substr(command, paramValueStart, paramValueEnd);
+            } else {
+                paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - 1);
+            }
         }
 
         mla_hash_map_push(result.matchingParameters, paramName, paramValue);
@@ -157,7 +162,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         == '-' && command.data[matchedPositon + 2] == '-') {
 
         // We are in the middle of a parameter name
-        mla_size_t paramNameStart = matchedPositon + 2;
+        mla_size_t paramNameStart = matchedPositon + 3;
         mla_size_t paramNameEnd = paramNameStart;
         while (paramNameEnd < command.length && command.data[paramNameEnd] != ' ') {
             paramNameEnd++;
@@ -185,7 +190,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
                 continue; // Command already used
             }
 
-            mla_array_list_add(result.possibleAutoCompletions, mla_string_concat("--", command_parameter->parameterName));
+            mla_array_list_add(result.possibleAutoCompletions, mla_string_concat(" --", command_parameter->parameterName));
         }
     }
 
