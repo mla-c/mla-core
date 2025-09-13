@@ -21,7 +21,7 @@ void arduino_printf(const mla_test_char_t* format, ...) {
 }
 
 mla_test_print_t g_test_print = {
-    .printf = arduino_printf
+    arduino_printf
 };
 
 #endif

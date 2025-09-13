@@ -7,16 +7,17 @@
 
 #include "../mla_test_data_types.h"
 #include <cstdarg>
+#include <cstdio>
 
-void std_printf(const mla_test_char_t* format, ...) {
+inline void std_printf(const mla_test_char_t* format, ...) {
     va_list args;
     va_start(args, format);
-    printf(format, args);
+    vprintf(format, args);
     va_end(args);
 }
 
 mla_test_print_t g_test_print = {
-    .printf = std_printf
+    std_printf
 };
 
 #endif
