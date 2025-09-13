@@ -8,7 +8,7 @@
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os/cli/mla_cli_parser.h"
 
-inline void ParseCommandWithoutParameters() {
+inline void ParseCommandWithParameters() {
 
     mla_cli_parser_t parser = mla_cli_parser();
 
@@ -19,6 +19,27 @@ inline void ParseCommandWithoutParameters() {
     );
 
     auto result = mla_cli_parser_parse(parser, mla_string("execute --path /usr/bin --force true"));
+    assert_true(result.isValid, "Command should be valid");
+    assert_struct_equal(mla_string_t, result.matchingCommand.name, mla_string("execute"), "Command name should be 'execute'");
+    assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)2, "There should be 2 parameters");
+    assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("path")), "Parameters should contain 'path'");
+    assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("force")), "Parameters should contain 'force'");
+    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("path")), mla_string("/usr/bin"), "Parameter 'path' should be '/usr/bin'");
+    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("force")), mla_string("true"), "Parameter 'force' should be 'true'");
+    assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)0, "There should be no possible auto completions");
+}
+
+inline void ParseCommandWithParametersAndWhiteSpace() {
+
+    mla_cli_parser_t parser = mla_cli_parser();
+
+    mla_array_list_add(parser.availableCommands, mla_cli_command("execute",
+                                                                 mla_cli_command_parameter("path", true),
+                                                                 mla_cli_command_parameter("force", false)
+                       )
+    );
+
+    auto result = mla_cli_parser_parse(parser, mla_string("execute     --path     /usr/bin  --force     true     "));
     assert_true(result.isValid, "Command should be valid");
     assert_struct_equal(mla_string_t, result.matchingCommand.name, mla_string("execute"), "Command name should be 'execute'");
     assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)2, "There should be 2 parameters");
@@ -188,7 +209,7 @@ inline void ParseCommandWithTrailingSpaces() {
     );
 
     auto result = mla_cli_parser_parse(parser, mla_string("clean --force true   "));
-    assert_false(result.isValid, "Command with trailing spaces should not be valid due to parsing rules");
+    assert_true(result.isValid, "Command with trailing spaces should be valid due to parsing rules");
 }
 
 inline void ParseCommandWithSpecialCharacters() {
@@ -230,8 +251,12 @@ inline void AutoCompleteWithNoMatches() {
 
 void RegisterCliParserTests(mla_test_executor_t &p_TestExecutor) {
 
-    mla_test_t test = mla_test("CommandWithoutParameters", test_category, ParseCommandWithoutParameters);
+    mla_test_t test = mla_test("CommandWithParameters", test_category, ParseCommandWithParameters);
     mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CommandWithParametersAndWhiteSpace", test_category, ParseCommandWithParametersAndWhiteSpace);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
 
     test = mla_test("AutoCompleteCommand", test_category, AutoCompleteCommand);
     mla_test_executor_register_test(p_TestExecutor, test);

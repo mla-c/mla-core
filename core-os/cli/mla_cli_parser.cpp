@@ -60,6 +60,10 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         return result;
     }
 
+    // Skip whitespace between command and parameters
+    while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+        matchedPositon++;
+    }
 
 
     // Match the parameters
@@ -90,6 +94,10 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         matchedPositon = paramNameEnd;
         mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - 1);
 
+        // Skip whitespace between parameter name and value
+        while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+            matchedPositon++;
+        }
 
         // Extract the parameter value
         mla_size_t paramValueStart = matchedPositon;
@@ -148,10 +156,20 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
         mla_hash_map_push(result.matchingParameters, paramName, paramValue);
         matchedPositon = paramValueEnd;
+
+        // Skip whitespace between parameters
+        while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+            matchedPositon++;
+        }
     }
 
-    // All Data Parsed
-    if (matchedPositon == command.length) {
+    // Skip ending whitespace
+    while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+        matchedPositon++;
+    }
+
+    // All Data Parsed or last character is a space
+    if (matchedPositon == command.length || (matchedPositon == command.length - 1 && command.data[matchedPositon] == ' ')) {
         result.isValid = true;
     }
 
