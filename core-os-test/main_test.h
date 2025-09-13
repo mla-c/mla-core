@@ -22,6 +22,7 @@
 #include "mla_rw_lock_test.h"
 #include "mla_mutex_test.h"
 #include "mla_inject_test.h"
+#include "mla_cli_parser_test.h"
 
 #include "native_string_test.h"
 #include "native_list_test.h"
@@ -42,6 +43,7 @@ int run() {
     RegisterReadWriteLockTests(l_TestExecutor);
     RegisterMutexTests(l_TestExecutor);
     RegisterInjectTests(l_TestExecutor);
+    RegisterCliParserTests(l_TestExecutor);
 
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(50);

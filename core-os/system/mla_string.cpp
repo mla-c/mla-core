@@ -5,7 +5,9 @@
 
 #include "mla_string.h"
 
-mla_char_t* mla_create_char_array(const mla_size_t p_Length) {
+#include "../log/mla_logging.h"
+
+mla_char_t * mla_create_char_array(const mla_size_t p_Length) {
     return static_cast<mla_char_t*>(mla_malloc(sizeof(mla_char_t) * p_Length));
 }
 
@@ -137,10 +139,31 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     return -1; // Substring not found
 }
 
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End) {
+
+    // For an substring we dont need to copy any data we can just play with pointers
+    if (p_Start >= p_String.length || p_End >= p_String.length || p_Start > p_End) {
+        return mla_string_empty(); // Invalid range
+    }
+
+    return {
+        p_String.data + p_Start,
+        p_End - p_Start + 1,
+        p_String.dataOwner,
+        MLA_STRING_MEMORY_LAYOUT_SUB_STRING
+    };
+}
+
 void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout) {
 
     if (p_String.memoryLayout == p_NewLayout) {
         return; // No change needed
+    }
+
+    if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_SUB_STRING) {
+        // Substrings are views into other strings, so we cannot convert to this layout directly
+        mla_error("Cannot convert to substring layout directly.");
+        return;
     }
 
     if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {

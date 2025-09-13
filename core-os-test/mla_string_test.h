@@ -222,6 +222,20 @@ void AutoMemoryManagementTest() {
     unsafePointer = nullptr; // Clear the unsafe pointer
 }
 
+void SubStringTest() {
+
+    mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World!"));
+    mla_string_t sub_str = mla_string_substr(mla_str, 7, 11); // "World"
+
+    // Check memory managemant
+    assert_equal(sub_str.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after creating substring");
+    assert_equal(sub_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
+    assert_equal(sub_str.length, (mla_uint32_t)5, "Substring length should be 5");
+    assert_true(mla_string_equals(sub_str, mla_string("World")), "Substring should equal 'World'");
+
+
+}
+
 
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
 
@@ -277,6 +291,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("AutoMemoryManagement", test_category, AutoMemoryManagementTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("SubString", test_category, SubStringTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 }

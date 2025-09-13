@@ -23,6 +23,7 @@ struct mla_c_string_t {
 enum mla_string_memory_layout_t {
     MLA_STRING_MEMORY_LAYOUT_C_STRING, // C-style string (with null terminator)
     MLA_STRING_MEMORY_LAYOUT_BUFFER, // Buffer-based string (without null terminator)
+    MLA_STRING_MEMORY_LAYOUT_SUB_STRING // Substring (view into another string)
 };
 
 mla_char_t* mla_create_char_array(const mla_size_t p_Length);
@@ -62,12 +63,12 @@ mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const ml
 mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
 mla_bool_t mla_string_starts_with(const mla_string_t &p_String, const mla_string_t &p_Prefix);
-
 mla_bool_t mla_string_ends_with(const mla_string_t &p_String, const mla_string_t &p_Suffix);
 
 mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
-
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
+
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End);
 
 void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 

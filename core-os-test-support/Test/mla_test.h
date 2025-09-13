@@ -17,7 +17,7 @@ struct mla_test_result_t {
     mla_test_uint64_t allocated_memory;
 };
 
-static mla_test_result_t current_test_result;
+extern mla_test_result_t current_test_result;
 
 struct mla_test_t {
     const mla_test_char_t *name;
@@ -71,9 +71,9 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
         current_test_result.success = false;
         mla_test_char_t* l_Result = new mla_test_char_t[4096];
         if (p_Message) {
-            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal pointer, but got different struct. %s", p_Line, p_Message);
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal struct, but got different struct. %s", p_Line, p_Message);
         } else {
-            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal pointer, but got different struct.", p_Line);
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal struct, but got different struct.", p_Line);
         }
         current_test_result.message = (mla_test_char_t *)l_Result;
     }

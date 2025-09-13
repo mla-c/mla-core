@@ -11,6 +11,8 @@
 #define mla_hash_map_t_param_full TKey, TValue, Hasher, TKeyInit, TValueInit
 
 #define CONST_mla_hash_map_item_default_size 2
+#define CONST_mla_hash_map_default_bucket_size 8
+#define CONST_mla_hash_map_default_load_factor 0.75
 
 template < mla_hash_map_template >
 struct mla_hash_map_bucket_item_t {
@@ -52,7 +54,7 @@ struct mla_hash_map_t {
 };
 
 template < mla_hash_map_template_full >
-mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = 16, mla_float_t loadFactor = 0.75) {
+mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = CONST_mla_hash_map_default_bucket_size, mla_float_t loadFactor = CONST_mla_hash_map_default_load_factor) {
 
 
     auto array =  mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(bucketCount);
@@ -82,7 +84,7 @@ inline mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map_empty() {
     return {
         0, // Initialize size to 0
         0, // Set the number of buckets to 0
-        0.75, // Default load factor
+        0,
         mla_array_list_empty<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>()
     };
 
@@ -147,6 +149,22 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 
     }
 
+    if (map.bucketCount == 0) {
+        // Initialize with a default bucket count if not already initialized
+        map.bucketCount = CONST_mla_hash_map_default_bucket_size;
+        map.loadFactor = CONST_mla_hash_map_default_load_factor;
+        map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(map.bucketCount);
+
+        for (mla_size_t i = 0; i < map.bucketCount; ++i) {
+
+            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+
+            mla_array_list_add(map.buckets, {
+                items,
+            });
+        }
+    }
+
     // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
 
@@ -176,6 +194,10 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 template < mla_hash_map_template_full >
 mla_bool_t mla_hash_map_contains(const mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key) {
 
+    if (map.size == 0) {
+        return false; // Empty map cannot contain any keys
+    }
+
     // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
 
@@ -194,6 +216,10 @@ mla_bool_t mla_hash_map_contains(const mla_hash_map_t<mla_hash_map_t_param_full>
 
 template < mla_hash_map_template_full >
 mla_bool_t mla_hash_map_remove(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key) {
+
+    if (map.size == 0) {
+        return false; // Empty map cannot contain any keys
+    }
 
     // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
@@ -239,6 +265,11 @@ mla_array_list_t<TKey, TKeyInit> mla_hash_map_keys(const mla_hash_map_t<mla_hash
 template < mla_hash_map_template_full >
 mla_bool_t mla_hash_map_get(const mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, TValue &value) {
 
+    if (map.size == 0) {
+        value = TValueInit::init(); // Set value to default if map is empty
+        return false; // Empty map cannot contain any keys
+    }
+
     // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
 
@@ -261,6 +292,10 @@ mla_bool_t mla_hash_map_get(const mla_hash_map_t<mla_hash_map_t_param_full> &map
 
 template < mla_hash_map_template_full >
 TValue* mla_hash_map_get_ref (mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key) {
+
+    if (map.size == 0) {
+        return nullptr; // Empty map cannot contain any keys
+    }
 
     // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;

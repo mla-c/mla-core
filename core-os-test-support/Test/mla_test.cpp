@@ -4,6 +4,8 @@
 
 #include "mla_test.h"
 
+mla_test_result_t current_test_result;
+
 mla_test_t mla_test(const char *name, const char *category,
                     void (*run)(void),
                     void (*setUp)(void),
