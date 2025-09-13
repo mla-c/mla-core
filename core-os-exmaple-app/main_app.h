@@ -6,9 +6,9 @@
 #define MAIN_APP_H
 
 // Include Global Storage
-#include "../core-os/mla_globals.h"
 #include "../core-os/log/mla_logger_console.h"
 #include "../core-os/log/mla_logging.h"
+#include "main_app_cli.h"
 
 
 int run() {
@@ -18,6 +18,7 @@ int run() {
 
     mla_info("Starting Test Application...");
     mla_info("Test Application started successfully!");
+    main_app_cli_init();
 
 
     mla_task_manager_process_all_tasks();

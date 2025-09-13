@@ -102,3 +102,18 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
     return { newData, newLength, mla_buffer_reference(newData), MLA_STRING_MEMORY_LAYOUT_C_STRING};
 }
+
+mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* p_String2, const mla_string_t&  p_String3, const mla_char_t* p_String4 ) {
+
+    mla_size_t size2 = mla_strlen(p_String2);
+    mla_size_t size4 = mla_strlen(p_String4);
+    mla_size_t newLength = p_String1.length + size2 + p_String3.length + size4;
+    mla_char_t *newData = mla_create_char_array(newLength + 1);
+    mla_memcpy(newData, p_String1.data, p_String1.length);
+    mla_memcpy(newData + p_String1.length, p_String2, size2);
+    mla_memcpy(newData + p_String1.length + size2, p_String3.data, p_String3.length);
+    mla_memcpy(newData + p_String1.length + size2 + p_String3.length, p_String4, size4);
+    newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
+    return { newData, newLength, mla_buffer_reference(newData), MLA_STRING_MEMORY_LAYOUT_C_STRING};
+
+}
