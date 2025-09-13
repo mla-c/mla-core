@@ -4,6 +4,14 @@
 
 #include "mla_memory_hook.h"
 
+// Global memory hook for custom memory management
+mla_global_memory_hook_list_t g_memory_hook = {
+    nullptr,
+    nullptr,
+    0,
+    {}
+};
+
 static mla_pointer_t __mla_memory_malloc_hook(mla_size_t size) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {

@@ -26,8 +26,6 @@ struct mla_task_manager_t {
     mla_rw_lock_t taskLock;
 };
 
-mla_global mla_task_manager_t g_TaskManager;
-
 enum mla_task_manager_state {
     TASK_MANAGER_STATE_UNKNOWN,
     TASK_MANAGER_STATE_PROCESSING,

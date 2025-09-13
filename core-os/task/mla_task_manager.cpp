@@ -4,6 +4,12 @@
 
 #include "mla_task_manager.h"
 
+// Global Task Manager
+mla_task_manager_t g_TaskManager = {
+    mla_array_list_empty<mla_task_t, mla_task_initializer_t>(),
+    mla_rw_lock_create("TaskManager")
+};
+
 mla_int32_t __mla_task_manager_find_task_by_name_no_lock(mla_string_t name) {
 
 

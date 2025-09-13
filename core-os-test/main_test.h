@@ -7,7 +7,6 @@
 
 
 // Include Global Storage
-#include "../core-os/mla_globals.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
@@ -22,6 +21,7 @@
 #include "mla_task_manager_test.h"
 #include "mla_rw_lock_test.h"
 #include "mla_mutex_test.h"
+#include "mla_inject_test.h"
 
 #include "native_string_test.h"
 #include "native_list_test.h"
@@ -41,6 +41,7 @@ int run() {
     RegisterTaskManagerTests(l_TestExecutor);
     RegisterReadWriteLockTests(l_TestExecutor);
     RegisterMutexTests(l_TestExecutor);
+    RegisterInjectTests(l_TestExecutor);
 
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(50);

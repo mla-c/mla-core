@@ -46,8 +46,6 @@ struct mla_logger_manager_t {
     mla_array_list_t<mla_logger_t, mla_logger_initializer> loggers;
 };
 
-mla_global mla_logger_manager_t g_logger_manager;
-
 mla_int32_t mla_log_indexOf_logger(const mla_string_t& loggerName);
 mla_bool_t mla_log_register_logger(const mla_logger_t& logger);
 mla_bool_t mla_log_unregister_logger(const mla_string_t& loggerName);

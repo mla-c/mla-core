@@ -199,4 +199,12 @@ mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, cons
     return -1;
 }
 
+template <mla_array_list_template>
+struct mla_array_list_initializer {
+
+    static mla_array_list_t<T, TInit> init() {
+        return mla_array_list_empty<T, TInit>();
+    }
+};
+
 #endif

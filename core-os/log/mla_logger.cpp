@@ -4,6 +4,12 @@
 
 #include "mla_logger.h"
 
+// Global Log Manager
+
+mla_logger_manager_t g_logger_manager = {
+    mla_array_list_empty<mla_logger_t, mla_logger_initializer>()
+};
+
 mla_int32_t mla_log_indexOf_logger(const mla_string_t& loggerName) {
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_logger_manager.loggers); ++i) {

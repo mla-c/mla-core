@@ -28,8 +28,6 @@ struct mla_global_memory_hook_list_t {
     mla_memory_hook_t hooks[CONST_MLA_MAX_MEMORY_HOOKS];
 };
 
-mla_global mla_global_memory_hook_list_t g_memory_hook;
-
 mla_memory_hook_t mla_memory_hook_install(mla_memory_malloc_hook_t malloc_hook, mla_memory_free_hook_t free_hook);
 mla_bool_t mla_memory_hook_uninstall(const mla_memory_hook_t &hook);
 

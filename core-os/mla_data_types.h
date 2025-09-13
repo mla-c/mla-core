@@ -45,7 +45,7 @@
 
 #define mla_hash_t mla_size_t
 
-
+#define mla_void_t void
 #define mla_pointer_t void*
 
 #define mla_callback_userdata mla_uint64_t
