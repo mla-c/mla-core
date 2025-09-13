@@ -55,16 +55,16 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
     }
 
     if (current_test_result.success) {
-        printf("✓ Test passed: %s->%s", test.category, test.name);
+        mla_test_printf("✓ Test passed: %s->%s", test.category, test.name);
     } else {
-        printf("⚠ Test failed: %s->%s - %s", test.category, test.name, current_test_result.message);
+        mla_test_printf("⚠ Test failed: %s->%s - %s", test.category, test.name, current_test_result.message);
     }
 
 #ifdef mla_debug_build
-    printf(" (Memory allocated: %llu bytes)", current_test_result.allocated_memory);
+    mla_test_printf(" (Memory allocated: %llu bytes)", current_test_result.allocated_memory);
 #endif
 
-    printf("\n");
+    mla_test_printf("\n");
 
     mla_test_bool_t result = current_test_result.success;
 

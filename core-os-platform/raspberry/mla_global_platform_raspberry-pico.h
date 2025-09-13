@@ -15,6 +15,18 @@ void __pico_sleep(mla_uint32_t milliseconds) {
 
 }
 
+mla_int32_t __pico_printf(const mla_char_t* format, ...) {
+
+    mla_char_t* l_Result = new mla_char_t[2048];
+
+    va_list args;
+    va_start(args, format);
+    mla_int32_t result = snprintf(l_Result, 2048, format, args);
+    va_end(args);
+    Serial.print(l_Result);
+    return result;
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
     __generic_memcpy,
@@ -27,7 +39,7 @@ mla_low_level_operations_t g_low_level_access {
         __generic_strstr,
         __generic_malloc,
         __generic_free,
-        __generic_printf,
+        __pico_printf,
         __pico_sleep,
     };
 

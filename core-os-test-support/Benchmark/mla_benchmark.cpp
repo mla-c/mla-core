@@ -107,7 +107,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
-    printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+    mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
            benchmark.category,
            benchmark.name,
            minTime,
@@ -118,7 +118,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
 
 #else
 
-    printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
+    mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
            benchmark.category,
            benchmark.name,
            minTime,

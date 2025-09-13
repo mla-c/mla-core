@@ -29,15 +29,15 @@ void mla_benchmark_executor_destroy(mla_benchmark_executor_t &executor) {
 void __mla_benchmark_print_into_text() {
 
 #ifdef mla_debug_build
-    printf("#########################################################################\n");
-    printf("Benchmarking in DEBUG mode is not recommended.\n");
-    printf("Please run benchmarks in RELEASE mode for accurate results.\n");
-    printf("#########################################################################\n\n");
+    mla_test_printf("#########################################################################\n");
+    mla_test_printf("Benchmarking in DEBUG mode is not recommended.\n");
+    mla_test_printf("Please run benchmarks in RELEASE mode for accurate results.\n");
+    mla_test_printf("#########################################################################\n\n");
 
 #endif
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
-    printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
+    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
            "No",
            "Category",
            "Name",
@@ -48,7 +48,7 @@ void __mla_benchmark_print_into_text() {
            "Iterations");
 #else
 
-    printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
+    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
            "No",
            "Category",
            "Name",
@@ -65,7 +65,7 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor) {
 
     for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
-            printf("%3ld", i + 1);
+            mla_test_printf("%3ld", i + 1);
             mla_benchmark_run(executor.benchmarks[i]);
         }
     }
@@ -80,11 +80,11 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
 
 
     if (benchmark_index >= executor.max_benchmarks || executor.benchmarks[benchmark_index].name == nullptr) {
-        printf("Invalid benchmark index: %ld\n", benchmark_number);
+        mla_test_printf("Invalid benchmark index: %ld\n", benchmark_number);
         return; // Invalid benchmark index
     }
 
-    printf("%3ld", benchmark_number);
+    mla_test_printf("%3ld", benchmark_number);
     mla_benchmark_run(executor.benchmarks[benchmark_index]);
 
 }

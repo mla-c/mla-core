@@ -34,7 +34,7 @@ mla_test_int32_t mla_test_executor_run_test(mla_test_executor_t &executor, mla_t
         return -1; // Invalid test index
     }
 
-    printf("%ld). ", test_index + 1);
+    mla_test_printf("%ld). ", test_index + 1);
     if (mla_test_run(executor.tests[test_index])) {
         return 0; // Test passed
     } else {
@@ -49,7 +49,7 @@ mla_test_int32_t mla_test_executor_run_all_tests(mla_test_executor_t &executor) 
 
     for (mla_test_int32_t i = 0; i < executor.max_tests; ++i) {
         if (executor.tests[i].name != nullptr) {
-            printf("%ld). ", i + 1);
+            mla_test_printf("%ld). ", i + 1);
             if (!mla_test_run(executor.tests[i])) {
                 failed_tests++;
             }

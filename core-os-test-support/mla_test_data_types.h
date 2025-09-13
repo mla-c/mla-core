@@ -21,4 +21,17 @@
 
 #define mla_test__FILENAME_ONLY__ (strrchr("/" __FILE__, '/') + 1)
 
+
+// Define a print function structure to allow custom print functions
+// This is useful for embedded systems where printf may not be available
+
+struct mla_test_print_t {
+    void (*printf)(const char* format, ...);
+};
+
+extern mla_test_print_t g_test_print;
+
+#define mla_test_printf(...) g_test_print.printf(__VA_ARGS__);
+
+
 #endif
