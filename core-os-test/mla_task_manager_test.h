@@ -73,7 +73,7 @@ void RepeatingTaskTest() {
     assert_equal(info.stack_size, TASK_STACK_SIZE_DEFAULT, "Task stack size should be default");
     assert_equal(info.state, TASK_STATE_COMPLETED, "Task state should be completed");
 
-    assert_equal(RepeatingTaskTestWorkerCount, 10, "RepeatingTaskTestWorker should have been called 10 times");
+    assert_equal(RepeatingTaskTestWorkerCount, (mla_size_t)10, "RepeatingTaskTestWorker should have been called 10 times");
 
 }
 

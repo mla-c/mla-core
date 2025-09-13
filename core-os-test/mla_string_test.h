@@ -50,9 +50,9 @@ void StartsWithTest() {
 void LengthTest() {
 
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_str.length, (mla_int32_t)13, "MlaString length should be 13");
+    assert_equal(mla_str.length, (mla_uint32_t)13, "MlaString length should be 13");
     mla_string_t empty_mla_str = mla_string("");
-    assert_equal(empty_mla_str.length, (mla_int32_t)0, "Length of empty MlaString should be 0");
+    assert_equal(empty_mla_str.length, (mla_uint32_t)0, "Length of empty MlaString should be 0");
 }
 
 void EndsWithTest() {
@@ -112,7 +112,7 @@ void ToCStringTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_int32_t)13, "MlaString C-string length should be 13");
+    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
     mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
 }
@@ -122,7 +122,7 @@ void ToCString_No_Force_CopyTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_int32_t)13, "MlaString C-string length should be 13");
+    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     assert_false(mla_c_str.isOwner, "MlaString C-string should not be owned by the caller");
 }
 
@@ -131,7 +131,7 @@ void ToCStringFromBufferTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_int32_t)13, "MlaString C-string length should be 13");
+    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
     mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
 }
@@ -141,12 +141,12 @@ void ToCStringFromBuffer_No_Force_CopyTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_int32_t)13, "MlaString C-string length should be 13");
+    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     assert_false(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
 
     mla_c_string_t mla_c_str2 = mla_string_to_cString(mla_str, false);
     assert_true(mla_c_str2.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str2.c_str), (mla_int32_t)13, "MlaString C-string length should be 13");
+    assert_equal(mla_strlen(mla_c_str2.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     assert_false(mla_c_str2.isOwner, "MlaString C-string should not be owned by the caller");
 }
 
@@ -164,7 +164,7 @@ void ConcatTest() {
     mla_string_t mla_str2 = mla_string("World!");
     mla_string_t mla_result = mla_string_concat(mla_str1, mla_str2);
 
-    assert_equal(mla_result.length, (mla_int32_t)13, "MlaString concatenated length should be 13");
+    assert_equal(mla_result.length, (mla_uint32_t)13, "MlaString concatenated length should be 13");
     assert_true(mla_string_equals(mla_result, mla_string("Hello, World!")), "MlaString concatenated should equal 'Hello, World!'");
 
     mla_string_destroy(mla_result);
@@ -194,20 +194,20 @@ void AutoMemoryManagementTest() {
 
         {
             mla_string_t data = mla_string_concat(mla_string("Hello, "), mla_string("World!"), mla_string(" This is a test of concatenation."));
-            assert_equal(data.length, (mla_int32_t)46, "Concatenated string length should be 58");
+            assert_equal(data.length, (mla_uint32_t)46, "Concatenated string length should be 58");
 
-            assert_equal(data.dataOwner.buffer->refCount, (mla_int32_t)1, "Reference count should be 1 after concatenation");
+            assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after concatenation");
             datacopy = data;
-            assert_equal(data.dataOwner.buffer->refCount, (mla_int32_t)2, "Reference count should be 2 after copying");
-            assert_equal(datacopy.dataOwner.buffer->refCount, (mla_int32_t)2, "Reference count should be 2 after copying");
+            assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
+            assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
             assert_equal(datacopy.dataOwner.buffer->data, data.dataOwner.buffer->data, "Copied string data should match original");
 
             data = mla_string_empty(); // Clear the original string
         }
 
-        assert_equal(datacopy.dataOwner.buffer->refCount, (mla_int32_t)1, "Reference count should be 1 after clearing the original string");
+        assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after clearing the original string");
 
-        assert_equal(datacopy.length, (mla_int32_t)46, "Copied string length should still be 58");
+        assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
         assert_true(mla_string_equals(datacopy, mla_string("Hello, World! This is a test of concatenation.")),
                    "Copied string should equal 'Hello, World! This is a test of concatenation.'");
 

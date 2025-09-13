@@ -106,7 +106,7 @@ void ArrayListRemoveTest() {
     mla_array_list_add(mla_arr, 1);
     mla_array_list_add(mla_arr, 2);
     mla_array_list_add(mla_arr, 3);
-    assert_equal(mla_arr.size, 3, "List size should be 3 after adding 3 items");
+    assert_equal(mla_arr.size, (mla_size_t)3, "List size should be 3 after adding 3 items");
 
     mla_bool_t removed = mla_array_list_remove<int>(mla_arr, 1);
     assert_true(removed, "List should remove '2'");
@@ -114,7 +114,7 @@ void ArrayListRemoveTest() {
     assert_true(mla_array_list_contains<int>(mla_arr, 1), "List should still contain '1'");
     assert_true(mla_array_list_contains<int>(mla_arr, 3), "List should still contain '3'");
 
-    assert_equal(mla_arr.size, 2, "List size should be 2 after removal");
+    assert_equal(mla_arr.size, (mla_size_t)2, "List size should be 2 after removal");
 
 }
 
@@ -126,7 +126,7 @@ void ArrayListClearTest() {
     mla_array_list_add(mla_arr, 3);
 
     mla_array_list_clear(mla_arr);
-    assert_equal(mla_arr.size, 0, "List size should be 0 after clearing");
+    assert_equal(mla_arr.size, (mla_size_t)0, "List size should be 0 after clearing");
     assert_false(mla_array_list_contains<int>(mla_arr, 1), "List should not contain '1' after clearing");
     assert_false(mla_array_list_contains<int>(mla_arr, 2), "List should not contain '2' after clearing");
     assert_false(mla_array_list_contains<int>(mla_arr, 3), "List should not contain '3' after clearing");
@@ -153,7 +153,7 @@ void ArrayListAddMuchItemsTest() {
         mla_array_list_add(mla_arr, i);
     }
 
-    assert_equal(mla_arr.size, 1000, "List size should be 1000 after adding 1000 items");
+    assert_equal(mla_arr.size, (mla_size_t)1000, "List size should be 1000 after adding 1000 items");
 
     for (int i = 0; i < 1000; ++i) {
         assert_true(mla_array_list_contains<int>(mla_arr, i), "List should contain item");
@@ -169,7 +169,7 @@ void ArrayListAddMuchItemsNoGrowTest() {
         mla_array_list_add(mla_arr, i);
     }
 
-    assert_equal(mla_arr.size, 1000, "List size should be 1000 after adding 1000 items");
+    assert_equal(mla_arr.size, (mla_size_t)1000, "List size should be 1000 after adding 1000 items");
     assert_equal(internal_buffer, mla_arr.items, "Internal buffer should not change after adding 1000 items");
 
     for (int i = 0; i < 1000; ++i) {
@@ -184,12 +184,12 @@ void ArrayListGrowTest() {
         mla_array_list_add(mla_arr, i);
     }
 
-    assert_equal(mla_arr.size, 20, "List size should be 20 after adding 20 elements");
+    assert_equal(mla_arr.size, (mla_size_t)20, "List size should be 20 after adding 20 elements");
     for (int i = 0; i < 20; ++i) {
         assert_true(mla_array_list_contains<int>(mla_arr, i), "List should contain element");
     }
 
-    assert_equal(mla_array_list_capacity(mla_arr), 20, "List capacity should be 20 after growing");
+    assert_equal(mla_array_list_capacity(mla_arr), (mla_size_t)20, "List capacity should be 20 after growing");
 }
 
 void ArrayListShrinkTest() {
@@ -201,8 +201,8 @@ void ArrayListShrinkTest() {
 
     mla_array_list_shrink_to_fit(mla_arr);
 
-    assert_equal(mla_arr.size, 20, "List size should be 20 after adding 20 elements");
-    assert_equal(mla_array_list_capacity(mla_arr), 20, "List capacity should be 20 after shrinking");
+    assert_equal(mla_arr.size, (mla_size_t)20, "List size should be 20 after adding 20 elements");
+    assert_equal(mla_array_list_capacity(mla_arr), (mla_size_t)20, "List capacity should be 20 after shrinking");
 }
 
 void ArrayListItemMemoryManagementTest() {
@@ -211,23 +211,23 @@ void ArrayListItemMemoryManagementTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
     mla_array_list_add(mla_arr, mla_str1);
     mla_array_list_add(mla_arr, mla_str2);
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after adding to list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after adding to list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
 
     mla_array_list_remove(mla_arr, 0);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after removal from list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should still have refCount of 2 after removal of String 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after removal from list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
 
     mla_array_list_clear(mla_arr);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after clearing list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after clearing list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
 
 
 }
@@ -238,21 +238,21 @@ void ArrayListItemMemoryManagementDestroyTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
         mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
         mla_array_list_add(mla_arr, mla_str1);
         mla_array_list_add(mla_arr, mla_str2);
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after adding to list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after adding to list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
 
 }
 
@@ -263,8 +263,8 @@ void ArrayListItemMemoryManagementDestroy2Test() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
 
@@ -277,15 +277,15 @@ void ArrayListItemMemoryManagementDestroy2Test() {
             other = mla_arr;
         }
 
-        assert_equal(mla_array_list_size(other), 2, "Other list should have size 2 after assignment");
+        assert_equal(mla_array_list_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after assignment to other list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after assignment to other list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after assignment to other list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after assignment to other list");
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
 
 
 }
@@ -306,16 +306,16 @@ void ArrayListMultiVariableAndMutationTest() {
     mla_array_list_t<int> other1 = container.arr;
     mla_array_list_t<int>* other2 = &container.arr;
 
-    assert_equal(mla_array_list_size(container.arr), 3, "Container should have size 3 after adding 3 items");
-    assert_equal(mla_array_list_size(other1), 3, "Other1 should have size 3 after assignment");
-    assert_equal(mla_array_list_size(*other2), 3, "Other2 should have size 3 after assignment");
+    assert_equal(mla_array_list_size(container.arr), (mla_size_t)3, "Container should have size 3 after adding 3 items");
+    assert_equal(mla_array_list_size(other1), (mla_size_t)3, "Other1 should have size 3 after assignment");
+    assert_equal(mla_array_list_size(*other2), (mla_size_t)3, "Other2 should have size 3 after assignment");
 
     // Mutate the original array list
     addOneItemToArray(container.arr, 4);
 
-    assert_equal(mla_array_list_size(container.arr), 4, "Container should have size 3 after adding 3 items");
-    assert_equal(mla_array_list_size(other1), 3, "Other1 should have size 3 after assignment");
-    assert_equal(mla_array_list_size(*other2), 4, "Other2 should have size 4 after mutation of container");
+    assert_equal(mla_array_list_size(container.arr), (mla_size_t)4, "Container should have size 3 after adding 3 items");
+    assert_equal(mla_array_list_size(other1), (mla_size_t)3, "Other1 should have size 3 after assignment");
+    assert_equal(mla_array_list_size(*other2), (mla_size_t)4, "Other2 should have size 4 after mutation of container");
 
 }
 

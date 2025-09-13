@@ -44,16 +44,16 @@ void SimpleReleaseTest() {
     mla_pointer_t data = mla_malloc(64);
 
     my_buffer_test_t container = {data, mla_buffer(data)};
-    assert_equal(container.dataOwner.buffer->refCount, 1, "Reference count should be 1 after creation");
+    assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
     assert_false(is_buffer_destroyed, "Buffer should not be destroyed yet");
 
     {
         my_buffer_test_t container2 = container; // Copy constructor
-        assert_equal(container2.dataOwner.buffer->refCount, 2, "Reference count should be 2 after copy");
+        assert_equal(container2.dataOwner.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after copy");
         assert_false(is_buffer_destroyed, "Buffer should not be destroyed yet");
     }
 
-    assert_equal(container.dataOwner.buffer->refCount, 1, "Reference count should be 1 after copy goes out of scope");
+    assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after copy goes out of scope");
     container = {nullptr, mla_buffer_reference_noOwner()}; // Clear the container
     assert_true(is_buffer_destroyed, "Buffer should be destroyed after clearing the container");
 
@@ -73,7 +73,7 @@ void CleanUpHookTests() {
 
     mla_pointer_t data = mla_malloc(64);
     my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, 42)};
-    assert_equal(container.dataOwner.buffer->refCount, 1, "Reference count should be 1 after creation");
+    assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
 
     my_test_user_data = 0; // Reset user data before cleanup
     container = {nullptr, mla_buffer_reference_noOwner()}; // Clear the container

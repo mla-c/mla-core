@@ -98,14 +98,14 @@ void LinkListRemoveTest() {
     mla_link_list_add(mla_list, 1);
     mla_link_list_add(mla_list, 2);
     mla_link_list_add(mla_list, 3);
-    assert_equal(mla_link_list_size(mla_list), 3, "List size should be 3 after adding 3 items");
+    assert_equal(mla_link_list_size(mla_list), (mla_size_t)3, "List size should be 3 after adding 3 items");
 
     mla_bool_t removed = mla_link_list_remove<int>(mla_list, 1);
     assert_true(removed, "List should remove '2'");
     assert_false(mla_link_list_contains<int>(mla_list, 2), "List should not contain '2' after removal");
     assert_true(mla_link_list_contains<int>(mla_list, 1), "List should still contain '1'");
     assert_true(mla_link_list_contains<int>(mla_list, 3), "List should still contain '3'");
-    assert_equal(mla_link_list_size(mla_list), 2, "List size should be 2 after removal");
+    assert_equal(mla_link_list_size(mla_list), (mla_size_t)2, "List size should be 2 after removal");
 
 }
 
@@ -117,7 +117,7 @@ void LinkListClearTest() {
     mla_link_list_add(mla_list, 3);
 
     mla_link_list_clear(mla_list);
-    assert_equal(mla_link_list_size(mla_list), 0, "List size should be 0 after clearing");
+    assert_equal(mla_link_list_size(mla_list), (mla_size_t)0, "List size should be 0 after clearing");
     assert_false(mla_link_list_contains<int>(mla_list, 1), "List should not contain '1' after clearing");
     assert_false(mla_link_list_contains<int>(mla_list, 2), "List should not contain '2' after clearing");
     assert_false(mla_link_list_contains<int>(mla_list, 3), "List should not contain '3' after clearing");
@@ -144,7 +144,7 @@ void LinkListAddMuchItemsTest() {
         mla_link_list_add(mla_list, i);
     }
 
-    assert_equal(mla_link_list_size(mla_list), 1000, "List size should be 1000 after adding 1000 items");
+    assert_equal(mla_link_list_size(mla_list), (mla_size_t)1000, "List size should be 1000 after adding 1000 items");
 
     for (int i = 0; i < 1000; ++i) {
         assert_true(mla_link_list_contains<int>(mla_list, i), "List should contain item");
@@ -157,23 +157,23 @@ void LinkListItemMemoryManagementTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     mla_link_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_link_list<mla_string_t, mla_string_initializer>();
     mla_link_list_add(mla_arr, mla_str1);
     mla_link_list_add(mla_arr, mla_str2);
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after adding to list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after adding to list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
 
     mla_link_list_remove(mla_arr, 0);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after removal from list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should still have refCount of 2 after removal of String 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after removal from list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
 
     mla_link_list_clear(mla_arr);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after clearing list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after clearing list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
 
 }
 
@@ -183,21 +183,21 @@ void LinkListItemMemoryManagementDestroyTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
         mla_link_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_link_list<mla_string_t, mla_string_initializer>();
         mla_link_list_add(mla_arr, mla_str1);
         mla_link_list_add(mla_arr, mla_str2);
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after adding to list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after adding to list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
     }
 
     // After the link list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after link list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after link list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after link list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after link list destruction");
 
 }
 
@@ -207,8 +207,8 @@ void LinkListItemMemoryManagementDestroy2Test() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
 
@@ -218,23 +218,23 @@ void LinkListItemMemoryManagementDestroy2Test() {
             mla_link_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_link_list<mla_string_t, mla_string_initializer>();
             mla_link_list_add(mla_arr, mla_str1);
             mla_link_list_add(mla_arr, mla_str2);
-            assert_equal(mla_arr.data->head->nextOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after adding to list");
+            assert_equal(mla_arr.data->head->nextOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
             other = mla_arr;
-            assert_equal(mla_arr.data->head->nextOwner.buffer->refCount, 3, "Array should have refCount of 3 after assignment to other list");
-            assert_equal(other.data->head->nextOwner.buffer->refCount, 3, "Other list should have refCount of 3 after assignment");
+            assert_equal(mla_arr.data->head->nextOwner.buffer->refCount, (mla_size_t)3, "Array should have refCount of 3 after assignment to other list");
+            assert_equal(other.data->head->nextOwner.buffer->refCount, (mla_size_t)3, "Other list should have refCount of 3 after assignment");
 
         }
 
-        assert_equal(mla_link_list_size(other), 2, "Other list should have size 2 after assignment");
-        assert_equal(other.data->head->nextOwner.buffer->refCount, 2, "link should have refCount of 2 after other list is removed");
+        assert_equal(mla_link_list_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
+        assert_equal(other.data->head->nextOwner.buffer->refCount, (mla_size_t)2, "link should have refCount of 2 after other list is removed");
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 2 after assignment to other list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should have refCount of 2 after assignment to other list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after assignment to other list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after assignment to other list");
     }
 
     // After the link list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after link list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after link list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after link list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after link list destruction");
 
 
 }

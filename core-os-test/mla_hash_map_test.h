@@ -120,7 +120,7 @@ void HashMapClearTest() {
 
     mla_hash_map_clear(map);
 
-    assert_equal(mla_hash_map_size(map), 0l, "HashMap should be empty after clear");
+    assert_equal(mla_hash_map_size(map), (mla_size_t)0l, "HashMap should be empty after clear");
 
 }
 
@@ -133,7 +133,7 @@ void HashMapGetKeysTest() {
 
     mla_array_list_t<mla_int32_t> keys = mla_hash_map_keys(map);
 
-    assert_equal(mla_array_list_size(keys), 3l, "HashMap should have 3 keys");
+    assert_equal(mla_array_list_size(keys), (mla_size_t)3l, "HashMap should have 3 keys");
     assert_true(mla_array_list_contains(keys, 1l), "Keys should contain 1");
     assert_true(mla_array_list_contains(keys, 2l), "Keys should contain 2");
     assert_true(mla_array_list_contains(keys, 3l), "Keys should contain 3");
@@ -226,23 +226,23 @@ void HashMapItemMemoryManagementTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> mla_map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
     mla_hash_map_push(mla_map, mla_str1, mla_str2);
     mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 2 after adding to list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 2 after adding to list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)3, "String 1 should have refCount of 2 after adding to list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)3, "String 2 should have refCount of 2 after adding to list");
 
     mla_hash_map_remove(mla_map, mla_str1);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 2, "String 1 should have refCount of 1 after removal from list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 2, "String 2 should still have refCount of 2 after removal of String 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 1 after removal from list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
 
     mla_hash_map_clear(mla_map);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after clearing list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after clearing list");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
 
 
 }
@@ -253,21 +253,21 @@ void HashMapItemMemoryManagementDestroyTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
         mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> mla_map = mla_hash_map<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
         mla_hash_map_push(mla_map, mla_str1, mla_str2);
         mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 2 after adding to list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 2 after adding to list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)3, "String 1 should have refCount of 2 after adding to list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)3, "String 2 should have refCount of 2 after adding to list");
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
 
 }
 
@@ -278,8 +278,8 @@ void HashMapItemMemoryManagementDestroy2Test() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
 
     {
 
@@ -290,30 +290,30 @@ void HashMapItemMemoryManagementDestroy2Test() {
             mla_hash_map_push(mla_map, mla_str1, mla_str2);
             mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-            assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
-            assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)3, "String 1 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)3, "String 2 should have refCount of 3 after assignment to other list");
 
-            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, 1, "Map buckets should have refCount of 1 after creation");
+            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, (mla_size_t)1, "Map buckets should have refCount of 1 after creation");
             other = mla_map;
-            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, 2, "Map buckets should have refCount of 2 after assignment to other list");
+            assert_equal(mla_map.buckets.itemsOwner.buffer->refCount, (mla_size_t)2, "Map buckets should have refCount of 2 after assignment to other list");
 
             // Ref COunter should not change because we are assigning the map to another variable
             // The strings are still owned by the internal array
-            assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
-            assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)3, "String 1 should have refCount of 3 after assignment to other list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)3, "String 2 should have refCount of 3 after assignment to other list");
         }
 
-        assert_equal(other.buckets.itemsOwner.buffer->refCount, 1, "refcount should be 1 after map destruction");
+        assert_equal(other.buckets.itemsOwner.buffer->refCount, (mla_size_t)1, "refcount should be 1 after map destruction");
 
-        assert_equal(mla_hash_map_size(other), 2, "Other list should have size 2 after assignment");
+        assert_equal(mla_hash_map_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, 3, "String 1 should have refCount of 3 after assignment to other list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, 3, "String 2 should have refCount of 3 after assignment to other list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)3, "String 1 should have refCount of 3 after assignment to other list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)3, "String 2 should have refCount of 3 after assignment to other list");
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, 1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, 1, "String 2 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
 
 
 }
