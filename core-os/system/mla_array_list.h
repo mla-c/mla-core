@@ -74,12 +74,20 @@ void mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize)
     if (newSize >= list.size) {
 
         // Resize the array if the new size exceeds the current capacity
-        T* newItems = static_cast<T*>(mla_malloc(newSize * sizeof(T)));
+        mla_size_t newSizeInBytes = newSize * sizeof(T);
+        T* newItems = static_cast<T*>(mla_malloc(newSizeInBytes));
 
         if (list.items != nullptr) {
-            mla_memcpy(newItems, list.items, list.size * sizeof(T));
+            mla_size_t oldSizeInBytes = list.size * sizeof(T);
+            mla_memcpy(newItems, list.items, oldSizeInBytes);
+
+            if (oldSizeInBytes < newSizeInBytes) {
+                // Initialize the new elements to default value
+                mla_memset(newItems + list.size, 0, newSizeInBytes - oldSizeInBytes);
+            }
+
         } else {
-            mla_memset(newItems, 0, newSize * sizeof(T));
+            mla_memset(newItems, 0, newSizeInBytes);
         }
 
         list.items = newItems;
