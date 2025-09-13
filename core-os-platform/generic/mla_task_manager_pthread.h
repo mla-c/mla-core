@@ -6,7 +6,7 @@
 #define COREOS_MLA_TASK_MANAGER_PTHREAD_H
 
 #include "../../core-os/task/mla_task_manager.h"
-#include "pthread.h"
+#include <pthread.h>
 
 struct mla_task_manager_pthread_data_t {
     pthread_t thread;

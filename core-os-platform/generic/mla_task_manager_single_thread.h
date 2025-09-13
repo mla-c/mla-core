@@ -11,6 +11,9 @@
 
 #include "../../core-os/task/mla_task_manager.h"
 
+// Provide by the task manager implementation file.
+extern mla_task_manager_t g_TaskManager;
+
 mla_bool_t mla_task_manager_single_thread_create_task(
     const mla_task_worker_t worker,
     mla_callback_userdata userData,
