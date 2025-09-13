@@ -91,25 +91,13 @@ const mla_array_list_t<mla_inject_service_t<T>> mla_inject_get_all_services() {
 }
 
 template <typename T>
-mla_bool_t mla_inject_register_service(mla_inject_factory_fn factory) {
-    mla_string_t serviceName = T::get_service_name();
-    return mla_inject_register_service(serviceName, factory);
-}
-
-template <typename T>
-mla_bool_t mla_inject_unregister_service(mla_inject_factory_fn factory) {
-    mla_string_t serviceName = T::get_service_name();
-    return mla_inject_unregister_service(serviceName, factory);
-}
-
-template <typename T>
-mla_bool_t mla_inject_register_singleton() {
+mla_bool_t mla_inject_register_service() {
     mla_string_t serviceName = T::get_service_name();
     return mla_inject_register_service(serviceName, T::get_instance);
 }
 
 template <typename T>
-mla_bool_t mla_inject_unregister_singleton() {
+mla_bool_t mla_inject_unregister_service() {
     mla_string_t serviceName = T::get_service_name();
     return mla_inject_unregister_service(serviceName, T::get_instance);
 }
