@@ -71,7 +71,7 @@ mla_bool_t mla_inject_is_service_registered() {
 }
 
 template <typename T>
-const mla_array_list_t<mla_inject_service_t<T>> mla_inject_get_all_services() {
+mla_array_list_t<mla_inject_service_t<T>, mla_inject_service_initializer<T>> mla_inject_get_all_services() {
 
     mla_string_t serviceName = T::get_service_name();
     auto services = mla_inject_get_all_services(serviceName);

@@ -667,4 +667,56 @@ inline void RegisterInjectTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
+void SetupInjectBenchmarks() {
+    mla_inject_reset();
+
+    mla_inject_register_service<mla_test_service_singleton_t>();
+    mla_inject_register_service<mla_test_service_singleton_t>();
+    mla_inject_register_service<mla_test_service_singleton_t>();
+
+    mla_inject_register_service<mla_test_service_b_t>();
+    mla_inject_register_service<mla_test_service_with_dependency_t>();
+
+    // Register 100 additional Services
+    for (mla_int32_t i = 0; i < 100; ++i) {
+        mla_inject_register_service(mla_string_concat("Dummy", i), mla_test_service_instance_per_request_t::get_instance);
+    }
+
+}
+
+void TeardownInjectBenchmarks() {
+    mla_inject_reset();
+}
+
+void GetServiceBenchmark() {
+
+    auto service = mla_inject_get_service<mla_test_service_singleton_t>();
+
+    if (service.service == nullptr) {
+        static_assert(true, "Service should be available.");
+    }
+
+
+}
+
+void GetAllServiceBenchmark() {
+
+    auto service = mla_inject_get_all_services<mla_test_service_singleton_t>();
+
+    if (service.size != 3) {
+        static_assert(true, "There should be exactly 3 singleton services registered.");
+    }
+
+}
+
+
+void RegisterInjectBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("GetSingleService", benchmark_category, GetServiceBenchmark, SetupInjectBenchmarks, TeardownInjectBenchmarks);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("GetAllService", benchmark_category, GetAllServiceBenchmark, SetupInjectBenchmarks, TeardownInjectBenchmarks);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+}
+
 #endif

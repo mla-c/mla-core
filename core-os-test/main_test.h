@@ -53,6 +53,7 @@ int run() {
     RegisterHashMapBenchmarks(l_BenchmarkExecutor);
     RegisterMutexBenchmarks(l_BenchmarkExecutor);
     RegisterReadWriteLockBenchmarks(l_BenchmarkExecutor);
+    RegisterInjectBenchmarks(l_BenchmarkExecutor);
 
     // Native Test for comparison with C++ std::string
     RegisterNativeStringBenchmarks(l_BenchmarkExecutor);
