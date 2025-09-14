@@ -61,3 +61,62 @@ mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, m
         mla_buffer_reference_noOwner(),
     };
 }
+
+// Utils
+const mla_char_t* mla_task_priority_to_string(mla_task_priority priority) {
+
+    switch (priority) {
+        case TASK_PRIO_LOW:
+            return "LOW";
+        case TASK_PRIO_NORMAL:
+            return "NORMAL";
+        case TASK_PRIO_HIGH:
+            return "HIGH";
+        default:
+            return "UNKNOWN";
+    }
+
+}
+
+const mla_char_t* mla_task_state_to_string(mla_task_state state) {
+
+    switch (state) {
+        case TASK_STATE_STARTING:
+            return "STARTING";
+        case TASK_STATE_RUNNING:
+            return "RUNNING";
+        case TASK_STATE_COMPLETED:
+            return "COMPLETED";
+        case TASK_STATE_ABORTING:
+            return "ABORTING";
+        case TASK_STATE_ABORTED:
+            return "ABORTED";
+        case TASK_STATE_UNKNOWN:
+            return "UNKNOWN";
+        default:
+            return "INVALID";
+    }
+
+}
+
+const mla_char_t* mla_task_stack_size_to_string(mla_task_stack_size stack_size) {
+
+    switch (stack_size) {
+        case TASK_STACK_SIZE_TINY:
+            return "TINY";
+        case TASK_STACK_SIZE_SMALL:
+            return "SMALL";
+        case TASK_STACK_SIZE_MEDIUM:
+            return "MEDIUM";
+        case TASK_STACK_SIZE_LARGE:
+            return "LARGE";
+        case TASK_STACK_SIZE_XLARGE:
+            return "XLARGE";
+        case TASK_STACK_SIZE_XXLARGE:
+            return "XXLARGE";
+        case TASK_STACK_SIZE_DEFAULT:
+            return "DEFAULT";
+        default:
+            return "UNKNOWN";
+    }
+}

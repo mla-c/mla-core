@@ -2,7 +2,7 @@
 // Created by christian on 9/13/25.
 //
 
-#include "mla_cli_app_t.h"
+#include "mla_cli_app.h"
 #include "mla_cli_parser.h"
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
@@ -14,6 +14,11 @@ void __mla_cli_write_string(const mla_stream_output_t &outputStream, mla_string_
 void __mla_cli_command_execute_outstream_to_stream_bridge(mla_callback_userdata userdata, const mla_string_t &data) {
     const mla_stream_output_t *output = reinterpret_cast<const mla_stream_output_t *>(userdata);
     __mla_cli_write_string(*output, data);
+}
+
+void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(mla_callback_userdata userdata, const mla_char_t* data) {
+    const mla_stream_output_t *output = reinterpret_cast<const mla_stream_output_t *>(userdata);
+    output->write(output->userdata, 0, mla_strlen(data), (mla_byte_t*)data);
 }
 
 void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t &outputStream) {
@@ -39,7 +44,7 @@ void __mla_activate_module(mla_cli_app_t &app, mla_cli_module_t &module, const m
     __mla_cli_write_module_prompt(app, outputStream);
 }
 
-void __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
+mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
                                 const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
@@ -51,12 +56,15 @@ void __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
     }
 
     __mla_cli_write_module_prompt(*app, *reinterpret_cast<const mla_stream_output_t *>(out.userdata));
+    return true;
 }
 
 mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
+
+    // Start with command usage
     mla_string_t result = mla_string_concat("  ", command.name);
 
-    // Add parameters
+    // Add parameters to usage line
     for (mla_size_t i = 0; i < mla_array_list_size(command.parameters); ++i) {
         mla_cli_command_parameter_t *param = mla_array_list_get_ref(command.parameters, i);
         if (param->mandatory) {
@@ -66,10 +74,32 @@ mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
         }
     }
 
+    // Add command description if available
+    if (command.description.length > 0) {
+        result = mla_string_concat(result, "\n    ", command.description);
+    }
+
+    // Add parameter descriptions
+    for (mla_size_t i = 0; i < mla_array_list_size(command.parameters); ++i) {
+        mla_cli_command_parameter_t *param = mla_array_list_get_ref(command.parameters, i);
+
+        if (param->description.length > 0) {
+            mla_string_t paramDesc = mla_string_concat("\n      --", param->parameterName, ": ",
+                                                      param->description);
+            if (param->mandatory) {
+                paramDesc = mla_string_concat(paramDesc, " (required)");
+            } else {
+                paramDesc = mla_string_concat(paramDesc, " (optional)");
+            }
+
+            result = mla_string_concat(result, paramDesc);
+        }
+    }
+
     return result;
 }
 
-void __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
+mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
                                 const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
@@ -79,13 +109,13 @@ void __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
     mla_size_t size = mla_array_list_size(app->activeModules);
 
     if (size == 0) {
-        return;
+        return true;
     }
 
     const mla_cli_module_t *activeModule = mla_array_list_get_ref(app->activeModules, size - 1);
 
     if (activeModule == nullptr) {
-        return;
+        return true;
     }
 
     // List all commands
@@ -101,9 +131,11 @@ void __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
         mla_string_t commandFormated = __mla_cli_format_command(*commandOfModule);
         out.write(out.userdata, mla_string_concat(commandFormated, "\n"));
     }
+
+    return true;
 }
 
-void __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &command,
+mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &command,
                                            const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                                mla_string_initializer> &parameters,
                                            const mla_cli_command_execute_outstream_t &out) {
@@ -112,6 +144,7 @@ void __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &command,
     mla_cli_module_t *subModule = reinterpret_cast<mla_cli_module_t *>(command.userdata2);
     const mla_stream_output_t *outputStream = reinterpret_cast<const mla_stream_output_t *>(out.userdata);
     __mla_activate_module(*app, *subModule, *outputStream);
+    return true;
 }
 
 mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
@@ -143,7 +176,7 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
 
     // Back Command if we are not in the root module
     if (moduleCount > 1) {
-        mla_cli_command_t cmdExit = mla_cli_command("exit");
+        mla_cli_command_t cmdExit = mla_cli_command(mla_string_const("exit"));
 
         cmdExit.userdata = reinterpret_cast<mla_callback_userdata>(&app);
         cmdExit.execute = __mla_cli_cmd_exit_execute;
@@ -151,7 +184,7 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
     }
 
     // Help command
-    mla_cli_command_t cmdHelp = mla_cli_command("help");
+    mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"));
     cmdHelp.userdata = reinterpret_cast<mla_callback_userdata>(&app);
     cmdHelp.execute = __mla_cli_cmd_help_execute;
     mla_array_list_add(parser.availableCommands, cmdHelp);
@@ -184,7 +217,8 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
         if (parser_result.matchingCommand.execute != nullptr) {
             mla_cli_command_execute_outstream_t stringOutstream = {
                 reinterpret_cast<mla_callback_userdata>(&outputStream),
-                __mla_cli_command_execute_outstream_to_stream_bridge
+                __mla_cli_command_execute_outstream_to_stream_bridge,
+                __mla_cli_command_execute_outstream_c_string_to_stream_bridge
             };
 
             parser_result.matchingCommand.execute(parser_result.matchingCommand, parser_result.matchingParameters,
@@ -263,4 +297,47 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
         // Check for another complete line
         lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
     }
+}
+
+
+mla_cli_module_t mla_cli_module(const mla_string_t& name) {
+    return {
+        name,
+        mla_string_empty(),
+        mla_array_list_empty<mla_cli_command_t, mla_cli_command_initializer>(),
+        mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>()
+    };
+}
+
+mla_cli_module_t mla_cli_module(const mla_string_t& name, const mla_string_t& description) {
+    return {
+        name,
+        description,
+        mla_array_list_empty<mla_cli_command_t, mla_cli_command_initializer>(),
+        mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>()
+    };
+}
+
+void mla_cli_module_add_command(mla_cli_module_t& module, const mla_cli_command_t& command) {
+    mla_array_list_add(module.availableCommands, command);
+}
+
+void mla_cli_module_add_sub_module(mla_cli_module_t& module, const mla_cli_module_t& subModule) {
+    mla_array_list_add(module.subModules, subModule);
+}
+
+const mla_cli_command_t* mla_cli_module_find_command(const mla_cli_module_t& module, const mla_string_t& commandName) {
+
+    for (mla_size_t i = 0; i < mla_array_list_size(module.availableCommands); ++i) {
+
+        const mla_cli_command_t* command = mla_array_list_get_ref(module.availableCommands, i);
+
+        if (mla_string_equals(command->name, commandName)) {
+            return mla_array_list_get_ref(module.availableCommands, i);
+        }
+
+    }
+
+    return nullptr;
+
 }

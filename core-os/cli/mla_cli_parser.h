@@ -8,7 +8,7 @@
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
 #include "../system/mla_hash_map.h"
-#include "mla_cli_command_t.h"
+#include "mla_cli_command.h"
 
 
 struct mla_cli_parser_t {

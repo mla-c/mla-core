@@ -526,3 +526,39 @@ void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message
         current_test_result.message = l_Result;
     }
 }
+
+void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Pointer != nullptr) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected null pointer, but got: %p. %s", p_Line, p_Pointer, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected null pointer, but got: %p", p_Line, p_Pointer);
+        }
+        current_test_result.message = l_Result;
+    }
+}
+
+void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Pointer == nullptr) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not null pointer, but got null. %s", p_Line, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not null pointer, but got null", p_Line);
+        }
+        current_test_result.message = l_Result;
+    }
+}

@@ -60,6 +60,8 @@ void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const 
 void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_null(void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 
 template <typename T>
 void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {

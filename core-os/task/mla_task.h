@@ -49,4 +49,9 @@ mla_task_process_result_state __mla_task_worker_one_time(mla_callback_userdata u
 mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_callback_userdata userData = 0);
 mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_callback_userdata userData = 0, mla_callback_userdata userData2 = 0);
 
+// Utils
+const mla_char_t* mla_task_priority_to_string(mla_task_priority priority);
+const mla_char_t* mla_task_state_to_string(mla_task_state state);
+const mla_char_t* mla_task_stack_size_to_string(mla_task_stack_size stack_size);
+
 #endif

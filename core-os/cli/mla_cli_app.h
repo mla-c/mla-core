@@ -5,13 +5,14 @@
 #ifndef COREOS_MLA_CLI_APP_H
 #define COREOS_MLA_CLI_APP_H
 
-#include "mla_cli_command_t.h"
+#include "mla_cli_command.h"
 #include "../system/mla_stream.h"
 
 struct mla_cli_module_initializer;
 
 struct mla_cli_module_t {
     mla_string_t moduleName;
+    mla_string_t description;
     mla_array_list_t<mla_cli_command_t, mla_cli_command_initializer> availableCommands;
     mla_array_list_t<mla_cli_module_t, mla_cli_module_initializer> subModules;
 
@@ -21,27 +22,19 @@ struct mla_cli_module_initializer {
     static mla_cli_module_t init() {
         return {
             mla_string_empty(),
+            mla_string_empty(),
             mla_array_list_empty<mla_cli_command_t, mla_cli_command_initializer>(),
             mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>()
         };
     }
 };
 
-inline mla_cli_module_t mla_cli_module(const mla_string_t& name) {
-    return {
-        name,
-        mla_array_list_empty<mla_cli_command_t, mla_cli_command_initializer>(),
-        mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>()
-    };
-}
+mla_cli_module_t mla_cli_module(const mla_string_t& name);
+mla_cli_module_t mla_cli_module(const mla_string_t& name, const mla_string_t& description);
 
-inline mla_cli_module_t mla_cli_module(const mla_char_t* name) {
-    return {
-        mla_string(name),
-        mla_array_list_empty<mla_cli_command_t, mla_cli_command_initializer>(),
-        mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>()
-    };
-}
+void mla_cli_module_add_command(mla_cli_module_t& module, const mla_cli_command_t& command);
+void mla_cli_module_add_sub_module(mla_cli_module_t& module, const mla_cli_module_t& subModule);
+const mla_cli_command_t* mla_cli_module_find_command(const mla_cli_module_t& module, const mla_string_t& commandName);
 
 struct mla_cli_app_t {
     mla_array_list_t<mla_cli_module_t, mla_cli_module_initializer> activeModules;

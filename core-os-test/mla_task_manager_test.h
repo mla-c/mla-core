@@ -20,6 +20,7 @@ void OneTimeTaskTestWorker(mla_callback_userdata userData) {
 void OneTimeTaskTest() {
 
     mla_string_t taskName = mla_string_const("OneTimeTask");
+    assert_false(mla_task_manager_task_exists(taskName), "Task should not exist before registration");
 
     mla_task_t task = mla_task_one_time(taskName, OneTimeTaskTestWorker, 0);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
@@ -28,6 +29,7 @@ void OneTimeTaskTest() {
     assert_struct_equal(mla_string_t, info.name, taskName, "Task name should match");
     assert_equal(info.priority, TASK_PRIO_NORMAL, "Task priority should be normal");
     assert_equal(info.stack_size, TASK_STACK_SIZE_DEFAULT, "Task stack size should be default");
+    assert_true(mla_task_manager_task_exists(info.name), "Task should exist");
 
     mla_task_manager_process_all_tasks();
 
@@ -37,6 +39,7 @@ void OneTimeTaskTest() {
     assert_equal(info.stack_size, TASK_STACK_SIZE_DEFAULT, "Task stack size should be default");
     assert_equal(info.state, TASK_STATE_COMPLETED, "Task state should be completed");
     assert_true(OneTimeTaskTestWorkerProcess, "OneTimeTaskTestWorker should have been processed");
+    assert_true(mla_task_manager_task_exists(info.name), "Task should exist");
 
 }
 

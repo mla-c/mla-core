@@ -148,6 +148,35 @@ mla_bool_t mla_task_manager_abort_task(const mla_string_t& name) {
     return true;
 }
 
+mla_array_list_t<mla_task_info_t, mla_task_info_initializer> mla_task_manager_get_task_infos() {
+
+    mla_array_list_t<mla_task_info_t, mla_task_info_initializer> result = mla_array_list_empty<mla_task_info_t, mla_task_info_initializer>();
+
+    if (!mla_rw_lock_read(g_TaskManager.taskLock)) {
+        return result;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
+
+        mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
+
+        mla_task_info_t info = {
+            task.name,
+            task.priority,
+            task.stack_size,
+            task.sharedStates->processingState
+        };
+
+        mla_array_list_add(result, info);
+
+    }
+
+    mla_rw_unlock_read(g_TaskManager.taskLock);
+
+    return result;
+
+}
+
 mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
 
     mla_task_info_t result = {
@@ -184,6 +213,35 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
     }
 
     return result;
+}
+
+mla_bool_t mla_task_manager_task_exists(const mla_string_t& name) {
+
+    if (name.length == 0) {
+        return false; // Empty name is not valid
+    }
+
+    if (!mla_rw_lock_read(g_TaskManager.taskLock)) {
+        return false;
+    }
+
+    mla_bool_t found = false;
+
+    for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
+
+        mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
+
+        if (mla_string_equals(task.name, name)) {
+            found = true;
+            break;
+        }
+
+    }
+
+    mla_rw_unlock_read(g_TaskManager.taskLock);
+
+    return found; // Name is valid
+
 }
 
 mla_task_manager_state mla_task_manager_get_state() {

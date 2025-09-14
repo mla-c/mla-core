@@ -21,6 +21,18 @@ struct mla_task_info_t {
     mla_task_state state; // Current state of the task
 };
 
+struct mla_task_info_initializer {
+
+    static mla_task_info_t init() {
+        return {
+            mla_string_empty(),
+            TASK_PRIO_LOW,
+            TASK_STACK_SIZE_DEFAULT,
+            TASK_STATE_UNKNOWN
+        };
+    }
+};
+
 struct mla_task_manager_t {
     mla_array_list_t<mla_task_t, mla_task_initializer_t> tasks;
     mla_rw_lock_t taskLock;
@@ -35,7 +47,9 @@ enum mla_task_manager_state {
 void mla_task_manager_cleanup();
 mla_bool_t mla_task_manager_register_task(mla_task_t task);
 mla_bool_t mla_task_manager_abort_task(const mla_string_t& name);
+mla_array_list_t<mla_task_info_t, mla_task_info_initializer> mla_task_manager_get_task_infos();
 mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name);
+mla_bool_t mla_task_manager_task_exists(const mla_string_t& name);
 mla_task_manager_state mla_task_manager_get_state();
 void mla_task_manager_process_all_tasks();
 
