@@ -273,6 +273,47 @@ void MultiByteCharHandlingTest() {
     assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 }
 
+void ToUtf16AndFromUtf16Test() {
+
+    mla_string_t baseString = mla_string("€ 100");
+    mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
+    assert_equal(utf16Buffer.charCount, (mla_uint32_t)5, "UTF-16 buffer should have 5 characters");
+
+    // Euro sign is U+20AC, which is 0x20AC in UTF-16
+    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "First UTF-16 character should be Euro sign");
+    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)' ', "Second UTF-16 character should be space");
+    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'1', "Third UTF-16 character should be '1'");
+    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)'0', "Fourth UTF-16 character should be '0'");
+    assert_equal(utf16Buffer.data[4], (mla_utf_16_char_t)'0', "Fifth UTF-16 character should be '0'");
+    assert_equal(utf16Buffer.data[5], (mla_utf_16_char_t)0x00, "Six UTF-16 character should be null terminator");
+
+    mla_string_t newBaseString = mla_string_from_utf16_buffer(utf16Buffer);
+    assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-16 buffer should equal original");
+
+    mla_string_utf16_buffer_destroy(utf16Buffer);
+
+}
+
+void ToUtf32AndFromUtf32Test() {
+
+    mla_string_t baseString = mla_string("€ 100");
+    mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
+    assert_equal(utf32Buffer.charCount, (mla_uint32_t)5, "UTF-32 buffer should have 5 characters");
+
+    // Euro sign is U+20AC, which is 0x20AC in UTF-32
+
+    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "First UTF-32 character should be Euro sign");
+    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)' ', "Second UTF-32 character should be space");
+    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'1', "Third UTF-32 character should be '1'");
+    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)'0', "Fourth UTF-32 character should be '0'");
+    assert_equal(utf32Buffer.data[4], (mla_utf_32_char_t)'0', "Fifth UTF-32 character should be '0'");
+    assert_equal(utf32Buffer.data[5], (mla_utf_32_char_t)0x00000000, "Sixth UTF-32 character should be null terminator");
+
+    mla_string_t newBaseString = mla_string_from_utf32_buffer(utf32Buffer);
+    assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-32 buffer should equal original");
+    mla_string_utf32_buffer_destroy(utf32Buffer);
+
+}
 
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
 
@@ -334,6 +375,12 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MultiByteCharHandling", test_category, MultiByteCharHandlingTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf16AndFromUtf16", test_category, ToUtf16AndFromUtf16Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf32AndFromUtf32", test_category, ToUtf32AndFromUtf32Test);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

@@ -41,7 +41,10 @@
 
 #define mla_float_t float
 #define mla_double_t double
+
 #define mla_char_t char
+#define mla_utf_16_char_t signed int
+#define mla_utf_32_char_t signed long
 
 #define mla_hash_t mla_size_t
 

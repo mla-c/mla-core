@@ -20,6 +20,23 @@ struct mla_c_string_t {
     const mla_bool_t isOwner; // Indicates if this string owns the data
 };
 
+// UTF-16 and UTF-32 string representations
+// the data is owned by this struct.
+// So you need to free it when you are done
+struct mla_string_utf16_buffer_t {
+    mla_utf_16_char_t *data; // Pointer to the UTF-16 string data
+    mla_size_t charCount; // Length of the UTF-16 string without the null terminator
+};
+
+void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer);
+
+struct mla_string_utf32_buffer_t {
+    mla_utf_32_char_t *data; // Pointer to the UTF-32 string data
+    mla_size_t charCount; // Length of the UTF-32 string without the null terminator
+};
+
+void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer);
+
 enum mla_string_memory_layout_t {
     MLA_STRING_MEMORY_LAYOUT_C_STRING, // C-style string (with null terminator)
     MLA_STRING_MEMORY_LAYOUT_BUFFER, // Buffer-based string (without null terminator)
@@ -81,6 +98,12 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 // but if you want to be sure you get the right character in UTF8 use this function
 mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String, mla_size_t p_Index);
 mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String);
+
+mla_string_utf16_buffer_t mla_string_to_utf16_buffer(mla_string_t &p_String);
+mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf16Buffer);
+
+mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String);
+mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer);
 
 void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 
