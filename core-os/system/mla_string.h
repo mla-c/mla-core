@@ -12,8 +12,8 @@
 
 
 // Forward declaration
+struct mla_multi_byte_char_t;
 struct mla_string_t;
-
 
 struct mla_c_string_t {
     const mla_char_t *c_str; // Pointer to the C-style string data
@@ -28,11 +28,17 @@ enum mla_string_memory_layout_t {
 
 mla_char_t* mla_create_char_array(const mla_size_t p_Length);
 
+
+struct mla_multi_byte_char_t {
+    mla_char_t bytes[4]; // Maximum 4 bytes for a UTF-8 character. UTF-8 can be 1 to 4 bytes. Bytes will be null-terminated.
+};
+
+
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 struct mla_string_t {
     const mla_char_t *data; // Pointer to the string data
-    mla_size_t length; // Length of the string
+    mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
     mla_buffer_reference_t dataOwner;
     mla_string_memory_layout_t memoryLayout;
 
@@ -69,6 +75,12 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End);
+
+// This function returns a multi-byte character at the specified index
+// the most time its fine if you just access the buffer directly
+// but if you want to be sure you get the right character in UTF8 use this function
+mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String, mla_size_t p_Index);
+mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String);
 
 void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 
