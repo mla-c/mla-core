@@ -21,8 +21,9 @@ mla_int32_t __pico_printf(const mla_char_t* format, ...) {
 
     va_list args;
     va_start(args, format);
-    mla_int32_t result = vsnprintf(l_Result, sizeof(l_Result), format, args);
+    mla_int32_t result = vsnprintf(l_Result, sizeof(l_Result) -1, format, args);
     va_end(args);
+    l_Result[result] = '\0';
     Serial.print(l_Result);
     return result;
 }
