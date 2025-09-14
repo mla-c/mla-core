@@ -70,7 +70,8 @@ mla_size_t __generic_std_read(mla_char_t* buffer, mla_size_t size) {
     if (lastChar == nullptr) {
         return 0; // No data read
     }
-    return (mla_size_t)strnlen_s(buffer, size);
+    char *nul = (mla_char_t*)memchr(buffer, '\0', size);
+    return nul ? (mla_size_t)(nul - buffer) : size;
 }
 
 #endif

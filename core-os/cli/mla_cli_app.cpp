@@ -167,7 +167,7 @@ mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &comman
     (void) parameters;
     mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
     mla_cli_module_t *subModule = reinterpret_cast<mla_cli_module_t *>(command.userdata2);
-    const mla_stream_output_t *outputStream = reinterpret_cast<const mla_stream_output_t *>(out.userdata);
+
     out.write(out.userdata, mla_string_concat("Open module '", subModule->moduleName, "'\n"));
     __mla_activate_module(*app, *subModule);
     return true;
