@@ -140,7 +140,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 mla_size_t __mla_stream_std_input_read(mla_callback_userdata userdata, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)userdata;
-    mla_char_t tempBuffer[128] = {0};
+    mla_char_t tempBuffer[mla_stream_fast_read_buffer_size] = {0};
 
     mla_size_t char_read = mla_std_read(tempBuffer, sizeof(tempBuffer));
 

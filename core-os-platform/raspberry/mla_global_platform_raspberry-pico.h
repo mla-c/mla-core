@@ -17,11 +17,11 @@ void __pico_sleep(mla_uint32_t milliseconds) {
 
 mla_int32_t __pico_printf(const mla_char_t* format, ...) {
 
-    mla_char_t* l_Result = new mla_char_t[2048];
+    mla_char_t l_Result[255];
 
     va_list args;
     va_start(args, format);
-    mla_int32_t result = snprintf(l_Result, 2048, format, args);
+    mla_int32_t result = vsnprintf(l_Result, sizeof(l_Result), format, args);
     va_end(args);
     Serial.print(l_Result);
     return result;
@@ -37,13 +37,31 @@ mla_size_t __prio_std_read(mla_char_t* buffer, mla_size_t size) {
 
             mla_char_t c = Serial.read();
             buffer[readedChars++] = c;
-            if (c == '\n' || c == '\r') {
+            if (c == '\n') {
                 break; // Stop reading on newline or carriage return
             }
         } else {
             break;
         }
     }
+
+    if (readedChars > 0) {
+        // Print the received characters for the user to see what was typed
+        for (mla_size_t i = 0; i < readedChars; ++i) {
+            Serial.print(buffer[i]);
+        }
+    }
+
+    Serial.flush();
+
+    // convert \r\n from the end to \n or convert single \r to \n
+    if (readedChars >= 2 && buffer[readedChars - 2] == '\r' && buffer[readedChars - 1] == '\n') {
+        buffer[readedChars - 2] = '\n';
+        readedChars -= 1; // Remove the extra character
+    } else if (readedChars >= 1 && buffer[readedChars - 1] == '\r') {
+        buffer[readedChars - 1] = '\n';
+    }
+
     buffer[readedChars] = '\0'; // Null-terminate the string
     return readedChars;
 }

@@ -313,16 +313,20 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, const mla_stream_ou
 
 void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_input_t &inputStream,
                                           const mla_stream_output_t &outputStream) {
-    mla_byte_t buffer[256] = {0};
-    mla_size_t bytesRead = inputStream.read(inputStream.userdata, 0, sizeof(buffer), buffer);
 
-    if (bytesRead == 0) {
-        return;
+    // Create an own scopt so that the buffer is removed from the stack after reading
+    {
+        mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+        mla_size_t bytesRead = inputStream.read(inputStream.userdata, 0, sizeof(buffer), buffer);
+
+        if (bytesRead == 0) {
+            return;
+        }
+
+        // Append to unprocessed input
+        mla_string_t newInput = {(mla_char_t *)buffer, bytesRead, mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+        app.unprocessedInput = mla_string_concat(app.unprocessedInput, newInput);
     }
-
-    // Append to unprocessed input
-    mla_string_t newInput = {(mla_char_t *)buffer, bytesRead, mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
-    app.unprocessedInput = mla_string_concat(app.unprocessedInput, newInput);
 
     mla_int32_t lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
 

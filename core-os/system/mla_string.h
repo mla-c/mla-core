@@ -105,9 +105,20 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String);
 mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer);
 
-void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
+// Memory layout conversion
+// Note: Changing memory layout may involve copying data
 
+void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
+
+// String creation from basic types
+mla_string_t mla_string_from_int32(mla_int32_t p_Value);
+mla_string_t mla_string_from_uint32(mla_uint32_t p_Value);
+mla_string_t mla_string_from_int64(mla_int64_t p_Value);
+mla_string_t mla_string_from_uint64(mla_uint64_t p_Value);
+mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlaces);
+mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces);
+mla_string_t mla_string_from_bool(mla_bool_t p_Value);
 
 struct mla_string_initializer {
 

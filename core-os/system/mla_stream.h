@@ -8,6 +8,10 @@
 #include "../mla_data_types.h"
 #include "../system/mla_reference.h"
 
+// Define the buffer size for reading from fast streams non blocking streams
+// Is better to keep the memory low and read more often than allocating a big buffer
+#define mla_stream_fast_read_buffer_size 128
+
 struct mla_stream_input_t {
 
     mla_callback_userdata userdata;
