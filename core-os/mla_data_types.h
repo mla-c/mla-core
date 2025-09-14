@@ -106,6 +106,7 @@ typedef struct mla_low_level_operations_t {
 
     // Function pointers for printf and other output functions
     mla_int32_t (*printf)(const mla_char_t* format, ...);
+    mla_size_t (*std_read)(mla_char_t* buffer, mla_size_t size);
 
     // Timing
     void (*sleep)(mla_uint32_t milliseconds);
@@ -134,6 +135,7 @@ mla_global mla_low_level_operations_t g_low_level_access;
 
 // Default printf function
 #define mla_printf(format, ...) g_low_level_access.printf((format), __VA_ARGS__)
+#define mla_std_read(buffer, size) g_low_level_access.std_read((buffer), (size))
 
 // Sleep function for timing
 #define mla_sleep(milliseconds) g_low_level_access.sleep((milliseconds))

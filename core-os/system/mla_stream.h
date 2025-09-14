@@ -22,13 +22,19 @@ struct mla_stream_output_t {
     mla_buffer_reference_t refOwner;
 };
 
-
+// No-op streams
 mla_stream_input_t mla_stream_noop_input();
 mla_stream_output_t mla_stream_noop_output();
 
+// Standard IO (Console) streams
+mla_stream_input_t mla_stream_input_stdin();
+mla_stream_output_t mla_stream_output_stdout();
+
+// Buffer streams (Non-owning))
 mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t size);
 mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t size);
 
+// Buffer streams (Owning)
 mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size);
 mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size);
 

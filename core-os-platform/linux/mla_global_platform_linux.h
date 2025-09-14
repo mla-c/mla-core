@@ -28,6 +28,7 @@ mla_low_level_operations_t g_low_level_access ={
     __generic_malloc,
     __generic_free,
     __generic_printf,
+    __generic_std_read,
     __linux_sleep,
 };
 

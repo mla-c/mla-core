@@ -27,6 +27,27 @@ mla_int32_t __pico_printf(const mla_char_t* format, ...) {
     return result;
 }
 
+mla_size_t __prio_std_read(mla_char_t* buffer, mla_size_t size) {
+
+    mla_size_t readedChars = 0;
+
+    while (readedChars < size - 1) { // Leave space for null terminator
+
+        if (Serial.available() > 0) {
+
+            mla_char_t c = Serial.read();
+            buffer[readedChars++] = c;
+            if (c == '\n' || c == '\r') {
+                break; // Stop reading on newline or carriage return
+            }
+        } else {
+            break;
+        }
+    }
+    buffer[readedChars] = '\0'; // Null-terminate the string
+    return readedChars;
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
     __generic_memcpy,
@@ -40,6 +61,7 @@ mla_low_level_operations_t g_low_level_access {
         __generic_malloc,
         __generic_free,
         __pico_printf,
+        __prio_std_read,
         __pico_sleep,
     };
 

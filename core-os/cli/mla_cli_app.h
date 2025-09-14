@@ -41,6 +41,7 @@ struct mla_cli_app_t {
     mla_string_t unprocessedInput;
 };
 
+mla_cli_app_t mla_cli_app_empty();
 mla_cli_app_t mla_cli_app_init(mla_cli_module_t& rootModule, const mla_stream_output_t& outputStream);
 void mla_cli_app_update_and_process_input(mla_cli_app_t& app, const mla_stream_input_t& inputStream, const mla_stream_output_t& outputStream);
 

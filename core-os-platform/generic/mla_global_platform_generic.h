@@ -65,5 +65,12 @@ mla_int32_t __generic_printf(const mla_char_t* format, ...) {
     return result;
 }
 
+mla_size_t __generic_std_read(mla_char_t* buffer, mla_size_t size) {
+    mla_char_t* lastChar = fgets(buffer, size, stdin);
+    if (lastChar == nullptr) {
+        return 0; // No data read
+    }
+    return (mla_size_t)strnlen_s(buffer, size);
+}
 
 #endif

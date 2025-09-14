@@ -229,6 +229,11 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
                     "' has no execute function")));
         }
     } else {
+        __mla_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
+        __mla_cli_write_string(outputStream, mla_string("  "));
+        __mla_cli_write_string(outputStream, inputCommand);
+        outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
+
         // There is something missing show the possible auto completions
         if (mla_array_list_size(parser_result.possibleAutoCompletions) > 0) {
             outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
@@ -240,6 +245,11 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
                 __mla_cli_write_string(outputStream, *completion);
                 outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
             }
+        } else {
+
+            // No possible completions found
+            __mla_cli_write_string(outputStream, mla_string("Type 'help' to see available commands.\n"));
+
         }
     }
 }
@@ -256,6 +266,12 @@ void __mla_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_st
     __mla_cli_process_parser_result(command, parser_result, outputStream);
 }
 
+mla_cli_app_t mla_cli_app_empty() {
+    return {
+        mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>(),
+        mla_string_empty()
+    };
+}
 
 mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, const mla_stream_output_t &outputStream) {
     mla_cli_app_t app = {
@@ -282,6 +298,8 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
 
     mla_int32_t lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
 
+    mla_bool_t commandProcessed = false;
+
     while (lineEnd != -1) {
         // Process the line
         mla_string_t line = mla_string_substr(app.unprocessedInput, 0, lineEnd - 1); // Exclude the newline character
@@ -293,9 +311,14 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
 
         // Parse and execute the command
         __mla_cli_parser_parse_and_execute_command(app, line, outputStream);
+        commandProcessed = true;
 
         // Check for another complete line
         lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
+    }
+
+    if (commandProcessed) {
+        __mla_cli_write_module_prompt(app, outputStream);
     }
 }
 
