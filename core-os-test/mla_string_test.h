@@ -12,15 +12,8 @@
 
 void SizeOfTest() {
 
-    if (sizeof(mla_pointer_t) == 8) {
-        // 64 bit
-        assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)32, "Size of mla_string_t should be 32 bytes");
-    } else if (sizeof(mla_pointer_t) == 4) {
-        // 32 bit
-        assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)16, "Size of mla_string_t should be 16 bytes");
-    } else {
-        assert_true(false, "Unknown pointer size");
-    }
+    mla_size_t size = sizeof(mla_pointer_t);
+    assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)size * 4, "Size of mla_string_t should be 32 bytes");
 
 }
 
@@ -244,40 +237,40 @@ void MultiByteCharHandlingTest() {
     assert_equal(mla_string_multi_byte_char_count(mla_str), (mla_uint32_t)5, "MlaString should have 4 multi-byte characters");
 
     mla_multi_byte_char_t mb_char = mla_string_multi_byte_char_at(mla_str, 0);
-    assert_equal(mb_char.bytes[0], (mla_char_t)0xE2, "First byte of Euro sign should be 0xE2");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x82, "Second byte of Euro sign should be 0x82");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0xAC, "Third byte of Euro sign should be 0xAC");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Fourth byte of Euro sign should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)0xE2, "First byte of Euro sign should be 0xE2");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x82, "Second byte of Euro sign should be 0x82");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0xAC, "Third byte of Euro sign should be 0xAC");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Fourth byte of Euro sign should be null terminator");
 
     mb_char = mla_string_multi_byte_char_at(mla_str, 1);
-    assert_equal(mb_char.bytes[0], (mla_char_t)' ', "First byte of space should be ' '");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x00, "Second byte of space should be null terminator");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0x00, "Third byte of space should be null terminator");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)' ', "First byte of space should be ' '");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x00, "Second byte of space should be null terminator");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 
     mb_char = mla_string_multi_byte_char_at(mla_str, 2);
-    assert_equal(mb_char.bytes[0], (mla_char_t)'1', "First byte of space should be '1'");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x00, "Second byte of space should be null terminator");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0x00, "Third byte of space should be null terminator");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)'1', "First byte of space should be '1'");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x00, "Second byte of space should be null terminator");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 
     mb_char = mla_string_multi_byte_char_at(mla_str, 3);
-    assert_equal(mb_char.bytes[0], (mla_char_t)'0', "First byte of space should be '0'");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x00, "Second byte of space should be null terminator");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0x00, "Third byte of space should be null terminator");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)'0', "First byte of space should be '0'");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x00, "Second byte of space should be null terminator");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 
     mb_char = mla_string_multi_byte_char_at(mla_str, 4);
-    assert_equal(mb_char.bytes[0], (mla_char_t)'0', "First byte of space should be '0'");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x00, "Second byte of space should be null terminator");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0x00, "Third byte of space should be null terminator");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)'0', "First byte of space should be '0'");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x00, "Second byte of space should be null terminator");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 
     mb_char = mla_string_multi_byte_char_at(mla_str, 5);
-    assert_equal(mb_char.bytes[0], (mla_char_t)0x00, "First byte of space should be null terminator");
-    assert_equal(mb_char.bytes[1], (mla_char_t)0x00, "Second byte of space should be null terminator");
-    assert_equal(mb_char.bytes[2], (mla_char_t)0x00, "Third byte of space should be null terminator");
-    assert_equal(mb_char.bytes[3], (mla_char_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[0], (mla_char_t)(mla_uint8_t)0x00, "First byte of space should be null terminator");
+    assert_equal(mb_char.bytes[1], (mla_char_t)(mla_uint8_t)0x00, "Second byte of space should be null terminator");
+    assert_equal(mb_char.bytes[2], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
+    assert_equal(mb_char.bytes[3], (mla_char_t)(mla_uint8_t)0x00, "Third byte of space should be null terminator");
 }
 
 

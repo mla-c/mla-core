@@ -19,7 +19,9 @@
 
 #define mla_test_pointer_t void*
 
-#define mla_test__FILENAME_ONLY__ (strrchr("/" __FILE__, '/') + 1)
+#define mla_test__FILENAME_ONLY__ \
+(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
+(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 
 // Define a print function structure to allow custom print functions

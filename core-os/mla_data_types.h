@@ -142,7 +142,11 @@ mla_global mla_low_level_operations_t g_low_level_access;
 // Macro to get the filename only
 #include <cstring>
 
-#define __FILENAME_ONLY__ (strrchr("/" __FILE__, '/') + 1)
+// Extracts the filename from the full path
+// The macro works for both Unix and Windows style paths
+#define __FILENAME_ONLY__ \
+(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
+(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 // Default initializer for structs and classes which is used to initialize items in data structures like arrays or hash maps.
 // Is not really a macro but is part of multiple other macros
