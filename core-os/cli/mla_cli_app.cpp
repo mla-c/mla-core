@@ -39,9 +39,8 @@ void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t
     outputStream.write(outputStream.userdata, 0, 1, (mla_byte_t*)">");
 }
 
-void __mla_activate_module(mla_cli_app_t &app, mla_cli_module_t &module, const mla_stream_output_t &outputStream) {
+void __mla_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
     mla_array_list_add(app.activeModules, module);
-    __mla_cli_write_module_prompt(app, outputStream);
 }
 
 mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
@@ -51,11 +50,14 @@ mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
     (void) parameters;
     mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
 
-    if (mla_array_list_size(app->activeModules) > 1) {
-        mla_array_list_remove(app->activeModules, mla_array_list_size(app->activeModules) - 1);
+    mla_size_t size = mla_array_list_size(app->activeModules);
+
+    if (size > 1) {
+        out.write(out.userdata, mla_string_concat("Close module '",  mla_array_list_get_ref(app->activeModules, size -1)->moduleName, "'\n"));
+        mla_array_list_remove(app->activeModules, size - 1);
+
     }
 
-    __mla_cli_write_module_prompt(*app, *reinterpret_cast<const mla_stream_output_t *>(out.userdata));
     return true;
 }
 
@@ -119,17 +121,40 @@ mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
     }
 
     // List all commands
-    out.write(out.userdata, mla_string_concat("Help for module '", activeModule->moduleName, "'\n"));
+    out.write(out.userdata, mla_string_concat("Help for module '", activeModule->moduleName, "'\n\n"));
 
-    for (mla_size_t i = 0; i < mla_array_list_size(activeModule->availableCommands); ++i) {
-        mla_cli_command_t *commandOfModule = mla_array_list_get_ref(activeModule->availableCommands, i);
+    mla_size_t commandCount = mla_array_list_size(activeModule->availableCommands);
 
-        // Remove the help command from the list
-        if (mla_string_equals(command.name, commandOfModule->name))
-            continue;
+    if (commandCount > 0) {
+        out.write(out.userdata, mla_string_const("Available commands:\n"));
 
-        mla_string_t commandFormated = __mla_cli_format_command(*commandOfModule);
-        out.write(out.userdata, mla_string_concat(commandFormated, "\n"));
+        for (mla_size_t i = 0; i < commandCount; ++i) {
+            mla_cli_command_t *commandOfModule = mla_array_list_get_ref(activeModule->availableCommands, i);
+
+            // Remove the help command from the list
+            if (mla_string_equals(command.name, commandOfModule->name))
+                continue;
+
+            mla_string_t commandFormated = __mla_cli_format_command(*commandOfModule);
+            out.write(out.userdata, mla_string_concat(commandFormated, "\n"));
+        }
+    } else {
+        out.write(out.userdata, mla_string_const("No commands available in this module.\n"));
+    }
+
+    mla_size_t subModuleCount = mla_array_list_size(activeModule->subModules);
+
+    if (subModuleCount > 0) {
+        out.write(out.userdata, mla_string_const("\nAvailable Modules:\n"));
+
+        for (mla_size_t i = 0; i < subModuleCount; ++i) {
+            mla_cli_module_t *subModule = mla_array_list_get_ref(activeModule->subModules, i);
+            out.write(out.userdata, mla_string_concat("  ", subModule->moduleName, "\n"));
+
+            if (subModule->description.length > 0) {
+                out.write(out.userdata, mla_string_concat("    ", subModule->description, "\n"));
+            }
+        }
     }
 
     return true;
@@ -143,7 +168,8 @@ mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &comman
     mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
     mla_cli_module_t *subModule = reinterpret_cast<mla_cli_module_t *>(command.userdata2);
     const mla_stream_output_t *outputStream = reinterpret_cast<const mla_stream_output_t *>(out.userdata);
-    __mla_activate_module(*app, *subModule, *outputStream);
+    out.write(out.userdata, mla_string_concat("Open module '", subModule->moduleName, "'\n"));
+    __mla_activate_module(*app, *subModule);
     return true;
 }
 
@@ -215,6 +241,7 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
 
         // Execute the command
         if (parser_result.matchingCommand.execute != nullptr) {
+
             mla_cli_command_execute_outstream_t stringOutstream = {
                 reinterpret_cast<mla_callback_userdata>(&outputStream),
                 __mla_cli_command_execute_outstream_to_stream_bridge,
@@ -279,7 +306,8 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, const mla_stream_ou
         mla_string_empty()
     };
 
-    __mla_activate_module(app, rootModule, outputStream);
+    __mla_activate_module(app, rootModule);
+    __mla_cli_write_module_prompt(app, outputStream);
     return app;
 }
 
@@ -318,6 +346,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
     }
 
     if (commandProcessed) {
+        outputStream.write(outputStream.userdata, 0, 1, (mla_byte_t*)"\n");
         __mla_cli_write_module_prompt(app, outputStream);
     }
 }

@@ -80,7 +80,7 @@ mla_cli_module_t mla_task_cli_module_create() {
     mla_cli_module_t module = mla_cli_module(mla_string_const("task"), mla_string_const("Task management commands"));
 
     // Add 'list' command
-    mla_cli_command_t cmdList = mla_cli_command(mla_string_const("list"), mla_string_const("List all tasks"));
+    mla_cli_command_t cmdList = mla_cli_command(mla_string_const("ls"), mla_string_const("List all tasks"));
     cmdList.execute = __mla_task_cli_list_all_tasks;
     mla_cli_module_add_command(module, cmdList);
 

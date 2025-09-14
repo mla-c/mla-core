@@ -49,7 +49,7 @@ inline mla_task_process_result_state test_repeating_task_worker(mla_callback_use
 inline void ListTaskCliTaskTest() {
 
     mla_cli_module_t module = mla_task_cli_module_create();
-    const mla_cli_command_t* cmdList = mla_cli_module_find_command(module, mla_string_const("list"));
+    const mla_cli_command_t* cmdList = mla_cli_module_find_command(module, mla_string_const("ls"));
     assert_not_null(cmdList, "List command should not be null");
 
     // Create a task to be listed
