@@ -156,47 +156,50 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
 mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String, mla_size_t p_Index) {
 
-    mla_multi_byte_char_t result = {{0}};  // Initialize all bytes to 0
+    mla_multi_byte_char_t result = {{0}};
 
-    if (p_Index >= p_String.length || !p_String.data) {
-        return result;  // Return empty character for invalid index
-    }
-
-    mla_size_t charIndex = 0;
-    mla_size_t byteIndex = 0;
-
-    // Scan through string until we reach the desired character index
-    while (byteIndex < p_String.length && charIndex < p_Index) {
-        // Skip continuation bytes (10xxxxxx)
-        if ((p_String.data[byteIndex] & 0xC0) != 0x80) {
-            charIndex++;  // Found start of a new character
-        }
-        byteIndex++;
-    }
-
-    // If we reached the end of string before finding the desired index
-    if (byteIndex >= p_String.length || charIndex < p_Index) {
+    if (!p_String.data || p_String.length == 0) {
         return result;
     }
 
-    // Copy the multi-byte character
-    mla_size_t byteCount = 0;
+    mla_size_t byteIndex = 0;
+    mla_size_t charIndex = 0;
 
-    // Determine character length based on first byte
-    if ((p_String.data[byteIndex] & 0x80) == 0) {  // 0xxxxxxx (ASCII)
-        byteCount = 1;
-    } else if ((p_String.data[byteIndex] & 0xE0) == 0xC0) {  // 110xxxxx (2 bytes)
-        byteCount = 2;
-    } else if ((p_String.data[byteIndex] & 0xF0) == 0xE0) {  // 1110xxxx (3 bytes)
-        byteCount = 3;
-    } else if ((p_String.data[byteIndex] & 0xF8) == 0xF0) {  // 11110xxx (4 bytes)
-        byteCount = 4;
-    } else {
-        byteCount = 1;  // Invalid UTF-8 sequence, treat as 1 byte
+    // Advance to the start byte of the desired UTF-8 character
+    while (byteIndex < p_String.length && charIndex < p_Index) {
+        mla_uint8_t first = static_cast<mla_uint8_t>(p_String.data[byteIndex]);
+        mla_size_t advance = 1;
+
+        if      ((first & 0x80) == 0x00) advance = 1;      // 0xxxxxxx
+        else if ((first & 0xE0) == 0xC0) advance = 2;      // 110xxxxx
+        else if ((first & 0xF0) == 0xE0) advance = 3;      // 1110xxxx
+        else if ((first & 0xF8) == 0xF0) advance = 4;      // 11110xxx
+        else advance = 1; // Invalid leading byte, treat as single
+
+        byteIndex += advance;
+        charIndex++;
     }
 
-    // Copy bytes into result (ensuring we don't go beyond string bounds)
-    for (mla_size_t i = 0; i < byteCount && byteIndex + i < p_String.length; ++i) {
+    // Out of range or did not reach desired character
+    if (byteIndex >= p_String.length || charIndex != p_Index) {
+        return result;
+    }
+
+    // Determine length of current character
+    mla_uint8_t first = static_cast<mla_uint8_t>(p_String.data[byteIndex]);
+    mla_size_t byteCount = 1;
+    if      ((first & 0x80) == 0x00) byteCount = 1;
+    else if ((first & 0xE0) == 0xC0) byteCount = 2;
+    else if ((first & 0xF0) == 0xE0) byteCount = 3;
+    else if ((first & 0xF8) == 0xF0) byteCount = 4;
+    else byteCount = 1;
+
+    // Clamp if truncated
+    if (byteIndex + byteCount > p_String.length) {
+        byteCount = p_String.length - byteIndex;
+    }
+
+    for (mla_size_t i = 0; i < byteCount; ++i) {
         result.bytes[i] = p_String.data[byteIndex + i];
     }
 
