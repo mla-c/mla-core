@@ -10,7 +10,7 @@
 
 // Macro to get the filename and the method
 #define __FILENAME_AND_METHOD__()\
-char temp[256]; \
+mla_char_t temp[64]; \
 mla_snprintf(temp, sizeof(temp), "%s::%s", __FILENAME_ONLY__, __func__); \
 
 #if (!defined(mla_logging_use_native) || (mla_logging_use_native == 0))

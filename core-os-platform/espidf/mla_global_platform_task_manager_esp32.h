@@ -26,19 +26,19 @@ configSTACK_DEPTH_TYPE mla_task_manager_esp32_native_get_stack_size(const mla_ta
 
     switch (stackSize) {
         case TASK_STACK_SIZE_TINY:
-            return 512; // 512 Bytes
+            return 1024; // 1024 Bytes
         case TASK_STACK_SIZE_SMALL:
-            return 1024; // 1 KB
+            return 2048; // 2 KB  (ESP32 minimum stack size is 2KB)
         case TASK_STACK_SIZE_MEDIUM:
-            return 2048; // 2 KB (ESP32 minimum stack size is 2KB)
+            return 4096; // 4069 KB
         case TASK_STACK_SIZE_LARGE:
-            return 4096; // 4 KB
-        case TASK_STACK_SIZE_XLARGE:
             return 8192; // 8 KB
+        case TASK_STACK_SIZE_XLARGE:
+            return 12288; // 12 KB
         case TASK_STACK_SIZE_XXLARGE:
             return 16384; // 16 KB
         default:
-            return 2048;
+            return 4048;
     }
 }
 
@@ -88,13 +88,17 @@ void __mla_task_manager_esp32_native_worker(void * param) {
         if (thread_data->worker == nullptr) {
             shared_states->processingState = TASK_STATE_COMPLETED;
             thread_data->hThread = nullptr;
+            mla_error(mla_string_const("Unable to start task, no worker function provided"));
             vTaskDelete(nullptr);
             return; // Exit if no worker function is provided
         }
 
+        mla_debug("Starting task worker");
+
         while (true) {
 
             if (shared_states->processingState == TASK_STATE_ABORTING) {
+                mla_error(mla_string_const("Task is aborting, stopping execution"));
                 shared_states->processingState = TASK_STATE_ABORTED;
                 break; // Exit the loop if the task is aborted
             }
@@ -104,6 +108,7 @@ void __mla_task_manager_esp32_native_worker(void * param) {
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
                 shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
+                mla_debug("Task processing complete");
                 break; // Exit the loop after completion
             }
 

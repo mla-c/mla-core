@@ -20,7 +20,6 @@ inline mla_task_process_result_state __cli_task(mla_callback_userdata userdata) 
 
     mla_cli_app_update_and_process_input(g_main_app_cli, mla_stream_input_stdin(), mla_stream_output_stdout());
 
-
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 

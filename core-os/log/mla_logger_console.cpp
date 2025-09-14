@@ -4,6 +4,10 @@
 
 #include "mla_logger_console.h"
 
+#if !defined(mla_logger_console_level)
+#define mla_logger_console_level MLA_LOG_LEVEL_INFO
+#endif
+
 void __mla_log_console_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
                               const mla_callback_userdata userData) {
 
@@ -33,7 +37,7 @@ mla_bool_t mla_log_to_console_activate() {
 
     const mla_logger_t logger = {
         CONSOLE_LOGGER_NAME,
-        MLA_LOG_LEVEL_INFO, // Default log level
+        mla_logger_console_level, // Default log level
         __mla_log_console_writer, // Function to write log messages
         0 // No user data for console logger
     };
