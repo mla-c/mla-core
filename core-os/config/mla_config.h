@@ -26,9 +26,9 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, m
 ///
 
 template <typename T>
-mla_config_definition_t mla_config_definition(const mla_serialize_definition_t serialize_definition) {
+mla_config_definition_t mla_config_definition(mla_string_t name, const mla_serialize_definition_t serialize_definition) {
     return {
-            mla_string_const(typeid(T).name()),
+            name,
         serialize_definition
     };
 }

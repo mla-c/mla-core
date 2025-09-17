@@ -648,9 +648,6 @@ mla_bool_t mla_mla_deserializer_convert_to_int16(const mla_deserializer_token_t 
 
         case MLA_DESERIALIZER_VALUE_UINT8:
 
-            if (token.simple.uint8_value > mla_int16_max) {
-                return false;
-            }
             *out_value = (mla_int16_t) token.simple.uint8_value;
             return true;
 
@@ -729,9 +726,6 @@ mla_bool_t mla_mla_deserializer_convert_to_int32(const mla_deserializer_token_t 
 
         case MLA_DESERIALIZER_VALUE_UINT8:
 
-            if (token.simple.uint8_value > mla_int32_max) {
-                return false;
-            }
             *out_value = (mla_int32_t) token.simple.uint8_value;
             return true;
 
@@ -813,13 +807,13 @@ mla_bool_t mla_mla_deserializer_convert_to_int64(const mla_deserializer_token_t 
             *out_value = (mla_int64_t) token.simple.uint64_value;
             return true;
         case MLA_DESERIALIZER_VALUE_FLOAT:
-            if (token.simple.float_value < mla_int64_min || token.simple.float_value > mla_int64_max) {
+            if (token.simple.float_value > mla_int64_max) {
                 return false;
             }
             *out_value = (mla_int64_t) token.simple.float_value;
             return true;
         case MLA_DESERIALIZER_VALUE_DOUBLE:
-            if (token.simple.double_value < mla_int64_min || token.simple.double_value > mla_int64_max) {
+            if (token.simple.double_value > mla_int64_max) {
                 return false;
             }
             *out_value = (mla_int64_t) token.simple.double_value;

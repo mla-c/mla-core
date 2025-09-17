@@ -26,7 +26,7 @@ void TearDownSerializerTest() {
     mla_free(buffer);
 }
 
-struct mla_all_types_inner_struct {;
+struct mla_all_types_inner_struct {
     mla_int32_t int32Value;
     mla_bool_t boolValue;
 };
@@ -233,7 +233,9 @@ void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
 
-    mla_deserializer_read_struct(deserializer, &deserialized, __mla_all_types_struct_read_function);
+    // Start reading
+    deserializer.read_next(deserializer);
+    assert_true(mla_deserializer_read_struct(deserializer, &deserialized, __mla_all_types_struct_read_function), "Deserialization failed");
 
     // Compare original and deserialized
     assert_equal(original.boolValue, deserialized.boolValue, "Value 'boolValue' does not match");
@@ -265,17 +267,24 @@ void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer
 
     // Compare int list
     assert_equal(mla_array_list_size(original.intList), mla_array_list_size(deserialized.intList), "Size of 'intList' does not match");
-    for (mla_size_t i = 0; i < mla_array_list_size(original.intList); ++i) {
-        assert_equal(*mla_array_list_get_ref(original.intList, i), *mla_array_list_get_ref(deserialized.intList, i), "Value 'intList' at index does not match");
+
+    if (mla_array_list_size(original.intList) == mla_array_list_size(deserialized.intList)) {
+        for (mla_size_t i = 0; i < mla_array_list_size(original.intList); ++i) {
+            assert_equal(*mla_array_list_get_ref(original.intList, i), *mla_array_list_get_ref(deserialized.intList, i), "Value 'intList' at index does not match");
+        }
     }
+
 
     // Compare inner struct list
     assert_equal(mla_array_list_size(original.innerStructList), mla_array_list_size(deserialized.innerStructList), "Size of 'innerStructList' does not match");
-    for (mla_size_t i = 0; i < mla_array_list_size(original.innerStructList); ++i) {
-        mla_all_types_inner_struct* originalItem = mla_array_list_get_ref(original.innerStructList, i);
-        mla_all_types_inner_struct* deserializedItem = mla_array_list_get_ref(deserialized.innerStructList, i);
-        assert_equal(originalItem->int32Value, deserializedItem->int32Value, "Value 'innerStructList.int32Value' at index does not match");
-        assert_equal(originalItem->boolValue, deserializedItem->boolValue, "Value 'innerStructList.boolValue' at index does not match");
+
+    if (mla_array_list_size(original.innerStructList) == mla_array_list_size(deserialized.innerStructList)) {
+        for (mla_size_t i = 0; i < mla_array_list_size(original.innerStructList); ++i) {
+            mla_all_types_inner_struct* originalItem = mla_array_list_get_ref(original.innerStructList, i);
+            mla_all_types_inner_struct* deserializedItem = mla_array_list_get_ref(deserialized.innerStructList, i);
+            assert_equal(originalItem->int32Value, deserializedItem->int32Value, "Value 'innerStructList.int32Value' at index does not match");
+            assert_equal(originalItem->boolValue, deserializedItem->boolValue, "Value 'innerStructList.boolValue' at index does not match");
+        }
     }
 
 }
