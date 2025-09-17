@@ -26,7 +26,15 @@ mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End) {
     return { p_Data, static_cast<mla_size_t>(p_End - p_Data), mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
 }
 
+mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length) {
+    return {p_Data, p_Length, mla_buffer_reference(p_Data), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+}
+
 void mla_string_destroy(mla_string_t &p_String) {
+
+    if (p_String.data == nullptr) {
+        return; // Nothing to destroy
+    }
 
     p_String.data = nullptr; // Clear the pointer
     p_String.dataOwner = mla_buffer_reference_noOwner();

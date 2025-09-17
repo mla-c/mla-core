@@ -6,6 +6,9 @@
 
 #include "mla_binary_serializer.h"
 
+#include "../log/mla_logging.h"
+#include "../system/mla_string_concat.h"
+
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     #define MLA_LITTLE_ENDIAN 1
     #define MLA_BIG_ENDIAN 0
@@ -93,26 +96,29 @@ inline mla_double_t host_to_le_double(mla_double_t val) {
 
 
 enum mla_binary_element_type {
-    MLA_BINARY_ELEMENT_TYPE_GROUP_START = 1,
-    MLA_BINARY_ELEMENT_TYPE_GROUP_END = 2,
-    MLA_BINARY_ELEMENT_TYPE_BOOL = 3,
-    MLA_BINARY_ELEMENT_TYPE_INT8 = 4,
-    MLA_BINARY_ELEMENT_TYPE_INT16 = 5,
-    MLA_BINARY_ELEMENT_TYPE_INT32 = 6,
-    MLA_BINARY_ELEMENT_TYPE_INT64 = 7,
-    MLA_BINARY_ELEMENT_TYPE_UINT8 = 8,
-    MLA_BINARY_ELEMENT_TYPE_UINT16 = 9,
-    MLA_BINARY_ELEMENT_TYPE_UINT32 = 10,
-    MLA_BINARY_ELEMENT_TYPE_UINT64 = 11,
-    MLA_BINARY_ELEMENT_TYPE_FLOAT = 12,
-    MLA_BINARY_ELEMENT_TYPE_DOUBLE = 13,
-    MLA_BINARY_ELEMENT_TYPE_STRING = 14,
-    MLA_BINARY_ELEMENT_TYPE_BYTES = 15
+    MLA_BINARY_ELEMENT_TYPE_STRUCT_START = 1,
+    MLA_BINARY_ELEMENT_TYPE_STRUCT_END = 2,
+    MLA_BINARY_ELEMENT_TYPE_LIST_START = 3,
+    MLA_BINARY_ELEMENT_TYPE_LIST_END = 4,
+    MLA_BINARY_ELEMENT_TYPE_BOOL = 5,
+    MLA_BINARY_ELEMENT_TYPE_INT8 = 6,
+    MLA_BINARY_ELEMENT_TYPE_INT16 = 7,
+    MLA_BINARY_ELEMENT_TYPE_INT32 = 8,
+    MLA_BINARY_ELEMENT_TYPE_INT64 = 9,
+    MLA_BINARY_ELEMENT_TYPE_UINT8 = 10,
+    MLA_BINARY_ELEMENT_TYPE_UINT16 = 11,
+    MLA_BINARY_ELEMENT_TYPE_UINT32 = 12,
+    MLA_BINARY_ELEMENT_TYPE_UINT64 = 13,
+    MLA_BINARY_ELEMENT_TYPE_FLOAT = 14,
+    MLA_BINARY_ELEMENT_TYPE_DOUBLE = 15,
+    MLA_BINARY_ELEMENT_TYPE_STRING = 16,
+    MLA_BINARY_ELEMENT_TYPE_BYTES = 17
 };
 
-void __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_binary_element_type type) {
+void __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_uint8_t type) {
 
-    output.write(output.userdata, 0, sizeof(type), reinterpret_cast<const mla_byte_t*>(&type));
+    mla_uint8_t byteType = type;
+    output.write(output.userdata, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType));
 }
 
 void __mla_binary_serializer_write_string_data(const mla_stream_output_t& output, const mla_string_t& name) {
@@ -128,135 +134,135 @@ void __mla_binary_serializer_write_string_data(const mla_stream_output_t& output
 
 }
 
-void __mla_binary_serializer_start_group(const mla_serializer_t& instance, const mla_string_t& name) {
+void mla_binary_serializer_write_start_struct(const mla_serializer_t& instance) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_GROUP_START);
+    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_STRUCT_START);
+
+}
+
+void mla_binary_serializer_write_end_struct(const mla_serializer_t& instance) {
+
+    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_STRUCT_END);
+}
+
+void mla_binary_serializer_write_start_list(const mla_serializer_t& instance) {
+
+    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_LIST_START);
+
+}
+
+void mla_binary_serializer_write_end_list(const mla_serializer_t& instance) {
+
+    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_LIST_END);
+}
+
+void mla_binary_serializer_write_property_name(const mla_serializer_t& instance, const mla_string_t& name) {
     __mla_binary_serializer_write_string_data(instance.output, name);
-
 }
 
-void  __mla_binary_serializer_end_group(const mla_serializer_t& instance) {
-
-    __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_GROUP_END);
-}
-
-void __mla_binary_serializer_write_bool(const mla_serializer_t& instance, const mla_string_t& name, const mla_bool_t value) {
+void mla_binary_serializer_write_bool(const mla_serializer_t& instance, const mla_bool_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_BOOL);
-    __mla_binary_serializer_write_string_data(instance.output, name);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 }
 
-void __mla_binary_serializer_write_int8(const mla_serializer_t& instance, const mla_string_t& name, const mla_int8_t value) {
+void mla_binary_serializer_write_int8(const mla_serializer_t& instance, const mla_int8_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_INT8);
-    __mla_binary_serializer_write_string_data(instance.output, name);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 
 }
 
-void __mla_binary_serializer_write_int16(const mla_serializer_t& instance, const mla_string_t& name, const mla_int16_t value) {
+void mla_binary_serializer_write_int16(const mla_serializer_t& instance, const mla_int16_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_INT16);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_int16_t le_value = host_to_le_int16(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void __mla_binary_serializer_write_int32(const mla_serializer_t& instance, const mla_string_t& name, const mla_int32_t value) {
+void mla_binary_serializer_write_int32(const mla_serializer_t& instance, const mla_int32_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_INT32);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_int32_t le_value = host_to_le_int32(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void __mla_binary_serializer_write_int64(const mla_serializer_t& instance, const mla_string_t& name, const mla_int64_t value) {
+void mla_binary_serializer_write_int64(const mla_serializer_t& instance, const mla_int64_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_INT64);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_int64_t le_value = host_to_le_int64(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 
 }
 
-void __mla_binary_serializer_write_uint8(const mla_serializer_t& instance, const mla_string_t& name, const mla_uint8_t value) {
+void mla_binary_serializer_write_uint8(const mla_serializer_t& instance, const mla_uint8_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_UINT8);
-    __mla_binary_serializer_write_string_data(instance.output, name);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 
 }
 
-void __mla_binary_serializer_write_uint16(const mla_serializer_t& instance, const mla_string_t& name, const mla_uint16_t value) {
+void mla_binary_serializer_write_uint16(const mla_serializer_t& instance, const mla_uint16_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_UINT16);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_uint16_t le_value = host_to_le_uint16(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 
 }
 
-void __mla_binary_serializer_write_uint32(const mla_serializer_t& instance, const mla_string_t& name, const mla_uint32_t value) {
+void mla_binary_serializer_write_uint32(const mla_serializer_t& instance, const mla_uint32_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_UINT32);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_uint32_t le_value = host_to_le_uint32(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 
 }
 
-void __mla_binary_serializer_write_uint64(const mla_serializer_t& instance, const mla_string_t& name, const mla_uint64_t value) {
+void mla_binary_serializer_write_uint64(const mla_serializer_t& instance, const mla_uint64_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_UINT64);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_uint64_t le_value = host_to_le_uint64(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 
 }
 
-void __mla_binary_serializer_write_float(const mla_serializer_t& instance, const mla_string_t& name, const mla_float_t value) {
+void mla_binary_serializer_write_float(const mla_serializer_t& instance, const mla_float_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_FLOAT);
-    __mla_binary_serializer_write_string_data(instance.output, name);
-    instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 
     mla_float_t le_value = host_to_le_float(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void __mla_binary_serializer_write_double(const mla_serializer_t& instance, const mla_string_t& name, const mla_double_t value) {
+void mla_binary_serializer_write_double(const mla_serializer_t& instance, const mla_double_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_DOUBLE);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
     mla_double_t le_value = host_to_le_double(value);
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void __mla_binary_serializer_write_string(const mla_serializer_t& instance, const mla_string_t& name, const mla_string_t& value) {
+void mla_binary_serializer_write_string(const mla_serializer_t& instance, const mla_string_t& value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_STRING);
-    __mla_binary_serializer_write_string_data(instance.output, name);
     __mla_binary_serializer_write_string_data(instance.output, value);
 }
 
-void __mla_binary_serializer_write_bytes(const mla_serializer_t& instance, const mla_string_t& name, const mla_pointer_t bytes, const mla_size_t size) {
+void mla_binary_serializer_write_bytes(const mla_serializer_t& instance, mla_bytes_t bytes) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_BINARY_ELEMENT_TYPE_BYTES);
-    __mla_binary_serializer_write_string_data(instance.output, name);
 
-    mla_size_t size_le = host_to_le_uint32(size);
+    mla_size_t size_le = host_to_le_uint32(bytes.size);
     instance.output.write(instance.output.userdata, 0, sizeof(size_le), reinterpret_cast<const mla_byte_t*>(&size_le));
 
-    if (size > 0) {
-        instance.output.write(instance.output.userdata, 0, size, reinterpret_cast<const mla_byte_t*>(bytes));
+    if (bytes.size > 0) {
+        instance.output.write(instance.output.userdata, 0, bytes.size, bytes.data);
     }
 }
 
@@ -264,103 +270,320 @@ mla_serializer_t mla_binary_serializer(const mla_stream_output_t& output) {
 
     return {
         output,
-        __mla_binary_serializer_start_group,
-        __mla_binary_serializer_end_group,
-        __mla_binary_serializer_write_bool,
-        __mla_binary_serializer_write_int8,
-        __mla_binary_serializer_write_int16,
-        __mla_binary_serializer_write_int32,
-        __mla_binary_serializer_write_int64,
-        __mla_binary_serializer_write_uint8,
-        __mla_binary_serializer_write_uint16,
-        __mla_binary_serializer_write_uint32,
-        __mla_binary_serializer_write_uint64,
-        __mla_binary_serializer_write_float,
-        __mla_binary_serializer_write_double,
-        __mla_binary_serializer_write_string,
-        __mla_binary_serializer_write_bytes
+        0,
+        mla_binary_serializer_write_start_struct,
+        mla_binary_serializer_write_end_struct,
+        mla_binary_serializer_write_start_list,
+        mla_binary_serializer_write_end_list,
+        mla_binary_serializer_write_property_name,
+        mla_binary_serializer_write_bool,
+        mla_binary_serializer_write_int8,
+        mla_binary_serializer_write_int16,
+        mla_binary_serializer_write_int32,
+        mla_binary_serializer_write_int64,
+        mla_binary_serializer_write_uint8,
+        mla_binary_serializer_write_uint16,
+        mla_binary_serializer_write_uint32,
+        mla_binary_serializer_write_uint64,
+        mla_binary_serializer_write_float,
+        mla_binary_serializer_write_double,
+        mla_binary_serializer_write_string,
+        mla_binary_serializer_write_bytes
     };
 }
 
-mla_deserializer_token __mla_binary_deserializer_next(const mla_deserializer_t& instance) {
+
+mla_string_t __mla_binary_deserializer_read_string_data(const mla_deserializer_t& instance) {
+
+    // Read the length of the string in little endian
+    mla_uint32_t len_le = 0;
+    instance.input.read(instance.input.userdata, 0, sizeof(len_le), reinterpret_cast<mla_byte_t*>(&len_le));
+    mla_size_t length = le_to_host_uint32(len_le);
+
+    if (length == 0) {
+        return mla_string_empty();
+    }
+
+    mla_char_t* charBuffer = mla_create_char_array(length);
+
+    if (charBuffer == nullptr) {
+        // No memory available
+        return mla_string_empty();
+    }
+
+    mla_size_t readed_bytes = instance.input.read(instance.input.userdata, 0, length, reinterpret_cast<mla_byte_t*>(charBuffer));
+
+    if (readed_bytes != length) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(readed_bytes), ") do not match expected length (", mla_string_from_uint32(length), ") in deserializer"));
+    }
+
+    return  mla_string_from_buffer_with_ownership(charBuffer, readed_bytes);
 
 }
 
-mla_string_t __mla_binary_deserializer_current_name(const mla_deserializer_t& instance) {
+mla_bool_t __mla_binary_deserializer_read_bool(const mla_deserializer_t& instance) {
+
+    mla_bool_t value = 0;
+
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return false; // Default to false on error
+    }
+
+    return value;
+
 
 }
 
-mla_bool_t __mla_binary_deserializer_read_bool(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_int8_t __mla_binary_deserializer_read_int8(const mla_deserializer_t& instance) {
+
+    mla_int8_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return value;
 
 }
 
-mla_int8_t __mla_binary_deserializer_read_int8(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_int16_t __mla_binary_deserializer_read_int16(const mla_deserializer_t& instance) {
+
+    mla_int16_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_int16(value);
+}
+
+mla_int32_t __mla_binary_deserializer_read_int32(const mla_deserializer_t& instance) {
+
+    mla_int32_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_int32(value);
 
 }
 
-mla_int16_t __mla_binary_deserializer_read_int16(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_int64_t __mla_binary_deserializer_read_int64(const mla_deserializer_t& instance) {
+
+    mla_int64_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_int64(value);
+}
+
+mla_uint8_t __mla_binary_deserializer_read_uint8(const mla_deserializer_t& instance) {
+
+    mla_uint8_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return value;
+}
+
+mla_uint16_t __mla_binary_deserializer_read_uint16(const mla_deserializer_t& instance) {
+
+    mla_uint16_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_uint16(value);
 
 }
 
-mla_int32_t __mla_binary_deserializer_read_int32(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_uint32_t __mla_binary_deserializer_read_uint32(const mla_deserializer_t& instance) {
+
+    mla_uint32_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_uint32(value);
+}
+
+mla_uint64_t __mla_binary_deserializer_read_uint64(const mla_deserializer_t& instance) {
+
+    mla_uint64_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_uint64(value);
 
 }
 
-mla_int64_t __mla_binary_deserializer_read_int64(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_float_t __mla_binary_deserializer_read_float(const mla_deserializer_t& instance) {
+
+    mla_float_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+
+    return le_to_host_float(value);
 
 }
 
-mla_uint8_t __mla_binary_deserializer_read_uint8(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_double_t __mla_binary_deserializer_read_double(const mla_deserializer_t& instance) {
+
+    mla_double_t value = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(value), reinterpret_cast<mla_byte_t*>(&value));
+    if (read_bytes != sizeof(value)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(value)), ") in deserializer"));
+        return 0; // Default to 0 on error
+    }
+    return le_to_host_double(value);
 
 }
 
-mla_uint16_t __mla_binary_deserializer_read_uint16(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_string_t __mla_binary_deserializer_read_string(const mla_deserializer_t& instance) {
+
+    return __mla_binary_deserializer_read_string_data(instance);
 
 }
 
-mla_uint32_t __mla_binary_deserializer_read_uint32(const mla_deserializer_t& instance, const mla_string_t& name) {
+mla_bytes_t __mla_binary_deserializer_read_bytes(const mla_deserializer_t& instance) {
+
+    mla_size_t read_bytes = 0;
+    mla_uint32_t size_le = 0;
+    instance.input.read(instance.input.userdata, 0, sizeof(size_le), reinterpret_cast<mla_byte_t*>(&size_le));
+    mla_size_t size = le_to_host_uint32(size_le);
+
+    if (size == 0) {
+        return mla_bytes_empty();
+    }
+
+    mla_byte_t* bytesBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(sizeof(mla_byte_t) * size));
+
+    if (bytesBuffer == nullptr) {
+        return mla_bytes_empty();
+    }
+
+    read_bytes = instance.input.read(instance.input.userdata, 0, size, bytesBuffer);
+
+    if (read_bytes != size) {
+        mla_free(bytesBuffer);
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(size), ") in deserializer"));
+        return mla_bytes_empty();
+    }
+
+    return mla_bytes_from_buffer_with_ownership(bytesBuffer, read_bytes);
 
 }
 
-mla_uint64_t __mla_binary_deserializer_read_uint64(const mla_deserializer_t& instance, const mla_string_t& name) {
 
+mla_bool_t mla_binary_deserializer_read_read_next(mla_deserializer_t& instance) {
+
+    mla_uint8_t type = 0;
+    mla_size_t read_bytes = instance.input.read(instance.input.userdata, 0, sizeof(type), reinterpret_cast<mla_byte_t*>(&type));
+
+    if (read_bytes == 0) {
+        return  false;
+    }
+
+    if (read_bytes != sizeof(type)) {
+        mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(sizeof(type)), ") in deserializer"));
+        return false;
+    }
+
+    instance.current_token.type = static_cast<mla_deserializer_token_type_t>(type);
+
+    // Reset current token data
+    instance.current_token.complex = {
+        mla_string_empty(),
+        mla_string_empty(),
+        mla_bytes_empty()
+    };
+    instance.current_token.simple = {0};
+
+    switch (instance.current_token.type) {
+        case MLA_DESERIALIZER_NULL:
+            // Nothing to do
+            break;
+        case MLA_DESERIALIZER_PROPERTY_NAME:
+            instance.current_token.complex.property_name = __mla_binary_deserializer_read_string_data(instance);
+            break;
+        case MLA_DESERIALIZER_STRUCT_START:
+            // Nothing to do
+            break;
+        case MLA_DESERIALIZER_STRUCT_END:
+            // Nothing to do
+            break;
+        case MLA_DESERIALIZER_LIST_START:
+            // Nothing to do
+            break;
+        case MLA_DESERIALIZER_LIST_END:
+            // Nothing to do
+            break;
+        case MLA_DESERIALIZER_VALUE_BOOL:
+            instance.current_token.simple.bool_value = __mla_binary_deserializer_read_bool(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_INT8:
+            instance.current_token.simple.int8_value = __mla_binary_deserializer_read_int8(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_INT16:
+            instance.current_token.simple.int16_value = __mla_binary_deserializer_read_int16(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_INT32:
+            instance.current_token.simple.int32_value = __mla_binary_deserializer_read_int32(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_INT64:
+            instance.current_token.simple.int64_value = __mla_binary_deserializer_read_int64(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_UINT8:
+            instance.current_token.simple.uint8_value = __mla_binary_deserializer_read_uint8(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_UINT16:
+            instance.current_token.simple.uint16_value = __mla_binary_deserializer_read_uint16(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_UINT32:
+            instance.current_token.simple.uint32_value = __mla_binary_deserializer_read_uint32(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_UINT64:
+            instance.current_token.simple.uint64_value = __mla_binary_deserializer_read_uint64(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_FLOAT:
+            instance.current_token.simple.float_value = __mla_binary_deserializer_read_float(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_DOUBLE:
+            instance.current_token.simple.double_value = __mla_binary_deserializer_read_double(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_STRING:
+            instance.current_token.complex.string_value = __mla_binary_deserializer_read_string(instance);
+            break;
+        case MLA_DESERIALIZER_VALUE_BYTES:
+            instance.current_token.complex.bytes_value = __mla_binary_deserializer_read_bytes(instance);
+            break;
+    }
+
+    return true;
 }
-
-mla_float_t __mla_binary_deserializer_read_float(const mla_deserializer_t& instance, const mla_string_t& name) {
-
-}
-
-mla_double_t __mla_binary_deserializer_read_double(const mla_deserializer_t& instance, const mla_string_t& name) {
-
-}
-
-mla_string_t __mla_binary_deserializer_read_string(const mla_deserializer_t& instance, const mla_string_t& name) {
-
-}
-
-mla_size_t __mla_binary_deserializer_read_bytes(const mla_deserializer_t& instance, const mla_string_t& name, mla_pointer_t buffer, const mla_size_t buffer_size) {
-
-}
-
 
 mla_deserializer_t mla_binary_deserializer(const mla_stream_input_t& input) {
 
     return {
         input,
-        __mla_binary_deserializer_next,
-        __mla_binary_deserializer_current_name,
-        __mla_binary_deserializer_read_bool,
-        __mla_binary_deserializer_read_int8,
-        __mla_binary_deserializer_read_int16,
-        __mla_binary_deserializer_read_int32,
-        __mla_binary_deserializer_read_int64,
-        __mla_binary_deserializer_read_uint8,
-        __mla_binary_deserializer_read_uint16,
-        __mla_binary_deserializer_read_uint32,
-        __mla_binary_deserializer_read_uint64,
-        __mla_binary_deserializer_read_float,
-        __mla_binary_deserializer_read_double,
-        __mla_binary_deserializer_read_string,
-        __mla_binary_deserializer_read_bytes
+        0,
+        {MLA_DESERIALIZER_NULL, mla_string_empty(), mla_string_empty(), mla_bytes_empty(), {0}},
+        mla_binary_deserializer_read_read_next
     };
 }

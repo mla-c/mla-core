@@ -77,10 +77,13 @@ mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length);
 mla_string_t mla_string(const mla_char_t *p_Data);
 mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End);
 
+// This function creates a string from a buffer and takes ownership of the buffer
+// You must not free the buffer after calling this function
+mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length);
+
 
 void mla_string_destroy(mla_string_t &p_String);
 
-mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t &p_Substring);
@@ -150,6 +153,8 @@ template<size_t N>
 mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
     return mla_string(literal, N-1);  // N includes null terminator
 }
+
+# define mla_string_equals_const(value1, value2) mla_string_equals(value1, mla_string_const(value2))
 
 
 #endif //COREOS_MLA_STRING_H

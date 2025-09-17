@@ -144,6 +144,43 @@ mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* 
 
 }
 
+mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &p_String2, const mla_char_t* p_String3, const mla_string_t &p_String4, const mla_char_t* p_String5 ) {
+
+    // Calculate lengths of C-style strings
+    mla_size_t size1 = mla_strlen(p_String1);
+    mla_size_t size3 = mla_strlen(p_String3);
+    mla_size_t size5 = mla_strlen(p_String5);
+
+    // Calculate total length
+    mla_size_t newLength = size1 + p_String2.length + size3 + p_String4.length + size5;
+
+    // Allocate memory
+    mla_char_t *newData = mla_create_char_array(newLength + 1);
+
+    // Copy strings
+    mla_size_t offset = 0;
+    mla_memcpy(newData + offset, p_String1, size1);
+    offset += size1;
+
+    mla_memcpy(newData + offset, p_String2.data, p_String2.length);
+    offset += p_String2.length;
+
+    mla_memcpy(newData + offset, p_String3, size3);
+    offset += size3;
+
+    mla_memcpy(newData + offset, p_String4.data, p_String4.length);
+    offset += p_String4.length;
+
+    mla_memcpy(newData + offset, p_String5, size5);
+
+    // Null-terminate the string
+    newData[newLength] = '\0';
+
+    return { newData, newLength, mla_buffer_reference(newData), MLA_STRING_MEMORY_LAYOUT_C_STRING};
+
+
+}
+
 mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& p_String2, const mla_char_t* p_String3, const mla_char_t* p_String4, const mla_char_t* p_String5, const mla_char_t* p_String6, const mla_char_t* p_String7, const mla_char_t* p_String8, const mla_char_t* p_String9) {
 
     mla_size_t size1 = mla_strlen(p_String1);

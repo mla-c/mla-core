@@ -1,0 +1,302 @@
+//
+// Created by chris on 9/16/2025.
+//
+
+#ifndef COREOS_MLA_SERIALIZER_TEST_H
+#define COREOS_MLA_SERIALIZER_TEST_H
+
+
+#include "../core-os/serializer/mla_binary_serializer.h"
+#include "../core-os/system/mla_array_list.h"
+#include "../core-os-test-support/mla_test_executor.h"
+
+static mla_byte_t* buffer = nullptr;
+static mla_stream_output_t stream_output = mla_stream_noop_output();
+static mla_stream_input_t stream_input = mla_stream_noop_input();
+
+void SetupSerializerTest() {
+    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    stream_input = mla_stream_input_from_buffer(buffer, 1024);
+    stream_output = mla_stream_output_to_buffer(buffer, 1024);
+}
+
+void TearDownSerializerTest() {
+    stream_input = mla_stream_noop_input();
+    stream_output = mla_stream_noop_output();
+    mla_free(buffer);
+}
+
+struct mla_all_types_inner_struct {;
+    mla_int32_t int32Value;
+    mla_bool_t boolValue;
+};
+
+mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+
+    mla_all_types_inner_struct* obj = static_cast<mla_all_types_inner_struct*>(config);
+
+    if (mla_string_equals_const(property_name, "int32Value")) {
+
+        mla_deserializer_read_int32(deserializer, obj->int32Value);
+    } else if (mla_string_equals_const(property_name, "boolValue")) {
+
+        mla_deserializer_read_bool(deserializer, obj->boolValue);
+    } else {
+        return MLA_DESERIALIZER_READ_SKIPPED;
+    }
+}
+
+void __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+
+    const mla_all_types_inner_struct* obj = static_cast<const mla_all_types_inner_struct*>(config);
+    mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
+    mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
+
+}
+
+
+struct mla_all_types_struct {
+    mla_bool_t boolValue;
+    mla_int8_t int8Value;
+    mla_int16_t int16Value;
+    mla_int32_t int32Value;
+    mla_int64_t int64Value;
+    mla_uint8_t uint8Value;
+    mla_uint16_t uint16Value;
+    mla_uint32_t uint32Value;
+    mla_uint64_t uint64Value;
+    mla_float_t floatValue;
+    mla_double_t doubleValue;
+    mla_string_t stringValue;
+    mla_bytes_t bytes;
+    mla_all_types_inner_struct innerStruct;
+    mla_array_list_t<mla_int32_t> intList;
+    mla_array_list_t<mla_all_types_inner_struct> innerStructList;
+};
+
+mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+
+    mla_all_types_struct* obj = static_cast<mla_all_types_struct*>(config);
+
+    if (mla_string_equals_const(property_name, "boolValue")) {
+
+        mla_deserializer_read_bool(deserializer, obj->boolValue);
+    } else if (mla_string_equals_const(property_name, "int8Value")) {
+
+        mla_deserializer_read_int8(deserializer, obj->int8Value);
+    } else if (mla_string_equals_const(property_name, "int16Value")) {
+
+        mla_deserializer_read_int16(deserializer, obj->int16Value);
+    } else if (mla_string_equals_const(property_name, "int32Value")) {
+
+        mla_deserializer_read_int32(deserializer, obj->innerStruct.int32Value);
+    } else if (mla_string_equals_const(property_name, "int64Value")) {
+
+        mla_deserializer_read_int64(deserializer, obj->int64Value);
+    } else if (mla_string_equals_const(property_name, "uint8Value")) {
+
+        mla_deserializer_read_uint8(deserializer, obj->uint8Value);
+    } else if (mla_string_equals_const(property_name, "uint16Value")) {
+
+        mla_deserializer_read_uint16(deserializer, obj->uint16Value);
+    } else if (mla_string_equals_const(property_name, "uint32Value")) {
+
+        mla_deserializer_read_uint32(deserializer, obj->uint32Value);
+    } else if (mla_string_equals_const(property_name, "uint64Value")) {
+
+        mla_deserializer_read_uint64(deserializer, obj->uint64Value);
+    } else if (mla_string_equals_const(property_name, "floatValue")) {
+
+        mla_deserializer_read_float(deserializer, obj->floatValue);
+    } else if (mla_string_equals_const(property_name, "doubleValue")) {
+
+        mla_deserializer_read_double(deserializer, obj->doubleValue);
+    } else if (mla_string_equals_const(property_name, "stringValue")) {
+
+        mla_deserializer_read_string(deserializer, obj->stringValue);
+    } else if (mla_string_equals_const(property_name, "bytes")) {
+
+        mla_deserializer_read_bytes(deserializer, obj->bytes);
+    } else if (mla_string_equals_const(property_name, "innerStruct")) {
+
+        if (mla_deserializer_read_struct(deserializer, &obj->innerStruct, __mla_all_types_inner_struct_read_function)) {
+            return MLA_DESERIALIZER_READ_HANDLED;
+        } else {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+    } else if (mla_string_equals_const(property_name, "intList")) {
+
+        if (mla_serializer_read_list(deserializer, obj->intList)) {
+            return MLA_DESERIALIZER_READ_HANDLED;
+        } else {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
+    } else if (mla_string_equals_const(property_name, "innerStructList")) {
+
+        if (mla_serializer_read_list(deserializer, obj->innerStructList, __mla_all_types_inner_struct_read_function)) {
+            return MLA_DESERIALIZER_READ_HANDLED;
+        } else {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
+    } else {
+        return MLA_DESERIALIZER_READ_SKIPPED;
+    }
+}
+
+void __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+
+    const mla_all_types_struct* obj = static_cast<const mla_all_types_struct*>(config);
+
+    mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
+    mla_serializer_write_int8(serializer, mla_string_const("int8Value"), obj->int8Value);
+    mla_serializer_write_int16(serializer, mla_string_const("int16Value"), obj->int16Value);
+    mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
+    mla_serializer_write_int64(serializer, mla_string_const("int64Value"), obj->int64Value);
+    mla_serializer_write_uint8(serializer, mla_string_const("uint8Value"), obj->uint8Value);
+    mla_serializer_write_uint16(serializer, mla_string_const("uint16Value"), obj->uint16Value);
+    mla_serializer_write_uint32(serializer, mla_string_const("uint32Value"), obj->uint32Value);
+    mla_serializer_write_uint64(serializer, mla_string_const("uint64Value"), obj->uint64Value);
+    mla_serializer_write_float(serializer, mla_string_const("floatValue"), obj->floatValue);
+    mla_serializer_write_double(serializer, mla_string_const("doubleValue"), obj->doubleValue);
+    mla_serializer_write_string(serializer, mla_string_const("stringValue"), obj->stringValue);
+    mla_serializer_write_bytes(serializer, mla_string_const("bytes"), obj->bytes);
+
+    // Inner struct
+    mla_serializer_write_struct(serializer, mla_string_const("innerStruct"), &obj->innerStruct, __mla_all_types_inner_struct_write_function);
+
+    // Int list
+    mla_serializer_write_list(serializer, mla_string_const("intList"), obj->intList);
+
+    // Inner struct list
+    mla_serializer_write_list<mla_all_types_inner_struct>(serializer, mla_string_const("innerStructList"), obj->innerStructList, __mla_all_types_inner_struct_write_function);
+
+}
+
+void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer) {
+
+    mla_all_types_struct original = {
+        true,
+        -8,
+        -16,
+        -32,
+        -64,
+        8,
+        16,
+        32,
+        64,
+        3.14f,
+        3.141592653589793,
+        mla_string("Test String"),
+        mla_bytes(5),
+        {0, false},
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list<mla_all_types_inner_struct>()
+    };
+
+    mla_byte_t* bufferInner = mla_bytes_get_data_for_writing(original.bytes);
+
+    bufferInner[0] = 1;
+    bufferInner[1] = 2;
+    bufferInner[2] = 3;
+    bufferInner[3] = 4;
+    bufferInner[4] = 5;
+
+    mla_array_list_add(original.intList, (mla_int32_t)1);
+    mla_array_list_add(original.intList, (mla_int32_t)2);
+    mla_array_list_add(original.intList, (mla_int32_t)3);
+
+    mla_array_list_add(original.innerStructList, { 1, false });
+    mla_array_list_add(original.innerStructList, { 2, true });
+    mla_array_list_add(original.innerStructList, { 3, false });
+
+    mla_serializer_write_struct(serializer, &original, __mla_all_types_struct_write_function);
+
+
+    mla_all_types_struct deserialized = {
+        false,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1.0f,
+        1.0,
+        mla_string_empty(),
+        mla_bytes_empty(),
+        { 0, false },
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list_empty<mla_all_types_inner_struct>()
+    };
+
+    mla_deserializer_read_struct(deserializer, &deserialized, __mla_all_types_struct_read_function);
+
+    // Compare original and deserialized
+    assert_equal(original.boolValue, deserialized.boolValue, "Value 'boolValue' does not match");
+    assert_equal(original.int8Value, deserialized.int8Value, "Value 'int8Value' does not match");
+    assert_equal(original.int16Value, deserialized.int16Value, "Value 'int16Value' does not match");
+    assert_equal(original.int32Value, deserialized.int32Value, "Value 'int32Value' does not match");
+    assert_equal(original.int64Value, deserialized.int64Value, "Value 'int64Value' does not match");
+    assert_equal(original.uint8Value, deserialized.uint8Value, "Value 'uint8Value' does not match");
+    assert_equal(original.uint16Value, deserialized.uint16Value, "Value 'uint16Value' does not match");
+    assert_equal(original.uint32Value, deserialized.uint32Value, "Value 'uint32Value' does not match");
+    assert_equal(original.uint64Value, deserialized.uint64Value, "Value 'uint64Value' does not match");
+    assert_equal(original.floatValue, deserialized.floatValue, "Value 'floatValue' does not match");
+    assert_equal(original.doubleValue, deserialized.doubleValue, "Value 'doubleValue' does not match");
+    assert_struct_equal(mla_string_t, original.stringValue, deserialized.stringValue, "Value 'stringValue' does not match");
+
+    // Compare bytes
+    assert_equal(original.bytes.size, deserialized.bytes.size, "Value 'bytesSize' does not match");
+
+    if (original.bytes.size == deserialized.bytes.size) {
+
+        for (mla_size_t i = 0; i < original.bytes.size; ++i) {
+            assert_equal(original.bytes.data[i], deserialized.bytes.data[i], "Value 'bytes' at index does not match");
+        }
+    }
+
+    // Compare inner struct
+    assert_equal(original.innerStruct.int32Value, deserialized.innerStruct.int32Value, "Value 'innerStruct.int32Value' does not match");
+    assert_equal(original.innerStruct.boolValue, deserialized.innerStruct.boolValue, "Value 'innerStruct.boolValue' does not match");
+
+    // Compare int list
+    assert_equal(mla_array_list_size(original.intList), mla_array_list_size(deserialized.intList), "Size of 'intList' does not match");
+    for (mla_size_t i = 0; i < mla_array_list_size(original.intList); ++i) {
+        assert_equal(*mla_array_list_get_ref(original.intList, i), *mla_array_list_get_ref(deserialized.intList, i), "Value 'intList' at index does not match");
+    }
+
+    // Compare inner struct list
+    assert_equal(mla_array_list_size(original.innerStructList), mla_array_list_size(deserialized.innerStructList), "Size of 'innerStructList' does not match");
+    for (mla_size_t i = 0; i < mla_array_list_size(original.innerStructList); ++i) {
+        mla_all_types_inner_struct* originalItem = mla_array_list_get_ref(original.innerStructList, i);
+        mla_all_types_inner_struct* deserializedItem = mla_array_list_get_ref(deserialized.innerStructList, i);
+        assert_equal(originalItem->int32Value, deserializedItem->int32Value, "Value 'innerStructList.int32Value' at index does not match");
+        assert_equal(originalItem->boolValue, deserializedItem->boolValue, "Value 'innerStructList.boolValue' at index does not match");
+    }
+
+}
+
+inline void BinarySerializerAllTypesTest() {
+
+    mla_serializer_t serializer = mla_binary_serializer(stream_output);
+    mla_deserializer_t deserializer = mla_binary_deserializer(stream_input);
+    AllTypesTest(serializer, deserializer);
+
+}
+
+
+void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
+
+    mla_test_t test = mla_test("BinarySerializerAllTypes", test_category, BinarySerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+
+
+}
+
+
+#endif

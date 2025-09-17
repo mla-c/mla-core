@@ -40,6 +40,8 @@ void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected
 void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);

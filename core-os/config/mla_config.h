@@ -15,9 +15,7 @@ typedef mla_bool_t (*mla_config_definition_write_function_t)(const mla_serialize
 
 struct mla_config_definition_t {
     const mla_string_t config_name;
-    const mla_size_t config_size;
-    const mla_config_definition_read_function_t read_function;
-    const mla_config_definition_write_function_t write_function;
+    const mla_serialize_definition_t definition;
 };
 
 mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_pointer_t config);
@@ -28,22 +26,10 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, m
 ///
 
 template <typename T>
-mla_config_definition_t mla_config_definition(const mla_config_definition_read_function_t& read_function, const mla_config_definition_write_function_t& write_function) {
+mla_config_definition_t mla_config_definition(const mla_serialize_definition_t serialize_definition) {
     return {
             mla_string_const(typeid(T).name()),
-            sizeof(T),
-            read_function,
-            write_function
-    };
-}
-
-template <typename T>
-mla_config_definition_t mla_config_definition_with_dynamic_size(const mla_config_definition_read_function_t& read_function, const mla_config_definition_write_function_t& write_function) {
-    return {
-        mla_string_const(typeid(T).name()),
-        0,
-        read_function,
-        write_function
+        serialize_definition
     };
 }
 
