@@ -62,6 +62,7 @@ int run() {
     RegisterMutexBenchmarks(l_BenchmarkExecutor);
     RegisterReadWriteLockBenchmarks(l_BenchmarkExecutor);
     RegisterInjectBenchmarks(l_BenchmarkExecutor);
+    RegisterSerializerBenchmarks(l_BenchmarkExecutor);
 
     // Native Test for comparison with C++ std::string
     RegisterNativeStringBenchmarks(l_BenchmarkExecutor);

@@ -171,7 +171,7 @@ mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_po
         return false;
     }
 
-    while (deserializer.current_token.type != MLA_DESERIALIZER_STRUCT_END && deserializer.read_next(deserializer)) {
+    while (deserializer.read_next(deserializer)) {
         if (deserializer.current_token.type == MLA_DESERIALIZER_PROPERTY_NAME) {
             mla_string_t property_name = deserializer.current_token.complex.property_name;
 
@@ -188,6 +188,9 @@ mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_po
             } else if (result == MLA_DESERIALIZER_READ_SKIPPED) {
                 mla_deserializer_skip_property_value(deserializer);
             }
+        } else if (deserializer.current_token.type == MLA_DESERIALIZER_STRUCT_END) {
+            // readed the end of the structed
+            return true;
         } else {
             // Unexpected token type
             return false;
@@ -347,7 +350,14 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_int32_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
+
             if (!mla_deserializer_token_type_is_value(deserializer.current_token.type)) {
                 // Wrong struct ure
                 return false;
@@ -367,6 +377,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 }
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_int64_t> &list) {
+
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
         while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
             if (!mla_deserializer_token_type_is_value(deserializer.current_token.type)) {

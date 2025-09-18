@@ -45,27 +45,27 @@ struct mla_serializer_t {
 };
 
 enum mla_deserializer_token_type_t {
-    MLA_DESERIALIZER_NULL,
-    MLA_DESERIALIZER_PROPERTY_NAME,
-    MLA_DESERIALIZER_STRUCT_START,
-    MLA_DESERIALIZER_STRUCT_END,
-    MLA_DESERIALIZER_LIST_START,
-    MLA_DESERIALIZER_LIST_END,
+    MLA_DESERIALIZER_NULL = 0,
+    MLA_DESERIALIZER_PROPERTY_NAME = 1,
+    MLA_DESERIALIZER_STRUCT_START = 2,
+    MLA_DESERIALIZER_STRUCT_END = 3,
+    MLA_DESERIALIZER_LIST_START = 4,
+    MLA_DESERIALIZER_LIST_END = 5,
 
     // Value types
-    MLA_DESERIALIZER_VALUE_BOOL,
-    MLA_DESERIALIZER_VALUE_INT8,
-    MLA_DESERIALIZER_VALUE_INT16,
-    MLA_DESERIALIZER_VALUE_INT32,
-    MLA_DESERIALIZER_VALUE_INT64,
-    MLA_DESERIALIZER_VALUE_UINT8,
-    MLA_DESERIALIZER_VALUE_UINT16,
-    MLA_DESERIALIZER_VALUE_UINT32,
-    MLA_DESERIALIZER_VALUE_UINT64,
-    MLA_DESERIALIZER_VALUE_FLOAT,
-    MLA_DESERIALIZER_VALUE_DOUBLE,
-    MLA_DESERIALIZER_VALUE_STRING,
-    MLA_DESERIALIZER_VALUE_BYTES
+    MLA_DESERIALIZER_VALUE_BOOL = 6,
+    MLA_DESERIALIZER_VALUE_INT8 = 7,
+    MLA_DESERIALIZER_VALUE_INT16 = 8,
+    MLA_DESERIALIZER_VALUE_INT32 = 9,
+    MLA_DESERIALIZER_VALUE_INT64 = 10,
+    MLA_DESERIALIZER_VALUE_UINT8 = 11,
+    MLA_DESERIALIZER_VALUE_UINT16 = 12,
+    MLA_DESERIALIZER_VALUE_UINT32 = 13,
+    MLA_DESERIALIZER_VALUE_UINT64 = 14,
+    MLA_DESERIALIZER_VALUE_FLOAT = 15,
+    MLA_DESERIALIZER_VALUE_DOUBLE = 16,
+    MLA_DESERIALIZER_VALUE_STRING = 17,
+    MLA_DESERIALIZER_VALUE_BYTES = 18
 };
 
 mla_bool_t mla_deserializer_token_type_is_value(const mla_deserializer_token_type_t& token_type);
@@ -186,7 +186,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_
 
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             if (deserializer.current_token.type != MLA_DESERIALIZER_STRUCT_START) {
                 // Wrong struct ure

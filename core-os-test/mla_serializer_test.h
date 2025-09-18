@@ -8,19 +8,20 @@
 
 #include "../core-os/serializer/mla_binary_serializer.h"
 #include "../core-os/system/mla_array_list.h"
+#include "../core-os-test-support/mla_benchmark_executor.h"
 #include "../core-os-test-support/mla_test_executor.h"
 
 static mla_byte_t* buffer = nullptr;
 static mla_stream_output_t stream_output = mla_stream_noop_output();
 static mla_stream_input_t stream_input = mla_stream_noop_input();
 
-void SetupSerializerTest() {
+inline void SetupSerializerTest() {
     buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
     stream_input = mla_stream_input_from_buffer(buffer, 1024);
     stream_output = mla_stream_output_to_buffer(buffer, 1024);
 }
 
-void TearDownSerializerTest() {
+inline void TearDownSerializerTest() {
     stream_input = mla_stream_noop_input();
     stream_output = mla_stream_noop_output();
     mla_free(buffer);
@@ -31,7 +32,7 @@ struct mla_all_types_inner_struct {
     mla_bool_t boolValue;
 };
 
-mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
 
     mla_all_types_inner_struct* obj = static_cast<mla_all_types_inner_struct*>(config);
 
@@ -46,7 +47,7 @@ mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_de
     }
 }
 
-void __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline void __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
 
     const mla_all_types_inner_struct* obj = static_cast<const mla_all_types_inner_struct*>(config);
     mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
@@ -74,7 +75,7 @@ struct mla_all_types_struct {
     mla_array_list_t<mla_all_types_inner_struct> innerStructList;
 };
 
-mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
 
     mla_all_types_struct* obj = static_cast<mla_all_types_struct*>(config);
 
@@ -89,7 +90,7 @@ mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserial
         mla_deserializer_read_int16(deserializer, obj->int16Value);
     } else if (mla_string_equals_const(property_name, "int32Value")) {
 
-        mla_deserializer_read_int32(deserializer, obj->innerStruct.int32Value);
+        mla_deserializer_read_int32(deserializer, obj->int32Value);
     } else if (mla_string_equals_const(property_name, "int64Value")) {
 
         mla_deserializer_read_int64(deserializer, obj->int64Value);
@@ -145,7 +146,7 @@ mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserial
     }
 }
 
-void __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline void __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
 
     const mla_all_types_struct* obj = static_cast<const mla_all_types_struct*>(config);
 
@@ -174,7 +175,7 @@ void __mla_all_types_struct_write_function(mla_serializer_t& serializer, const m
 
 }
 
-void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer) {
+inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer) {
 
     mla_all_types_struct original = {
         true,
@@ -304,6 +305,218 @@ void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
 
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+/// Benchmarks Helpers
+//////////////////////////////////////////////////////////////////////////
+
+
+static mla_all_types_struct g_benchmarkAllTypes = {
+    false,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1.0f,
+    1.0,
+    mla_string_empty(),
+    mla_bytes_empty(),
+    { 0, false },
+    mla_array_list_empty<mla_int32_t>(),
+    mla_array_list_empty<mla_all_types_inner_struct>()
+};
+
+inline void SetupSerializerBenchmark() {
+
+    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    stream_output = mla_stream_output_to_buffer(buffer, 1024);
+
+    g_benchmarkAllTypes = {
+        true,
+        -8,
+        -16,
+        -32,
+        -64,
+        8,
+        16,
+        32,
+        64,
+        3.14f,
+        3.141592653589793,
+        mla_string("Test String"),
+        mla_bytes(5),
+        {0, false},
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list<mla_all_types_inner_struct>()
+    };
+
+    mla_byte_t* bufferInner = mla_bytes_get_data_for_writing(g_benchmarkAllTypes.bytes);
+
+    bufferInner[0] = 1;
+    bufferInner[1] = 2;
+    bufferInner[2] = 3;
+    bufferInner[3] = 4;
+    bufferInner[4] = 5;
+
+    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t)1);
+    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t)2);
+    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t)3);
+
+    mla_array_list_add(g_benchmarkAllTypes.innerStructList, { 1, false });
+    mla_array_list_add(g_benchmarkAllTypes.innerStructList, { 2, true });
+    mla_array_list_add(g_benchmarkAllTypes.innerStructList, { 3, false });
+}
+
+inline void TearDownSerializerBenchmark() {
+
+    g_benchmarkAllTypes = {
+        false,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1.0f,
+        1.0,
+        mla_string_empty(),
+        mla_bytes_empty(),
+        { 0, false },
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list_empty<mla_all_types_inner_struct>()
+    };
+    stream_output = mla_stream_noop_output();
+    mla_free(buffer);
+}
+
+
+inline void SetupDeserializerBenchmark(mla_serializer_t serializer) {
+
+
+    mla_all_types_struct prepare_benchmarkAllTypes = {
+        true,
+        -8,
+        -16,
+        -32,
+        -64,
+        8,
+        16,
+        32,
+        64,
+        3.14f,
+        3.141592653589793,
+        mla_string("Test String"),
+        mla_bytes(5),
+        {0, false},
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list<mla_all_types_inner_struct>()
+    };
+
+    mla_byte_t* bufferInner = mla_bytes_get_data_for_writing(prepare_benchmarkAllTypes.bytes);
+
+    bufferInner[0] = 1;
+    bufferInner[1] = 2;
+    bufferInner[2] = 3;
+    bufferInner[3] = 4;
+    bufferInner[4] = 5;
+
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t)1);
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t)2);
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t)3);
+
+    mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, { 1, false });
+    mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, { 2, true });
+    mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, { 3, false });
+
+
+    mla_serializer_write_struct(serializer, &prepare_benchmarkAllTypes, __mla_all_types_struct_write_function);
+
+    stream_input = mla_stream_input_from_buffer(buffer, 1024);
+}
+
+inline void TearDownDeserializerBenchmark() {
+
+    g_benchmarkAllTypes = {
+        false,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1.0f,
+        1.0,
+        mla_string_empty(),
+        mla_bytes_empty(),
+        { 0, false },
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list_empty<mla_all_types_inner_struct>()
+    };
+    stream_input = mla_stream_noop_input();
+    mla_free(buffer);
+}
+
+
+inline void AllTypesSerializerBenchmark(mla_serializer_t serializer) {
+
+    mla_serializer_write_struct(serializer, &g_benchmarkAllTypes, __mla_all_types_struct_write_function);
+}
+
+inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
+
+    deserializer.read_next(deserializer);
+    mla_deserializer_read_struct(deserializer, &g_benchmarkAllTypes, __mla_all_types_struct_read_function);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Benchmarks
+//////////////////////////////////////////////////////////////////////////
+
+
+
+inline void BinarySerializerBenchmark() {
+
+    mla_serializer_t serializer = mla_binary_serializer(stream_output);
+    AllTypesSerializerBenchmark(serializer);
+
+}
+
+
+inline void SetupBinaryDeserializerBenchmark() {
+
+    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_serializer_t serializer = mla_binary_serializer(prepare_stream_output);
+    SetupDeserializerBenchmark(serializer);
+
+}
+
+inline void BinaryDeserializerBenchmark() {
+
+    mla_deserializer_t deserializer = mla_binary_deserializer(stream_input);
+    AllTypesDeserializerBenchmark(deserializer);
+
+}
+
+
+void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("BinarySerializer", benchmark_category, BinarySerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("BinaryDeserializer", benchmark_category, BinarySerializerBenchmark, SetupBinaryDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
 
