@@ -139,7 +139,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
     SetThreadPriority(thread_data->hThread, winPriority);
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference(thread_data, __mla_task_manager_windows_native_cleanup);
+    *outTaskResourceOwner = mla_buffer_reference(thread_data, true, __mla_task_manager_windows_native_cleanup);
     return true; // Successfully created the task
 }
 

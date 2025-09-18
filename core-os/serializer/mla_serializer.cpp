@@ -766,7 +766,7 @@ mla_bool_t mla_mla_deserializer_convert_to_int32(const mla_deserializer_token_t 
 
         case MLA_DESERIALIZER_VALUE_FLOAT:
 
-            if (token.simple.float_value < mla_int32_min || token.simple.float_value > (mla_float_t)mla_int32_max) {
+            if (token.simple.float_value > (mla_float_t)mla_int32_max) {
                 return false;
             }
             *out_value = (mla_int32_t) token.simple.float_value;
@@ -774,7 +774,7 @@ mla_bool_t mla_mla_deserializer_convert_to_int32(const mla_deserializer_token_t 
 
         case MLA_DESERIALIZER_VALUE_DOUBLE:
 
-            if (token.simple.double_value < mla_int32_min || token.simple.double_value > (mla_float_t)mla_int32_max) {
+            if (token.simple.double_value > (mla_float_t)mla_int32_max) {
                 return false;
             }
             *out_value = (mla_int32_t) token.simple.double_value;

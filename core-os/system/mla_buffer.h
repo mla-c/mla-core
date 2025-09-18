@@ -50,7 +50,7 @@ public:
     mla_buffer_t* buffer;  // Pointer to the buffer
 };
 
-mla_buffer_reference_t mla_buffer_reference(const mla_pointer_t data, mla_buffer_cleanup_hook_t cleanupHook = nullptr, mla_callback_userdata cleanupHookUserData = 0);
+mla_buffer_reference_t mla_buffer_reference(const mla_pointer_t data, mla_bool_t mangedExternalResource = false, mla_buffer_cleanup_hook_t cleanupHook = nullptr, mla_callback_userdata cleanupHookUserData = 0);
 
 mla_buffer_reference_t mla_buffer_reference_noOwner();
 

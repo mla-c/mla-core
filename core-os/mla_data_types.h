@@ -103,6 +103,7 @@ typedef struct mla_low_level_operations_t {
     // Memory allocation and deallocation functions
     mla_pointer_t (*malloc)(mla_size_t size);
     void (*free)(mla_pointer_t ptr);
+    mla_bool_t (*is_gcc_pointer)(const mla_pointer_t ptr);
 
     // Function pointers for printf and other output functions
     mla_int32_t (*printf)(const mla_char_t* format, ...);
@@ -132,6 +133,7 @@ mla_global mla_low_level_operations_t g_low_level_access;
 // Memory allocation and deallocation
 #define mla_malloc(size) g_low_level_access.malloc((size))
 #define mla_free(ptr) g_low_level_access.free((ptr))
+#define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function
 #define mla_printf(format, ...) g_low_level_access.printf((format), __VA_ARGS__)

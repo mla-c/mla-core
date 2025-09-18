@@ -26,7 +26,7 @@ mla_buffer_cleanup_mode __mla_class_reference_destroy(mla_pointer_t data, mla_ca
 
 template <class T>
 mla_buffer_reference_t mla_class_reference(T* data) {
-    return mla_buffer_reference(data, __mla_class_reference_destroy<T>, 0);
+    return mla_buffer_reference(data, true, __mla_class_reference_destroy<T>, 0);
 }
 
 

@@ -46,7 +46,7 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_array
     T* items = static_cast<T*>(mla_malloc(size));
     mla_memset(items, 0, size);
 
-    return { 0, initialCapacity, items, mla_buffer_reference(items, __mla_array_list_cleanup<T, TInit>, initialCapacity) };
+    return { 0, initialCapacity, items, mla_buffer_reference(items, false, __mla_array_list_cleanup<T, TInit>, initialCapacity) };
 }
 
 template <mla_array_list_template>
@@ -95,7 +95,7 @@ void mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize)
         // We dont need to call the cleanup hook here because we are not destroying the old items
         // Instead, we just copy the existing items to the new array
         mla_buffer_reference_destroy_without_cleanup_unsafe(list.itemsOwner);
-        list.itemsOwner = mla_buffer_reference(newItems, __mla_array_list_cleanup<T, TInit>, newSize); // Update the buffer reference
+        list.itemsOwner = mla_buffer_reference(newItems, false, __mla_array_list_cleanup<T, TInit>, newSize); // Update the buffer reference
     }
 }
 

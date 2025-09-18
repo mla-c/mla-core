@@ -57,6 +57,11 @@ void __generic_free(mla_pointer_t ptr) {
     free(ptr);
 }
 
+mla_bool_t __generic_is_gcc_pointer(const mla_pointer_t ptr) {
+    (void)ptr;
+    return false;
+}
+
 mla_int32_t __generic_printf(const mla_char_t* format, ...) {
     va_list args;
     va_start(args, format);

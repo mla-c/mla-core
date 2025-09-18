@@ -96,7 +96,7 @@ inline mla_double_t host_to_le_double(mla_double_t val) {
 
 void __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
 
-    mla_uint8_t byteType = (mla_deserializer_token_type_t)type;
+    mla_uint8_t byteType = (mla_uint8_t)type;
     output.write(output.userdata, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType));
 }
 

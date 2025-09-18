@@ -482,6 +482,72 @@ void String_to_Buffer_LayoutBenchmark() {
     }
 }
 
+void RefCountBenchmark() {
+
+    mla_char_t* data = mla_create_char_array(1);
+
+    mla_string_t str1 = mla_string_from_buffer_with_ownership(data, 1);
+    mla_string_t str2 = str1;
+    mla_string_t str3 = str2;
+    mla_string_t str4 = str3;
+    mla_string_t str5 = str4;
+    mla_string_t str6 = str5;
+    mla_string_t str7 = str6;
+    mla_string_t str8 = str7;
+    mla_string_t str9 = str8;
+    mla_string_t str10 = str9;
+    mla_string_t str11 = str10;
+    mla_string_t str12 = str11;
+    mla_string_t str13 = str12;
+    mla_string_t str14 = str13;
+    mla_string_t str15 = str14;
+    mla_string_t str16 = str15;
+    mla_string_t str17 = str16;
+    mla_string_t str18 = str17;
+    mla_string_t str19 = str18;
+    mla_string_t str20 = str19;
+    mla_string_t str21 = str20;
+    mla_string_t str22 = str21;
+    mla_string_t str23 = str22;
+    mla_string_t str24 = str23;
+    mla_string_t str25 = str24;
+    mla_string_t str26 = str25;
+    mla_string_t str27 = str26;
+    mla_string_t str28 = str27;
+    mla_string_t str29 = str28;
+    mla_string_t str30 = str29;
+    str1 = mla_string_empty();
+    str2 = mla_string_empty();
+    str3 = mla_string_empty();
+    str4 = mla_string_empty();
+    str5 = mla_string_empty();
+    str6 = mla_string_empty();
+    str7 = mla_string_empty();
+    str8 = mla_string_empty();
+    str9 = mla_string_empty();
+    str10 = mla_string_empty();
+    str11 = mla_string_empty();
+    str12 = mla_string_empty();
+    str13 = mla_string_empty();
+    str14 = mla_string_empty();
+    str15 = mla_string_empty();
+    str16 = mla_string_empty();
+    str17 = mla_string_empty();
+    str18 = mla_string_empty();
+    str19 = mla_string_empty();
+    str20 = mla_string_empty();
+    str21 = mla_string_empty();
+    str22 = mla_string_empty();
+    str23 = mla_string_empty();
+    str24 = mla_string_empty();
+    str25 = mla_string_empty();
+    str26 = mla_string_empty();
+    str27 = mla_string_empty();
+    str28 = mla_string_empty();
+    str29 = mla_string_empty();
+    str30 = mla_string_empty();
+
+}
 
 
 void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
@@ -489,6 +555,11 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     // Concat Benchmarks
     ////////////////////////////////////////////
     mla_benchmark_t benchmark = mla_benchmark("Concat", benchmark_category, StringConcatBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    // Ref Count Benchmarks
+    ////////////////////////////////////////////
+    benchmark = mla_benchmark("RefCount", benchmark_category, RefCountBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // Contains Benchmarks

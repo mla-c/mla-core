@@ -15,7 +15,9 @@
 
 typedef mla_test_pointer_t (*test_benchmark_malloc_hook_t)(mla_test_uint32_t size);
 typedef void (*test_benchmark_free_hook_t)(mla_test_pointer_t pointer);
+typedef mla_bool_t (*test_benchmark_is_gcc_pointer_hook_t)(const mla_test_pointer_t pointer);
 
+static test_benchmark_is_gcc_pointer_hook_t mla_benchmark_is_gcc_pointer_hook_original = nullptr;
 static test_benchmark_malloc_hook_t mla_benchmark_malloc_hook_original = nullptr;
 static test_benchmark_free_hook_t mla_benchmark_free_hook_original = nullptr;
 
@@ -42,6 +44,15 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
     }
     return nullptr;
 
+}
+
+mla_bool_t mla_benchmark_is_arena_pointer(const mla_test_pointer_t pointer) {
+    if (g_mla_benchmark_memory_arena && pointer) {
+        auto* base = static_cast<mla_test_uint8_t*>(g_mla_benchmark_memory_arena);
+        auto* ptr  = static_cast<const mla_test_uint8_t*>(pointer);
+        return (ptr >= base) && (ptr < (base + g_mla_benchmark_memory_arena_size));
+    }
+    return false;
 }
 
 void mla_benchmark_free_in_arena_hook(mla_test_pointer_t pointer) {
@@ -85,6 +96,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_mla_benchmark_memory_arena_offset = 0;
     g_mla_benchmark_memory_arena_size = arena_size;
     g_mla_benchmark_memory_arena = mla_malloc(arena_size);
+
+    mla_benchmark_is_gcc_pointer_hook_original = g_low_level_access.is_gcc_pointer;
+    g_low_level_access.is_gcc_pointer = mla_benchmark_is_arena_pointer;
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_in_arena_hook;
     mla_benchmark_free_hook_original = g_low_level_access.free;
@@ -123,6 +137,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         benchmark.tearDown();
     }
 
+    g_low_level_access.is_gcc_pointer = mla_benchmark_is_gcc_pointer_hook_original;
+    mla_benchmark_is_gcc_pointer_hook_original = nullptr;
     g_low_level_access.free = mla_benchmark_free_hook_original;
     mla_benchmark_free_hook_original = nullptr;
     g_low_level_access.malloc = mla_benchmark_malloc_hook_original;
@@ -140,7 +156,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         // Copy the beginning to the end
         memmove(&name_with_arena_sufix[charToCopy - 1], &name_with_arena_sufix[0], charCount);
         // Copy the begining of the name
-        mla_size_t name_size = strlen(benchmark.name);
+        mla_size_t name_size = (mla_size_t)strlen(benchmark.name);
         if (name_size > charToCopy) {
             name_size = charToCopy;
         }
@@ -265,7 +281,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
            benchmarkIterations);
 
     // Start the benchmark one more time but inside an memory arena
-    mla_benchmark_run_in_arena(benchmark, (long long int)(mla_benchmark_allocated_memory / benchmarkIterations));
+    mla_benchmark_run_in_arena(benchmark, (mla_test_uint32_t)(mla_benchmark_allocated_memory / benchmarkIterations));
 
 #else
 

@@ -97,7 +97,11 @@ mla_buffer_reference_t& mla_buffer_reference_t::operator=(const mla_buffer_refer
 }
 
 
-mla_buffer_reference_t mla_buffer_reference(const mla_pointer_t data, mla_buffer_cleanup_hook_t cleanupHook, mla_callback_userdata cleanupHookUserData) {
+mla_buffer_reference_t mla_buffer_reference(const mla_pointer_t data, mla_bool_t mangedExternalResource, mla_buffer_cleanup_hook_t cleanupHook, mla_callback_userdata cleanupHookUserData) {
+
+    if (data != nullptr && !mangedExternalResource && mla_is_gcc_pointer(data)) {
+        return mla_buffer_reference_noOwner();
+    }
 
     mla_buffer_t* buffer = mla_buffer(data, cleanupHook, cleanupHookUserData);
     return mla_buffer_reference_t(buffer);
