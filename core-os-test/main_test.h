@@ -90,7 +90,7 @@ int run() {
     mla_benchmark_executor_run_all(l_BenchmarkExecutor);
     //mla_benchmark_executor_run(l_BenchmarkExecutor, 15);
     //mla_benchmark_executor_run(l_BenchmarkExecutor, 19);
-    //mla_benchmark_executor_run(l_BenchmarkExecutor, 21);
+    //mla_benchmark_executor_run(l_BenchmarkExecutor, 28);
     printf("\nBenchmarks completed\n");
 
     // Clean up resources

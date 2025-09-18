@@ -563,7 +563,7 @@ mla_deserializer_t mla_binary_deserializer(const mla_stream_input_t& input) {
     return {
         input,
         0,
-        {MLA_DESERIALIZER_NULL, mla_string_empty(), mla_string_empty(), mla_bytes_empty(), {0}},
+        {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         mla_binary_deserializer_read_read_next
     };
 }
