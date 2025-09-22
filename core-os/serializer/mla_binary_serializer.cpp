@@ -113,47 +113,47 @@ void __mla_binary_serializer_write_string_data(const mla_stream_output_t& output
 
 }
 
-void mla_binary_serializer_write_start_struct(const mla_serializer_t& instance) {
+void mla_binary_serializer_write_start_struct(mla_serializer_t& instance) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_START);
 
 }
 
-void mla_binary_serializer_write_end_struct(const mla_serializer_t& instance) {
+void mla_binary_serializer_write_end_struct(mla_serializer_t& instance) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_END);
 }
 
-void mla_binary_serializer_write_start_list(const mla_serializer_t& instance) {
+void mla_binary_serializer_write_start_list(mla_serializer_t& instance) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_START);
 
 }
 
-void mla_binary_serializer_write_end_list(const mla_serializer_t& instance) {
+void mla_binary_serializer_write_end_list(mla_serializer_t& instance) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_END);
 }
 
-void mla_binary_serializer_write_property_name(const mla_serializer_t& instance, const mla_string_t& name) {
+void mla_binary_serializer_write_property_name(mla_serializer_t& instance, const mla_string_t& name) {
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_PROPERTY_NAME);
     __mla_binary_serializer_write_string_data(instance.output, name);
 }
 
-void mla_binary_serializer_write_bool(const mla_serializer_t& instance, const mla_bool_t value) {
+void mla_binary_serializer_write_bool(mla_serializer_t& instance, const mla_bool_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BOOL);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 }
 
-void mla_binary_serializer_write_int8(const mla_serializer_t& instance, const mla_int8_t value) {
+void mla_binary_serializer_write_int8(mla_serializer_t& instance, const mla_int8_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT8);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 
 }
 
-void mla_binary_serializer_write_int16(const mla_serializer_t& instance, const mla_int16_t value) {
+void mla_binary_serializer_write_int16(mla_serializer_t& instance, const mla_int16_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT16);
 
@@ -161,7 +161,7 @@ void mla_binary_serializer_write_int16(const mla_serializer_t& instance, const m
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void mla_binary_serializer_write_int32(const mla_serializer_t& instance, const mla_int32_t value) {
+void mla_binary_serializer_write_int32(mla_serializer_t& instance, const mla_int32_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT32);
 
@@ -169,7 +169,7 @@ void mla_binary_serializer_write_int32(const mla_serializer_t& instance, const m
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void mla_binary_serializer_write_int64(const mla_serializer_t& instance, const mla_int64_t value) {
+void mla_binary_serializer_write_int64(mla_serializer_t& instance, const mla_int64_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT64);
 
@@ -178,14 +178,14 @@ void mla_binary_serializer_write_int64(const mla_serializer_t& instance, const m
 
 }
 
-void mla_binary_serializer_write_uint8(const mla_serializer_t& instance, const mla_uint8_t value) {
+void mla_binary_serializer_write_uint8(mla_serializer_t& instance, const mla_uint8_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT8);
     instance.output.write(instance.output.userdata, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
 
 }
 
-void mla_binary_serializer_write_uint16(const mla_serializer_t& instance, const mla_uint16_t value) {
+void mla_binary_serializer_write_uint16(mla_serializer_t& instance, const mla_uint16_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT16);
 
@@ -194,7 +194,7 @@ void mla_binary_serializer_write_uint16(const mla_serializer_t& instance, const 
 
 }
 
-void mla_binary_serializer_write_uint32(const mla_serializer_t& instance, const mla_uint32_t value) {
+void mla_binary_serializer_write_uint32(mla_serializer_t& instance, const mla_uint32_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT32);
 
@@ -203,7 +203,7 @@ void mla_binary_serializer_write_uint32(const mla_serializer_t& instance, const 
 
 }
 
-void mla_binary_serializer_write_uint64(const mla_serializer_t& instance, const mla_uint64_t value) {
+void mla_binary_serializer_write_uint64(mla_serializer_t& instance, const mla_uint64_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT64);
 
@@ -212,7 +212,7 @@ void mla_binary_serializer_write_uint64(const mla_serializer_t& instance, const 
 
 }
 
-void mla_binary_serializer_write_float(const mla_serializer_t& instance, const mla_float_t value) {
+void mla_binary_serializer_write_float(mla_serializer_t& instance, const mla_float_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_FLOAT);
 
@@ -220,7 +220,7 @@ void mla_binary_serializer_write_float(const mla_serializer_t& instance, const m
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void mla_binary_serializer_write_double(const mla_serializer_t& instance, const mla_double_t value) {
+void mla_binary_serializer_write_double(mla_serializer_t& instance, const mla_double_t value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_DOUBLE);
 
@@ -228,13 +228,13 @@ void mla_binary_serializer_write_double(const mla_serializer_t& instance, const 
     instance.output.write(instance.output.userdata, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
 }
 
-void mla_binary_serializer_write_string(const mla_serializer_t& instance, const mla_string_t& value) {
+void mla_binary_serializer_write_string(mla_serializer_t& instance, const mla_string_t& value) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_STRING);
     __mla_binary_serializer_write_string_data(instance.output, value);
 }
 
-void mla_binary_serializer_write_bytes(const mla_serializer_t& instance, mla_bytes_t bytes) {
+void mla_binary_serializer_write_bytes(mla_serializer_t& instance, const mla_bytes_t& bytes) {
 
     __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BYTES);
 

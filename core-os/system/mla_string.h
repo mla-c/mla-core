@@ -113,9 +113,14 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 
 void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
+mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
 
 // String creation from basic types
+mla_string_t mla_string_from_int8(mla_int8_t p_Value);
+mla_string_t mla_string_from_int16(mla_int16_t p_Value);
 mla_string_t mla_string_from_int32(mla_int32_t p_Value);
+mla_string_t mla_string_from_uint8(mla_uint8_t p_Value);
+mla_string_t mla_string_from_uint16(mla_uint16_t p_Value);
 mla_string_t mla_string_from_uint32(mla_uint32_t p_Value);
 mla_string_t mla_string_from_int64(mla_int64_t p_Value);
 mla_string_t mla_string_from_uint64(mla_uint64_t p_Value);

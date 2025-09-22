@@ -11,6 +11,7 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 #include "mla_string_test.h"
+#include "mla_number_test.h"
 #include "mla_buffer_test.h"
 #include "mla_reference_test.h"
 #include "mla_memory_hook_test.h"
@@ -35,6 +36,7 @@ int run() {
 
     mla_test_executor_t l_TestExecutor = mla_test_executor(150);
     RegisterStringTests(l_TestExecutor);
+    RegisterNumberTests(l_TestExecutor);
     RegisterBufferTests(l_TestExecutor);
     RegisterReferenceTests(l_TestExecutor);
     RegisterMemoryHookTests(l_TestExecutor);
@@ -54,6 +56,7 @@ int run() {
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(50);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
+    RegisterNumberBenchmarks(l_BenchmarkExecutor);
     RegisterBufferBenchmarks(l_BenchmarkExecutor);
     RegisterMemoryHookBenchmarks(l_BenchmarkExecutor);
     RegisterArrayListBenchmarks(l_BenchmarkExecutor);

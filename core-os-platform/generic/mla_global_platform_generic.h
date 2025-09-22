@@ -79,4 +79,58 @@ mla_size_t __generic_std_read(mla_char_t* buffer, mla_size_t size) {
     return nul ? (mla_size_t)(nul - buffer) : size;
 }
 
+mla_bool_t __generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
+
+    mla_char_t* endptr;
+    *out_value = strtod(str, &endptr);
+
+    // Check if conversion was successful
+    if (endptr == str) {
+        return false; // No conversion performed
+    }
+
+    // Check if we consumed all the expected characters
+    if ((size_t)(endptr - str) != length) {
+        return false; // Didn't parse the entire string
+    }
+
+    return true;
+}
+
+mla_bool_t __generic_strtoll(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value) {
+
+    mla_char_t* endptr;
+    *out_value = strtoll(str, &endptr, 10);
+
+    // Check if conversion was successful
+    if (endptr == str) {
+        return false; // No conversion performed
+    }
+
+    // Check if we consumed all the expected characters
+    if ((mla_size_t)(endptr - str) != length) {
+        return false; // Didn't parse the entire string
+    }
+
+    return true;
+}
+
+mla_bool_t __generic_strtoull(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value) {
+
+    mla_char_t* endptr;
+    *out_value = strtoull(str, &endptr, 10);
+
+    // Check if conversion was successful
+    if (endptr == str) {
+        return false; // No conversion performed
+    }
+
+    // Check if we consumed all the expected characters
+    if ((mla_size_t)(endptr - str) != length) {
+        return false; // Didn't parse the entire string
+    }
+
+    return true;
+}
+
 #endif

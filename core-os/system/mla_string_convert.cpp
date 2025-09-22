@@ -7,7 +7,81 @@
 #include "../mla_data_types.h"
 #include "mla_reference.h"
 
+mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
+    // Allocate buffer for maximum int8 digits (-128 = 4 chars + null terminator)
+    const mla_size_t bufferSize = 5;
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
 
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
+
+    if (length > 0) {
+        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+    } else {
+        mla_free(buffer);
+        return mla_string_empty();
+    }
+}
+
+mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
+    // Allocate buffer for maximum uint8 digits (255 = 3 chars + null terminator)
+    const mla_size_t bufferSize = 4;
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
+
+    if (length > 0) {
+        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+    } else {
+        mla_free(buffer);
+        return mla_string_empty();
+    }
+}
+
+mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
+    // Allocate buffer for maximum int16 digits (-32768 = 6 chars + null terminator)
+    const mla_size_t bufferSize = 7;
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
+
+    if (length > 0) {
+        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+    } else {
+        mla_free(buffer);
+        return mla_string_empty();
+    }
+}
+
+mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
+    // Allocate buffer for maximum uint16 digits (65535 = 5 chars + null terminator)
+    const mla_size_t bufferSize = 6;
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
+
+    if (length > 0) {
+        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+    } else {
+        mla_free(buffer);
+        return mla_string_empty();
+    }
+}
 
 mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
     // Allocate buffer for maximum int32 digits (-2147483648 = 11 chars + null terminator)

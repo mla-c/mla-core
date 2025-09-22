@@ -204,3 +204,15 @@ mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceC
     cString[p_String.length] = '\0'; // Null-terminate the string
     return { cString, true};
 }
+
+mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
+
+    if (p_String.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+        return {p_String.data, false}; // Already a C-style string, no need to copy
+    }
+
+    mla_char_t *cString = mla_create_char_array(p_String.length + 1); // +1 for null terminator
+    mla_memcpy(cString, p_String.data, p_String.length);
+    cString[p_String.length] = '\0'; // Null-terminate the string
+    return { cString, true};
+}

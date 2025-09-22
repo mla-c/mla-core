@@ -40,6 +40,8 @@
 #define mla_uint64_max (18446744073709551615ULL)
 
 #define mla_float_t float
+#define mla_float_min (-3.40282347e+38F)
+#define mla_float_max (3.40282347e+38F)
 #define mla_double_t double
 
 #define mla_char_t char
@@ -109,6 +111,11 @@ typedef struct mla_low_level_operations_t {
     mla_int32_t (*printf)(const mla_char_t* format, ...);
     mla_size_t (*std_read)(mla_char_t* buffer, mla_size_t size);
 
+    // Parsing
+    mla_bool_t (*strtod)(const mla_char_t* str, mla_size_t length, mla_double_t* out_value); // String to double
+    mla_bool_t (*strtoll)(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value); // String to int64
+    mla_bool_t (*strtoull)(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value); // String to uint64
+
     // Timing
     void (*sleep)(mla_uint32_t milliseconds);
 
@@ -138,6 +145,11 @@ mla_global mla_low_level_operations_t g_low_level_access;
 // Default printf function
 #define mla_printf(format, ...) g_low_level_access.printf((format), __VA_ARGS__)
 #define mla_std_read(buffer, size) g_low_level_access.std_read((buffer), (size))
+
+// Parsing functions
+#define mla_strtod(str, length, out_value) g_low_level_access.strtod((str), (length), (out_value))
+#define mla_strtoll(str, length, out_value) g_low_level_access.strtoll((str), (length), (out_value))
+#define mla_strtoull(str, length, out_value) g_low_level_access.strtoull((str), (length), (out_value))
 
 // Sleep function for timing
 #define mla_sleep(milliseconds) g_low_level_access.sleep((milliseconds))
