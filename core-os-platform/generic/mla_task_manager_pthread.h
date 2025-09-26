@@ -170,7 +170,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     }
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference(thread_data, __mla_task_manager_pthread_cleanup);
+    *outTaskResourceOwner = mla_buffer_reference(thread_data, true, __mla_task_manager_pthread_cleanup);
 
     return true;
 

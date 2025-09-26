@@ -70,7 +70,7 @@ mla_memory_hook_t mla_memory_hook_install(mla_memory_malloc_hook_t malloc_hook, 
     mla_int8_t nextFreeSpace = g_memory_hook.hook_count;
 
     if (nextFreeSpace >= CONST_MLA_MAX_MEMORY_HOOKS) {
-        return { nullptr, nullptr }; // No space for new hook
+        return { nullptr, nullptr, nullptr }; // No space for new hook
     }
 
     mla_memory_hook_t hook = {

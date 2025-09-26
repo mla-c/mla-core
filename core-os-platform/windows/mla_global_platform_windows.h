@@ -15,15 +15,15 @@
 
 #include "../generic/mla_global_platform_fast_float.h"
 
-#define mla_windows_strtod __fast_float_strtod
-#define mla_windows_strtoll __fast_float_strtoll
-#define mla_windows_strtoull __fast_float_strtoull
+#define mla_platform_strtod __fast_float_strtod
+#define mla_platform_strtoll __fast_float_strtoll
+#define mla_platform_strtoull __fast_float_strtoull
 
 #else
 
-#define mla_windows_strtod __generic_strtod
-#define mla_windows_strtoll __generic_strtoll
-#define mla_windows_strtoull __generic_strtoull
+#define mla_platform_strtod __generic_strtod
+#define mla_platform_strtoll __generic_strtoll
+#define mla_platform_strtoull __generic_strtoull
 
 #endif
 
@@ -50,9 +50,9 @@ mla_low_level_operations_t g_low_level_access {
         __generic_is_gcc_pointer,
         __generic_printf,
         __generic_std_read,
-        mla_windows_strtod,
-        mla_windows_strtoll,
-        mla_windows_strtoull,
+        mla_platform_strtod,
+        mla_platform_strtoll,
+        mla_platform_strtoull,
         __windows_sleep,
     };
 
