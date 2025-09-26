@@ -38,7 +38,7 @@ mla_mutex_t mla_mutex(mla_string_t name) {
     }
 
     mutex.resource = outResource; // Assign the resource pointer
-    mutex.resourceOwner = mla_buffer_reference(outResource, __mla_mutex_cleanup_hook);
+    mutex.resourceOwner = mla_buffer_reference(outResource, true, __mla_mutex_cleanup_hook);
     return mutex;
 }
 

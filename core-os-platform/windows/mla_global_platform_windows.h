@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-#if !(defined mla_use_fast_float) || mla_use_fast_float == 1
+#if mla_use_fast_float == 1
 
 // Using fast-float library for optimized float parsing
 // https://github.com/fastfloat/fast_float
@@ -24,6 +24,7 @@
 #define mla_windows_strtod __generic_strtod
 #define mla_windows_strtoll __generic_strtoll
 #define mla_windows_strtoull __generic_strtoull
+
 #endif
 
 

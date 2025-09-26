@@ -113,7 +113,7 @@ inline void ParseInt32Test() {
     str = mla_string("-2147483648"); // Min int32
     result = mla_parse_int32(str, value);
     assert_true(result, "Parsing should succeed");
-    assert_equal(value, (mla_int32_t)-2147483648, "Parsed value should be min int32");
+    assert_equal(value, (mla_int32_t)-2147483647 - 1, "Parsed value should be min int32");
 
     str = mla_string("invalid");
     result = mla_parse_int32(str, value);
