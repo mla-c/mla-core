@@ -10,6 +10,7 @@
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
+#include "mla_data_types_test.h"
 #include "mla_string_test.h"
 #include "mla_number_test.h"
 #include "mla_buffer_test.h"
@@ -35,6 +36,7 @@
 int run() {
 
     mla_test_executor_t l_TestExecutor = mla_test_executor(150);
+    RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
     RegisterBufferTests(l_TestExecutor);
@@ -77,12 +79,12 @@ int run() {
 
     printf("Running Tests...\n");
     mla_test_int32_t l_FailedTest = 0;
-    //l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
+    l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
-    l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
+    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
     printf("Tests completed with %ld failed tests\n", l_FailedTest);
 
     // Running benchmarks

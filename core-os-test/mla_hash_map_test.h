@@ -358,13 +358,13 @@ void RegisterHashMapTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
-static mla_hash_map_t<int, int, mla_int16_hash_t> mla_map = mla_hash_map_empty<int, int, mla_int16_hash_t>();
+static mla_hash_map_t<short, short, mla_int16_hash_t> mla_map = mla_hash_map_empty<short, short, mla_int16_hash_t>();
 
 void SetupHashMapContainsBenchmark() {
 
-    mla_map = mla_hash_map<int, int, mla_int16_hash_t>(16);
+    mla_map = mla_hash_map<short, short, mla_int16_hash_t>(16);
 
-    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
+    for (short i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_hash_map_push(mla_map, i, i);
     }
 }
@@ -372,7 +372,7 @@ void SetupHashMapContainsBenchmark() {
 void HashMapContainsBenchmark() {
 
 
-    for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
+    for (short i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
 
         mla_bool_t found = mla_hash_map_contains(mla_map, i);
 
@@ -385,15 +385,15 @@ void HashMapContainsBenchmark() {
 
 void TearDownHashMapContainsBenchmark() {
 
-    mla_map = mla_hash_map_empty<int, int, mla_int16_hash_t>();
+    mla_map = mla_hash_map_empty<short, short, mla_int16_hash_t>();
 }
 
 
 void HashMapAddMuchItemsBenchmark() {
 
-    mla_map = mla_hash_map<int, int, mla_int16_hash_t>(16);
+    mla_map = mla_hash_map<short, short, mla_int16_hash_t>(16);
 
-    for (int i = 0; i < 1000; ++i) {
+    for (short i = 0; i < 1000; ++i) {
         mla_hash_map_push(mla_map, i, i);
     }
 }

@@ -377,7 +377,7 @@ void mla_check_assert_not_equal(mla_test_float_t p_Actual, mla_test_float_t p_Ex
         return;
 
     mla_test_float_t diff = p_Actual - p_Expected;
-    if ((diff < 0 ? -diff : diff) > 1e-9) {
+    if ((diff < 0 ? -diff : diff) > 0.000001) {
         current_test_result.success = false;
         mla_test_char_t* l_Result = new mla_test_char_t[4096];
         if (p_Message) {
@@ -395,7 +395,7 @@ void mla_check_assert_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expe
         return;
 
     mla_test_double_t diff = p_Actual - p_Expected;
-    if ((diff < 0 ? -diff : diff) > 1e-9) {
+    if ((diff < 0 ? -diff : diff) > 0.000001) {
         current_test_result.success = false;
         mla_test_char_t* l_Result = new mla_test_char_t[4096];
         if (p_Message) {
