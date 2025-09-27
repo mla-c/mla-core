@@ -9,6 +9,8 @@
 #include "../system/mla_string.h"
 #include "../system/mla_string_concat.h"
 
+#define mla_bytes_prefix "mla_bytes:"
+
 enum mla_json_serializer_element_type_t {
     MLA_JSON_SERIALIZER_ELEMENT_NONE = 0,
     MLA_JSON_SERIALIZER_ELEMENT_START_LIST = 1,
@@ -176,21 +178,33 @@ void mla_json_serializer_write_double(mla_serializer_t &instance, const mla_doub
     mla_string_destroy(str);
 }
 
+void __mla_json_serializer_write_string_plain(mla_serializer_t &instance, const mla_string_t &value) {
+
+    if (value.length == 0)
+        return;
+
+    instance.output.write(instance.output.userdata, 0, value.length,
+                              reinterpret_cast<const mla_byte_t *>(value.data));
+}
+
 void mla_json_serializer_write_string(mla_serializer_t &instance, const mla_string_t &value) {
+
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
-    if (value.length > 0) {
-        instance.output.write(instance.output.userdata, 0, value.length,
-                              reinterpret_cast<const mla_byte_t *>(value.data));
-    }
+    __mla_json_serializer_write_string_plain(instance, value);
     instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+
 }
 
 void mla_json_serializer_write_bytes(mla_serializer_t &instance, const mla_bytes_t &value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     // Serialize bytes as a base64 string
     mla_string_t base64Str = mla_bytes_to_base64(value);
-    mla_json_serializer_write_string(instance, base64Str);
+
+    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    __mla_json_serializer_write_string_plain(instance, mla_string_const(mla_bytes_prefix));
+    __mla_json_serializer_write_string_plain(instance, base64Str);
+    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
     mla_string_destroy(base64Str);
 }
 
@@ -266,24 +280,24 @@ mla_size_t __mla_json_deserializer_read_next_data(mla_deserializer_t &instance, 
         lengthRemaining = length;
     }
 
-    const mla_size_t readed = instance.input.read(instance.input.userdata, offset, lengthRemaining,
+    const mla_size_t readed = instance.input.read(instance.input.userdata, offset * sizeof(mla_char_t), lengthRemaining * sizeof(mla_char_t),
                                                   reinterpret_cast<mla_byte_t *>(charBuffer));
-    return readed + offset;
+    return (readed /  sizeof(mla_char_t)) + offset;
 }
 
 mla_bool_t __mla_json_deserializer_string_match(mla_deserializer_t &instance, const mla_char_t *data,
                                                 const mla_size_t length) {
-    if (length > 5)
+    if (length > 4)
         return false;
 
     // The current max is 5/ never more
-    mla_char_t charBuffer[5];
+    mla_char_t charBuffer[4];
 
-    if (__mla_json_deserializer_read_next_data(instance, charBuffer, 5) != length) {
+    if (__mla_json_deserializer_read_next_data(instance, charBuffer, length) != length) {
         return false;
     }
 
-    return mla_memcmp(charBuffer, data, length);
+    return mla_memcmp(&charBuffer, data, length) == 0;
 }
 
 
@@ -308,8 +322,8 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
         }
 
         // Read next char
-        if (instance.input.read(instance.input.userdata, position, 1,
-                                reinterpret_cast<mla_byte_t *>(&charBuffer[position])) != 1) {
+        if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
+                                reinterpret_cast<mla_byte_t *>(&charBuffer)) != 1 * sizeof(mla_char_t)) {
             return false;
         }
 
@@ -326,8 +340,8 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
 
         if (charBuffer[position] == '\\') {
             // Read next char
-            if (instance.input.read(instance.input.userdata, position, 1,
-                                    reinterpret_cast<mla_byte_t *>(&charBuffer[position])) != 1) {
+            if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
+                                    reinterpret_cast<mla_byte_t *>(&charBuffer)) != 1 * sizeof(mla_char_t)) {
                 return false;
             }
 
@@ -352,8 +366,8 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
                     charBuffer[position] = '\t';
                     break;
                 case 'u': {
-                    if (instance.input.read(instance.input.userdata, position, 4,
-                                            reinterpret_cast<mla_byte_t *>(&charBuffer[position])) != 4) {
+                    if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 4 * sizeof(mla_char_t),
+                                            reinterpret_cast<mla_byte_t *>(&charBuffer)) != 4 * sizeof(mla_char_t)) {
                         return false;
                     }
 
@@ -379,8 +393,8 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
                     if (unicode_val >= 0xD800 && unicode_val <= 0xDBFF) {
                         // This is a high surrogate, we need to read the low surrogate
                         mla_char_t next_chars[6];
-                        if (instance.input.read(instance.input.userdata, 0, 6,
-                                                reinterpret_cast<mla_byte_t *>(next_chars)) != 6) {
+                        if (instance.input.read(instance.input.userdata, 0, 6 * sizeof(mla_char_t),
+                                                reinterpret_cast<mla_byte_t *>(next_chars)) != 6 * sizeof(mla_char_t)) {
                             return false;
                         }
 
@@ -470,6 +484,8 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
                     mla_error("Invalid Unicode escape sequence")
                     return false;
             }
+        } else {
+            position++;
         }
     }
 
@@ -561,7 +577,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
         // Parse as floating point
         mla_double_t value;
 
-        if (!mla_parse_double(mla_string(charBuffer, position - 1), value)) {
+        if (!mla_parse_double(mla_string(charBuffer, position), value)) {
             mla_error("Invalid floating point number");
             return false;
         }
@@ -577,7 +593,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
     } else {
         // Parse as integer
         mla_int64_t value;
-        if (!mla_parse_int64(mla_string(charBuffer, position - 1), value)) {
+        if (!mla_parse_int64(mla_string(charBuffer, position), value)) {
             mla_error("Invalid integer number");
             return false;
         }
@@ -671,8 +687,25 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                     instance.current_token.complex.property_name = str_data;
                     return true;
                 } else {
-                    instance.current_token.type = MLA_DESERIALIZER_VALUE_STRING;
-                    instance.current_token.complex.string_value = str_data;
+
+                    mla_string_t bytes_prefix = mla_string_const(mla_bytes_prefix);
+
+                    if (mla_string_starts_with(str_data, bytes_prefix)) {
+
+                        instance.current_token.type = MLA_DESERIALIZER_VALUE_BYTES;
+
+                        // This is a bytes value
+                        mla_string_t base64Part = mla_string_substr(str_data, bytes_prefix.length,
+                                                                      str_data.length - 1);
+                        instance.current_token.complex.bytes_value = mla_bytes_from_base64(base64Part);
+                        mla_string_destroy(base64Part);
+
+                    } else {
+                        // This is a string value
+                        instance.current_token.type = MLA_DESERIALIZER_VALUE_STRING;
+                        instance.current_token.complex.string_value = str_data;
+                    }
+
                     // Put the char back into buffer for next usage
                     instance.userdata = new_char;
                     return true;
@@ -680,7 +713,8 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
             }
 
             case 't':
-                if (__mla_json_deserializer_string_match(instance, "true", 4)) {
+                // Check if the remaining String plus the 't' matches "true"
+                if (__mla_json_deserializer_string_match(instance, "rue", 3)) {
                     instance.current_token.type = MLA_DESERIALIZER_VALUE_BOOL;
                     instance.current_token.simple.bool_value = true;
                     return true;
@@ -689,7 +723,8 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                 return false;
 
             case 'f':
-                if (__mla_json_deserializer_string_match(instance, "false", 5)) {
+                // Check if the remaining String plus the 'f' matches "false"
+                if (__mla_json_deserializer_string_match(instance, "alse", 4)) {
                     instance.current_token.type = MLA_DESERIALIZER_VALUE_BOOL;
                     instance.current_token.simple.bool_value = false;
                     return true;
@@ -698,7 +733,8 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                 return false;
 
             case 'n':
-                if (__mla_json_deserializer_string_match(instance, "null", 4)) {
+                // Check if the remaining String plus the 'n' matches "null"
+                if (__mla_json_deserializer_string_match(instance, "ull", 3)) {
                     instance.current_token.type = MLA_DESERIALIZER_NULL;
                     return true;
                 }
@@ -716,6 +752,8 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
             case '7':
             case '8':
             case '9':
+                // Number detected, read the full number
+                instance.userdata = (mla_callback_userdata)new_char;
                 return __mla_json_deserializer_read_number_data(instance);
 
             case ',':

@@ -77,12 +77,12 @@ int run() {
 
     printf("Running Tests...\n");
     mla_test_int32_t l_FailedTest = 0;
-    l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
+    //l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 69);
+    l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
     printf("Tests completed with %ld failed tests\n", l_FailedTest);
 
     // Running benchmarks

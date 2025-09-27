@@ -230,7 +230,7 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
         1.0,
         mla_string_empty(),
         mla_bytes_empty(),
-        { 0, false },
+        { 6, true },
         mla_array_list_empty<mla_int32_t>(),
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
