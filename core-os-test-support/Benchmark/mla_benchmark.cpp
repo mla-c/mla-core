@@ -93,6 +93,8 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
 
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations) {
 
+    mla_test_printf("AAA|");
+
     g_mla_benchmark_memory_arena_offset = 0;
     g_mla_benchmark_memory_arena_size = arena_size;
     g_mla_benchmark_memory_arena = mla_malloc(arena_size);
@@ -170,7 +172,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 
 
-    mla_test_printf("AAA|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+    mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
                benchmark.category,
                name_with_arena_sufix,
                minTime,
@@ -203,7 +205,10 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
     }
 
     // Add some extra space to the arena to avoid edge cases
-    mla_benchmark_run_in_arena_fixed_size(benchmark, arena_size, benchmarkIterations);
+    if (arena_size > 0) {
+        mla_benchmark_run_in_arena_fixed_size(benchmark, arena_size, benchmarkIterations);
+    }
+
 #else
     (void)benchmark;
     (void)arena_size_per_run;
