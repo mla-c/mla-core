@@ -3,7 +3,7 @@
 //
 
 #ifndef COREOS_MLA_NUMBER_TEST_H
-#define COREOS_TEST_MLA_NUMBER_TEST_H
+#define COREOS_MLA_NUMBER_TEST_H
 
 #include "../core-os/system/mla_string.h"
 #include "../core-os/system/mla_number.h"

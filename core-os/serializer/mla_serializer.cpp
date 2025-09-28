@@ -742,9 +742,6 @@ mla_bool_t mla_mla_deserializer_convert_to_int32(const mla_deserializer_token_t 
 
         case MLA_DESERIALIZER_VALUE_UINT16:
 
-            if (token.simple.uint16_value > mla_int32_max) {
-                return false;
-            }
             *out_value = (mla_int32_t) token.simple.uint16_value;
             return true;
 

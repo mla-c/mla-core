@@ -20,8 +20,8 @@
 #define mla_double_t double
 
 #define mla_char_t char
-#define mla_utf_16_char_t signed short
-#define mla_utf_32_char_t signed long
+#define mla_utf_16_char_t unsigned short
+#define mla_utf_32_char_t unsigned long
 
 #define mla_void_t void
 #define mla_pointer_t void*

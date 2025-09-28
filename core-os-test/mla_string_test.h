@@ -315,6 +315,80 @@ void ToUtf32AndFromUtf32Test() {
 
 }
 
+void ToUtf16AndFromUtf16_EmptyTest() {
+    mla_string_t baseString = mla_string("");
+    mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
+    assert_equal(utf16Buffer.charCount, (mla_uint32_t)0, "UTF-16 empty: charCount should be 0");
+    assert_null(utf16Buffer.data, "UTF-16 empty: data shoud be null");
+    mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 empty round trip should match");
+    mla_string_utf16_buffer_destroy(utf16Buffer);
+}
+
+void ToUtf16AndFromUtf16_AsciiTest() {
+    mla_string_t baseString = mla_string("ABC");
+    mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
+    assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 ASCII: charCount should be 3");
+    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)'A', "UTF-16 ASCII: data[0]=='A'");
+    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)'B', "UTF-16 ASCII: data[1]=='B'");
+    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'C', "UTF-16 ASCII: data[2]=='C'");
+    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 ASCII: null terminator");
+    mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 ASCII round trip should match");
+    mla_string_utf16_buffer_destroy(utf16Buffer);
+}
+
+void ToUtf16AndFromUtf16_MixedBmpTest() {
+    // Euro (U+20AC) Omega (U+03A9) Eszett (U+00DF)
+    mla_string_t baseString = mla_string("€Ωß");
+    mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
+    assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 Mixed BMP: charCount should be 3");
+    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "UTF-16 Mixed BMP: Euro");
+    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)0x03A9, "UTF-16 Mixed BMP: Omega");
+    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)0x00DF, "UTF-16 Mixed BMP: Eszett");
+    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 Mixed BMP: terminator");
+    mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 Mixed BMP round trip should match");
+    mla_string_utf16_buffer_destroy(utf16Buffer);
+}
+
+void ToUtf32AndFromUtf32_EmptyTest() {
+
+    mla_string_t baseString = mla_string("");
+    mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
+    assert_equal(utf32Buffer.charCount, (mla_uint32_t)0, "UTF-32 empty: charCount should be 0");
+    assert_null(utf32Buffer.data, "UTF-32 empty: data should be null");
+    mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 empty round trip should match");
+    mla_string_utf32_buffer_destroy(utf32Buffer);
+}
+
+void ToUtf32AndFromUtf32_AsciiTest() {
+    mla_string_t baseString = mla_string("ABC");
+    mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
+    assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 ASCII: charCount should be 3");
+    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)'A', "UTF-32 ASCII: data[0]=='A'");
+    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)'B', "UTF-32 ASCII: data[1]=='B'");
+    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'C', "UTF-32 ASCII: data[2]=='C'");
+    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 ASCII: terminator");
+    mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 ASCII round trip should match");
+    mla_string_utf32_buffer_destroy(utf32Buffer);
+}
+
+void ToUtf32AndFromUtf32_MixedBmpTest() {
+    mla_string_t baseString = mla_string("€Ωß");
+    mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
+    assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 Mixed BMP: charCount should be 3");
+    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "UTF-32 Mixed BMP: Euro");
+    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)0x000003A9, "UTF-32 Mixed BMP: Omega");
+    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)0x000000DF, "UTF-32 Mixed BMP: Eszett");
+    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 Mixed BMP: terminator");
+    mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
+    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 Mixed BMP round trip should match");
+    mla_string_utf32_buffer_destroy(utf32Buffer);
+}
+
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
@@ -381,6 +455,24 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ToUtf32AndFromUtf32", test_category, ToUtf32AndFromUtf32Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf16AndFromUtf16_Empty", test_category, ToUtf16AndFromUtf16_EmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf16AndFromUtf16_Ascii", test_category, ToUtf16AndFromUtf16_AsciiTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf16AndFromUtf16_MixedBmp", test_category, ToUtf16AndFromUtf16_MixedBmpTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf32AndFromUtf32_Empty", test_category, ToUtf32AndFromUtf32_EmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf32AndFromUtf32_Ascii", test_category, ToUtf32AndFromUtf32_AsciiTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ToUtf32AndFromUtf32_MixedBmp", test_category, ToUtf32AndFromUtf32_MixedBmpTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
