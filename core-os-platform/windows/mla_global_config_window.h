@@ -7,22 +7,42 @@
 
 #include "../../core-os/config/mla_config.h"
 #include "windows.h"
+#include <tchar.h>
 
 #if !defined(mla_windows_max_config_file_size)
 #define mla_windows_max_config_file_size (128 * 1024) // 128KB is default
 #endif
 
-#define mla_windows_config_file_name "app_config.config"
+#define mla_commit_buffer_size 32767
+void get_config_filename(TCHAR* buffer, size_t bufferSize) {
+
+    TCHAR exePath[mla_commit_buffer_size];
+    GetModuleFileName(nullptr, exePath, mla_commit_buffer_size);
+
+    // Get just the filename part
+    TCHAR* lastBackslash = _tcsrchr(exePath, TEXT('\\'));
+    TCHAR* filename = lastBackslash ? lastBackslash + 1 : exePath;
+
+    // Copy the filename to the buffer
+    _tcscpy_s(buffer, bufferSize, filename);
+
+    // Add .config extension
+    _tcscat_s(buffer, bufferSize, TEXT(".config"));
+
+}
+
 
 // On Windows the configuration is just an file in the application directory
 // The file can be read and written using standard file operations
 
 mla_bytes_t __windows_read_config_input() {
 
+    TCHAR configFilename[mla_commit_buffer_size];
+    get_config_filename(configFilename, mla_commit_buffer_size);
 
     // Open the config file
     HANDLE hFile = CreateFile(
-        mla_windows_config_file_name,     // File name
+        configFilename,     // File name
         GENERIC_READ,                     // Open for reading
         FILE_SHARE_READ,                  // Share for reading
         nullptr,                             // Default security
@@ -84,18 +104,47 @@ mla_bytes_t __windows_create_config_output_buffer() {
 
 mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
 
-    // Create a new file beside the old one and then rename it
-    // This is to avoid corrupting the config file if something goes wrong during writing
 
-    // Create temporary file name (append .tmp to the original filename)
-    const mla_char_t* tempFileName = "app_config.config.tmp";
+    TCHAR exePath[mla_commit_buffer_size];
+    if (GetModuleFileName(nullptr, exePath, mla_commit_buffer_size) == 0) {
+        mla_bytes_destroy(output);
+        return false;
+    }
 
-    // If the temporary file already exists, delete it
-    DeleteFile(tempFileName);
+    // Use _tcschr instead of strrchr/wcsrchr
+    TCHAR* lastBackslash = _tcsrchr(exePath, TEXT('\\'));
+    if (lastBackslash == nullptr) {
+        mla_bytes_destroy(output);
+        return false;
+    }
+    *(lastBackslash + 1) = TEXT('\0');
+
+    // Use TCHAR for all paths
+    TCHAR configPath[mla_commit_buffer_size];
+    TCHAR tempPath[mla_commit_buffer_size];
+    TCHAR backupPath[mla_commit_buffer_size];
+
+    // Then modify the line you highlighted to:
+    TCHAR configFilename[mla_commit_buffer_size];
+    get_config_filename(configFilename, mla_commit_buffer_size);
+
+    _tcscpy_s(configPath, mla_commit_buffer_size, exePath);
+    _tcscat_s(configPath, mla_commit_buffer_size, configFilename);
+
+    _tcscpy_s(tempPath, mla_commit_buffer_size, exePath);
+    _tcscat_s(tempPath, mla_commit_buffer_size, configFilename);
+    _tcscat_s(tempPath, mla_commit_buffer_size, TEXT(".tmp"));
+
+    _tcscpy_s(backupPath, mla_commit_buffer_size, exePath);
+    _tcscat_s(backupPath, mla_commit_buffer_size, configFilename);
+    _tcscat_s(backupPath, mla_commit_buffer_size, TEXT(".bak"));
+
+    // Delete temporary file if it exists
+    DeleteFile(tempPath);
 
     // Create and open the temporary file for writing
     HANDLE hTempFile = CreateFile(
-        tempFileName,         // Temporary file name
+        tempPath,             // Absolute path to temporary file
         GENERIC_WRITE,        // Open for writing
         0,                    // No sharing
         nullptr,              // Default security
@@ -105,7 +154,6 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
     );
 
     if (hTempFile == INVALID_HANDLE_VALUE) {
-        // Failed to create temporary file
         mla_bytes_destroy(output);
         return false;
     }
@@ -113,67 +161,67 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
     // Write data to temporary file
     DWORD bytesWritten;
     BOOL writeResult = WriteFile(
-        hTempFile,                           // File handle
-        output.data, // Buffer with data to write
-        output.size,                         // Number of bytes to write
-        &bytesWritten,                       // Number of bytes written
-        nullptr                              // No overlapped I/O
+        hTempFile,           // File handle
+        output.data,         // Buffer with data to write
+        output.size,         // Number of bytes to write
+        &bytesWritten,       // Number of bytes written
+        nullptr              // No overlapped I/O
     );
 
     // Close the temporary file
     CloseHandle(hTempFile);
 
-    if (!writeResult || bytesWritten != output.size) {
-        // Write failed or was incomplete
-        DeleteFile(tempFileName);
+    if ((writeResult == FALSE) || bytesWritten != output.size) {
+        DeleteFile(tempPath);
         mla_bytes_destroy(output);
         return false;
     }
 
     // Replace the original file with the temporary file
     BOOL replaceResult = ReplaceFile(
-        mla_windows_config_file_name,  // Target file
-        tempFileName,                  // Source file
-        nullptr,                       // Backup file name (none)
-        0,                             // Replace flags
-        nullptr,                       // Reserved
-        nullptr                        // Reserved
+        configPath,          // Target file (absolute path)
+        tempPath,            // Source file (absolute path)
+        nullptr,             // Backup file name (none)
+        0,                   // Replace flags
+        nullptr,             // Reserved
+        nullptr              // Reserved
     );
 
     // If ReplaceFile failed, try the delete-and-rename approach
-    if (!replaceResult) {
-        // Create backup filename
-        const mla_char_t* backupFileName = "app_config.config.bak";
-
+    if ((replaceResult == FALSE)) {
         // Remove any existing backup file
-        DeleteFile(backupFileName);
+        DeleteFile(backupPath);
 
-        // First rename the original file to backup
-        BOOL backupResult = MoveFile(mla_windows_config_file_name, backupFileName);
+        // Check If orginal exists
+        if (GetFileAttributes(configPath) != INVALID_FILE_ATTRIBUTES) {
 
-        if (!backupResult) {
-            // Failed to create backup, abort operation
-            DeleteFile(tempFileName);
-            mla_bytes_destroy(output);
-            return false;
+            // First rename the original file to backup
+            BOOL backupResult = MoveFileEx(configPath, backupPath, MOVEFILE_REPLACE_EXISTING);
+
+            if (!backupResult) {
+                DeleteFile(tempPath);
+                mla_bytes_destroy(output);
+                return false;
+            }
         }
 
+
         // Now move the temp file to the original location
-        if (!MoveFile(tempFileName, mla_windows_config_file_name)) {
-            // Failed to move temp file, restore from backup
-            MoveFile(backupFileName, mla_windows_config_file_name);
-            DeleteFile(tempFileName);
+        if (!MoveFileEx(tempPath, configPath, MOVEFILE_REPLACE_EXISTING)) {
+            MoveFileEx(backupPath, configPath, MOVEFILE_REPLACE_EXISTING);
+            DeleteFile(tempPath);
             mla_bytes_destroy(output);
             return false;
         }
 
         // Success - delete the backup file
-        DeleteFile(backupFileName);
+        DeleteFile(backupPath);
     }
 
     mla_bytes_destroy(output);
     return true;
 }
+
 
 mla_config_low_level_operations_t g_low_level_operations = {
     __windows_read_config_input,

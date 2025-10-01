@@ -28,6 +28,7 @@
 #include "mla_cli_app_test.h"
 #include "mla_task_cli_module_test.h"
 #include "mla_serializer_test.h"
+#include "mla_config_test.h"
 
 #include "native_string_test.h"
 #include "native_list_test.h"
@@ -54,6 +55,7 @@ int run() {
     RegisterCliAppTests(l_TestExecutor);
     RegisterTaskCliModuleTests(l_TestExecutor);
     RegisterSerializerTests(l_TestExecutor);
+    RegisterConfigTests(l_TestExecutor);
 
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(50);
