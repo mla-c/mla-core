@@ -12,6 +12,11 @@ mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p
     }
 
     mla_buffer_t* buffer = static_cast<mla_buffer_t*>(mla_malloc(sizeof(mla_buffer_t)));
+
+    if (buffer == nullptr) {
+        return nullptr; // Return null if allocation fails
+    }
+
     buffer->refCount = 0; // Initialize reference count to 0
     buffer->data = p_Data;
     buffer->cleanupHook = p_CleanupHook; // Set the cleanup hook

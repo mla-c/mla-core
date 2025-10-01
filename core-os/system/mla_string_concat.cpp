@@ -11,6 +11,12 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     mla_size_t size1 = mla_strlen(p_String2);
     mla_size_t newLength = p_String1.length + size1;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
+    
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2, size1);
     newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
@@ -21,6 +27,10 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
 
     mla_size_t newLength = p_String1.length + p_String2.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2.data, p_String2.length);
     newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
@@ -34,6 +44,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, mla_int32_t number) 
 
     mla_size_t newLength = size1 + 12;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1, size1);
     mla_memcpy(newData + size1, buffer, 12);
     newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
@@ -45,6 +59,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t size1 = mla_strlen(p_String1);
     mla_size_t newLength = size1 + p_String2.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1, size1);
     mla_memcpy(newData + size1, p_String2.data, p_String2.length);
     newData[newLength] = '\0'; // Null-terminate the string if it's a C-style string
@@ -55,6 +73,10 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
 
     mla_size_t newLength = p_String1.length + p_String2.length + p_String3.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2.data, p_String2.length);
     mla_memcpy(newData + p_String1.length + p_String2.length, p_String3.data, p_String3.length);
@@ -68,6 +90,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t size3 = mla_strlen(p_String3);
     mla_size_t newLength = size1 + p_String2.length + size3;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1, size1);
     mla_memcpy(newData + size1, p_String2.data, p_String2.length);
     mla_memcpy(newData + size1 + p_String2.length, p_String3, size3);
@@ -80,6 +106,10 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     mla_size_t size2 = mla_strlen(p_String2);
     mla_size_t newLength = p_String1.length + size2 + p_String3.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2, size2);
     mla_memcpy(newData + p_String1.length + size2, p_String3.data, p_String3.length);
@@ -92,6 +122,10 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
 
     mla_size_t newLength = p_String1.length + p_String2.length + p_String3.length + p_String4.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2.data, p_String2.length);
     mla_memcpy(newData + p_String1.length + p_String2.length, p_String3.data, p_String3.length);
@@ -107,6 +141,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t size4 = mla_strlen(p_String4);
     mla_size_t newLength = size1 + p_String2.length + size3 + size4;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1, size1);
     mla_memcpy(newData + size1, p_String2.data, p_String2.length);
     mla_memcpy(newData + size1 + p_String2.length, p_String3, size3);
@@ -121,6 +159,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t size3 = mla_strlen(p_String3);
     mla_size_t newLength = size1 + p_String2.length + size3 + p_String4.length;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1, size1);
     mla_memcpy(newData + size1, p_String2.data, p_String2.length);
     mla_memcpy(newData + size1 + p_String2.length, p_String3, size3);
@@ -135,6 +177,10 @@ mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* 
     mla_size_t size4 = mla_strlen(p_String4);
     mla_size_t newLength = p_String1.length + size2 + p_String3.length + size4;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
     mla_memcpy(newData, p_String1.data, p_String1.length);
     mla_memcpy(newData + p_String1.length, p_String2, size2);
     mla_memcpy(newData + p_String1.length + size2, p_String3.data, p_String3.length);
@@ -156,6 +202,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
 
     // Allocate memory
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
 
     // Copy strings
     mla_size_t offset = 0;
@@ -194,6 +244,10 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
 
     mla_size_t newLength = size1 + p_String2.length + size3 + size4 + size5 + size6 + size7 + size8 + size9;
     mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        // Handle memory allocation failure
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
 
     mla_size_t offset = 0;
     mla_memcpy(newData + offset, p_String1, size1);

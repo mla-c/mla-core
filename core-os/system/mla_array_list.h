@@ -44,8 +44,12 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_array
 
     mla_size_t size = initialCapacity * sizeof(T);
     T* items = static_cast<T*>(mla_malloc(size));
-    mla_memset(items, 0, size);
 
+    if (items == nullptr) {
+        return { 0, 0, nullptr, mla_buffer_reference_noOwner() }; // Memory allocation failed
+    }
+
+    mla_memset(items, 0, size);
     return { 0, initialCapacity, items, mla_buffer_reference(items, false, __mla_array_list_cleanup<T, TInit>, initialCapacity) };
 }
 
@@ -70,12 +74,15 @@ void mla_array_list_destroy(mla_array_list_t<T, TInit>& list) {
 }
 
 template <mla_array_list_template>
-void mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize) {
+mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize) {
     if (newSize >= list.size) {
 
         // Resize the array if the new size exceeds the current capacity
         mla_size_t newSizeInBytes = newSize * sizeof(T);
         T* newItems = static_cast<T*>(mla_malloc(newSizeInBytes));
+
+        if (newItems == nullptr)
+            return false; // Memory allocation failed
 
         if (list.items != nullptr) {
             mla_size_t oldSizeInBytes = list.size * sizeof(T);
@@ -96,7 +103,10 @@ void mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize)
         // Instead, we just copy the existing items to the new array
         mla_buffer_reference_destroy_without_cleanup_unsafe(list.itemsOwner);
         list.itemsOwner = mla_buffer_reference(newItems, false, __mla_array_list_cleanup<T, TInit>, newSize); // Update the buffer reference
+        return true;
     }
+
+    return false;
 }
 
 template <mla_array_list_template>

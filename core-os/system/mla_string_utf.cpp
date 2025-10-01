@@ -179,7 +179,6 @@ if (p_Utf16Buffer.data == nullptr || p_Utf16Buffer.charCount == 0) {
     mla_char_t* utf8Buffer = mla_create_char_array(maxUtf8Size);
 
     if (utf8Buffer == nullptr) {
-        mla_error(mla_string_const("Failed to allocate memory for UTF-8 buffer."));
         return mla_string_empty();
     }
 
@@ -258,7 +257,6 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String) {
     mla_utf_32_char_t* buffer = static_cast<mla_utf_32_char_t*>(mla_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1))); // +1 for null terminator
 
     if (buffer == nullptr) {
-        mla_error(mla_string_const("Failed to allocate memory for UTF-32 buffer."));
         return {nullptr, 0};
     }
 
@@ -340,7 +338,6 @@ if (p_Utf32Buffer.data == nullptr || p_Utf32Buffer.charCount == 0) {
     mla_char_t* utf8Buffer = mla_create_char_array(maxUtf8Size);
 
     if (utf8Buffer == nullptr) {
-        mla_error(mla_string_const("Failed to allocate memory for UTF-8 buffer."));
         return mla_string_empty();
     }
 

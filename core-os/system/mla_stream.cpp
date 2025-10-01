@@ -63,6 +63,11 @@ mla_size_t __mla_stream_input_read_from_buffer(mla_callback_userdata userdata, m
 mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t size) {
 
     __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager)));
+
+    if (bufferManager == nullptr) {
+        return mla_stream_noop_input(); // Return noop stream on allocation failure
+    }
+
     bufferManager->buffer = buffer;
     bufferManager->size = size;
     bufferManager->position = 0;
@@ -95,6 +100,11 @@ mla_size_t __mla_stream_output_write_to_buffer(mla_callback_userdata userdata, m
 mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t size) {
 
     __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager)));
+
+    if (bufferManager == nullptr) {
+        return mla_stream_noop_output(); // Return noop stream on allocation failure
+    }
+
     bufferManager->buffer = buffer;
     bufferManager->size = size;
     bufferManager->position = 0;
@@ -110,6 +120,11 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
     // Allocate the buffer manager and the buffer in one allocation
     __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager) + size));
+
+    if (bufferManager == nullptr) {
+        return mla_stream_noop_input(); // Return noop stream on allocation failure
+    }
+
     bufferManager->buffer = ((mla_byte_t*)bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;
@@ -124,7 +139,12 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
 mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager)));
+    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager) + size));
+
+    if (bufferManager == nullptr) {
+        return mla_stream_noop_output(); // Return noop stream on allocation failure
+    }
+
     bufferManager->buffer = ((mla_byte_t*)bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;

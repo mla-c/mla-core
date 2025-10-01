@@ -9,9 +9,11 @@
 #include "../system/mla_string.h"
 #include "../serializer/mla_serializer.h"
 
-
-typedef mla_bool_t (*mla_config_definition_read_function_t)(const mla_deserializer_t& deserializer, mla_pointer_t config);
-typedef mla_bool_t (*mla_config_definition_write_function_t)(const mla_serializer_t& serializer, mla_pointer_t config);
+struct mla_config_low_level_operations_t {
+    mla_bytes_t (*read_config_input)();
+    mla_bytes_t (*create_config_output_buffer)();
+    mla_bool_t (*commit_config_output)(mla_bytes_t& output);
+};
 
 struct mla_config_definition_t {
     const mla_string_t config_name;
@@ -26,7 +28,7 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, m
 ///
 
 template <typename T>
-mla_config_definition_t mla_config_definition(mla_string_t name, const mla_serialize_definition_t serialize_definition) {
+mla_config_definition_t mla_config_definition(const mla_string_t& name, const mla_serialize_definition_t serialize_definition) {
     return {
             name,
         serialize_definition

@@ -5,6 +5,7 @@
 #ifndef COREOS_MLA_STREAM_H
 #define COREOS_MLA_STREAM_H
 
+#include "mla_bytes.h"
 #include "../mla_data_types.h"
 #include "../system/mla_reference.h"
 

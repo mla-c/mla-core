@@ -161,29 +161,36 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
     };
 }
 
-void mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout) {
+mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout) {
 
     if (p_String.memoryLayout == p_NewLayout) {
-        return; // No change needed
+        return true; // No change needed
     }
 
     if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_SUB_STRING) {
         // Substrings are views into other strings, so we cannot convert to this layout directly
         mla_error("Cannot convert to substring layout directly.");
-        return;
+        return false;
     }
 
     if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
         // Convert to C-style string
         mla_size_t newLength = p_String.length + 1; // +1 for null terminator
         mla_char_t *newData = mla_create_char_array(newLength);
+
+        if (newData == nullptr) {
+            return false; // Memory allocation failed
+        }
+
         mla_memcpy(newData, p_String.data, p_String.length);
         newData[p_String.length] = '\0'; // Null-terminate the string
         p_String = { newData, newLength - 1, mla_buffer_reference(newData), MLA_STRING_MEMORY_LAYOUT_C_STRING}; // Update the string instance
+        return true;
     } else {
         // Convert to buffer-based string
 
         p_String.memoryLayout = MLA_STRING_MEMORY_LAYOUT_BUFFER;
+        return true;
     }
 }
 
@@ -200,6 +207,11 @@ mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceC
 
 
     mla_char_t *cString = mla_create_char_array(p_String.length + 1); // +1 for null terminator
+
+    if (cString == nullptr) {
+        return {nullptr, false}; // Memory allocation failed
+    }
+
     mla_memcpy(cString, p_String.data, p_String.length);
     cString[p_String.length] = '\0'; // Null-terminate the string
     return { cString, true};
@@ -212,6 +224,11 @@ mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
     }
 
     mla_char_t *cString = mla_create_char_array(p_String.length + 1); // +1 for null terminator
+
+    if (cString == nullptr) {
+        return {nullptr, false}; // Memory allocation failed
+    }
+
     mla_memcpy(cString, p_String.data, p_String.length);
     cString[p_String.length] = '\0'; // Null-terminate the string
     return { cString, true};

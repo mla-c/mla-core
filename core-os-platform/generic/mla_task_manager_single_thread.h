@@ -47,6 +47,11 @@ struct mla_task_manager_single_thread_mutex {
 mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex) {
 
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mla_malloc(sizeof(mla_task_manager_single_thread_mutex)));
+
+    if (mutex == nullptr) {
+        return false; // Failed to allocate memory for mutex
+    }
+
     mutex->locked = false;
     *outMutex = static_cast<mla_pointer_t>(mutex);
 

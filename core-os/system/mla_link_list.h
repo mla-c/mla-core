@@ -82,16 +82,13 @@ inline mla_link_list_data_t<T, TInit>* __mla_link_list_data() {
 
     // Allocate memory for the linked list data structure
     mla_link_list_data_t<T, TInit>* data = static_cast<mla_link_list_data_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_data_t<T, TInit>)));
+
+    if (data == nullptr) {
+        return nullptr; // Return null if memory allocation fails
+    }
+
     mla_memset(data, 0, sizeof(mla_link_list_data_t<T, TInit>)); // Initialize the data structure
     return data; // Return the initialized data structure
-}
-
-template < mla_list_list_template >
-inline mla_link_list_t<T, TInit> mla_link_list() {
-
-    mla_link_list_data_t<T, TInit>* data = __mla_link_list_data<T, TInit>();
-    mla_link_list_t<T, TInit> list = { 0, mla_buffer_reference_noOwner(), mla_buffer_reference_noOwner(), data, mla_buffer_reference(data, true, __mla_link_list_data_cleanup_hook<T, TInit>) };
-    return list; // Initialize an empty linked list
 }
 
 template < mla_list_list_template >
@@ -108,6 +105,19 @@ inline mla_link_list_t<T, TInit>  mla_link_list_empty() {
 }
 
 template < mla_list_list_template >
+inline mla_link_list_t<T, TInit> mla_link_list() {
+
+    mla_link_list_data_t<T, TInit>* data = __mla_link_list_data<T, TInit>();
+
+    if (data == nullptr) {
+        return mla_link_list_empty<T, TInit>(); // Return an empty list if memory allocation fails
+    }
+
+    mla_link_list_t<T, TInit> list = { 0, mla_buffer_reference_noOwner(), mla_buffer_reference_noOwner(), data, mla_buffer_reference(data, true, __mla_link_list_data_cleanup_hook<T, TInit>) };
+    return list; // Initialize an empty linked list
+}
+
+template < mla_list_list_template >
 void mla_link_list_destroy(mla_link_list_t<T, TInit>& list) {
 
     list.size = 0; // Reset the size
@@ -118,16 +128,26 @@ void mla_link_list_destroy(mla_link_list_t<T, TInit>& list) {
 }
 
 template < mla_list_list_template >
-void mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
+mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
 
     if (list.data == nullptr) {
         // If the list is empty, initialize it
         list.data = __mla_link_list_data<T, TInit>();
+
+        if (list.data == nullptr) {
+            return false; // Return false if memory allocation fails
+        }
+
         list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
     }
 
     // Create a new node
     mla_link_list_node_t<T, TInit>* newNode = static_cast<mla_link_list_node_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_node_t<T, TInit>)));
+
+    if (newNode == nullptr) {
+        return false; // Return false if memory allocation fails
+    }
+
     mla_memset(newNode, 0, sizeof(mla_link_list_node_t<T, TInit>)); // Initialize the new node
     mla_buffer_reference_t newNodeRef = mla_buffer_reference(newNode, false, __mla_link_list_node_cleanup_hook<T, TInit>);
 
@@ -146,6 +166,7 @@ void mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
     list.data->tail = newNode; // Update the tail to the new node
     list.tailOwner = newNodeRef;
     list.size++; // Increment the size of the list
+    return true;
 }
 
 template < mla_list_list_template >
@@ -159,6 +180,11 @@ mla_bool_t mla_link_list_remove(mla_link_list_t<T, TInit>& list, mla_int32_t ind
     if (list.data == nullptr) {
         // If the list is empty, initialize it
         list.data = __mla_link_list_data<T, TInit>();
+
+        if (list.data == nullptr) {
+            return false; // Return false if memory allocation fails
+        }
+
         list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
     }
 
@@ -294,6 +320,11 @@ inline void mla_link_list_clear(mla_link_list_t<T, TInit>& list) {
     if (list.data == nullptr) {
         // If the list is empty, initialize it
         list.data = __mla_link_list_data<T, TInit>();
+
+        if (list.data == nullptr) {
+            return; // Return if memory allocation fails
+        }
+
         list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
     }
 
