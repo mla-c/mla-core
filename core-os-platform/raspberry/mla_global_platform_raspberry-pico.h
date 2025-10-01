@@ -79,8 +79,12 @@ mla_low_level_operations_t g_low_level_access {
         __generic_strstr,
         __generic_malloc,
         __generic_free,
+        __generic_is_gcc_pointer,
         __pico_printf,
         __prio_std_read,
+        __generic_strtod,
+        __generic_strtoll,
+        __generic_strtoull,
         __pico_sleep,
     };
 
