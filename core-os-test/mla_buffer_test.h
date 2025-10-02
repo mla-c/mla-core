@@ -25,9 +25,10 @@ struct my_buffer_test_t {
 
 static mla_bool_t is_buffer_destroyed = false;
 
-mla_pointer_t my_buffer_malloc_hook(mla_size_t size) {
+mla_bool_t my_buffer_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
     (void)size;
-    return nullptr;
+    (void)out_ptr;
+    return false;
 }
 
 mla_bool_t my_buffer_free_hook(mla_pointer_t ptr) {

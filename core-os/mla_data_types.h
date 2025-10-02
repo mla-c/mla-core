@@ -87,6 +87,23 @@
 #define mla_min(a, b) ((a) < (b) ? (a) : (b))
 #define mla_max(a, b) ((a) > (b) ? (a) : (b))
 
+
+//////////////////////////////////////////////////////
+// Loging and Debugging Macros
+
+// Macro to get the filename only
+#include <cstring>
+
+// Extracts the filename from the full path
+// The macro works for both Unix and Windows style paths
+#define __FILENAME_ONLY__ \
+(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
+(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+
+//////////////////////////////////////////////////
+/// Low level memory operations and access to printf and other C functions
+
+
 typedef struct mla_low_level_operations_t {
     // Function pointers for memory operations
     mla_pointer_t (*memcpy)(mla_pointer_t dest, const mla_pointer_t src, mla_size_t size);
@@ -104,6 +121,7 @@ typedef struct mla_low_level_operations_t {
     mla_pointer_t (*malloc)(mla_size_t size);
     void (*free)(mla_pointer_t ptr);
     mla_bool_t (*is_gcc_pointer)(const mla_pointer_t ptr);
+    void (*on_malloc_failure)(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
     // Function pointers for printf and other output functions
     mla_int32_t (*printf)(const mla_char_t* format, ...);
@@ -136,7 +154,29 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
-#define mla_malloc(size) g_low_level_access.malloc((size))
+inline mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+
+    mla_pointer_t ptr = g_low_level_access.malloc(size);
+    if (ptr == nullptr) {
+
+        const mla_char_t* foundChar = strrchr(filename, '/');
+
+        if (foundChar == nullptr) {
+            foundChar = strrchr(filename, '\\');
+        }
+
+        if (foundChar != nullptr) {
+            foundChar = foundChar + 1;
+        } else {
+            foundChar = filename;
+        }
+
+        g_low_level_access.on_malloc_failure(size, foundChar, function_name);
+    }
+    return ptr;
+}
+
+#define mla_malloc(size) mla_malloc_with_check(size, __FILENAME_ONLY__, __func__)
 #define mla_free(ptr) g_low_level_access.free((ptr))
 #define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
@@ -151,19 +191,6 @@ mla_global mla_low_level_operations_t g_low_level_access;
 
 // Sleep function for timing
 #define mla_sleep(milliseconds) g_low_level_access.sleep((milliseconds))
-
-
-//////////////////////////////////////////////////////
-// Loging and Debugging Macros
-
-// Macro to get the filename only
-#include <cstring>
-
-// Extracts the filename from the full path
-// The macro works for both Unix and Windows style paths
-#define __FILENAME_ONLY__ \
-(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
-(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 // Default initializer for structs and classes which is used to initialize items in data structures like arrays or hash maps.
 // Is not really a macro but is part of multiple other macros

@@ -70,6 +70,49 @@ mla_int32_t __generic_printf(const mla_char_t* format, ...) {
     return result;
 }
 
+void __generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+
+    // Use direct writes to stderr without formatting that might allocate
+    const char* prefix = "Memory allocation failed: ";
+    const char* bytes_str = " bytes in ";
+    const char* parenthesis_open = " (";
+    const char* parenthesis_close = ")\n";
+
+    // Write each part separately to avoid memory allocation
+    fwrite(prefix, 1, strlen(prefix), stderr);
+
+    // Convert size to string using stack buffer
+    char size_buffer[32] = {0}; // Large enough for any practical size_t value
+    int size_len = 0;
+    mla_size_t temp_size = size;
+
+    // Handle zero case specially
+    if (temp_size == 0) {
+        size_buffer[0] = '0';
+        size_len = 1;
+    } else {
+        // Convert number to string manually
+        int pos = sizeof(size_buffer) - 2; // Leave room for null terminator
+        while (temp_size > 0 && pos >= 0) {
+            size_buffer[pos--] = '0' + (temp_size % 10);
+            temp_size /= 10;
+        }
+        size_len = sizeof(size_buffer) - pos - 2;
+        // Move to beginning of buffer
+        memmove(size_buffer, &size_buffer[pos + 1], size_len);
+    }
+
+    fwrite(size_buffer, 1, size_len, stderr);
+    fwrite(bytes_str, 1, strlen(bytes_str), stderr);
+    fwrite(filename, 1, strlen(filename), stderr);
+    fwrite(parenthesis_open, 1, strlen(parenthesis_open), stderr);
+    fwrite(function_name, 1, strlen(function_name), stderr);
+    fwrite(parenthesis_close, 1, strlen(parenthesis_close), stderr);
+
+    // Ensure output is flushed
+    fflush(stderr);
+}
+
 mla_size_t __generic_std_read(mla_char_t* buffer, mla_size_t size) {
     mla_char_t* lastChar = fgets(buffer, size, stdin);
     if (lastChar == nullptr) {

@@ -12,24 +12,30 @@
 
 static mla_bool_t m_hook_called = false;
 
-mla_pointer_t my_test_malloc_hook(mla_size_t) {
+mla_bool_t my_test_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+    (void)out_ptr;
+    (void)size;
     m_hook_called = true;
-    return nullptr;
+    return false;
 }
 
-mla_bool_t my_test_free_hook(mla_pointer_t) {
+mla_bool_t my_test_free_hook(mla_pointer_t ptr) {
+    (void)ptr;
     m_hook_called = true;
     return false;
 }
 
 static mla_bool_t m_hook2_called = false;
 
-mla_pointer_t my_test2_malloc_hook(mla_size_t) {
+mla_bool_t my_test2_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+    (void)out_ptr;
+    (void)size;
     m_hook2_called = true;
-    return nullptr;
+    return false;
 }
 
-mla_bool_t my_test2_free_hook(mla_pointer_t) {
+mla_bool_t my_test2_free_hook(mla_pointer_t ptr) {
+    (void)ptr;
     m_hook2_called = true;
     return false;
 }

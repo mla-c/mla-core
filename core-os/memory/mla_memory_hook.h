@@ -19,7 +19,7 @@ enum MLA_MEMORY_POINTER_TYPE {
     MLA_MEMORY_POINTER_TYPE_REGULAR = 2
 };
 
-typedef mla_pointer_t(*mla_memory_malloc_hook_t)(mla_size_t size);
+typedef mla_bool_t(*mla_memory_malloc_hook_t)(mla_size_t size, mla_pointer_t* out_ptr);
 typedef mla_bool_t (*mla_memory_free_hook_t)(mla_pointer_t ptr);
 typedef MLA_MEMORY_POINTER_TYPE (*mla_memory_is_gcc_pointer_hook_t)(const mla_pointer_t ptr);
 

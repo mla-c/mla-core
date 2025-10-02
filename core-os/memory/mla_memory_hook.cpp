@@ -17,9 +17,9 @@ static mla_pointer_t __mla_memory_malloc_hook(mla_size_t size) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {
         if (g_memory_hook.hooks[i].malloc_hook) {
-            mla_pointer_t ptr = g_memory_hook.hooks[i].malloc_hook(size);
-            if (ptr) {
-                return ptr; // Return the pointer if the hook handled the allocation
+            mla_pointer_t out_ptr = nullptr;
+            if (g_memory_hook.hooks[i].malloc_hook(size, &out_ptr)) {
+                return out_ptr;
             }
         } else {
             break; // No more hooks to check

@@ -165,9 +165,10 @@ void ConcatTest() {
 
 static mla_pointer_t AutoMemoryManagementTest_last_pointer;
 
-mla_pointer_t AutoMemoryManagementTest_Malloc(mla_size_t size) {
+mla_bool_t AutoMemoryManagementTest_Malloc(mla_size_t size, mla_pointer_t* out_ptr) {
     (void)size;
-    return nullptr;
+    (void)out_ptr;
+    return false;
 }
 
 mla_bool_t AutoMemoryManagementTest_Free(mla_pointer_t ptr) {
