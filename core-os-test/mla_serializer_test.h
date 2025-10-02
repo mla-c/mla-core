@@ -193,11 +193,15 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
 
     mla_byte_t* bufferInner = mla_bytes_get_data_for_writing(original.bytes);
 
-    bufferInner[0] = 1;
-    bufferInner[1] = 2;
-    bufferInner[2] = 3;
-    bufferInner[3] = 4;
-    bufferInner[4] = 5;
+    if (bufferInner != nullptr) {
+        bufferInner[0] = 1;
+        bufferInner[1] = 2;
+        bufferInner[2] = 3;
+        bufferInner[3] = 4;
+        bufferInner[4] = 5;
+    } else {
+        assert_fail("Failed to get bytes data for writing");
+    }
 
     mla_array_list_add(original.intList, (mla_int32_t)1);
     mla_array_list_add(original.intList, (mla_int32_t)2);

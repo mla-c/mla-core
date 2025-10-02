@@ -95,8 +95,13 @@ void ArrayListContainsTest() {
     assert_false(mla_array_list_get(mla_arr, 3, value), "Should not get item at index 3 (out of bounds)");
     assert_equal(value, 0, "Value should be unchanged when getting out of bounds");
 
-    assert_equal(mla_array_list_get_unsafe(mla_arr, 0), 1, "Unsafe get should return '1'");
-    assert_equal(mla_array_list_get_unsafe(mla_arr, 1), 2, "Unsafe get should return '2'");
+    if (mla_array_list_size(mla_arr) > 1) {
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 0), 1, "Unsafe get should return '1'");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 1), 2, "Unsafe get should return '2'");
+    } else {
+        assert_fail("List size should be greater than 1");
+    }
+
 
 }
 
@@ -211,24 +216,63 @@ void ArrayListItemMemoryManagementTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null");
+    }
+
 
     mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
     mla_array_list_add(mla_arr, mla_str1);
     mla_array_list_add(mla_arr, mla_str2);
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null after adding to list");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null after adding to list");
+    }
 
     mla_array_list_remove(mla_arr, 0);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after removal from list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
+
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after removal from list");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null after removal from list");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null after removal of String 1");
+    }
+
 
     mla_array_list_clear(mla_arr);
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
 
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null after clearing list");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null after clearing list");
+    }
 
 }
 
@@ -238,21 +282,50 @@ void ArrayListItemMemoryManagementDestroyTest() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null");
+    }
 
     {
         mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
         mla_array_list_add(mla_arr, mla_str1);
         mla_array_list_add(mla_arr, mla_str2);
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+        if (mla_str1.dataOwner.buffer != nullptr) {
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+        } else {
+            assert_fail("String 1 dataOwner buffer should not be null after adding to list");
+        }
+
+        if (mla_str2.dataOwner.buffer != nullptr) {
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+        } else {
+            assert_fail("String 2 dataOwner buffer should not be null after adding to list");
+        }
+
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null after array list destruction");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null after array list destruction");
+    }
+
 
 }
 
@@ -263,8 +336,17 @@ void ArrayListItemMemoryManagementDestroy2Test() {
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
 
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null");
+    }
+
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null");
+    }
 
     {
 
@@ -279,14 +361,32 @@ void ArrayListItemMemoryManagementDestroy2Test() {
 
         assert_equal(mla_array_list_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after assignment to other list");
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after assignment to other list");
+        if (mla_str1.dataOwner.buffer !=nullptr) {
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after assignment to other list");
+        } else {
+            assert_fail("String 1 dataOwner buffer should not be null after assignment to other list");
+        }
+
+        if (mla_str2.dataOwner.buffer != nullptr) {
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after assignment to other list");
+        } else {
+            assert_fail("String 2 dataOwner buffer should not be null after assignment to other list");
+        }
+
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
-    assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+    if (mla_str1.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+    } else {
+        assert_fail("String 1 dataOwner buffer should not be null after array list destruction");
+    }
 
+    if (mla_str2.dataOwner.buffer != nullptr) {
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+    } else {
+        assert_fail("String 2 dataOwner buffer should not be null after array list destruction");
+    }
 
 }
 
@@ -343,7 +443,12 @@ void ArrayListWithValueStructTest() {
     assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
 
     my_array_list_test_struct* valueRef = mla_array_list_get_ref(list, 1);
-    valueRef->test2 = 0; // Reset value for next check
+
+    if (valueRef != nullptr) {
+        valueRef->test2 = 0; // Reset value for next check
+    } else {
+        assert_fail("ValueRef should not be null for index 1");
+    }
 
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
@@ -377,7 +482,12 @@ void ArrayListWithValueConstStructTest() {
     assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
 
     my_array_list_with_const_test_struct* valueRef = mla_array_list_get_ref(list, 1);
-    valueRef->test2 = 0; // Reset value for next check
+
+    if (valueRef != nullptr) {
+        valueRef->test2 = 0; // Reset value for next check
+    } else {
+        assert_fail("ValueRef should not be null for index 1");
+    }
 
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");

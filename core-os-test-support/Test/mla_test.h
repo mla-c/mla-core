@@ -7,14 +7,11 @@
 
 #include "../mla_test_data_types.h"
 
-#ifdef mla_debug_build
-#include "../../core-os/mla_data_types.h"
-#endif
-
 struct mla_test_result_t {
     mla_test_bool_t success;
     const mla_test_char_t *message;
     mla_test_uint64_t allocated_memory;
+    mla_test_bool_t block_memory_allocations;
 };
 
 extern mla_test_result_t current_test_result;
@@ -34,6 +31,7 @@ mla_test_t mla_test(const char *name, const char *category,
 void mla_test_destroy(mla_test_t &test);
 mla_test_bool_t mla_test_run(mla_test_t &test);
 
+void mla_check_assert_fail(const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_true(mla_test_bool_t p_Condition, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_false(mla_test_bool_t p_Condition, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
@@ -86,7 +84,7 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
 
 
 
-
+#define assert_fail(p_Message) mla_check_assert_fail(p_Message, __LINE__)
 #define assert_true(p_Condition, p_Message) mla_check_assert_true(p_Condition, p_Message, __LINE__)
 #define assert_false(p_Condition, p_Message) mla_check_assert_false(p_Condition, p_Message, __LINE__)
 #define assert_equal(p_Actual, p_Expected, p_Message) mla_check_assert_equal(p_Actual, p_Expected, p_Message, __LINE__)

@@ -71,8 +71,12 @@ inline void ListTaskCliTaskTest() {
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> parameters =
         mla_hash_map_empty<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>();
 
-    mla_bool_t result = cmdList->execute(*cmdList, parameters, outStream);
-    assert_true(result, "List command should execute successfully");
+    if (cmdList != nullptr) {
+        mla_bool_t result = cmdList->execute(*cmdList, parameters, outStream);
+        assert_true(result, "List command should execute successfully");
+    } else {
+        assert_fail("List command should not be null");
+    }
 
     // Verify the output contains our task
     mla_string_t output = mla_string(reinterpret_cast<mla_char_t*>(outputData.buffer), outputData.position);
@@ -111,8 +115,12 @@ inline void KillCliTaskTest() {
     mla_hash_map_push(parameters, mla_string_const("name"), taskName);
 
     // Execute the kill command
-    mla_bool_t result = cmdKill->execute(*cmdKill, parameters, outStream);
-    assert_true(result, "Kill command should execute successfully");
+    if (cmdKill != nullptr) {
+        mla_bool_t result = cmdKill->execute(*cmdKill, parameters, outStream);
+        assert_true(result, "Kill command should execute successfully");
+    } else {
+        assert_fail("Kill command should not be null");
+    }
 
     // Verify the output indicates successful kill
     mla_string_t output = mla_string(reinterpret_cast<mla_char_t*>(outputData.buffer), outputData.position);

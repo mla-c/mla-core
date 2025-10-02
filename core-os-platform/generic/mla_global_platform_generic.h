@@ -79,7 +79,7 @@ void __generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, co
     const char* parenthesis_close = ")\n";
 
     // Write each part separately to avoid memory allocation
-    fwrite(prefix, 1, strlen(prefix), stderr);
+    fwrite(prefix, 1, strlen(prefix), stdout);
 
     // Convert size to string using stack buffer
     char size_buffer[32] = {0}; // Large enough for any practical size_t value
@@ -102,15 +102,15 @@ void __generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, co
         memmove(size_buffer, &size_buffer[pos + 1], size_len);
     }
 
-    fwrite(size_buffer, 1, size_len, stderr);
-    fwrite(bytes_str, 1, strlen(bytes_str), stderr);
-    fwrite(filename, 1, strlen(filename), stderr);
-    fwrite(parenthesis_open, 1, strlen(parenthesis_open), stderr);
-    fwrite(function_name, 1, strlen(function_name), stderr);
-    fwrite(parenthesis_close, 1, strlen(parenthesis_close), stderr);
+    fwrite(size_buffer, 1, size_len, stdout);
+    fwrite(bytes_str, 1, strlen(bytes_str), stdout);
+    fwrite(filename, 1, strlen(filename), stdout);
+    fwrite(parenthesis_open, 1, strlen(parenthesis_open), stdout);
+    fwrite(function_name, 1, strlen(function_name), stdout);
+    fwrite(parenthesis_close, 1, strlen(parenthesis_close), stdout);
 
     // Ensure output is flushed
-    fflush(stderr);
+    fflush(stdout);
 }
 
 mla_size_t __generic_std_read(mla_char_t* buffer, mla_size_t size) {

@@ -28,18 +28,46 @@ void SimpleMemoryManagementTest() {
         mla_buffer_reference_t other2 = mla_buffer_reference_noOwner();
         {
             mla_buffer_reference_t reference = mla_class_reference(resource);
-            assert_equal(reference.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
+
+            if (reference.buffer != nullptr) {
+                assert_equal(reference.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
+            } else {
+                assert_fail("Reference buffer should not be null after creation");
+            }
+
             other = reference; // Copy the reference
-            assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after copying");
+
+            if (reference.buffer != nullptr) {
+                assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after copying");
+            } else {
+                assert_fail("Reference buffer should not be null after copying");
+            }
+
             other2 = other;
-            assert_equal(reference.buffer->refCount, (mla_size_t)3, "Reference count should be 2 after copying");
+
+            if (reference.buffer != nullptr) {
+                assert_equal(reference.buffer->refCount, (mla_size_t)3, "Reference count should be 2 after copying");
+            } else {
+                assert_fail("Reference buffer should not be null after copying to other2");
+            }
+
             other = mla_buffer_reference_noOwner(); // Clear the reference
-            assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after clearing the first reference");
+
+            if (reference.buffer != nullptr) {
+                assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after clearing the first reference");
+            } else {
+                assert_fail("Reference buffer should not be null after clearing");
+            }
 
             assert_false(is_resource_destroyed, "External resource should not be destroyed yet");
         }
 
-        assert_equal(other2.buffer->refCount, (mla_size_t)1, "Reference count should be 2 after copying to other2");
+        if (other2.buffer != nullptr) {
+            assert_equal(other2.buffer->refCount, (mla_size_t)1, "Reference count should be 2 after copying to other2");
+        } else {
+            assert_fail("Reference buffer should not be null after clearing the first reference");
+        }
+
         assert_false(is_resource_destroyed, "External resource should not be destroyed yet");
 
     }

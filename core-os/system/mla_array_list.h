@@ -110,15 +110,18 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
 }
 
 template <mla_array_list_template>
-mla_size_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
+mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 
     if (list.size >= list.capacity) {
         // Resize the array if necessary
         mla_size_t newCapacity = mla_max(list.capacity * 2, mla_array_list_default_capacity);
-        mla_array_list_resize(list, newCapacity);
+
+        if (!mla_array_list_resize(list, newCapacity)) {
+            return false; // Memory allocation failed
+        }
     }
     list.items[list.size++] = item; // Add the new item and increment the size
-    return list.size - 1; // Return the index of the newly added item
+    return true;
 }
 
 template <mla_array_list_template>

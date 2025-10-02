@@ -105,9 +105,15 @@ void ToCStringTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-    assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-    mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+
+    if (mla_c_str.c_str != nullptr) {
+        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
+        assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
+        mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+    } else {
+        assert_fail("MlaString C-string conversion failed");
+    }
+
 }
 
 void ToCString_No_Force_CopyTest() {
@@ -124,9 +130,14 @@ void ToCStringFromBufferTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-    assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-    mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+
+    if (mla_c_str.c_str != nullptr) {
+        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
+        assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
+        mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+    } else {
+        assert_fail("MlaString C-string conversion failed");
+    }
 }
 
 void ToCStringFromBuffer_No_Force_CopyTest() {
@@ -190,20 +201,29 @@ void AutoMemoryManagementTest() {
             mla_string_t data = mla_string_concat(mla_string("Hello, "), mla_string("World!"), mla_string(" This is a test of concatenation."));
             assert_equal(data.length, (mla_uint32_t)46, "Concatenated string length should be 58");
 
-            assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after concatenation");
-            datacopy = data;
-            assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
-            assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
-            assert_equal(datacopy.dataOwner.buffer->data, data.dataOwner.buffer->data, "Copied string data should match original");
+            if (data.dataOwner.buffer != nullptr) {
+                assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after concatenation");
+                datacopy = data;
+                assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
+                assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after copying");
+                assert_equal(datacopy.dataOwner.buffer->data, data.dataOwner.buffer->data, "Copied string data should match original");
+            } else {
+                assert_fail("Data buffer should not be null after concatenation");
+            }
 
             data = mla_string_empty(); // Clear the original string
         }
 
-        assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after clearing the original string");
+        if (datacopy.dataOwner.buffer != nullptr) {
+            assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)1, "Reference count should be 1 after clearing the original string");
 
-        assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
-        assert_true(mla_string_equals(datacopy, mla_string("Hello, World! This is a test of concatenation.")),
-                   "Copied string should equal 'Hello, World! This is a test of concatenation.'");
+            assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
+            assert_true(mla_string_equals(datacopy, mla_string("Hello, World! This is a test of concatenation.")),
+                       "Copied string should equal 'Hello, World! This is a test of concatenation.'");
+
+        } else {
+            assert_fail("Data buffer should not be null after clearing");
+        }
 
         AutoMemoryManagementTest_last_pointer = nullptr;
         unsafePointer = datacopy.dataOwner.buffer;
@@ -222,7 +242,12 @@ void SubStringTest() {
     mla_string_t sub_str = mla_string_substr(mla_str, 7, 11); // "World"
 
     // Check memory managemant
-    assert_equal(sub_str.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after creating substring");
+    if (sub_str.dataOwner.buffer != nullptr) {
+        assert_equal(sub_str.dataOwner.buffer->refCount, (mla_uint32_t)2, "Reference count should be 2 after creating substring");
+    } else {
+        assert_fail("Data buffer should not be null after concatenation");
+    }
+
     assert_equal(sub_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
     assert_equal(sub_str.length, (mla_uint32_t)5, "Substring length should be 5");
     assert_true(mla_string_equals(sub_str, mla_string("World")), "Substring should equal 'World'");
@@ -281,12 +306,16 @@ void ToUtf16AndFromUtf16Test() {
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)5, "UTF-16 buffer should have 5 characters");
 
     // Euro sign is U+20AC, which is 0x20AC in UTF-16
-    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "First UTF-16 character should be Euro sign");
-    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)' ', "Second UTF-16 character should be space");
-    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'1', "Third UTF-16 character should be '1'");
-    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)'0', "Fourth UTF-16 character should be '0'");
-    assert_equal(utf16Buffer.data[4], (mla_utf_16_char_t)'0', "Fifth UTF-16 character should be '0'");
-    assert_equal(utf16Buffer.data[5], (mla_utf_16_char_t)0x00, "Six UTF-16 character should be null terminator");
+    if (utf16Buffer.data != nullptr) {
+        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "First UTF-16 character should be Euro sign");
+        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)' ', "Second UTF-16 character should be space");
+        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'1', "Third UTF-16 character should be '1'");
+        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)'0', "Fourth UTF-16 character should be '0'");
+        assert_equal(utf16Buffer.data[4], (mla_utf_16_char_t)'0', "Fifth UTF-16 character should be '0'");
+        assert_equal(utf16Buffer.data[5], (mla_utf_16_char_t)0x00, "Six UTF-16 character should be null terminator");
+    } else {
+        assert_fail("UTF-16 buffer is empty");
+    }
 
     mla_string_t newBaseString = mla_string_from_utf16_buffer(utf16Buffer);
     assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-16 buffer should equal original");
@@ -303,12 +332,17 @@ void ToUtf32AndFromUtf32Test() {
 
     // Euro sign is U+20AC, which is 0x20AC in UTF-32
 
-    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "First UTF-32 character should be Euro sign");
-    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)' ', "Second UTF-32 character should be space");
-    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'1', "Third UTF-32 character should be '1'");
-    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)'0', "Fourth UTF-32 character should be '0'");
-    assert_equal(utf32Buffer.data[4], (mla_utf_32_char_t)'0', "Fifth UTF-32 character should be '0'");
-    assert_equal(utf32Buffer.data[5], (mla_utf_32_char_t)0x00000000, "Sixth UTF-32 character should be null terminator");
+    if (utf32Buffer.data != nullptr) {
+        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "First UTF-32 character should be Euro sign");
+        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)' ', "Second UTF-32 character should be space");
+        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'1', "Third UTF-32 character should be '1'");
+        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)'0', "Fourth UTF-32 character should be '0'");
+        assert_equal(utf32Buffer.data[4], (mla_utf_32_char_t)'0', "Fifth UTF-32 character should be '0'");
+        assert_equal(utf32Buffer.data[5], (mla_utf_32_char_t)0x00000000, "Sixth UTF-32 character should be null terminator");
+    } else {
+        assert_fail("UTF-32 buffer is empty");
+    }
+
 
     mla_string_t newBaseString = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-32 buffer should equal original");
@@ -330,10 +364,16 @@ void ToUtf16AndFromUtf16_AsciiTest() {
     mla_string_t baseString = mla_string("ABC");
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 ASCII: charCount should be 3");
-    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)'A', "UTF-16 ASCII: data[0]=='A'");
-    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)'B', "UTF-16 ASCII: data[1]=='B'");
-    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'C', "UTF-16 ASCII: data[2]=='C'");
-    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 ASCII: null terminator");
+
+    if (utf16Buffer.data != nullptr) {
+        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)'A', "UTF-16 ASCII: data[0]=='A'");
+        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)'B', "UTF-16 ASCII: data[1]=='B'");
+        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'C', "UTF-16 ASCII: data[2]=='C'");
+        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 ASCII: null terminator");
+    } else {
+        assert_fail("UTF-16 buffer is empty");
+    }
+
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 ASCII round trip should match");
     mla_string_utf16_buffer_destroy(utf16Buffer);
@@ -344,10 +384,16 @@ void ToUtf16AndFromUtf16_MixedBmpTest() {
     mla_string_t baseString = mla_string("€Ωß");
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 Mixed BMP: charCount should be 3");
-    assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "UTF-16 Mixed BMP: Euro");
-    assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)0x03A9, "UTF-16 Mixed BMP: Omega");
-    assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)0x00DF, "UTF-16 Mixed BMP: Eszett");
-    assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 Mixed BMP: terminator");
+
+    if (utf16Buffer.data != nullptr) {
+        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "UTF-16 Mixed BMP: Euro");
+        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)0x03A9, "UTF-16 Mixed BMP: Omega");
+        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)0x00DF, "UTF-16 Mixed BMP: Eszett");
+        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 Mixed BMP: terminator");
+    } else {
+        assert_fail("UTF-16 buffer is empty");
+    }
+
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 Mixed BMP round trip should match");
     mla_string_utf16_buffer_destroy(utf16Buffer);
@@ -368,10 +414,16 @@ void ToUtf32AndFromUtf32_AsciiTest() {
     mla_string_t baseString = mla_string("ABC");
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 ASCII: charCount should be 3");
-    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)'A', "UTF-32 ASCII: data[0]=='A'");
-    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)'B', "UTF-32 ASCII: data[1]=='B'");
-    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'C', "UTF-32 ASCII: data[2]=='C'");
-    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 ASCII: terminator");
+
+    if (utf32Buffer.data != nullptr) {
+        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)'A', "UTF-32 ASCII: data[0]=='A'");
+        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)'B', "UTF-32 ASCII: data[1]=='B'");
+        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'C', "UTF-32 ASCII: data[2]=='C'");
+        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 ASCII: terminator");
+    } else {
+        assert_fail("UTF-32 buffer is empty");
+    }
+
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 ASCII round trip should match");
     mla_string_utf32_buffer_destroy(utf32Buffer);
@@ -381,10 +433,16 @@ void ToUtf32AndFromUtf32_MixedBmpTest() {
     mla_string_t baseString = mla_string("€Ωß");
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 Mixed BMP: charCount should be 3");
-    assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "UTF-32 Mixed BMP: Euro");
-    assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)0x000003A9, "UTF-32 Mixed BMP: Omega");
-    assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)0x000000DF, "UTF-32 Mixed BMP: Eszett");
-    assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 Mixed BMP: terminator");
+
+    if (utf32Buffer.data != nullptr) {
+        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "UTF-32 Mixed BMP: Euro");
+        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)0x000003A9, "UTF-32 Mixed BMP: Omega");
+        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)0x000000DF, "UTF-32 Mixed BMP: Eszett");
+        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 Mixed BMP: terminator");
+    } else {
+        assert_fail("UTF-32 buffer is empty");
+    }
+
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 Mixed BMP round trip should match");
     mla_string_utf32_buffer_destroy(utf32Buffer);

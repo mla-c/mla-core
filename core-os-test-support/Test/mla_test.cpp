@@ -4,6 +4,10 @@
 
 #include "mla_test.h"
 
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+#include "../../core-os/mla_data_types.h"
+#endif
+
 mla_test_result_t current_test_result;
 
 mla_test_t mla_test(const char *name, const char *category,
@@ -28,26 +32,40 @@ static test_stat_malloc_hook_t mla_test_malloc_hook_original = nullptr;
 
 
 mla_test_pointer_t mla_test_malloc_stat_hook(mla_test_uint32_t size) {
+
+    if (current_test_result.block_memory_allocations)
+        return nullptr;
+
     current_test_result.allocated_memory += size;
     return mla_test_malloc_hook_original(size);
 }
 
+typedef void (*test_on_malloc_failure)(mla_test_uint32_t size, const mla_test_char_t* filename, const mla_test_char_t* function_name);
+static test_on_malloc_failure mla_test_on_malloc_failure_hook_original = nullptr;
+
+void mla_test_on_malloc_failure_hook(mla_test_uint32_t size, const mla_test_char_t* filename, const mla_test_char_t* function_name) {
+    // supress error
+    (void)size;
+    (void)filename;
+    (void)function_name;
+}
+
 mla_test_bool_t mla_test_run(mla_test_t &test) {
 
-    current_test_result = {true, nullptr, 0};
+    current_test_result = {true, nullptr, 0, false};
 
     if (test.setUp) {
         test.setUp();
     }
 
-#ifdef mla_debug_build
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
     mla_test_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_test_malloc_stat_hook;
 #endif
 
     test.run();
 
-#ifdef mla_debug_build
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
     g_low_level_access.malloc = mla_test_malloc_hook_original;
     mla_test_malloc_hook_original = nullptr;
 #endif
@@ -62,7 +80,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
         mla_test_printf("⚠ Test failed: %s->%s - %s", test.category, test.name, current_test_result.message);
     }
 
-#ifdef mla_debug_build
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
     mla_test_printf(" (Memory allocated: %llu bytes)", current_test_result.allocated_memory);
 #endif
 
@@ -75,7 +93,59 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
         current_test_result.message = nullptr;
     }
 
+
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+
+    // Run again but blocking memory allocations
+
+    current_test_result.block_memory_allocations = true;
+
+    if (test.setUp) {
+        test.setUp();
+    }
+
+    mla_test_malloc_hook_original = g_low_level_access.malloc;
+    g_low_level_access.malloc = mla_test_malloc_stat_hook;
+
+    mla_test_on_malloc_failure_hook_original = g_low_level_access.on_malloc_failure;
+    g_low_level_access.on_malloc_failure = mla_test_on_malloc_failure_hook;
+
+    test.run();
+
+    g_low_level_access.on_malloc_failure = mla_test_on_malloc_failure_hook_original;
+    mla_test_on_malloc_failure_hook_original = nullptr;
+
+    g_low_level_access.malloc = mla_test_malloc_hook_original;
+    mla_test_malloc_hook_original = nullptr;
+
+    if (test.tearDown) {
+        test.tearDown();
+    }
+
+    if (current_test_result.message) {
+        delete[] current_test_result.message;
+        current_test_result.message = nullptr;
+    }
+
+#endif
+
     return result;
+}
+
+void mla_check_assert_fail(const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    current_test_result.success = false;
+    mla_test_char_t* l_Result = new mla_test_char_t[4096];
+    if (p_Message) {
+        snprintf(l_Result, 4096, "Assertion failed at line %d: %s", p_Line, p_Message);
+    } else {
+        snprintf(l_Result, 4096, "Assertion failed at line %d", p_Line);
+    }
+    current_test_result.message = l_Result;
+
 }
 
 void mla_check_assert_true(mla_test_bool_t p_Condition, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {

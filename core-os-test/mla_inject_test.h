@@ -35,11 +35,22 @@ inline void RegisterGetUnregisterSingletonTest() {
     assert_true(mla_inject_is_service_registered<mla_test_service_singleton_t>(), "Service should be registered now.");
     service = mla_inject_get_service<mla_test_service_singleton_t>();
     assert_not_null(service.service, "Service should be available after registration.");
-    assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
-    service.service->value = 100;
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
+        service.service->value = 100;
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
+
     service = mla_inject_get_service<mla_test_service_singleton_t>();
-    assert_equal(service.service->value, (mla_test_int32_t)100, "Service value should be 100.");
-    service.service->value = 42;
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)100, "Service value should be 100.");
+        service.service->value = 42;
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
 
     mla_inject_service_t<mla_test_service_singleton_t> service2 = mla_inject_get_service<mla_test_service_singleton_t>();
     assert_equal(service.service, service2.service, "Both service instances should be the same.");
@@ -82,11 +93,22 @@ inline void RegisterGetUnregisterInstancePerRequestTest() {
     assert_true(mla_inject_is_service_registered<mla_test_service_instance_per_request_t>(), "Service should be registered now.");
     service = mla_inject_get_service<mla_test_service_instance_per_request_t>();
     assert_not_null(service.service, "Service should be available after registration.");
-    assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
-    service.service->value = 100;
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
+        service.service->value = 100;
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
+
     service = mla_inject_get_service<mla_test_service_instance_per_request_t>();
-    assert_not_equal(service.service->value, (mla_test_int32_t)100, "Service value should not be 100, as it's a new instance.");
-    assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
+
+    if (service.service != nullptr) {
+        assert_not_equal(service.service->value, (mla_test_int32_t)100, "Service value should not be 100, as it's a new instance.");
+        assert_equal(service.service->value, (mla_test_int32_t)42, "Service value should be 42.");
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
 
     mla_inject_service_t<mla_test_service_instance_per_request_t> service2 = mla_inject_get_service<mla_test_service_instance_per_request_t>();
     assert_not_equal(service.service, service2.service, "Both service instances should be the same.");
@@ -150,9 +172,18 @@ inline void MultipleServicesTest() {
     assert_not_null(serviceB.service, "Service B should be available.");
     assert_not_null(serviceDep.service, "Service with dependency should be available.");
 
-    assert_equal(serviceA.service->value, (mla_test_int32_t)42, "Service A value should be 42.");
-    assert_equal(serviceDep.service->id, (mla_test_int32_t)99, "Service dependency id should be 99.");
-    assert_true(serviceDep.service->initialized, "Service dependency should be initialized.");
+    if (serviceA.service != nullptr) {
+        assert_equal(serviceA.service->value, (mla_test_int32_t)42, "Service A value should be 42.");
+    } else {
+        assert_fail("Service A is null, cannot check value.");
+    }
+
+    if (serviceDep.service != nullptr) {
+        assert_equal(serviceDep.service->id, (mla_test_int32_t)99, "Service dependency id should be 99.");
+        assert_true(serviceDep.service->initialized, "Service dependency should be initialized.");
+    } else {
+        assert_fail("Service with dependency is null, cannot check values.");
+    }
 
     // Clean up
     mla_inject_reset();
@@ -296,14 +327,25 @@ inline void MultipleInstancesTest() {
     auto service2 = mla_inject_get_service<mla_test_service_counter_t>();
     auto service3 = mla_inject_get_service<mla_test_service_counter_t>();
 
-    assert_not_null(service1.service, "First service instance should be valid.");
-    assert_not_null(service2.service, "Second service instance should be valid.");
-    assert_not_null(service3.service, "Third service instance should be valid.");
 
     // Each instance should have a different ID
-    assert_equal(service1.service->id, (mla_test_int32_t)1, "First instance should have ID 1.");
-    assert_equal(service2.service->id, (mla_test_int32_t)2, "Second instance should have ID 2.");
-    assert_equal(service3.service->id, (mla_test_int32_t)3, "Third instance should have ID 3.");
+    if (service1.service != nullptr) {
+        assert_equal(service1.service->id, (mla_test_int32_t)1, "First instance should have ID 1.");
+    } else {
+        assert_fail("First service instance is null.");
+    }
+
+    if (service2.service != nullptr) {
+        assert_equal(service2.service->id, (mla_test_int32_t)2, "Second instance should have ID 2.");
+    } else {
+        assert_fail("Second service instance is null.");
+    }
+
+    if (service3.service != nullptr) {
+        assert_equal(service3.service->id, (mla_test_int32_t)3, "Third instance should have ID 3.");
+    } else {
+        assert_fail("Third service instance is null.");
+    }
 
     // Instances should be different objects
     assert_not_equal(service1.service, service2.service, "First and second instances should be different objects.");
@@ -374,20 +416,29 @@ inline void GetAllServicesSingleServiceTest() {
 
     // Get all services
     auto allServices = mla_inject_get_all_services(mla_string_empty());
-    assert_equal(mla_array_list_size(allServices), (mla_size_t)1, "Should return one service when one is registered.");
+
 
     // Verify the service is correct
-    auto service = mla_array_list_get_unsafe(allServices, 0);
-    assert_not_null(service.service, "Service should not be null.");
-    assert_true(mla_string_equals(service.serviceName, mla_test_service_singleton_t::get_service_name()), "Service name should match.");
+    if (mla_array_list_size(allServices) == 1) {
+        auto service = mla_array_list_get_unsafe(allServices, 0);
+        assert_not_null(service.service, "Service should not be null.");
+        assert_true(mla_string_equals(service.serviceName, mla_test_service_singleton_t::get_service_name()), "Service name should match.");
+    } else {
+        assert_fail("All services list should contain exactly one service.");
+    }
 
     // Get services by specific name
     auto specificServices = mla_inject_get_all_services(mla_test_service_singleton_t::get_service_name());
-    assert_equal(mla_array_list_size(specificServices), (mla_size_t)1, "Should return one service for specific name.");
 
-    auto specificService = mla_array_list_get_unsafe(specificServices, 0);
-    assert_not_null(specificService.service, "Specific service should not be null.");
-    assert_true(mla_string_equals(specificService.serviceName, mla_test_service_singleton_t::get_service_name()), "Specific service name should match.");
+    if (mla_array_list_size(specificServices) == 1) {
+        auto specificService = mla_array_list_get_unsafe(specificServices, 0);
+        assert_not_null(specificService.service, "Specific service should not be null.");
+        assert_true(mla_string_equals(specificService.serviceName, mla_test_service_singleton_t::get_service_name()), "Specific service name should match.");
+
+    } else {
+        assert_fail("Specific services list should contain exactly one service.");
+    }
+
 
     // Test with non-existent service name
     auto nonExistentServices = mla_inject_get_all_services(mla_string("NonExistentService"));
@@ -600,21 +651,30 @@ inline void GetAllServicesTemplateVersionTest() {
 
     // Get services using the non-template version with specific service names
     auto singletonServices = mla_inject_get_all_services(mla_test_service_singleton_t::get_service_name());
-    assert_equal(mla_array_list_size(singletonServices), (mla_size_t)1, "Should return one singleton service.");
+
+
+    if (mla_array_list_size(singletonServices) == 1) {
+        auto singletonService = mla_array_list_get_unsafe(singletonServices, 0);
+        assert_not_null(singletonService.service, "Singleton service should not be null.");
+        assert_true(mla_string_equals(singletonService.serviceName, mla_test_service_singleton_t::get_service_name()),
+                    "Singleton service name should match.");
+    } else {
+        assert_fail("Singleton services list should contain exactly one service.");
+    }
 
     auto serviceBServices = mla_inject_get_all_services(mla_test_service_b_t::get_service_name());
-    assert_equal(mla_array_list_size(serviceBServices), (mla_size_t)1, "Should return one service B.");
 
-    // Verify the services are correct
-    auto singletonService = mla_array_list_get_unsafe(singletonServices, 0);
-    assert_not_null(singletonService.service, "Singleton service should not be null.");
-    assert_true(mla_string_equals(singletonService.serviceName, mla_test_service_singleton_t::get_service_name()),
-                "Singleton service name should match.");
+    if (mla_array_list_size(serviceBServices) == 1) {
+        auto serviceBService = mla_array_list_get_unsafe(serviceBServices, 0);
+        assert_not_null(serviceBService.service, "Service B should not be null.");
+        assert_true(mla_string_equals(serviceBService.serviceName, mla_test_service_b_t::get_service_name()),
+                    "Service B name should match.");
 
-    auto serviceBService = mla_array_list_get_unsafe(serviceBServices, 0);
-    assert_not_null(serviceBService.service, "Service B should not be null.");
-    assert_true(mla_string_equals(serviceBService.serviceName, mla_test_service_b_t::get_service_name()),
-                "Service B name should match.");
+    } else {
+        assert_fail("Service B list should contain exactly one service.");
+    }
+
+
 
     // Clean up
     mla_inject_reset();
@@ -675,19 +735,36 @@ inline void BootstrapTest() {
 
     auto service = mla_inject_get_service<mla_test_bootstrap_service_t>();
     assert_not_null(service.service, "Service should be available after registration.");
-    assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
+
 
     mla_inject_lock();
 
     service = mla_inject_get_service<mla_test_bootstrap_service_t>();
     assert_not_null(service.service, "Service should be available after locking.");
-    assert_equal(service.service->value, (mla_test_int32_t)1234, "Service value should be 1234 after bootstrap.");
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)1234, "Service value should be 1234 after bootstrap.");
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
+
 
     mla_inject_unlock();
 
     service = mla_inject_get_service<mla_test_bootstrap_service_t>();
     assert_not_null(service.service, "Service should be available after unlocking.");
-    assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+
+    if (service.service != nullptr) {
+        assert_equal(service.service->value, (mla_test_int32_t)-1, "Service value should be -1.");
+    } else {
+        assert_fail("Service is null, cannot check value.");
+    }
 
     mla_inject_reset();
 

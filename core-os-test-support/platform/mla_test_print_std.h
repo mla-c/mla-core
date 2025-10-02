@@ -17,6 +17,8 @@ inline void std_printf(const mla_test_char_t* format, ...) {
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+    // Flush the output to ensure it appears immediately
+    fflush(stdout);
 }
 
 mla_test_print_t g_test_print = {
