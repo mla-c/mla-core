@@ -36,7 +36,7 @@
 
 int run() {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(150);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(175);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -87,7 +87,7 @@ int run() {
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
     //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
-    printf("Tests completed with %ld failed tests\n", l_FailedTest);
+    printf("Tests completed with %d failed tests\n", l_FailedTest);
 
     // Running benchmarks
     ////////////////////////////////////////

@@ -148,7 +148,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
 
     char name_with_arena_sufix[31] = {0};
-    mla_test_uint32_t charCount = snprintf(name_with_arena_sufix, 31, " (%ld kb)", (mla_size_t)(arena_size / 1024));
+    mla_test_uint32_t charCount = snprintf(name_with_arena_sufix, 31, " (%u kb)", (mla_test_uint32_t)(arena_size / 1024));
 
 
     mla_test_uint32_t charToCopy = 31 - charCount;

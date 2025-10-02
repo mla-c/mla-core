@@ -5,14 +5,28 @@
 // Main Datatypes for the MLA framework
 ////////////////////////////////////////////////
 
+// Platform detection and 32-bit type definitions
+#if defined(__LP64__) || defined(_LP64) || defined(__x86_64__) || defined(__aarch64__) || (defined(__SIZEOF_LONG__) && __SIZEOF_LONG__ == 8)
+    // 64-bit Unix/Linux (LP64 model): long is 8 bytes
+    #define ___mla_internal_int32 int
+
+#elif defined(_WIN32) || defined(_WIN64)
+    // Windows (LLP64 model): long is 4 bytes even on 64-bit
+    #define ___mla_internal_int32 long
+
+#else
+    // Fallback for other platforms: use int (safest cross-platform choice)
+    #define ___mla_internal_int32 int
+#endif
+
 #define mla_bool_t bool
 
 #define mla_int8_t signed char
 #define mla_uint8_t unsigned char
 #define mla_int16_t signed short
 #define mla_uint16_t unsigned short
-#define mla_int32_t signed long
-#define mla_uint32_t unsigned long
+#define mla_int32_t signed ___mla_internal_int32
+#define mla_uint32_t unsigned ___mla_internal_int32
 #define mla_int64_t signed long long
 #define mla_uint64_t unsigned long long
 
@@ -21,7 +35,7 @@
 
 #define mla_char_t char
 #define mla_utf_16_char_t unsigned short
-#define mla_utf_32_char_t unsigned long
+#define mla_utf_32_char_t unsigned ___mla_internal_int32
 
 #define mla_void_t void
 #define mla_pointer_t void*

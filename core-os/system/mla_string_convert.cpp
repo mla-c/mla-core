@@ -92,7 +92,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
         return mla_string_empty();
     }
 
-    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%ld", p_Value);
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
 
     if (length > 0) {
         return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
@@ -111,7 +111,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         return mla_string_empty();
     }
 
-    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%lu", p_Value);
+    mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
 
     if (length > 0) {
         return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };

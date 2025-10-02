@@ -11,14 +11,11 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 void SizeOfTest() {
-
     mla_size_t size = sizeof(mla_pointer_t);
     assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)size * 4, "Size of mla_string_t should be 32 bytes");
-
 }
 
 void ContainsCLayoutTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
@@ -26,7 +23,6 @@ void ContainsCLayoutTest() {
 }
 
 void ContainsBufferLayoutTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
@@ -34,14 +30,12 @@ void ContainsBufferLayoutTest() {
 }
 
 void StartsWithTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_true(mla_string_starts_with(mla_str, mla_string("Hello")), "MlaString should start with 'Hello'");
     assert_false(mla_string_starts_with(mla_str, mla_string("World")), "MlaString should not start with 'World'");
 }
 
 void LengthTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_equal(mla_str.length, (mla_uint32_t)13, "MlaString length should be 13");
     mla_string_t empty_mla_str = mla_string("");
@@ -49,25 +43,21 @@ void LengthTest() {
 }
 
 void EndsWithTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_true(mla_string_ends_with(mla_str, mla_string("World!")), "MlaString should end with 'World!'");
     assert_false(mla_string_ends_with(mla_str, mla_string("Hello")), "MlaString should not end with 'Hello'");
 }
 
 void EqualsTest() {
-
     mla_string_t mla_str1 = mla_string("Hello, World!");
     mla_string_t mla_str2 = mla_string("Hello, World!");
     mla_string_t mla_str3 = mla_string("Goodbye, World!");
 
     assert_true(mla_string_equals(mla_str1, mla_str2), "MlaString should be equal");
     assert_false(mla_string_equals(mla_str1, mla_str3), "MlaString should not be equal");
-
 }
 
 void EqualsIgnoreCaseTest() {
-
     mla_string_t mla_str1 = mla_string("Hello, World!");
     mla_string_t mla_str2 = mla_string("hello, wOrld!");
     mla_string_t mla_str3 = mla_string("Goodbye, World!");
@@ -77,7 +67,6 @@ void EqualsIgnoreCaseTest() {
 }
 
 void IndexOfCLayoutTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7, "MlaString index of 'World' should be 7");
@@ -85,7 +74,6 @@ void IndexOfCLayoutTest() {
 }
 
 void IndexOfBufferLayoutTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7, "MlaString index of 'World' should be 7");
@@ -93,15 +81,12 @@ void IndexOfBufferLayoutTest() {
 }
 
 void LastIndexOfTest() {
-
     mla_string_t mla_str = mla_string("Hello, World! Hello, Universe!");
     assert_equal(mla_string_last_index_of(mla_str, mla_string("Hello")), (mla_int32_t)14, "MlaString last index of 'Hello' should be 19");
     assert_equal(mla_string_last_index_of(mla_str, mla_string("world")), (mla_int32_t)-1, "MlaString last index of 'world' should be -1 (not found)");
-
 }
 
 void ToCStringTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
@@ -113,11 +98,9 @@ void ToCStringTest() {
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
-
 }
 
 void ToCString_No_Force_CopyTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
@@ -126,7 +109,6 @@ void ToCString_No_Force_CopyTest() {
 }
 
 void ToCStringFromBufferTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
@@ -141,7 +123,6 @@ void ToCStringFromBufferTest() {
 }
 
 void ToCStringFromBuffer_No_Force_CopyTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
     assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
@@ -155,7 +136,6 @@ void ToCStringFromBuffer_No_Force_CopyTest() {
 }
 
 void AccessCharTest() {
-
     mla_string_t mla_str = mla_string("Hello, World!");
     assert_equal(mla_str.data[0], 'H', "First character of MlaString should be 'H'");
     assert_equal(mla_str.data[7], 'W', "Eighth character of MlaString should be 'W'");
@@ -163,7 +143,6 @@ void AccessCharTest() {
 }
 
 void ConcatTest() {
-
     mla_string_t mla_str1 = mla_string("Hello, ");
     mla_string_t mla_str2 = mla_string("World!");
     mla_string_t mla_result = mla_string_concat(mla_str1, mla_str2);
@@ -176,9 +155,9 @@ void ConcatTest() {
 
 static mla_pointer_t AutoMemoryManagementTest_last_pointer;
 
-mla_bool_t AutoMemoryManagementTest_Malloc(mla_size_t size, mla_pointer_t* out_ptr) {
-    (void)size;
-    (void)out_ptr;
+mla_bool_t AutoMemoryManagementTest_Malloc(mla_size_t size, mla_pointer_t*out_ptr) {
+    (void) size;
+    (void) out_ptr;
     return false;
 }
 
@@ -188,16 +167,10 @@ mla_bool_t AutoMemoryManagementTest_Free(mla_pointer_t ptr) {
 }
 
 void AutoMemoryManagementTest() {
+    mla_buffer_t *unsafePointer = nullptr;
 
-    mla_buffer_t* unsafePointer = nullptr;
-
-    mla_memory_hook_t hook = mla_memory_hook_install(AutoMemoryManagementTest_Malloc, AutoMemoryManagementTest_Free);
-
-    {
-
-        mla_string_t datacopy = mla_string_empty();
-
-        {
+    mla_memory_hook_t hook = mla_memory_hook_install(AutoMemoryManagementTest_Malloc, AutoMemoryManagementTest_Free); {
+        mla_string_t datacopy = mla_string_empty(); {
             mla_string_t data = mla_string_concat(mla_string("Hello, "), mla_string("World!"), mla_string(" This is a test of concatenation."));
             assert_equal(data.length, (mla_uint32_t)46, "Concatenated string length should be 58");
 
@@ -219,15 +192,13 @@ void AutoMemoryManagementTest() {
 
             assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
             assert_true(mla_string_equals(datacopy, mla_string("Hello, World! This is a test of concatenation.")),
-                       "Copied string should equal 'Hello, World! This is a test of concatenation.'");
-
+                        "Copied string should equal 'Hello, World! This is a test of concatenation.'");
         } else {
             assert_fail("Data buffer should not be null after clearing");
         }
 
         AutoMemoryManagementTest_last_pointer = nullptr;
         unsafePointer = datacopy.dataOwner.buffer;
-
     }
     // Check ich the buffer was released
     assert_equal(AutoMemoryManagementTest_last_pointer, unsafePointer, "Last pointer should match the unsafe pointer");
@@ -237,7 +208,6 @@ void AutoMemoryManagementTest() {
 }
 
 void SubStringTest() {
-
     mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World!"));
     mla_string_t sub_str = mla_string_substr(mla_str, 7, 11); // "World"
 
@@ -251,12 +221,9 @@ void SubStringTest() {
     assert_equal(sub_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
     assert_equal(sub_str.length, (mla_uint32_t)5, "Substring length should be 5");
     assert_true(mla_string_equals(sub_str, mla_string("World")), "Substring should equal 'World'");
-
-
 }
 
 void MultiByteCharHandlingTest() {
-
     mla_string_t mla_str = mla_string("€ 100");
     assert_equal(mla_str.length, (mla_uint32_t)7, "MlaString length should be 7 bytes");
 
@@ -300,7 +267,6 @@ void MultiByteCharHandlingTest() {
 }
 
 void ToUtf16AndFromUtf16Test() {
-
     mla_string_t baseString = mla_string("€ 100");
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)5, "UTF-16 buffer should have 5 characters");
@@ -321,11 +287,9 @@ void ToUtf16AndFromUtf16Test() {
     assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-16 buffer should equal original");
 
     mla_string_utf16_buffer_destroy(utf16Buffer);
-
 }
 
 void ToUtf32AndFromUtf32Test() {
-
     mla_string_t baseString = mla_string("€ 100");
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)5, "UTF-32 buffer should have 5 characters");
@@ -347,7 +311,6 @@ void ToUtf32AndFromUtf32Test() {
     mla_string_t newBaseString = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, newBaseString, "New MlaString from UTF-32 buffer should equal original");
     mla_string_utf32_buffer_destroy(utf32Buffer);
-
 }
 
 void ToUtf16AndFromUtf16_EmptyTest() {
@@ -400,7 +363,6 @@ void ToUtf16AndFromUtf16_MixedBmpTest() {
 }
 
 void ToUtf32AndFromUtf32_EmptyTest() {
-
     mla_string_t baseString = mla_string("");
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)0, "UTF-32 empty: charCount should be 0");
@@ -448,8 +410,231 @@ void ToUtf32AndFromUtf32_MixedBmpTest() {
     mla_string_utf32_buffer_destroy(utf32Buffer);
 }
 
-void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
+void StringFromInt8Test() {
+    // Test positive value
+    mla_string_t str = mla_string_from_int8(42);
+    assert_true(mla_string_equals(str, mla_string("42")), "int8(42) should equal '42'");
+    mla_string_destroy(str);
 
+    // Test negative value
+    str = mla_string_from_int8(-42);
+    assert_true(mla_string_equals(str, mla_string("-42")), "int8(-42) should equal '-42'");
+    mla_string_destroy(str);
+
+    // Test min value
+    str = mla_string_from_int8(-128);
+    assert_true(mla_string_equals(str, mla_string("-128")), "int8 min should equal '-128'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_int8(127);
+    assert_true(mla_string_equals(str, mla_string("127")), "int8 max should equal '127'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_int8(0);
+    assert_true(mla_string_equals(str, mla_string("0")), "int8(0) should equal '0'");
+    mla_string_destroy(str);
+}
+
+void StringFromUInt8Test() {
+    // Test typical value
+    mla_string_t str = mla_string_from_uint8(42);
+    assert_true(mla_string_equals(str, mla_string("42")), "uint8(42) should equal '42'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_uint8(255);
+    assert_true(mla_string_equals(str, mla_string("255")), "uint8 max should equal '255'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_uint8(0);
+    assert_true(mla_string_equals(str, mla_string("0")), "uint8(0) should equal '0'");
+    mla_string_destroy(str);
+}
+
+void StringFromInt16Test() {
+    // Test positive value
+    mla_string_t str = mla_string_from_int16(1234);
+    assert_true(mla_string_equals(str, mla_string("1234")), "int16(1234) should equal '1234'");
+    mla_string_destroy(str);
+
+    // Test negative value
+    str = mla_string_from_int16(-1234);
+    assert_true(mla_string_equals(str, mla_string("-1234")), "int16(-1234) should equal '-1234'");
+    mla_string_destroy(str);
+
+    // Test min value
+    str = mla_string_from_int16(-32768);
+    assert_true(mla_string_equals(str, mla_string("-32768")), "int16 min should equal '-32768'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_int16(32767);
+    assert_true(mla_string_equals(str, mla_string("32767")), "int16 max should equal '32767'");
+    mla_string_destroy(str);
+}
+
+void StringFromUInt16Test() {
+    // Test typical value
+    mla_string_t str = mla_string_from_uint16(1234);
+    assert_true(mla_string_equals(str, mla_string("1234")), "uint16(1234) should equal '1234'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_uint16(65535);
+    assert_true(mla_string_equals(str, mla_string("65535")), "uint16 max should equal '65535'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_uint16(0);
+    assert_true(mla_string_equals(str, mla_string("0")), "uint16(0) should equal '0'");
+    mla_string_destroy(str);
+}
+
+void StringFromInt32Test() {
+    // Test positive value
+    mla_string_t str = mla_string_from_int32(123456);
+    assert_true(mla_string_equals(str, mla_string("123456")), "int32(123456) should equal '123456'");
+    mla_string_destroy(str);
+
+    // Test negative value
+    str = mla_string_from_int32(-123456);
+    assert_true(mla_string_equals(str, mla_string("-123456")), "int32(-123456) should equal '-123456'");
+    mla_string_destroy(str);
+
+    // Test min value
+    str = mla_string_from_int32(-2147483648);
+    assert_true(mla_string_equals(str, mla_string("-2147483648")), "int32 min should equal '-2147483648'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_int32(2147483647);
+    assert_true(mla_string_equals(str, mla_string("2147483647")), "int32 max should equal '2147483647'");
+    mla_string_destroy(str);
+}
+
+void StringFromUInt32Test() {
+    // Test typical value
+    mla_string_t str = mla_string_from_uint32(123456);
+    assert_true(mla_string_equals(str, mla_string("123456")), "uint32(123456) should equal '123456'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_uint32(4294967295U);
+    assert_true(mla_string_equals(str, mla_string("4294967295")), "uint32 max should equal '4294967295'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_uint32(0);
+    assert_true(mla_string_equals(str, mla_string("0")), "uint32(0) should equal '0'");
+    mla_string_destroy(str);
+}
+
+void StringFromInt64Test() {
+    // Test positive value
+    mla_string_t str = mla_string_from_int64(123456789012LL);
+    assert_true(mla_string_equals(str, mla_string("123456789012")), "int64(123456789012) should equal '123456789012'");
+    mla_string_destroy(str);
+
+    // Test negative value
+    str = mla_string_from_int64(-123456789012LL);
+    assert_true(mla_string_equals(str, mla_string("-123456789012")), "int64(-123456789012) should equal '-123456789012'");
+    mla_string_destroy(str);
+
+    // Test min value
+    str = mla_string_from_int64(-9223372036854775807LL - 1);
+    assert_true(mla_string_equals(str, mla_string("-9223372036854775808")), "int64 min should equal '-9223372036854775808'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_int64(9223372036854775807LL);
+    assert_true(mla_string_equals(str, mla_string("9223372036854775807")), "int64 max should equal '9223372036854775807'");
+    mla_string_destroy(str);
+}
+
+void StringFromUInt64Test() {
+    // Test typical value
+    mla_string_t str = mla_string_from_uint64(123456789012ULL);
+    assert_true(mla_string_equals(str, mla_string("123456789012")), "uint64(123456789012) should equal '123456789012'");
+    mla_string_destroy(str);
+
+    // Test max value
+    str = mla_string_from_uint64(18446744073709551615ULL);
+    assert_true(mla_string_equals(str, mla_string("18446744073709551615")), "uint64 max should equal '18446744073709551615'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_uint64(0);
+    assert_true(mla_string_equals(str, mla_string("0")), "uint64(0) should equal '0'");
+    mla_string_destroy(str);
+}
+
+void StringFromFloatTest() {
+    // Test with 2 decimal places
+    mla_string_t str = mla_string_from_float(3.14f, 2);
+    assert_true(mla_string_equals(str, mla_string("3.14")), "float(3.14, 2) should equal '3.14'");
+    mla_string_destroy(str);
+
+    // Test negative with 3 decimal places
+    str = mla_string_from_float(-123.456f, 3);
+    assert_true(mla_string_equals(str, mla_string("-123.456")), "float(-123.456, 3) should equal '-123.456'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_float(0.0f, 1);
+    assert_true(mla_string_equals(str, mla_string("0.0")), "float(0.0, 1) should equal '0.0'");
+    mla_string_destroy(str);
+
+    // Test with 0 decimal places
+    str = mla_string_from_float(42.789f, 0);
+    assert_true(mla_string_equals(str, mla_string("43")), "float(42.789, 0) should round to '43'");
+    mla_string_destroy(str);
+}
+
+void StringFromDoubleTest() {
+    // Test with 2 decimal places
+    mla_string_t str = mla_string_from_double(3.14159265358979, 2);
+    assert_true(mla_string_equals(str, mla_string("3.14")), "double(pi, 2) should equal '3.14'");
+    mla_string_destroy(str);
+
+    // Test negative with 5 decimal places
+    str = mla_string_from_double(-123.456789, 5);
+    assert_true(mla_string_equals(str, mla_string("-123.45679")), "double(-123.456789, 5) should equal '-123.45679'");
+    mla_string_destroy(str);
+
+    // Test zero
+    str = mla_string_from_double(0.0, 3);
+    assert_true(mla_string_equals(str, mla_string("0.000")), "double(0.0, 3) should equal '0.000'");
+    mla_string_destroy(str);
+
+    // Test with 0 decimal places
+    str = mla_string_from_double(42.789, 0);
+    assert_true(mla_string_equals(str, mla_string("43")), "double(42.789, 0) should round to '43'");
+    mla_string_destroy(str);
+}
+
+void StringFromBoolTest() {
+    // Test true
+    mla_string_t str = mla_string_from_bool(true);
+    assert_true(mla_string_equals(str, mla_string("true")), "bool(true) should equal 'true'");
+
+    // Test false
+    str = mla_string_from_bool(false);
+    assert_true(mla_string_equals(str, mla_string("false")), "bool(false) should equal 'false'");
+
+    // Test with 1 (should be true)
+    str = mla_string_from_bool(1);
+    assert_true(mla_string_equals(str, mla_string("true")), "bool(1) should equal 'true'");
+
+    // Test with 0 (should be false)
+    str = mla_string_from_bool(0);
+    assert_true(mla_string_equals(str, mla_string("false")), "bool(0) should equal 'false'");
+}
+
+
+void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -533,10 +718,42 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
 
     test = mla_test("ToUtf32AndFromUtf32_MixedBmp", test_category, ToUtf32AndFromUtf32_MixedBmpTest);
     mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromInt8", test_category, StringFromInt8Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromUInt8", test_category, StringFromUInt8Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromInt16", test_category, StringFromInt16Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromUInt16", test_category, StringFromUInt16Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromInt32", test_category, StringFromInt32Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromUInt32", test_category, StringFromUInt32Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromInt64", test_category, StringFromInt64Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromUInt64", test_category, StringFromUInt64Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromFloat", test_category, StringFromFloatTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromDouble", test_category, StringFromDoubleTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromBool", test_category, StringFromBoolTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
 }
 
 void StringConcatBenchmark() {
-
     mla_string_t str1 = mla_string("Hello, ");
     mla_string_t str2 = mla_string("World!");
     mla_string_t str3 = mla_string(" This is a test of concatenation.");
@@ -544,15 +761,14 @@ void StringConcatBenchmark() {
     mla_string_t result = mla_string_concat(str1, str2, str3);
 
     mla_test_int32_t length = result.length;
-    (void)length; // Prevent unused variable warning
+    (void) length; // Prevent unused variable warning
 
     mla_string_destroy(result);
 }
 
 void StringContains_Buffer_LayoutBenchmark() {
-
-    const mla_test_char_t* data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = (mla_test_int32_t)strlen(data); // Length of the string
+    const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
+    mla_test_int32_t length = (mla_test_int32_t) strlen(data); // Length of the string
 
     mla_string_t str = mla_string(data, length);
     mla_string_t subString = mla_string("for");
@@ -563,7 +779,6 @@ void StringContains_Buffer_LayoutBenchmark() {
 }
 
 void StringContains_C_LayoutBenchmark() {
-
     mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.");
     mla_string_t subString = mla_string("for");
 
@@ -574,9 +789,8 @@ void StringContains_C_LayoutBenchmark() {
 }
 
 void StringIndexOf_Buffer_LayoutBenchmark() {
-
-    const mla_test_char_t* data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = (mla_test_int32_t)strlen(data); // Length of the string
+    const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
+    mla_test_int32_t length = (mla_test_int32_t) strlen(data); // Length of the string
 
     mla_string_t str = mla_string(data, length);
     mla_string_t subString = mla_string("for");
@@ -585,11 +799,9 @@ void StringIndexOf_Buffer_LayoutBenchmark() {
     if (index != 38) {
         static_assert(true, "Index of substring not found in MlaStringIndexOfBenchmark");
     }
-
 }
 
 void StringIndexOf_C_LayoutBenchmark() {
-
     mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.");
     mla_string_t subString = mla_string("for");
 
@@ -597,12 +809,10 @@ void StringIndexOf_C_LayoutBenchmark() {
     if (index != 38) {
         static_assert(true, "Index of substring not found in MlaStringIndexOfBenchmark");
     }
-
 }
 
 
 void String_to_C_LayoutBenchmark() {
-
     mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.");
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
@@ -618,7 +828,6 @@ void String_to_C_LayoutBenchmark() {
 }
 
 void String_to_Buffer_LayoutBenchmark() {
-
     mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.", 53);
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
@@ -634,8 +843,7 @@ void String_to_Buffer_LayoutBenchmark() {
 }
 
 void RefCountBenchmark() {
-
-    mla_char_t* data = mla_create_char_array(1);
+    mla_char_t *data = mla_create_char_array(1);
 
     mla_string_t str1 = mla_string_from_buffer_with_ownership(data, 1);
     mla_string_t str2 = str1;
@@ -697,12 +905,10 @@ void RefCountBenchmark() {
     str28 = mla_string_empty();
     str29 = mla_string_empty();
     str30 = mla_string_empty();
-
 }
 
 
 void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
-
     // Concat Benchmarks
     ////////////////////////////////////////////
     mla_benchmark_t benchmark = mla_benchmark("Concat", benchmark_category, StringConcatBenchmark);
@@ -733,10 +939,6 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
     benchmark = mla_benchmark("C_String_From_Buffer_Layout", benchmark_category, String_to_Buffer_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
-
-
-
-
 }
 
 

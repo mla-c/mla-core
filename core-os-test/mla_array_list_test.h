@@ -439,8 +439,8 @@ void ArrayListWithValueStructTest() {
 
     my_array_list_test_struct value;
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
-    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+    assert_equal(value.test1, 2, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200, "Value test2 should be equal to 200");
 
     my_array_list_test_struct* valueRef = mla_array_list_get_ref(list, 1);
 

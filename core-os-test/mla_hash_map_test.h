@@ -50,33 +50,33 @@ struct my_hash_map_with_const_test_struct {
 void HashMapContainsTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, 1l, 100l);
-    mla_hash_map_push(map, 2l, 200l);
-    mla_hash_map_push(map, 3l, 300l);
-    mla_hash_map_push(map, 4l, 400l);
-    mla_hash_map_push(map, 5l, 500l);
+    mla_hash_map_push(map, 1, 100);
+    mla_hash_map_push(map, 2, 200);
+    mla_hash_map_push(map, 3, 300);
+    mla_hash_map_push(map, 4, 400);
+    mla_hash_map_push(map, 5, 500);
 
-    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
-    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
-    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
-    assert_true(mla_hash_map_contains(map, 4l), "HashMap should contain key 4");
-    assert_true(mla_hash_map_contains(map, 5l), "HashMap should contain key 5");
-    assert_false(mla_hash_map_contains(map, 6l), "HashMap should not contain key 6");
+    assert_true(mla_hash_map_contains(map, 1), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3), "HashMap should contain key 3");
+    assert_true(mla_hash_map_contains(map, 4), "HashMap should contain key 4");
+    assert_true(mla_hash_map_contains(map, 5), "HashMap should contain key 5");
+    assert_false(mla_hash_map_contains(map, 6), "HashMap should not contain key 6");
 
 }
 
 void HashMapGetTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, 1l, 100l);
-    mla_hash_map_push(map, 2l, 200l);
-    mla_hash_map_push(map, 3l, 300l);
+    mla_hash_map_push(map, 1, 100);
+    mla_hash_map_push(map, 2, 200);
+    mla_hash_map_push(map, 3, 300);
 
     // Try Get
     mla_int32_t value;
-    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_true(mla_hash_map_get(map, 2, value), "HashMap should successfully retrieve value for key 2");
     assert_equal(value, 200l, "HashMap should return value 200 for key 2");
-    assert_false(mla_hash_map_get(map, 6l, value), "HashMap should not find key 6");
+    assert_false(mla_hash_map_get(map, 6, value), "HashMap should not find key 6");
     assert_equal(value, 0l, "Value should be default value for non-existing key 6");
 
 }
@@ -100,23 +100,23 @@ void HashMapAddMuchItemsTest() {
 void HashMapRemoveTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, 1l, 100l);
-    mla_hash_map_push(map, 2l, 200l);
-    mla_hash_map_push(map, 3l, 300l);
+    mla_hash_map_push(map, 1, 100);
+    mla_hash_map_push(map, 2, 200);
+    mla_hash_map_push(map, 3, 300);
 
-    assert_true(mla_hash_map_remove(map, 2l), "HashMap should successfully remove key 2");
-    assert_false(mla_hash_map_contains(map, 2l), "HashMap should not contain key 2 after removal");
+    assert_true(mla_hash_map_remove(map, 2), "HashMap should successfully remove key 2");
+    assert_false(mla_hash_map_contains(map, 2), "HashMap should not contain key 2 after removal");
 
-    assert_false(mla_hash_map_remove(map, 4l), "HashMap should not remove non-existing key 4");
+    assert_false(mla_hash_map_remove(map, 4), "HashMap should not remove non-existing key 4");
 
 }
 
 void HashMapClearTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, 1l, 100l);
-    mla_hash_map_push(map, 2l, 200l);
-    mla_hash_map_push(map, 3l, 300l);
+    mla_hash_map_push(map, 1, 100);
+    mla_hash_map_push(map, 2, 200);
+    mla_hash_map_push(map, 3, 300);
 
     mla_hash_map_clear(map);
 
@@ -127,17 +127,17 @@ void HashMapClearTest() {
 void HashMapGetKeysTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, 1l, 100l);
-    mla_hash_map_push(map, 2l, 200l);
-    mla_hash_map_push(map, 3l, 300l);
+    mla_hash_map_push(map, 1, 100);
+    mla_hash_map_push(map, 2, 200);
+    mla_hash_map_push(map, 3, 300);
 
     mla_array_list_t<mla_int32_t> keys = mla_hash_map_keys(map);
 
     assert_equal(mla_array_list_size(keys), (mla_size_t)3l, "HashMap should have 3 keys");
-    assert_true(mla_array_list_contains(keys, 1l), "Keys should contain 1");
-    assert_true(mla_array_list_contains(keys, 2l), "Keys should contain 2");
-    assert_true(mla_array_list_contains(keys, 3l), "Keys should contain 3");
-    assert_false(mla_array_list_contains(keys, 4l), "Keys should not contain 4");
+    assert_true(mla_array_list_contains(keys, 1), "Keys should contain 1");
+    assert_true(mla_array_list_contains(keys, 2), "Keys should contain 2");
+    assert_true(mla_array_list_contains(keys, 3), "Keys should contain 3");
+    assert_false(mla_array_list_contains(keys, 4), "Keys should not contain 4");
 
 }
 
@@ -165,20 +165,20 @@ void HashMapWithValueStructTest() {
     my_hash_map_test_struct item2 = {2, 200};
     my_hash_map_test_struct item3 = {3, 300};
 
-    mla_hash_map_push(map, 1l, item1);
-    mla_hash_map_push(map, 2l, item2);
-    mla_hash_map_push(map, 3l, item3);
+    mla_hash_map_push(map, 1, item1);
+    mla_hash_map_push(map, 2, item2);
+    mla_hash_map_push(map, 3, item3);
 
-    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
-    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
-    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
+    assert_true(mla_hash_map_contains(map, 1), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3), "HashMap should contain key 3");
 
     my_hash_map_test_struct value;
-    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_true(mla_hash_map_get(map, 2, value), "HashMap should successfully retrieve value for key 2");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
 
-    my_hash_map_test_struct* valueRef = mla_hash_map_get_ref(map, 2l);
+    my_hash_map_test_struct* valueRef = mla_hash_map_get_ref(map, 2);
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check
@@ -186,11 +186,11 @@ void HashMapWithValueStructTest() {
         assert_fail("ValueRef should not be null for key 2");
     }
 
-    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_true(mla_hash_map_get(map, 2, value), "HashMap should successfully retrieve value for key 2");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
     assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
 
-    assert_null(mla_hash_map_get_ref(map, 4l), "HashMap should return null for non-existing key 4");
+    assert_null(mla_hash_map_get_ref(map, 4), "HashMap should return null for non-existing key 4");
 }
 
 
@@ -202,20 +202,20 @@ void HashMapWithValueConstStructTest() {
     my_hash_map_with_const_test_struct item2 = {2, 200};
     my_hash_map_with_const_test_struct item3 = {3, 300};
 
-    mla_hash_map_push(map, 1l, item1);
-    mla_hash_map_push(map, 2l, item2);
-    mla_hash_map_push(map, 3l, item3);
+    mla_hash_map_push(map, 1, item1);
+    mla_hash_map_push(map, 2, item2);
+    mla_hash_map_push(map, 3, item3);
 
-    assert_true(mla_hash_map_contains(map, 1l), "HashMap should contain key 1");
-    assert_true(mla_hash_map_contains(map, 2l), "HashMap should contain key 2");
-    assert_true(mla_hash_map_contains(map, 3l), "HashMap should contain key 3");
+    assert_true(mla_hash_map_contains(map, 1), "HashMap should contain key 1");
+    assert_true(mla_hash_map_contains(map, 2), "HashMap should contain key 2");
+    assert_true(mla_hash_map_contains(map, 3), "HashMap should contain key 3");
 
     my_hash_map_with_const_test_struct value;
-    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_true(mla_hash_map_get(map, 2, value), "HashMap should successfully retrieve value for key 2");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
 
-    my_hash_map_with_const_test_struct* valueRef = mla_hash_map_get_ref(map, 2l);
+    my_hash_map_with_const_test_struct* valueRef = mla_hash_map_get_ref(map, 2);
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check
@@ -223,11 +223,11 @@ void HashMapWithValueConstStructTest() {
         assert_fail("ValueRef should not be null for key 2");
     }
 
-    assert_true(mla_hash_map_get(map, 2l, value), "HashMap should successfully retrieve value for key 2");
+    assert_true(mla_hash_map_get(map, 2, value), "HashMap should successfully retrieve value for key 2");
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
     assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
 
-    assert_null(mla_hash_map_get_ref(map, 4l), "HashMap should return null for non-existing key 4");
+    assert_null(mla_hash_map_get_ref(map, 4), "HashMap should return null for non-existing key 4");
 }
 
 void HashMapItemMemoryManagementTest() {
