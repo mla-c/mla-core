@@ -184,6 +184,75 @@ void mla_check_assert_false(mla_test_bool_t p_Condition, const mla_test_char_t *
     }
 }
 
+void mla_check_assert_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual != p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+void mla_check_assert_not_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual == p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+void mla_check_assert_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual != p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+void mla_check_assert_not_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual == p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+
 void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success)
@@ -202,6 +271,40 @@ void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected
 }
 
 void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual == p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected not equal to Actual. Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+void mla_check_assert_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+
+    if (!current_test_result.success)
+        return;
+
+    if (p_Actual != p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t* l_Result = new mla_test_char_t[4096];
+        if (p_Message) {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d. %s", p_Line, p_Expected, p_Actual, p_Message);
+        } else {
+            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected: %d, Actual: %d", p_Line, p_Expected, p_Actual);
+        }
+        current_test_result.message = (mla_test_char_t *)l_Result;
+    }
+}
+
+void mla_check_assert_not_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success)
         return;

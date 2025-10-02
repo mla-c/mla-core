@@ -37,7 +37,7 @@ struct mla_string_utf32_buffer_t {
 
 void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer);
 
-enum mla_string_memory_layout_t {
+enum mla_string_memory_layout_t: mla_uint8_t {
     MLA_STRING_MEMORY_LAYOUT_C_STRING, // C-style string (with null terminator)
     MLA_STRING_MEMORY_LAYOUT_BUFFER, // Buffer-based string (without null terminator)
     MLA_STRING_MEMORY_LAYOUT_SUB_STRING // Substring (view into another string)

@@ -15,13 +15,13 @@ enum mla_task_process_result_state {
 
 typedef mla_task_process_result_state (*mla_task_worker_t)(mla_callback_userdata userData, mla_callback_userdata userData2);
 
-enum mla_task_priority {
+enum mla_task_priority: mla_uint8_t {
     TASK_PRIO_LOW,
     TASK_PRIO_NORMAL,
     TASK_PRIO_HIGH,
 };
 
-enum mla_task_stack_size {
+enum mla_task_stack_size: mla_uint8_t {
     TASK_STACK_SIZE_DEFAULT,
     TASK_STACK_SIZE_TINY,
     TASK_STACK_SIZE_SMALL,
@@ -31,7 +31,7 @@ enum mla_task_stack_size {
     TASK_STACK_SIZE_XXLARGE,
 };
 
-enum mla_task_state {
+enum mla_task_state: mla_uint8_t {
     TASK_STATE_STARTING, // Task is pending execution
     TASK_STATE_RUNNING, // Task is currently running
     TASK_STATE_COMPLETED, // Task has completed execution

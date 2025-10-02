@@ -71,24 +71,24 @@ void LinkListContainsMlaStringTest() {
 
 void LinkListContainsTest() {
 
-    mla_link_list_t<int> mla_list = mla_link_list<int>();
-    mla_link_list_add(mla_list, 1);
-    mla_link_list_add(mla_list, 2);
-    mla_link_list_add(mla_list, 3);
+    mla_link_list_t<mla_test_int16_t> mla_list = mla_link_list<mla_test_int16_t>();
+    mla_link_list_add(mla_list, (mla_test_int16_t)1);
+    mla_link_list_add(mla_list, (mla_test_int16_t)2);
+    mla_link_list_add(mla_list, (mla_test_int16_t)3);
 
-    mla_bool_t found = mla_link_list_contains<int>(mla_list, 2);
+    mla_bool_t found = mla_link_list_contains(mla_list, (mla_test_int16_t)2);
     assert_true(found, "List should contain '2'");
-    found = mla_link_list_contains<int>(mla_list, 4);
+    found = mla_link_list_contains(mla_list, (mla_test_int16_t)4);
     assert_false(found, "List should not contain '4'");
 
-    int value;
+    mla_test_int16_t value;
     assert_true(mla_link_list_get(mla_list, 0, value), "Should get first item");
-    assert_equal(value, 1, "First item should be '1'");
+    assert_equal(value, (mla_test_int16_t)1, "First item should be '1'");
     assert_true(mla_link_list_get(mla_list, 1, value), "Should get second item");
-    assert_equal(value, 2, "Second item should be '2'");
+    assert_equal(value, (mla_test_int16_t)2, "Second item should be '2'");
 
     assert_false(mla_link_list_get(mla_list, 3, value), "Should not get item at index 3 (out of bounds)");
-    assert_equal(value, 0, "Value should be unchanged when getting out of bounds");
+    assert_equal(value, (mla_test_int16_t)0, "Value should be unchanged when getting out of bounds");
 
 }
 

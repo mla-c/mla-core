@@ -6,6 +6,7 @@
 #define MLA_TEST_H
 
 #include "../mla_test_data_types.h"
+#include "../../core-os/mla_data_types.h"
 
 struct mla_test_result_t {
     mla_test_bool_t success;
@@ -34,8 +35,14 @@ mla_test_bool_t mla_test_run(mla_test_t &test);
 void mla_check_assert_fail(const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_true(mla_test_bool_t p_Condition, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_false(mla_test_bool_t p_Condition, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);

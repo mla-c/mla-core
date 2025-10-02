@@ -8,7 +8,7 @@
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
 
-enum mla_log_level {
+enum mla_log_level: mla_uint8_t {
     MLA_LOG_LEVEL_VERBOSE = 0, 	// Used for show verboses messages
     MLA_LOG_LEVEL_DEBUG = 1,   	// Used for show debug messages
     MLA_LOG_LEVEL_INFO = 2,		// Used for show info messages

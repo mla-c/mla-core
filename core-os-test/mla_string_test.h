@@ -505,12 +505,12 @@ void StringFromInt32Test() {
     mla_string_destroy(str);
 
     // Test min value
-    str = mla_string_from_int32(-2147483648);
+    str = mla_string_from_int32(mla_int32_min);
     assert_true(mla_string_equals(str, mla_string("-2147483648")), "int32 min should equal '-2147483648'");
     mla_string_destroy(str);
 
     // Test max value
-    str = mla_string_from_int32(2147483647);
+    str = mla_string_from_int32(mla_int32_max);
     assert_true(mla_string_equals(str, mla_string("2147483647")), "int32 max should equal '2147483647'");
     mla_string_destroy(str);
 }
@@ -522,7 +522,7 @@ void StringFromUInt32Test() {
     mla_string_destroy(str);
 
     // Test max value
-    str = mla_string_from_uint32(4294967295U);
+    str = mla_string_from_uint32(mla_uint32_max);
     assert_true(mla_string_equals(str, mla_string("4294967295")), "uint32 max should equal '4294967295'");
     mla_string_destroy(str);
 
@@ -544,12 +544,12 @@ void StringFromInt64Test() {
     mla_string_destroy(str);
 
     // Test min value
-    str = mla_string_from_int64(-9223372036854775807LL - 1);
+    str = mla_string_from_int64(mla_int64_min);
     assert_true(mla_string_equals(str, mla_string("-9223372036854775808")), "int64 min should equal '-9223372036854775808'");
     mla_string_destroy(str);
 
     // Test max value
-    str = mla_string_from_int64(9223372036854775807LL);
+    str = mla_string_from_int64(mla_int64_max);
     assert_true(mla_string_equals(str, mla_string("9223372036854775807")), "int64 max should equal '9223372036854775807'");
     mla_string_destroy(str);
 }
@@ -561,7 +561,7 @@ void StringFromUInt64Test() {
     mla_string_destroy(str);
 
     // Test max value
-    str = mla_string_from_uint64(18446744073709551615ULL);
+    str = mla_string_from_uint64(mla_uint64_max);
     assert_true(mla_string_equals(str, mla_string("18446744073709551615")), "uint64 max should equal '18446744073709551615'");
     mla_string_destroy(str);
 
