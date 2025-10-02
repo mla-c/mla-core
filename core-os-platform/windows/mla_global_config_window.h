@@ -173,7 +173,7 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output, mla_size_t unused
     );
 
     // If ReplaceFile failed, try the delete-and-rename approach
-    if ((replaceResult == FALSE)) {
+    if (replaceResult == FALSE) {
         // Remove any existing backup file
         DeleteFile(backupPath);
 
