@@ -28,6 +28,45 @@ mla_int32_t __pico_printf(const mla_char_t* format, ...) {
     return result;
 }
 
+void __pico_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+
+    Serial.print("Memory allocation failed: ");
+    const char* bytes_str = " bytes in ";
+    const char* parenthesis_open = " (";
+    const char* parenthesis_close = ")\n";
+
+
+    // Convert size to string using stack buffer
+    char size_buffer[32] = {0}; // Large enough for any practical size_t value
+    int size_len = 0;
+    mla_size_t temp_size = size;
+
+    // Handle zero case specially
+    if (temp_size == 0) {
+        size_buffer[0] = '0';
+        size_len = 1;
+    } else {
+        // Convert number to string manually
+        int pos = sizeof(size_buffer) - 2; // Leave room for null terminator
+        while (temp_size > 0 && pos >= 0) {
+            size_buffer[pos--] = '0' + (temp_size % 10);
+            temp_size /= 10;
+        }
+        size_len = sizeof(size_buffer) - pos - 2;
+        // Move to beginning of buffer
+        memmove(size_buffer, &size_buffer[pos + 1], size_len);
+    }
+
+    Serial.print(size_buffer);
+    Serial.print(bytes_str);
+    Serial.print(filename);
+    Serial.print(parenthesis_open);
+    Serial.print(function_name);
+    Serial.print(parenthesis_close);
+
+    Serial.flush();
+}
+
 mla_size_t __prio_std_read(mla_char_t* buffer, mla_size_t size) {
 
     mla_size_t readedChars = 0;
@@ -80,6 +119,7 @@ mla_low_level_operations_t g_low_level_access {
         __generic_malloc,
         __generic_free,
         __generic_is_gcc_pointer,
+        __pico_on_malloc_failure,
         __pico_printf,
         __prio_std_read,
         __generic_strtod,
