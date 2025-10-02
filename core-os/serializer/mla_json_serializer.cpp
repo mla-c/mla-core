@@ -33,7 +33,7 @@ void __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
         case MLA_JSON_SERIALIZER_ELEMENT_START_LIST:
             if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
                 last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
-                instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
+                instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
             }
             break;
         case MLA_JSON_SERIALIZER_ELEMENT_END_LIST:
@@ -42,7 +42,7 @@ void __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
         case MLA_JSON_SERIALIZER_ELEMENT_START_OBJECT:
             if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
                 last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
-                instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
+                instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
             }
             break;
         case MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT:
@@ -51,13 +51,13 @@ void __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
         case MLA_JSON_SERIALIZER_ELEMENT_PROPERTY_NAME:
             if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
                 last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
-                instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
+                instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
             }
             break;
         case MLA_JSON_SERIALIZER_ELEMENT_VALUE:
             if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
                 last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
-                instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
+                instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>(","));
             }
             break;
     }
@@ -68,113 +68,111 @@ void __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
 
 void mla_json_serializer_write_start_struct(mla_serializer_t &instance) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_OBJECT);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("{"));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("{"));
 }
 
 void mla_json_serializer_write_end_struct(mla_serializer_t &instance) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("}"));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("}"));
 }
 
 void mla_json_serializer_write_start_list(mla_serializer_t &instance) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_LIST);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("["));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("["));
 }
 
 void mla_json_serializer_write_end_list(mla_serializer_t &instance) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_LIST);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("]"));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("]"));
 }
 
 void mla_json_serializer_write_property_name(mla_serializer_t &instance, const mla_string_t &name) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_PROPERTY_NAME);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
     if (name.length > 0) {
-        instance.output.write(instance.output.userdata, 0, name.length,
+        instance.output.write(instance.output, 0, name.length,
                               reinterpret_cast<const mla_byte_t *>(name.data));
     }
-    instance.output.write(instance.output.userdata, 0, 2, reinterpret_cast<const mla_byte_t *>("\":"));
+    instance.output.write(instance.output, 0, 2, reinterpret_cast<const mla_byte_t *>("\":"));
 }
 
 void mla_json_serializer_write_bool(mla_serializer_t &instance, const mla_bool_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     if (value) {
-        instance.output.write(instance.output.userdata, 0, 4, reinterpret_cast<const mla_byte_t *>("true"));
+        instance.output.write(instance.output, 0, 4, reinterpret_cast<const mla_byte_t *>("true"));
     } else {
-        instance.output.write(instance.output.userdata, 0, 5, reinterpret_cast<const mla_byte_t *>("false"));
+        instance.output.write(instance.output, 0, 5, reinterpret_cast<const mla_byte_t *>("false"));
     }
 
-    instance.userdata = 1;
 }
 
 void mla_json_serializer_write_int8(mla_serializer_t &instance, const mla_int8_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_int8(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
-    instance.userdata = 1;
 }
 
 void mla_json_serializer_write_int16(mla_serializer_t &instance, const mla_int16_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_int16(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_int32(mla_serializer_t &instance, const mla_int32_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_int32(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_int64(mla_serializer_t &instance, const mla_int64_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_int64(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_uint8(mla_serializer_t &instance, const mla_uint8_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_uint8(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_uint16(mla_serializer_t &instance, const mla_uint16_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_uint16(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_uint32(mla_serializer_t &instance, const mla_uint32_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_uint32(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_uint64(mla_serializer_t &instance, const mla_uint64_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_uint64(value);
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_float(mla_serializer_t &instance, const mla_float_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_float(value, 6); // Default to 6 decimal places
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
 void mla_json_serializer_write_double(mla_serializer_t &instance, const mla_double_t value) {
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
     mla_string_t str = mla_string_from_double(value, 6); // Default to 6 decimal places
-    instance.output.write(instance.output.userdata, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
+    instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data));
     mla_string_destroy(str);
 }
 
@@ -183,16 +181,16 @@ void __mla_json_serializer_write_string_plain(mla_serializer_t &instance, const 
     if (value.length == 0)
         return;
 
-    instance.output.write(instance.output.userdata, 0, value.length,
+    instance.output.write(instance.output, 0, value.length,
                               reinterpret_cast<const mla_byte_t *>(value.data));
 }
 
 void mla_json_serializer_write_string(mla_serializer_t &instance, const mla_string_t &value) {
 
     __mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
     __mla_json_serializer_write_string_plain(instance, value);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
 
 }
 
@@ -201,10 +199,10 @@ void mla_json_serializer_write_bytes(mla_serializer_t &instance, const mla_bytes
     // Serialize bytes as a base64 string
     mla_string_t base64Str = mla_bytes_to_base64(value);
 
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
     __mla_json_serializer_write_string_plain(instance, mla_string_const(mla_bytes_prefix));
     __mla_json_serializer_write_string_plain(instance, base64Str);
-    instance.output.write(instance.output.userdata, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
+    instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("\""));
     mla_string_destroy(base64Str);
 }
 
@@ -245,7 +243,7 @@ mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserialize
     mla_char_t new_char = 0;
 
     while (true) {
-        if (instance.input.read(instance.input.userdata, 0, 1, reinterpret_cast<mla_byte_t *>(&new_char)) != 1) {
+        if (instance.input.read(instance.input, 0, 1, reinterpret_cast<mla_byte_t *>(&new_char)) != 1) {
             return false;
         }
 
@@ -280,7 +278,7 @@ mla_size_t __mla_json_deserializer_read_next_data(mla_deserializer_t &instance, 
         lengthRemaining = length;
     }
 
-    const mla_size_t readed = instance.input.read(instance.input.userdata, offset * sizeof(mla_char_t), lengthRemaining * sizeof(mla_char_t),
+    const mla_size_t readed = instance.input.read(instance.input, offset * sizeof(mla_char_t), lengthRemaining * sizeof(mla_char_t),
                                                   reinterpret_cast<mla_byte_t *>(charBuffer));
     return (readed /  sizeof(mla_char_t)) + offset;
 }
@@ -322,7 +320,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
         }
 
         // Read next char
-        if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
+        if (instance.input.read(instance.input, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
                                 reinterpret_cast<mla_byte_t *>(&charBuffer)) != 1 * sizeof(mla_char_t)) {
             return false;
         }
@@ -340,7 +338,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
 
         if (charBuffer[position] == '\\') {
             // Read next char
-            if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
+            if (instance.input.read(instance.input, position * sizeof(mla_char_t), 1 * sizeof(mla_char_t),
                                     reinterpret_cast<mla_byte_t *>(&charBuffer)) != 1 * sizeof(mla_char_t)) {
                 return false;
             }
@@ -366,7 +364,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
                     charBuffer[position] = '\t';
                     break;
                 case 'u': {
-                    if (instance.input.read(instance.input.userdata, position * sizeof(mla_char_t), 4 * sizeof(mla_char_t),
+                    if (instance.input.read(instance.input, position * sizeof(mla_char_t), 4 * sizeof(mla_char_t),
                                             reinterpret_cast<mla_byte_t *>(&charBuffer)) != 4 * sizeof(mla_char_t)) {
                         return false;
                     }
@@ -393,7 +391,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
                     if (unicode_val >= 0xD800 && unicode_val <= 0xDBFF) {
                         // This is a high surrogate, we need to read the low surrogate
                         mla_char_t next_chars[6];
-                        if (instance.input.read(instance.input.userdata, 0, 6 * sizeof(mla_char_t),
+                        if (instance.input.read(instance.input, 0, 6 * sizeof(mla_char_t),
                                                 reinterpret_cast<mla_byte_t *>(next_chars)) != 6 * sizeof(mla_char_t)) {
                             return false;
                         }
@@ -521,7 +519,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
     // Read the entire number into the buffer
     while (position < 63) {
         mla_char_t c;
-        if (instance.input.read(instance.input.userdata, 0, 1,
+        if (instance.input.read(instance.input, 0, 1,
                                 reinterpret_cast<mla_byte_t *>(&c)) != 1) {
             break;
         }

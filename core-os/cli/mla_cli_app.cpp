@@ -8,7 +8,7 @@
 #include "../system/mla_string_concat.h"
 
 void __mla_cli_write_string(const mla_stream_output_t &outputStream, mla_string_t str) {
-    outputStream.write(outputStream.userdata, 0, str.length, (mla_byte_t*)str.data);
+    outputStream.write(outputStream, 0, str.length, (mla_byte_t*)str.data);
 }
 
 void __mla_cli_command_execute_outstream_to_stream_bridge(mla_callback_userdata userdata, const mla_string_t &data) {
@@ -17,8 +17,8 @@ void __mla_cli_command_execute_outstream_to_stream_bridge(mla_callback_userdata 
 }
 
 void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(mla_callback_userdata userdata, const mla_char_t* data) {
-    const mla_stream_output_t *output = reinterpret_cast<const mla_stream_output_t *>(userdata);
-    output->write(output->userdata, 0, mla_strlen(data), (mla_byte_t*)data);
+    mla_stream_output_t *output = reinterpret_cast<mla_stream_output_t *>(userdata);
+    output->write(*output, 0, mla_strlen(data), (mla_byte_t*)data);
 }
 
 void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t &outputStream) {
@@ -28,7 +28,7 @@ void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t
         // Dont print the root module
         for (mla_size_t i = 1; i < size; ++i) {
             if (i != 1) {
-                outputStream.write(outputStream.userdata, 0, 1, (mla_byte_t*)">");
+                outputStream.write(outputStream, 0, 1, (mla_byte_t*)">");
             }
 
             mla_string_t currentModuleName = mla_array_list_get_ref(app.activeModules, i)->moduleName;
@@ -36,7 +36,7 @@ void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t
         }
     }
 
-    outputStream.write(outputStream.userdata, 0, 1, (mla_byte_t*)">");
+    outputStream.write(outputStream, 0, 1, (mla_byte_t*)">");
 }
 
 void __mla_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
@@ -259,18 +259,18 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
         __mla_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
         __mla_cli_write_string(outputStream, mla_string("  "));
         __mla_cli_write_string(outputStream, inputCommand);
-        outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
+        outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
 
         // There is something missing show the possible auto completions
         if (mla_array_list_size(parser_result.possibleAutoCompletions) > 0) {
-            outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
+            outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
             __mla_cli_write_string(outputStream, mla_string("Do you mean:\n"));
             for (mla_size_t i = 0; i < mla_array_list_size(parser_result.possibleAutoCompletions); ++i) {
                 mla_string_t *completion = mla_array_list_get_ref(parser_result.possibleAutoCompletions, i);
                 __mla_cli_write_string(outputStream, mla_string("  "));
                 __mla_cli_write_string(outputStream, inputCommand);
                 __mla_cli_write_string(outputStream, *completion);
-                outputStream.write(outputStream.userdata, 0, 1,  (mla_byte_t*)"\n");
+                outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
             }
         } else {
 
@@ -317,7 +317,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
     // Create an own scopt so that the buffer is removed from the stack after reading
     {
         mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
-        mla_size_t bytesRead = inputStream.read(inputStream.userdata, 0, sizeof(buffer), buffer);
+        mla_size_t bytesRead = inputStream.read(inputStream, 0, sizeof(buffer), buffer);
 
         if (bytesRead == 0) {
             return;
@@ -350,7 +350,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
     }
 
     if (commandProcessed) {
-        outputStream.write(outputStream.userdata, 0, 1, (mla_byte_t*)"\n");
+        outputStream.write(outputStream, 0, 1, (mla_byte_t*)"\n");
         __mla_cli_write_module_prompt(app, outputStream);
     }
 }

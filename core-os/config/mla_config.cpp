@@ -22,15 +22,21 @@
 // If configuration is disabled, provide dummy implementations
 #if defined(mla_config_enabled) && mla_config_enabled==0
 
-__mla_config_disabled_commit_output(mla_bytes_t output) {
+mla_bool_t __mla_config_disabled_commit_output(mla_bytes_t output, mla_size_t unused_bytes) {
+    (void)unused_bytes;
     mla_bytes_destroy(output);
     return false;
 }
 
-static  mla_config_low_level_operations_t g_low_level_operations = {
+mla_bool_t __mla_config_disabled_reset() {
+    return false;
+}
+
+static mla_config_low_level_operations_t g_low_level_operations = {
     mla_bytes_empty,
     mla_bytes_empty,
-    __mla_config_disabled_commit_output
+    __mla_config_disabled_commit_output,
+    __mla_config_disabled_reset
 };
 
 #else
@@ -83,9 +89,6 @@ mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, ml
 
                 // If we are not at the start of a struct, then we did not find the config
                 return mla_deserializer_read_struct(deserializer, config, definition.definition.read_function);
-            } else {
-                // Skip the value of this property
-                mla_deserializer_skip_property_value(deserializer);
             }
         }
     }
@@ -102,19 +105,25 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
 
     mla_bytes_t input = g_low_level_operations.read_config_input();
     mla_bytes_t output = g_low_level_operations.create_config_output_buffer();
+    mla_size_t unused_bytes = 0;
 
     // Create scope for memory cleanup
     {
+        mla_stream_output_t output_stream = mla_stream_output_to_buffer(mla_bytes_get_data_for_writing(output), output.size);
+
         mla_deserializer_t deserializer = mla_config_create_deserializer(
             mla_stream_input_from_buffer(mla_bytes_get_data_for_writing(input), input.size));
-        mla_serializer_t serializer = mla_config_create_serializer(
-            mla_stream_output_to_buffer(mla_bytes_get_data_for_writing(output), output.size));
+        mla_serializer_t serializer = mla_config_create_serializer(output_stream);
 
         // Save is working like this we are copy the content from the deserializer to the serializer
         // until we find the config we want to update, then we write the new config and continue copying the rest
         // from the deserializer to the serializer
 
-        serializer.write_start_struct(serializer);
+        if (input.size == 0) {
+            // If input is empty, just write the new config as the only content
+            serializer.write_start_struct(serializer);
+        }
+
 
         mla_bool_t found = false;
         mla_uint8_t nested_level = 0;
@@ -127,7 +136,7 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
                     break;
                 case MLA_DESERIALIZER_PROPERTY_NAME:
                     // Check if this is the config we are looking for
-                    if (nested_level == 0 && mla_string_equals(deserializer.current_token.complex.property_name,
+                    if (nested_level == 1 && mla_string_equals(deserializer.current_token.complex.property_name,
                                                                definition.config_name)) {
                         // We found the config we want to update, break out of the loop
                         found = true;
@@ -144,7 +153,11 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
                     break;
                 case MLA_DESERIALIZER_STRUCT_END:
                     nested_level--;
-                    serializer.write_end_struct(serializer);
+
+                    // Only write the end struct if we are not at the top level
+                    if (nested_level != 0)
+                        serializer.write_end_struct(serializer);
+
                     break;
                 case MLA_DESERIALIZER_LIST_START:
                     serializer.write_start_list(serializer);
@@ -269,10 +282,28 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
             }
         }
 
-        serializer.write_end_struct(serializer);
+        if (input.size == 0 || !found) {
+            // If input is empty, just write the new config as the only content
+            serializer.write_end_struct(serializer);
+        }
+
+        if (output_stream.available_bytes != nullptr) {
+            unused_bytes = output.size - output_stream.available_bytes(output_stream);
+        }
     }
 
     mla_bytes_destroy(input);
 
-    return g_low_level_operations.commit_config_output(output);
+    // Something is wrong if there is no content
+    if (unused_bytes == 0) {
+        mla_error("Unknown error: No content in output buffer after serialization");
+        mla_bytes_destroy(output);
+        return false;
+    }
+
+    return g_low_level_operations.commit_config_output(output, unused_bytes);
+}
+
+mla_bool_t mla_config_manager_reset() {
+    return g_low_level_operations.reset();
 }

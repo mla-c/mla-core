@@ -47,6 +47,9 @@ inline mla_serialize_definition_t test_config_struct_serialize_def() {
 
 // Test: Write and Read config
 inline void ConfigWriteReadTest() {
+
+    mla_config_manager_reset();
+
     // Set up config
     test_config_struct original = {42, true, mla_string("ConfigTest")};
     mla_config_definition_t def = mla_config_definition<test_config_struct>(mla_string_const("test_config"), test_config_struct_serialize_def());
@@ -62,6 +65,8 @@ inline void ConfigWriteReadTest() {
     assert_equal(original.intValue, loaded.intValue, "Config intValue mismatch");
     assert_equal(original.boolValue, loaded.boolValue, "Config boolValue mismatch");
     assert_struct_equal(mla_string_t, original.strValue, loaded.strValue, "Config strValue mismatch");
+
+    mla_config_manager_reset();
 }
 
 struct simple_config {
@@ -130,6 +135,9 @@ inline mla_serialize_definition_t complex_config_serialize_def() {
 
 // Test: Multiple config write and read in same order
 inline void MultiConfigSameOrderTest() {
+
+    mla_config_manager_reset();
+
     // Create configs
     test_config_struct config1 = {100, true, mla_string("First")};
     simple_config config2 = {5, 3.14f};
@@ -158,10 +166,15 @@ inline void MultiConfigSameOrderTest() {
 
     assert_equal(config2.version, loaded2.version, "Config2 version mismatch");
     assert_equal(config2.value, loaded2.value, "Config2 value mismatch");
+
+    mla_config_manager_reset();
 }
 
 // Test: Multiple config write and read in different order
 inline void MultiConfigDifferentOrderTest() {
+
+    mla_config_manager_reset();
+
     // Create configs
     test_config_struct config1 = {200, false, mla_string("Alpha")};
     simple_config config2 = {10, 2.718f};
@@ -202,16 +215,21 @@ inline void MultiConfigDifferentOrderTest() {
     assert_equal(mla_array_list_size(config3.values), mla_array_list_size(loaded3.values), "Config3 values size mismatch");
     for (mla_size_t i = 0; i < mla_array_list_size(config3.values); i++) {
 
-        assert_equal(mla_array_list_get_ref(config3.values, i), mla_array_list_get_ref(loaded3.values, i), "Config3 values element mismatch");
+        assert_equal(mla_array_list_get_unsafe(config3.values, i), mla_array_list_get_unsafe(loaded3.values, i), "Config3 values element mismatch");
     }
 
     assert_equal(config1.intValue, loaded1.intValue, "Config1 intValue mismatch");
     assert_equal(config1.boolValue, loaded1.boolValue, "Config1 boolValue mismatch");
     assert_struct_equal(mla_string_t, config1.strValue, loaded1.strValue, "Config1 strValue mismatch");
+
+    mla_config_manager_reset();
 }
 
 
 inline void MultiConfigUpdateTest() {
+
+    mla_config_manager_reset();
+
     // Create configs
     test_config_struct config1 = {300, true, mla_string("Original")};
     simple_config config2 = {20, 1.618f};
@@ -245,6 +263,8 @@ inline void MultiConfigUpdateTest() {
     // Validate unchanged values
     assert_equal(config2.version, loaded2.version, "Config2 version mismatch");
     assert_equal(config2.value, loaded2.value, "Config2 value mismatch");
+
+    mla_config_manager_reset();
 }
 
 

@@ -12,7 +12,8 @@
 struct mla_config_low_level_operations_t {
     mla_bytes_t (*read_config_input)();
     mla_bytes_t (*create_config_output_buffer)();
-    mla_bool_t (*commit_config_output)(mla_bytes_t& output);
+    mla_bool_t (*commit_config_output)(mla_bytes_t& output, mla_size_t unused_bytes);
+    mla_bool_t (*reset)();
 };
 
 struct mla_config_definition_t {
@@ -22,6 +23,7 @@ struct mla_config_definition_t {
 
 mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_pointer_t config);
 mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, mla_pointer_t config);
+mla_bool_t mla_config_manager_reset();
 
 
 //// Template Helpers

@@ -9,22 +9,24 @@
 #include "windows.h"
 #include <tchar.h>
 
-#if !defined(mla_windows_max_config_file_size)
-#define mla_windows_max_config_file_size (128 * 1024) // 128KB is default
+#if !defined(mla_max_config_size)
+#define mla_max_config_size (16 * 1024) // 16KB is default
 #endif
 
 #define mla_commit_buffer_size 32767
-void get_config_filename(TCHAR* buffer, size_t bufferSize) {
 
-    TCHAR exePath[mla_commit_buffer_size];
-    GetModuleFileName(nullptr, exePath, mla_commit_buffer_size);
 
-    // Get just the filename part
-    TCHAR* lastBackslash = _tcsrchr(exePath, TEXT('\\'));
-    TCHAR* filename = lastBackslash ? lastBackslash + 1 : exePath;
+void get_config_filename(TCHAR* buffer, DWORD bufferSize) {
 
-    // Copy the filename to the buffer
-    _tcscpy_s(buffer, bufferSize, filename);
+    // Get the executable path
+    GetModuleFileName(nullptr, buffer, bufferSize);
+
+    // Find the last period (extension start)
+    TCHAR* lastDot = _tcsrchr(buffer, TEXT('.'));
+    if (lastDot != nullptr) {
+        // Truncate at the extension
+        *lastDot = TEXT('\0');
+    }
 
     // Add .config extension
     _tcscat_s(buffer, bufferSize, TEXT(".config"));
@@ -59,7 +61,7 @@ mla_bytes_t __windows_read_config_input() {
     // Get the file size
     DWORD fileSize = GetFileSize(hFile, nullptr);
 
-    if (fileSize == INVALID_FILE_SIZE || fileSize > mla_windows_max_config_file_size) {
+    if (fileSize == INVALID_FILE_SIZE || fileSize > mla_max_config_size) {
         CloseHandle(hFile);
         return mla_bytes_empty();
     }
@@ -99,44 +101,25 @@ mla_bytes_t __windows_read_config_input() {
 
 mla_bytes_t __windows_create_config_output_buffer() {
 
-    return mla_bytes(mla_windows_max_config_file_size);
+    return mla_bytes(mla_max_config_size);
 }
 
-mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
-
-
-    TCHAR exePath[mla_commit_buffer_size];
-    if (GetModuleFileName(nullptr, exePath, mla_commit_buffer_size) == 0) {
-        mla_bytes_destroy(output);
-        return false;
-    }
-
-    // Use _tcschr instead of strrchr/wcsrchr
-    TCHAR* lastBackslash = _tcsrchr(exePath, TEXT('\\'));
-    if (lastBackslash == nullptr) {
-        mla_bytes_destroy(output);
-        return false;
-    }
-    *(lastBackslash + 1) = TEXT('\0');
+mla_bool_t __windows_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
     // Use TCHAR for all paths
-    TCHAR configPath[mla_commit_buffer_size];
     TCHAR tempPath[mla_commit_buffer_size];
+    tempPath[0] = TEXT('\0');
     TCHAR backupPath[mla_commit_buffer_size];
+    backupPath[0] = TEXT('\0');
 
     // Then modify the line you highlighted to:
-    TCHAR configFilename[mla_commit_buffer_size];
-    get_config_filename(configFilename, mla_commit_buffer_size);
+    TCHAR configPath[mla_commit_buffer_size];
+    get_config_filename(configPath, mla_commit_buffer_size);
 
-    _tcscpy_s(configPath, mla_commit_buffer_size, exePath);
-    _tcscat_s(configPath, mla_commit_buffer_size, configFilename);
-
-    _tcscpy_s(tempPath, mla_commit_buffer_size, exePath);
-    _tcscat_s(tempPath, mla_commit_buffer_size, configFilename);
+    _tcscat_s(tempPath, mla_commit_buffer_size, configPath);
     _tcscat_s(tempPath, mla_commit_buffer_size, TEXT(".tmp"));
 
-    _tcscpy_s(backupPath, mla_commit_buffer_size, exePath);
-    _tcscat_s(backupPath, mla_commit_buffer_size, configFilename);
+    _tcscat_s(backupPath, mla_commit_buffer_size, configPath);
     _tcscat_s(backupPath, mla_commit_buffer_size, TEXT(".bak"));
 
     // Delete temporary file if it exists
@@ -158,12 +141,14 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
         return false;
     }
 
+    mla_size_t bytesToWrite = mla_min(output.size, unused_bytes);
+
     // Write data to temporary file
     DWORD bytesWritten;
     BOOL writeResult = WriteFile(
         hTempFile,           // File handle
         output.data,         // Buffer with data to write
-        output.size,         // Number of bytes to write
+        bytesToWrite,         // Number of bytes to write
         &bytesWritten,       // Number of bytes written
         nullptr              // No overlapped I/O
     );
@@ -171,7 +156,7 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
     // Close the temporary file
     CloseHandle(hTempFile);
 
-    if ((writeResult == FALSE) || bytesWritten != output.size) {
+    if ((writeResult == FALSE) || bytesWritten != bytesToWrite) {
         DeleteFile(tempPath);
         mla_bytes_destroy(output);
         return false;
@@ -222,11 +207,24 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output) {
     return true;
 }
 
+mla_bool_t __windows_reset() {
+    TCHAR configFilename[mla_commit_buffer_size];
+    get_config_filename(configFilename, mla_commit_buffer_size);
+
+
+    // Mark the file for deletion
+    BOOL deleteResult = DeleteFile(configFilename);
+
+
+    return deleteResult != FALSE;
+}
+
 
 mla_config_low_level_operations_t g_low_level_operations = {
     __windows_read_config_input,
     __windows_create_config_output_buffer,
-    __windows_commit_config_output
+    __windows_commit_config_output,
+    __windows_reset
 };
 
 #endif
