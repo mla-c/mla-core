@@ -36,38 +36,75 @@ inline void SimpleNavigationTest() {
     mla_array_list_add(root.subModules, subModule2);
 
     mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should start with root module active");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should start with root module active");
+    }
 
     // Process no input
     mla_cli_app_update_and_process_input(app,mla_stream_noop_input() , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should start with root module active");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should start with root module active");
+    }
+
 
     mla_string_t buffer = mla_string("SubModule1\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length) , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should have navigated to SubModule1");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
+
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should have navigated to SubModule1");
+    }
 
     buffer = mla_string("SubSubModule1\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length) , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)3, "App should have navigated to SubSubModule1");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("SubSubModule1"), "Active module should be SubSubModule1");
+
+    if (mla_array_list_size(app.activeModules) == 3) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("SubSubModule1"), "Active module should be SubSubModule1");
+    } else {
+        // If the size is not 3, fail the test immediately
+        assert_fail("App should have navigated to SubSubModule1");
+    }
 
     buffer = mla_string("exit\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length) , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should have navigated back to SubModule1");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
+
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should have navigated back to SubModule1");
+    }
 
     buffer = mla_string("exit\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length) , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should have navigated back to Root");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should have navigated back to Root");
+    }
 
     buffer = mla_string("exit\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length) , mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should have not navigated");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should remain at Root when exiting from root");
+    }
+
 }
 
 inline void InvalidNavigationTest() {
@@ -81,7 +118,13 @@ inline void InvalidNavigationTest() {
     mla_string_t buffer = mla_string("InvalidModule\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on invalid navigation");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should still be Root");
+
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should still be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should start with root module active");
+    }
 
     // Test empty input
     buffer = mla_string("\n");
@@ -133,8 +176,15 @@ inline void MultipleModuleNavigationTest() {
     // Navigate to Module2
     mla_string_t buffer = mla_string("Module2\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should have navigated to Module2");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module2"), "Active module should be Module2");
+
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module2"), "Active module should be Module2");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should have navigated to Module2");
+    }
+
+
 
     // Navigate back to root and then to Module1
     buffer = mla_string("exit\n");
@@ -142,8 +192,14 @@ inline void MultipleModuleNavigationTest() {
 
     buffer = mla_string("Module1\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should have navigated to Module1");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module1"), "Active module should be Module1");
+
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module1"), "Active module should be Module1");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should have navigated to Module1");
+    }
+
 }
 
 inline void DeepNavigationTest() {
@@ -173,8 +229,17 @@ inline void DeepNavigationTest() {
     buffer = mla_string("Level4\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)5, "App should be at depth 5");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 4)->moduleName, mla_string("Level4"), "Deepest module should be Level4");
+
+    if (mla_array_list_size(app.activeModules) == 5) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Top module should be Root");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Level1"), "Second module should be Level1");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("Level2"), "Third module should be Level2");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 3)->moduleName, mla_string("Level3"), "Fourth module should be Level3");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 4)->moduleName, mla_string("Level4"), "Deepest module should be Level4");
+    } else {
+        // If the size is not 5, fail the test immediately
+        assert_fail("App should be at depth 5");
+    }
 
     // Navigate back up multiple levels
     buffer = mla_string("exit\n");
@@ -182,8 +247,15 @@ inline void DeepNavigationTest() {
     buffer = mla_string("exit\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)3, "App should be back at Level2");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("Level2"), "Active module should be Level2");
+    if (mla_array_list_size(app.activeModules) == 3) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Top module should be Root");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Level1"), "Second module should be Level1");
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("Level2"), "Active module should be Level2");
+    } else {
+        // If the size is not 3, fail the test immediately
+        assert_fail("App should be back at Level2");
+    }
+
 }
 
 inline void EmptyModuleTest() {
@@ -199,15 +271,24 @@ inline void EmptyModuleTest() {
     mla_string_t buffer = mla_string("EmptyModule\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should have navigated to empty module");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should be EmptyModule");
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should be EmptyModule");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should have navigated to EmptyModule");
+    }
 
     // Try to navigate to non-existent submodule
     buffer = mla_string("NonExistent\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should remain in empty module");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should still be EmptyModule");
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should still be EmptyModule");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should remain in EmptyModule on invalid navigation");
+    }
+
 }
 
 inline void CaseSensitivityTest() {
@@ -222,15 +303,24 @@ inline void CaseSensitivityTest() {
     mla_string_t buffer = mla_string("testmodule\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should not navigate with wrong case");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should still be Root");
+    if (mla_array_list_size(app.activeModules) == 1) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should still be Root");
+    } else {
+        // If the size is not 1, fail the test immediately
+        assert_fail("App should not navigate with wrong case");
+    }
 
     // Test correct case - should navigate
     buffer = mla_string("TestModule\n");
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 
-    assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)2, "App should navigate with correct case");
-    assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("TestModule"), "Active module should be TestModule");
+    if (mla_array_list_size(app.activeModules) == 2) {
+        assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("TestModule"), "Active module should be TestModule");
+    } else {
+        // If the size is not 2, fail the test immediately
+        assert_fail("App should navigate with correct case");
+    }
+
 }
 
 inline void SpecialCharacterInputTest() {

@@ -223,19 +223,19 @@ void mla_deserializer_skip_property_value(mla_deserializer_t& deserializer);
 /// Conversion Helpers
 //////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_mla_deserializer_convert_to_bool(const mla_deserializer_token_t& token, mla_bool_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_int8(const mla_deserializer_token_t& token, mla_int8_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_int16(const mla_deserializer_token_t& token, mla_int16_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_int32(const mla_deserializer_token_t& token, mla_int32_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_int64(const mla_deserializer_token_t& token, mla_int64_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_uint8(const mla_deserializer_token_t& token, mla_uint8_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_uint16(const mla_deserializer_token_t& token, mla_uint16_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_uint32(const mla_deserializer_token_t& token, mla_uint32_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_uint64(const mla_deserializer_token_t& token, mla_uint64_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_float(const mla_deserializer_token_t& token, mla_float_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_double(const mla_deserializer_token_t& token, mla_double_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_string(const mla_deserializer_token_t& token, mla_string_t* out_value);
-mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& token, mla_bytes_t* out_value);
+mla_bool_t mla_deserializer_convert_to_bool(const mla_deserializer_token_t& token, mla_bool_t* out_value);
+mla_bool_t mla_deserializer_convert_to_int8(const mla_deserializer_token_t& token, mla_int8_t* out_value);
+mla_bool_t mla_deserializer_convert_to_int16(const mla_deserializer_token_t& token, mla_int16_t* out_value);
+mla_bool_t mla_deserializer_convert_to_int32(const mla_deserializer_token_t& token, mla_int32_t* out_value);
+mla_bool_t mla_deserializer_convert_to_int64(const mla_deserializer_token_t& token, mla_int64_t* out_value);
+mla_bool_t mla_deserializer_convert_to_uint8(const mla_deserializer_token_t& token, mla_uint8_t* out_value);
+mla_bool_t mla_deserializer_convert_to_uint16(const mla_deserializer_token_t& token, mla_uint16_t* out_value);
+mla_bool_t mla_deserializer_convert_to_uint32(const mla_deserializer_token_t& token, mla_uint32_t* out_value);
+mla_bool_t mla_deserializer_convert_to_uint64(const mla_deserializer_token_t& token, mla_uint64_t* out_value);
+mla_bool_t mla_deserializer_convert_to_float(const mla_deserializer_token_t& token, mla_float_t* out_value);
+mla_bool_t mla_deserializer_convert_to_double(const mla_deserializer_token_t& token, mla_double_t* out_value);
+mla_bool_t mla_deserializer_convert_to_string(const mla_deserializer_token_t& token, mla_string_t* out_value);
+mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& token, mla_bytes_t* out_value);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_bool(instance, setter)\
     {\
     mla_bool_t value = false;\
-    if (mla_mla_deserializer_convert_to_bool(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_bool(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -257,7 +257,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_int8(instance, setter)\
     {\
     mla_int8_t value = 0;\
-    if (mla_mla_deserializer_convert_to_int8(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_int8(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -268,7 +268,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_int16(instance, setter)\
     {\
     mla_int16_t value = 0;\
-    if (mla_mla_deserializer_convert_to_int16(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_int16(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -279,7 +279,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_int32(instance, setter)\
     {\
     mla_int32_t value = 0;\
-    if (mla_mla_deserializer_convert_to_int32(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_int32(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -290,7 +290,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_int64(instance, setter)\
     {\
     mla_int64_t value = 0;\
-    if (mla_mla_deserializer_convert_to_int64(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_int64(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -301,7 +301,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_uint8(instance, setter)\
     {\
     mla_uint8_t value = 0;\
-    if (mla_mla_deserializer_convert_to_uint8(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_uint8(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -312,7 +312,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_uint16(instance, setter)\
     {\
     mla_uint16_t value = 0;\
-    if (mla_mla_deserializer_convert_to_uint16(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_uint16(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -323,7 +323,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_uint32(instance, setter)\
     {\
     mla_uint32_t value = 0;\
-    if (mla_mla_deserializer_convert_to_uint32(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_uint32(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -334,7 +334,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_uint64(instance, setter)\
     {\
     mla_uint64_t value = 0;\
-    if (mla_mla_deserializer_convert_to_uint64(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_uint64(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -345,7 +345,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_float(instance, setter)\
     {\
     mla_float_t value = 0;\
-    if (mla_mla_deserializer_convert_to_float(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_float(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -356,7 +356,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_double(instance, setter)\
     {\
     mla_double_t value = 0;\
-    if (mla_mla_deserializer_convert_to_double(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_double(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -367,7 +367,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_string(instance, setter)\
     {\
     mla_string_t value = mla_string_empty();\
-    if (mla_mla_deserializer_convert_to_string(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_string(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
@@ -378,7 +378,7 @@ mla_bool_t mla_mla_deserializer_convert_to_bytes(const mla_deserializer_token_t&
 #define mla_deserializer_read_bytes(instance, setter)\
     {\
     mla_bytes_t value = mla_bytes_empty();\
-    if (mla_mla_deserializer_convert_to_bytes(instance.current_token, &value)) {\
+    if (mla_deserializer_convert_to_bytes(instance.current_token, &value)) {\
         setter = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\

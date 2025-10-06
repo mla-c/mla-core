@@ -24,8 +24,14 @@ inline void ParseCommandWithParameters() {
     assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)2, "There should be 2 parameters");
     assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("path")), "Parameters should contain 'path'");
     assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("force")), "Parameters should contain 'force'");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("path")), mla_string("/usr/bin"), "Parameter 'path' should be '/usr/bin'");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("force")), mla_string("true"), "Parameter 'force' should be 'true'");
+
+    if (mla_hash_map_size(result.matchingParameters) == 2) {
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("path")), mla_string("/usr/bin"), "Parameter 'path' should be '/usr/bin'");
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("force")), mla_string("true"), "Parameter 'force' should be 'true'");
+    } else {
+        assert_fail("There should be exactly 2 parameters");
+    }
+
     assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)0, "There should be no possible auto completions");
 }
 
@@ -44,8 +50,14 @@ inline void ParseCommandWithParametersAndWhiteSpace() {
     assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)2, "There should be 2 parameters");
     assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("path")), "Parameters should contain 'path'");
     assert_true(mla_hash_map_contains(result.matchingParameters, mla_string("force")), "Parameters should contain 'force'");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("path")), mla_string("/usr/bin"), "Parameter 'path' should be '/usr/bin'");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("force")), mla_string("true"), "Parameter 'force' should be 'true'");
+
+    if (mla_hash_map_size(result.matchingParameters) == 2) {
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("path")), mla_string("/usr/bin"), "Parameter 'path' should be '/usr/bin'");
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("force")), mla_string("true"), "Parameter 'force' should be 'true'");
+    } else {
+        assert_fail("There should be exactly 2 parameters");
+    }
+
     assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)0, "There should be no possible auto completions");
 }
 
@@ -62,7 +74,12 @@ inline void AutoCompleteCommand() {
     assert_false(result.isValid, "Command should be valid");
     assert_struct_equal(mla_string_t, result.matchingCommand.name, mla_string(""), "Command name should be ''");
     assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)1, "There should be 1 possible auto completion");
-    assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string("ute"), "Possible auto completion should be 'execute'");
+
+    if (mla_array_list_size(result.possibleAutoCompletions) == 1) {
+        assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string("ute"), "Possible auto completion should be 'execute'");
+    } else {
+        assert_fail("There should be exactly 1 possible auto completion");
+    }
 
 }
 
@@ -80,8 +97,15 @@ inline void ParseCommandWithQuotedParameters() {
     assert_true(result.isValid, "Command without quotes should be valid");
     assert_struct_equal(mla_string_t, result.matchingCommand.name, mla_string("backup"), "Command name should be 'backup'");
     assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)3, "There should be 3 parameters");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("source")), mla_string("/home/user name"), "Parameter 'source' should be correct");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("destination")), mla_string("/backup"), "Parameter 'destination' should be parsed correctly");
+
+    if (mla_hash_map_size(result.matchingParameters) == 3) {
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("source")), mla_string("/home/user name"), "Parameter 'source' should be correct");
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("destination")), mla_string("/backup"), "Parameter 'destination' should be parsed correctly");
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("verbose")), mla_string("true"), "Parameter 'verbose' should be 'true'");
+    } else {
+        assert_fail("There should be exactly 3 parameters");
+    }
+
 }
 
 inline void ParseCommandWithOnlyMandatoryParameters() {
@@ -96,7 +120,13 @@ inline void ParseCommandWithOnlyMandatoryParameters() {
     assert_true(result.isValid, "Command should be valid with only mandatory parameters");
     assert_struct_equal(mla_string_t, result.matchingCommand.name, mla_string("deploy"), "Command name should be 'deploy'");
     assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)1, "There should be 1 parameter");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("app")), mla_string("myapp"), "Parameter 'app' should be 'myapp'");
+
+    if (mla_hash_map_size(result.matchingParameters) == 1) {
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("app")), mla_string("myapp"), "Parameter 'app' should be 'myapp'");
+    } else {
+        assert_fail("There should be exactly 1 parameter");
+    }
+
     assert_false(mla_hash_map_contains(result.matchingParameters, mla_string("debug")), "Optional parameter 'debug' should not be present");
 }
 
@@ -161,7 +191,15 @@ inline void AutoCompleteParameters() {
     assert_true(result.isValid, "Complete command should be valid");
     // When command is complete, it should show available parameters as auto-completions
     assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)3, "There should be 3 possible parameter completions");
-    assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string(" --database"), "First Parameter should be database");
+
+    if (mla_array_list_size(result.possibleAutoCompletions) == 3) {
+        assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string(" --database"), "First Parameter should be database");
+        assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 1), mla_string(" --debug"), "Second Parameter should be debug");
+        assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 2), mla_string(" --deploy"), "Third Parameter should be deploy");
+    } else {
+        assert_fail("There should be exactly 3 possible parameter completions");
+    }
+
 }
 
 inline void AutoCompleteIncompleteParameters() {
@@ -178,7 +216,13 @@ inline void AutoCompleteIncompleteParameters() {
     assert_false(result.isValid, "Complete command should be valid");
     // When command is complete, it should show available parameters as auto-completions
     assert_equal(mla_array_list_size(result.possibleAutoCompletions), (mla_size_t)1, "There should be 1 possible parameter completions");
-    assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string("tabase"), "First Parameter should be tabase");
+
+    if (mla_array_list_size(result.possibleAutoCompletions) == 1) {
+        assert_struct_equal(mla_string_t, *mla_array_list_get_ref(result.possibleAutoCompletions, 0), mla_string("tabase"), "First Parameter should be tabase");
+    } else {
+        assert_fail("There should be exactly 1 possible parameter completion");
+    }
+
 }
 
 inline void ParseCommandWithMalformedParameters() {
@@ -214,7 +258,13 @@ inline void ParseCommandWithSpecialCharacters() {
     // Test without quotes first - the parser may have issues with quoted special characters
     auto result = mla_cli_parser_parse(parser, mla_string("process --file data.txt --pattern *.log"));
     assert_true(result.isValid, "Command with special characters should be valid");
-    assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("pattern")), mla_string("*.log"), "Pattern parameter should contain special characters");
+
+    if (mla_hash_map_size(result.matchingParameters) == 2) {
+        assert_struct_equal(mla_string_t, *mla_hash_map_get_ref(result.matchingParameters, mla_string("pattern")), mla_string("*.log"), "Pattern parameter should contain special characters");
+    } else {
+        assert_fail("There should be exactly 2 parameters");
+    }
+
 }
 
 inline void ParseMultipleCommandsWithSamePrefixes() {
