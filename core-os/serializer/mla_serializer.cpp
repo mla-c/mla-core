@@ -172,6 +172,7 @@ mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_po
     }
 
     while (deserializer.read_next(deserializer)) {
+
         if (deserializer.current_token.type == MLA_DESERIALIZER_PROPERTY_NAME) {
             mla_string_t property_name = deserializer.current_token.complex.property_name;
 
@@ -203,7 +204,13 @@ mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_po
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_bool_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_bool_t value;
             if (mla_deserializer_convert_to_bool(deserializer.current_token, &value)) {
@@ -224,8 +231,15 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 }
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_uint8_t> &list) {
+
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_uint8_t value;
             if (mla_deserializer_convert_to_uint8(deserializer.current_token, &value)) {
@@ -247,7 +261,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_uint16_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_uint16_t value;
             if (mla_deserializer_convert_to_uint16(deserializer.current_token, &value)) {
@@ -269,7 +288,13 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_uint32_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_uint32_t value;
             if (mla_deserializer_convert_to_uint32(deserializer.current_token, &value)) {
@@ -292,7 +317,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_uint64_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_uint64_t value;
 
@@ -315,7 +345,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_int8_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_int8_t value;
 
@@ -338,7 +373,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_int16_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_int16_t value;
 
@@ -392,7 +432,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_int64_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_int64_t value;
 
@@ -417,7 +462,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_list_t<mla_float_t> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_float_t value;
 
@@ -443,7 +493,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
 
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             mla_double_t value;
 
@@ -469,7 +524,12 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer,
                                     mla_array_list_t<mla_string_t, mla_string_initializer> &list) {
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
-        while (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END && deserializer.read_next(deserializer)) {
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
 
             if (!mla_deserializer_token_type_is_value(deserializer.current_token.type)) {
                 // Wrong struct ure
