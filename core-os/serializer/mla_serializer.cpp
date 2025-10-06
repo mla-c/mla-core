@@ -212,7 +212,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_bool_t value;
+            mla_bool_t value = false;
             if (mla_deserializer_convert_to_bool(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
             } else {
@@ -241,7 +241,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_uint8_t value;
+            mla_uint8_t value = 0;
             if (mla_deserializer_convert_to_uint8(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
             } else {
@@ -268,7 +268,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_uint16_t value;
+            mla_uint16_t value = 0;
             if (mla_deserializer_convert_to_uint16(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
             } else {
@@ -296,7 +296,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_uint32_t value;
+            mla_uint32_t value = 0;
             if (mla_deserializer_convert_to_uint32(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
             } else {
@@ -324,7 +324,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_uint64_t value;
+            mla_uint64_t value = 0;
 
             if (mla_deserializer_convert_to_uint64(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -352,7 +352,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_int8_t value;
+            mla_int8_t value = 0;
 
             if (mla_deserializer_convert_to_int8(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -380,7 +380,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_int16_t value;
+            mla_int16_t value = 0;
 
             if (mla_deserializer_convert_to_int16(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -410,7 +410,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
             }
 
 
-            mla_int32_t value;
+            mla_int32_t value = 0;
 
             if (mla_deserializer_convert_to_int32(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -439,7 +439,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_int64_t value;
+            mla_int64_t value = 0;
 
             if (mla_deserializer_convert_to_int64(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -469,7 +469,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_float_t value;
+            mla_float_t value = 0.0;
 
             if (mla_deserializer_convert_to_float(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
@@ -500,7 +500,7 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t &deserializer, mla_array_
                 return true;
             }
 
-            mla_double_t value;
+            mla_double_t value = 0.0;
 
             if (mla_deserializer_convert_to_double(deserializer.current_token, &value)) {
                 mla_array_list_add(list, value);
