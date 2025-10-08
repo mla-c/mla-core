@@ -234,8 +234,9 @@ if (p_Utf16Buffer.data == nullptr || p_Utf16Buffer.charCount == 0) {
     return {
         utf8Buffer,
         utf8Index,
-        mla_buffer_reference(utf8Buffer),
-        MLA_STRING_MEMORY_LAYOUT_BUFFER
+        MLA_STRING_MEMORY_LAYOUT_BUFFER,
+        mla_buffer_reference(utf8Buffer)
+
     };
 
 }
@@ -377,8 +378,8 @@ if (p_Utf32Buffer.data == nullptr || p_Utf32Buffer.charCount == 0) {
     return {
         utf8Buffer,
         utf8Index,
-        mla_buffer_reference(utf8Buffer),
-        MLA_STRING_MEMORY_LAYOUT_BUFFER
+        MLA_STRING_MEMORY_LAYOUT_BUFFER,
+        mla_buffer_reference(utf8Buffer)
     };
 
 }

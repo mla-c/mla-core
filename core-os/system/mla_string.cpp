@@ -11,23 +11,27 @@ mla_char_t * mla_create_char_array(const mla_size_t p_Length) {
 }
 
 mla_string_t mla_string_empty() {
-    return { nullptr, 0, mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+    return { nullptr, 0, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference_noOwner()};
 }
 
 mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length) {
-    return { p_Data, p_Length, mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+    return { p_Data, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference_noOwner()};
 }
 
 mla_string_t mla_string(const mla_char_t *p_Data) {
-    return { p_Data, mla_strlen(p_Data), mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_C_STRING};
+    return { p_Data, mla_strlen(p_Data), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference_noOwner()};
 }
 
 mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End) {
-    return { p_Data, static_cast<mla_size_t>(p_End - p_Data), mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+    return { p_Data, static_cast<mla_size_t>(p_End - p_Data), MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference_noOwner()};
 }
 
 mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length) {
-    return {p_Data, p_Length, mla_buffer_reference(p_Data), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+    return {p_Data, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(p_Data)};
+}
+
+mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length) {
+    return {p_Data, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference_noOwner()};
 }
 
 void mla_string_destroy(mla_string_t &p_String) {
@@ -156,8 +160,8 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
     return {
         p_String.data + p_Start,
         p_End - p_Start + 1,
-        p_String.dataOwner,
-        MLA_STRING_MEMORY_LAYOUT_SUB_STRING
+        MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
+        p_String.dataOwner
     };
 }
 
@@ -184,7 +188,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
 
         mla_memcpy(newData, p_String.data, p_String.length);
         newData[p_String.length] = '\0'; // Null-terminate the string
-        p_String = { newData, newLength - 1, mla_buffer_reference(newData), MLA_STRING_MEMORY_LAYOUT_C_STRING}; // Update the string instance
+        p_String = { newData, newLength - 1, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(newData)}; // Update the string instance
         return true;
     } else {
         // Convert to buffer-based string

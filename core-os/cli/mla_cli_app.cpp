@@ -324,7 +324,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
         }
 
         // Append to unprocessed input
-        mla_string_t newInput = {(mla_char_t *)buffer, bytesRead, mla_buffer_reference_noOwner(), MLA_STRING_MEMORY_LAYOUT_BUFFER};
+        mla_string_t newInput = mla_string_from_buffer_without_ownership((mla_char_t *)buffer, bytesRead);
         app.unprocessedInput = mla_string_concat(app.unprocessedInput, newInput);
     }
 

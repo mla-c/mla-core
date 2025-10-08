@@ -56,8 +56,8 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
 struct mla_string_t {
     const mla_char_t *data; // Pointer to the string data
     mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
-    mla_buffer_reference_t dataOwner;
     mla_string_memory_layout_t memoryLayout;
+    mla_buffer_reference_t dataOwner;
 
     mla_bool_t operator==(const mla_string_t &other) const {
 
@@ -80,6 +80,8 @@ mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End);
 // This function creates a string from a buffer and takes ownership of the buffer
 // You must not free the buffer after calling this function
 mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length);
+
+mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length);
 
 
 void mla_string_destroy(mla_string_t &p_String);

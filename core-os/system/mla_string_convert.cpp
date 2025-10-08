@@ -19,7 +19,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -38,7 +38,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -57,7 +57,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -76,7 +76,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -95,7 +95,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%d", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -114,7 +114,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%u", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -133,7 +133,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%lld", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -152,7 +152,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
     mla_int32_t length = mla_snprintf(buffer, bufferSize, "%llu", p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -176,7 +176,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     mla_int32_t length = mla_snprintf(buffer, bufferSize, formatBuffer, p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();
@@ -200,7 +200,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     mla_int32_t length = mla_snprintf(buffer, bufferSize, formatBuffer, p_Value);
 
     if (length > 0) {
-        return { buffer, static_cast<mla_size_t>(length), mla_buffer_reference(buffer), MLA_STRING_MEMORY_LAYOUT_C_STRING };
+        return { buffer, static_cast<mla_size_t>(length), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     } else {
         mla_free(buffer);
         return mla_string_empty();

@@ -12,7 +12,7 @@
 
 void SizeOfTest() {
     mla_size_t size = sizeof(mla_pointer_t);
-    assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)size * 4, "Size of mla_string_t should be 32 bytes");
+    assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)size * 3, "Size of mla_string_t should be 24 bytes");
 }
 
 void ContainsCLayoutTest() {
