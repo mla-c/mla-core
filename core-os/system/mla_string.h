@@ -86,6 +86,7 @@ mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_si
 
 void mla_string_destroy(mla_string_t &p_String);
 
+mla_bool_t mla_string_is_empty(const mla_string_t &p_String);
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t &p_Substring);

@@ -11,6 +11,10 @@ mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
 
     mla_c_string_t c_str = mla_string_to_cString(str);
 
+    if (c_str.c_str == nullptr) {
+        return false;
+    }
+
     mla_bool_t success = mla_strtod(c_str.c_str, str.length, &out_value);
 
     if (c_str.isOwner) {
@@ -38,6 +42,10 @@ mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
 
     mla_c_string_t c_str = mla_string_to_cString(str);
 
+    if (c_str.c_str == nullptr) {
+        return false;
+    }
+
     mla_bool_t success = mla_strtoll(c_str.c_str, str.length, &out_value);
 
     if (c_str.isOwner) {
@@ -57,6 +65,10 @@ mla_bool_t mla_parse_uint64(const mla_string_t &str, mla_uint64_t& out_value) {
     }
 
     mla_c_string_t c_str = mla_string_to_cString(str);
+
+    if (c_str.c_str == nullptr) {
+        return false;
+    }
 
     mla_bool_t success = mla_strtoull(c_str.c_str, str.length, &out_value);
 

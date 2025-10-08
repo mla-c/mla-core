@@ -16,10 +16,8 @@ enum mla_http_header_type_t: mla_uint8_t {
 struct mla_http_header_t {
     mla_string_t name;
     mla_http_header_type_t type;
-    union {
-        mla_array_list_t<mla_string_t, mla_string_initializer> values; // Multiple values
-        mla_string_t value; // Single value
-    };
+    mla_array_list_t<mla_string_t, mla_string_initializer> values; // Multiple values
+    mla_string_t value; // Single value
 };
 
 mla_http_header_t mla_http_header_empty();

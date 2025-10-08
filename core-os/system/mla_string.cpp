@@ -58,6 +58,10 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
     return mla_memcmp(p_String1.data, p_String2.data, p_String1.length) == 0; // Compare the actual data
 }
 
+mla_bool_t mla_string_is_empty(const mla_string_t &p_String) {
+    return p_String.length == 0;
+}
+
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2) {
     if (p_String1.length != p_String2.length) {
         return false; // Lengths differ, cannot be equal

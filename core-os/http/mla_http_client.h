@@ -22,13 +22,10 @@ struct mla_http_client_t {
 
 };
 
-
 struct mla_http_client_response {
     mla_http_client_response_status status;
-    union {
-        mla_string_t errorMessage; // Present if status is not OK
-        mla_http_response_t response;
-    };
+    mla_string_t errorMessage; // Present if status is not OK
+    mla_http_response_t response;
 
 };
 

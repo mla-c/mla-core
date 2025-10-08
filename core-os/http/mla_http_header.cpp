@@ -8,7 +8,8 @@ mla_http_header_t mla_http_header_empty() {
     return {
         mla_string_empty(),
         MLA_HTTP_HEADER_TYPE_SINGLE,
-        .value = mla_string_empty()
+        mla_array_list_empty<mla_string_t, mla_string_initializer>(),
+        mla_string_empty()
     };
 }
 
@@ -41,7 +42,9 @@ void mla_http_headers_add(mla_array_list_t<mla_http_header_t, mla_http_header_in
     mla_http_header_t new_header = {
         p_Name,
         MLA_HTTP_HEADER_TYPE_SINGLE,
-        .value = p_Value
+        mla_array_list_empty<mla_string_t, mla_string_initializer>(),
+        p_Value,
+
     };
 
     mla_array_list_add(p_Headers, new_header);

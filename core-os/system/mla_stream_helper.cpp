@@ -1,0 +1,35 @@
+//
+// Created by christian on 10/8/25.
+//
+
+#include "mla_stream.h"
+
+mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &output) {
+
+    mla_byte_t buffer[mla_stream_fast_read_buffer_size];
+    mla_size_t bytesRead;
+
+    do {
+        bytesRead = input.read(input, 0, mla_stream_fast_read_buffer_size, buffer);
+
+        if (bytesRead > 0) {
+            mla_size_t bytesWritten = output.write(output, 0, bytesRead, buffer);
+            if (bytesWritten != bytesRead) {
+                return false; // Write error
+            }
+        }
+
+    } while (bytesRead == mla_stream_fast_read_buffer_size);
+
+    return true;
+
+}
+
+mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla_string_t &string) {
+
+    if (string.length == 0) {
+        return true; // Nothing to write
+    }
+
+    return output.write(output, 0, string.length, reinterpret_cast<const mla_byte_t*>(string.data)) == string.length;
+}

@@ -9,9 +9,12 @@
 #include "../system/mla_array_list.h"
 #include "mla_http_header.h"
 #include "../system/mla_stream.h"
+#include "mla_http_data_types.h"
+
 
 
 struct mla_http_request_t {
+    mla_http_version version;
     mla_string_t url;
     mla_string_t method; // GET, POST, PUT, DELETE, etc.
     mla_array_list_t<mla_http_header_t, mla_http_header_initializer> headers;
