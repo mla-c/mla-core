@@ -171,7 +171,7 @@ mla_bool_t __linux_reset() {
 }
 
 
-mla_config_low_level_operations_t g_low_level_operations = {
+mla_config_low_level_operations_t g_config_low_level_operations = {
     __linux_read_config_input,
     __linux_create_config_output_buffer,
     __linux_commit_config_output,

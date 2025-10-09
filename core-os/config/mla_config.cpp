@@ -41,7 +41,7 @@ static mla_config_low_level_operations_t g_low_level_operations = {
 
 #else
 
-mla_global mla_config_low_level_operations_t g_low_level_operations;
+mla_global mla_config_low_level_operations_t g_config_low_level_operations;
 
 #endif
 
@@ -53,7 +53,7 @@ mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, ml
         return false;
     }
 
-    mla_bytes_t input = g_low_level_operations.read_config_input();
+    mla_bytes_t input = g_config_low_level_operations.read_config_input();
 
     if (input.size == 0) {
         return false;
@@ -103,8 +103,8 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
     }
 
 
-    mla_bytes_t input = g_low_level_operations.read_config_input();
-    mla_bytes_t output = g_low_level_operations.create_config_output_buffer();
+    mla_bytes_t input = g_config_low_level_operations.read_config_input();
+    mla_bytes_t output = g_config_low_level_operations.create_config_output_buffer();
     mla_size_t unused_bytes = 0;
 
     // Create scope for memory cleanup
@@ -301,9 +301,9 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
         return false;
     }
 
-    return g_low_level_operations.commit_config_output(output, unused_bytes);
+    return g_config_low_level_operations.commit_config_output(output, unused_bytes);
 }
 
 mla_bool_t mla_config_manager_reset() {
-    return g_low_level_operations.reset();
+    return g_config_low_level_operations.reset();
 }

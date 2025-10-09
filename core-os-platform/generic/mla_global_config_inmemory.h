@@ -47,7 +47,7 @@ mla_bool_t __generic_inmemory_config_reset() {
     return true;
 }
 
-mla_config_low_level_operations_t g_low_level_operations = {
+mla_config_low_level_operations_t g_config_low_level_operations = {
     __generic_inmemory_read_config_input,
     __generic_inmemory_create_config_output_buffer,
     __generic_inmemory_commit_config_output,

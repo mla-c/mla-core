@@ -220,7 +220,7 @@ mla_bool_t __windows_reset() {
 }
 
 
-mla_config_low_level_operations_t g_low_level_operations = {
+mla_config_low_level_operations_t g_config_low_level_operations = {
     __windows_read_config_input,
     __windows_create_config_output_buffer,
     __windows_commit_config_output,
