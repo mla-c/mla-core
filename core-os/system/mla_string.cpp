@@ -18,6 +18,22 @@ mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length) {
     return { p_Data, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference_noOwner()};
 }
 
+mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
+
+    if (p_Data == nullptr || p_Length == 0) {
+        return mla_string_empty();
+    }
+
+    mla_char_t *newData = mla_create_char_array(p_Length);
+
+    if (newData == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    mla_memcpy(newData, p_Data, p_Length);
+    return { newData, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(newData)};
+}
+
 mla_string_t mla_string(const mla_char_t *p_Data) {
     return { p_Data, mla_strlen(p_Data), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference_noOwner()};
 }
@@ -164,6 +180,73 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
     return {
         p_String.data + p_Start,
         p_End - p_Start + 1,
+        MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
+        p_String.dataOwner
+    };
+}
+
+mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter) {
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (p_Delimiter.length == 0) {
+        // If the delimiter is empty, return the original string as the only element
+        mla_array_list_add(result, p_String);
+        return result;
+    }
+
+    // Split the string
+    mla_size_t start = 0;
+    mla_int32_t delimiterIndex = 0;
+
+    while (start < p_String.length) {
+        // Create a substring from the current position
+        mla_string_t searchString = mla_string_substr(p_String, start, p_String.length - 1);
+
+        // Find the next delimiter
+        delimiterIndex = mla_string_index_of(searchString, p_Delimiter);
+
+        if (delimiterIndex == -1) {
+            // No more delimiters found, add the rest of the string
+            mla_string_t part = mla_string_substr(p_String, start, p_String.length - 1);
+            mla_array_list_add(result, part);
+            break;
+        }
+
+        // Add the substring before the delimiter
+        mla_size_t end = start + delimiterIndex - 1;
+        mla_string_t part = mla_string_substr(p_String, start, end);
+        mla_array_list_add(result, part);
+
+        // Move past the delimiter
+        start = start + delimiterIndex + p_Delimiter.length;
+    }
+
+    return result;
+}
+
+mla_string_t mla_string_trim(const mla_string_t &p_String) {
+
+    mla_size_t start = 0;
+    mla_size_t end = p_String.length;
+
+    // Trim leading whitespace
+    while (start < end && mla_char_is_whitespace(p_String.data[start])) {
+        ++start;
+    }
+
+    // Trim trailing whitespace
+    while (end > start && mla_char_is_whitespace(p_String.data[end - 1])) {
+        --end;
+    }
+
+    if (start == 0 && end == p_String.length) {
+        return p_String; // No trimming needed
+    }
+
+    return {
+        p_String.data + start,
+        end - start,
         MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
         p_String.dataOwner
     };

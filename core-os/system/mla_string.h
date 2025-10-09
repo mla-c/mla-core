@@ -7,6 +7,7 @@
 
 #include "../mla_data_types.h"
 #include "mla_buffer.h"
+#include "mla_array_list.h"
 #include "../utils/mla_char_utils.h"
 
 
@@ -76,6 +77,7 @@ mla_string_t mla_string_empty();
 mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length);
 mla_string_t mla_string(const mla_char_t *p_Data);
 mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End);
+mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length);
 
 // This function creates a string from a buffer and takes ownership of the buffer
 // You must not free the buffer after calling this function
@@ -83,8 +85,14 @@ mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla
 
 mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length);
 
-
 void mla_string_destroy(mla_string_t &p_String);
+
+struct mla_string_initializer {
+
+    static mla_string_t init() {
+        return mla_string_empty();
+    }
+};
 
 mla_bool_t mla_string_is_empty(const mla_string_t &p_String);
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
@@ -98,6 +106,8 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End);
+mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter);
+mla_string_t mla_string_trim(const mla_string_t &p_String);
 
 // This function returns a multi-byte character at the specified index
 // the most time its fine if you just access the buffer directly
@@ -130,13 +140,6 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value);
 mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_bool(mla_bool_t p_Value);
-
-struct mla_string_initializer {
-
-    static mla_string_t init() {
-        return mla_string_empty();
-    }
-};
 
 
 struct mla_string_hash_t {

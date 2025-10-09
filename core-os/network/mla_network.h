@@ -7,6 +7,7 @@
 
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"
+#include "../system/mla_stream.h"
 
 struct mla_network_ip_address_t {
     mla_string_t address; // IP address in string format
@@ -22,8 +23,8 @@ mla_network_host_t mla_network_host_invalid();
 
 struct mla_network_connection_t {
     const mla_network_host_t host;
-    mla_stream_input_t inputStream;
-    mla_stream_output_t outputStream;
+    const mla_stream_input_t inputStream;
+    const mla_stream_output_t outputStream;
 };
 
 mla_network_connection_t mla_network_connection_disconnected();
