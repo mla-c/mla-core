@@ -37,13 +37,13 @@ mla_bool_t mla_network_host_resolve(mla_network_host_t &host, const mla_string_t
 
 }
 
-mla_bool_t mla_network_connection_connect(mla_network_connection_t &connection, const mla_network_host_t &host, mla_size_t timeout_ms) {
+mla_bool_t mla_network_connection_connect(mla_network_connection_t &connection, const mla_network_host_t &host, mla_connection_type_t type, mla_size_t timeout_ms) {
 
     if (host.port == 0 || host.address.address.length == 0) {
         return false;
     }
 
-    return g_network_low_level_operations.connect(connection, host, timeout_ms);
+    return g_network_low_level_operations.connect(connection, host, type, timeout_ms);
 }
 
 mla_bool_t mla_network_connection_disconnect(mla_network_connection_t &connection) {

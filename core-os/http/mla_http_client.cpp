@@ -23,7 +23,7 @@ mla_bool_t __mla_http_client_default_resolve_host(const mla_http_client_t &clien
 
 mla_bool_t __mla_http_client_default_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
 
-    if (!mla_network_connection_connect(connection, host, client.timeout_ms)) {
+    if (!mla_network_connection_connect(connection, host, mla_connection_type_tcp, client.timeout_ms)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED;
         response.errorMessage = mla_string_concat("Failed to connect to host: ", host.address.address);
         return false;
@@ -280,6 +280,14 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     if (mla_string_equals_const(contentLengthStr, "0")) {
         response.content = mla_stream_noop_input();
         return false;
+    }
+
+    if (connection.inputStream.remaining_bytes != nullptr) {
+
+        mla_size_t remaining = connection.inputStream.remaining_bytes(connection.inputStream);
+        if (remaining == 0) {
+            return false;
+        }
     }
 
     response.content = connection.inputStream;

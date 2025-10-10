@@ -16,14 +16,14 @@
 struct mla_stream_input_t {
     mla_callback_userdata userdata; // Userdata for the read function
     mla_size_t (*read)(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Read function
-    mla_size_t (*remaining_bytes)(const mla_stream_input_t& input); // Function to get the remaining bytes, can be nullptr
+    mla_size_t (*remaining_bytes)(const mla_stream_input_t& input); // Function to get the remaining bytes, can be nullptr. If result is max size_t, means data are there but unknown size
     mla_buffer_reference_t refOwner;
 };
 
 struct mla_stream_output_t {
     mla_callback_userdata userdata;
     mla_size_t (*write)(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer);
-    mla_size_t (*available_bytes)(const mla_stream_output_t& output); // Function to get the available bytes, can be nullptr
+    mla_size_t (*available_bytes)(const mla_stream_output_t& output); // Function to get the available bytes, can be nullptr. If result is max size_t, means space is there but unknown size
     mla_buffer_reference_t refOwner;
 };
 
