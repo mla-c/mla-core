@@ -169,8 +169,11 @@ mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, con
 
 mla_bool_t __mla_http_client_read_line(const mla_stream_input_t & inputStream, mla_string_t & line) {
 
-    mla_char_t buffer[mla_http_max_header_size];
+    mla_char_t buffer[mla_stream_fast_read_buffer_size];
     mla_size_t bytesRead = 0;
+
+    mla_char_t* finalResultBuffer = nullptr;
+    mla_size_t finalResultBufferSize = 0;
 
     while (true) {
         mla_size_t result = inputStream.read(inputStream, bytesRead, 1, reinterpret_cast<mla_byte_t*>(&buffer[0]));
@@ -184,14 +187,72 @@ mla_bool_t __mla_http_client_read_line(const mla_stream_input_t & inputStream, m
 
         if (bytesRead >= 2 && buffer[bytesRead - 2] == '\r' && buffer[bytesRead - 1] == '\n') {
             // End of line found
+
+            if (finalResultBuffer == nullptr) {
+                // Fast path, line is in buffer
+                line = mla_string_copy(buffer, bytesRead - 2); // Exclude \r\n
+                return true;
+            } else {
+                // Combine final buffer and current buffer
+                mla_char_t* newBuffer = mla_create_char_array(finalResultBufferSize + bytesRead - 2); // Exclude \r\n
+
+                if (newBuffer == nullptr) {
+                    // Memory allocation failed
+                    mla_free(finalResultBuffer);
+                    return false;
+                }
+
+                mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
+                mla_free(finalResultBuffer);
+                mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead - 2);
+                line = mla_string_from_buffer_with_ownership(finalResultBuffer, finalResultBufferSize + bytesRead - 2);
+                return true;
+            }
+
             line = mla_string_copy(buffer, bytesRead - 2); // Exclude \r\n
             return true;
         }
 
-        if (bytesRead >= mla_http_max_header_size) {
+        if (bytesRead >= mla_stream_fast_read_buffer_size) {
+            // Move to finalbuffer
+            if (finalResultBuffer == nullptr) {
+                finalResultBuffer = mla_create_char_array(bytesRead);
+
+                if (finalResultBuffer == nullptr) {
+                    // Memory allocation failed
+                    return false;
+                }
+
+                mla_memcpy(finalResultBuffer, buffer, bytesRead);
+            } else {
+                mla_char_t* newBuffer = mla_create_char_array(finalResultBufferSize + bytesRead);
+
+                if (newBuffer == nullptr) {
+                    // Memory allocation failed
+                    mla_free(finalResultBuffer);
+                    return false;
+                }
+
+                mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
+                mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead);
+                mla_free(finalResultBuffer);
+                finalResultBuffer = newBuffer;
+            }
+        }
+
+        if ((finalResultBufferSize + bytesRead) >= mla_http_max_header_size) {
+
+            if (finalResultBuffer != nullptr) {
+                mla_free(finalResultBuffer);
+            }
+
             // Line too long
             return false;
         }
+    }
+
+    if (finalResultBuffer != nullptr) {
+        mla_free(finalResultBuffer);
     }
 
     return false;
