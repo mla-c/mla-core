@@ -66,7 +66,8 @@ mla_bool_t __mla_http_client_connect(const mla_http_client_t &client, mla_http_c
 mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, const mla_http_request_t & request, const mla_stream_output_t & connection) {
 
     if (mla_string_is_empty(request.method)) {
-        mla_error("Request has no method");
+        response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
+        response.errorMessage = mla_string_const("HTTP request has no method");
         return false;
     }
 
