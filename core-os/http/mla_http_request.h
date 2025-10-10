@@ -21,20 +21,41 @@ struct mla_http_request_t {
     mla_stream_input_t  content; // Request body content
 };
 
-mla_http_request_t mla_http_request_empty();
+inline mla_http_request_t mla_http_request_empty() {
+    return {
+        MLA_HTTP_VERSION_1_0,
+            mla_string_empty(),
+            mla_string_empty(),
+            mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(),
+            mla_stream_noop_input()
+    };
+}
 
-mla_http_request_t mla_http_request(const mla_string_t &p_Url, const mla_string_t &p_Method);
+inline mla_http_request_t mla_http_request(const mla_string_t &p_Url, const mla_string_t &p_Method) {
+    return {
+        MLA_HTTP_VERSION_1_0,
+            p_Url,
+            p_Method,
+            mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(),
+            mla_stream_noop_input()
+    };
+}
 
 ////////////////////////////////////////////////////////////////
 /// Helpers
 ////////////////////////////////////////////////////////////////
 
+#define mla_http_method_get mla_string_const("GET")
+#define mla_http_method_post mla_string_const("POST")
+#define mla_http_method_put mla_string_const("PUT")
+#define mla_http_method_delete mla_string_const("DELETE")
+
 inline mla_http_request_t mla_http_get_request(const mla_string_t &p_Url) {
-    return mla_http_request(p_Url, mla_string_const("GET"));
+    return mla_http_request(p_Url, mla_http_method_get);
 }
 
 inline mla_http_request_t mla_http_post_request(const mla_string_t &p_Url) {
-    return mla_http_request(p_Url, mla_string_const("POST"));
+    return mla_http_request(p_Url, mla_http_method_post);
 }
 
 #endif

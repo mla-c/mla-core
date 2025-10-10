@@ -261,7 +261,7 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
             return false;
         }
 
-        mla_string_t headerName = mla_string_trim(mla_string_substr(headerLine, 0, colonPos));
+        mla_string_t headerName = mla_string_trim(mla_string_substr(headerLine, 0, colonPos -1));
         mla_string_t headerValue = mla_string_trim(mla_string_substr(headerLine, colonPos + 1, headerLine.length - 1));
 
         // Add header to response

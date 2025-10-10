@@ -31,6 +31,7 @@
 #include "mla_config_test.h"
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
+#include "mla_http_client_test.h"
 
 #include "native_string_test.h"
 #include "native_list_test.h"
@@ -60,6 +61,7 @@ int run() {
     RegisterConfigTests(l_TestExecutor);
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
+    RegisterHttpClientTests(l_TestExecutor);
 
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(75);

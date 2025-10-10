@@ -35,7 +35,7 @@ struct mla_http_client_t {
 
 mla_http_client_t mla_http_client();
 
-mla_http_client_response_t mla_http_client_send_request(mla_http_client_t &client, const mla_http_request_t &p_Request);
+mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, const mla_http_request_t &p_Request);
 
 
 ////////////////////////////////////////////////////////////////
@@ -46,6 +46,14 @@ inline mla_http_client_response_t mla_http_client_send_request(const mla_http_re
 
     mla_http_client_t client = mla_http_client();
     return mla_http_client_send_request(client, p_Request);
+}
+
+inline void mla_http_client_response_destroy(mla_http_client_response_t &response) {
+    response = {
+        MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN,
+        mla_string_empty(),
+        mla_http_response_empty()
+    };
 }
 
 

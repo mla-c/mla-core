@@ -38,13 +38,18 @@ void UrlWithQueryParamsTest() {
     assert_struct_equal(mla_string_t, url.path, mla_string("/search"), "Path should be '/search'");
     assert_equal(mla_array_list_size(url.query), (mla_size_t)2, "Should have 2 query parameters");
 
-    mla_url_query_param_t* param1 = mla_array_list_get_ref(url.query, 0);
-    assert_struct_equal(mla_string_t, param1->key, mla_string("q"), "First param key should be 'q'");
-    assert_struct_equal(mla_string_t, param1->value, mla_string("test"), "First param value should be 'test'");
+    if (mla_array_list_size(url.query) == 2) {
+        mla_url_query_param_t* param1 = mla_array_list_get_ref(url.query, 0);
+        assert_struct_equal(mla_string_t, param1->key, mla_string("q"), "First param key should be 'q'");
+        assert_struct_equal(mla_string_t, param1->value, mla_string("test"), "First param value should be 'test'");
 
-    mla_url_query_param_t* param2 = mla_array_list_get_ref(url.query, 1);
-    assert_struct_equal(mla_string_t, param2->key, mla_string("page"), "Second param key should be 'page'");
-    assert_struct_equal(mla_string_t, param2->value, mla_string("1"), "Second param value should be '1'");
+        mla_url_query_param_t* param2 = mla_array_list_get_ref(url.query, 1);
+        assert_struct_equal(mla_string_t, param2->key, mla_string("page"), "Second param key should be 'page'");
+        assert_struct_equal(mla_string_t, param2->value, mla_string("1"), "Second param value should be '1'");
+    } else {
+        assert_true(false, "Should have 2 query parameters");
+    }
+
 }
 
 void UrlWithFragmentTest() {

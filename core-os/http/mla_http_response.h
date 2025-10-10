@@ -11,6 +11,25 @@
 #include "../system/mla_string.h"
 #include "mla_http_data_types.h"
 
+// Http Status codes
+#define mla_http_status_ok ((mla_uint16_t)200)
+#define mla_http_status_created ((mla_uint16_t)201)
+#define mla_http_status_accepted ((mla_uint16_t)202)
+#define mla_http_status_no_content ((mla_uint16_t)204)
+#define mla_http_status_moved_permanently ((mla_uint16_t)301)
+#define mla_http_status_found ((mla_uint16_t)302)
+#define mla_http_status_not_modified ((mla_uint16_t)304)
+#define mla_http_status_bad_request ((mla_uint16_t)400)
+#define mla_http_status_unauthorized ((mla_uint16_t)401)
+#define mla_http_status_forbidden ((mla_uint16_t)403)
+#define mla_http_status_not_found ((mla_uint16_t)404)
+#define mla_http_status_method_not_allowed ((mla_uint16_t)405)
+#define mla_http_status_internal_server_error ((mla_uint16_t)500)
+#define mla_http_status_not_implemented ((mla_uint16_t)501)
+#define mla_http_status_bad_gateway ((mla_uint16_t)502)
+#define mla_http_status_service_unavailable ((mla_uint16_t)503)
+#define mla_http_status_gateway_timeout ((mla_uint16_t)504)
+
 struct mla_http_response_t {
     mla_http_version version; // e.g., HTTP/1.1
     mla_uint16_t statusCode; // e.g., 200, 404, etc.
@@ -22,6 +41,12 @@ struct mla_http_response_t {
 inline mla_http_response_t mla_http_response_empty() {
     return {MLA_HTTP_VERSION_1_0, 0, mla_string_empty(), mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(), mla_stream_noop_input()};
 }
+
+inline void mla_http_response_destroy(mla_http_response_t &response) {
+    response = mla_http_response_empty();
+}
+
+
 
 
 #endif
