@@ -94,6 +94,12 @@ struct mla_string_initializer {
     }
 };
 
+mla_int32_t mla_string_compare(const mla_string_t &p_String1, const mla_string_t &p_String2);
+mla_int32_t mla_string_compare_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
+
+mla_string_t mla_string_to_lower(const mla_string_t &p_String);
+mla_string_t mla_string_to_upper(const mla_string_t &p_String);
+
 mla_bool_t mla_string_is_empty(const mla_string_t &p_String);
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 

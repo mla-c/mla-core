@@ -33,13 +33,15 @@ struct my_array_list_with_const_test_struct {
     const mla_int32_t test1 = 0;
     mla_int32_t test2 = 0;
 
-    my_array_list_with_const_test_struct(mla_int32_t t1, mla_int32_t t2) : test1(t1), test2(t2) {}
-    my_array_list_with_const_test_struct() = default;
-    my_array_list_with_const_test_struct& operator=(const my_array_list_with_const_test_struct &other) {
+    my_array_list_with_const_test_struct(mla_int32_t t1, mla_int32_t t2) : test1(t1), test2(t2) {
+    }
 
+    my_array_list_with_const_test_struct() = default;
+
+    my_array_list_with_const_test_struct &operator=(const my_array_list_with_const_test_struct &other) {
         if (this != &other) {
             // Very hack trick to assign a const member variable
-            mla_int32_t* nonConstTest1 = const_cast<mla_int32_t*>(&test1);
+            mla_int32_t *nonConstTest1 = const_cast<mla_int32_t *>(&test1);
             *nonConstTest1 = other.test1; // test1 is const, so we cannot assign it
             this->test2 = other.test2; // test1 is const, so we cannot assign it
         }
@@ -50,7 +52,7 @@ struct my_array_list_with_const_test_struct {
         return (this->test1 == other.test1 && this->test2 == other.test2);
     }
 
-    my_array_list_with_const_test_struct(const my_array_list_with_const_test_struct& other) {
+    my_array_list_with_const_test_struct(const my_array_list_with_const_test_struct &other) {
         // Either implement copying logic here or just call your assignment operator
         *this = other;
     }
@@ -58,8 +60,8 @@ struct my_array_list_with_const_test_struct {
 
 
 void ArrayListContainsMlaStringTest() {
-
-    mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
+    mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t,
+        mla_string_initializer>();
 
     mla_array_list_add(mla_arr, mla_string("Hello"));
     mla_array_list_add(mla_arr, mla_string("World"));
@@ -70,20 +72,17 @@ void ArrayListContainsMlaStringTest() {
 
     found = mla_array_list_contains<mla_string_t>(mla_arr, mla_string("NotInList"));
     assert_false(found, "List should not contain 'NotInList'");
-
-
 }
 
 void ArrayListContainsTest() {
-
     mla_array_list_t<mla_test_int16_t> mla_arr = mla_array_list<mla_test_int16_t>();
-    mla_array_list_add(mla_arr, (mla_test_int16_t)1);
-    mla_array_list_add(mla_arr, (mla_test_int16_t)2);
-    mla_array_list_add(mla_arr, (mla_test_int16_t)3);
+    mla_array_list_add(mla_arr, (mla_test_int16_t) 1);
+    mla_array_list_add(mla_arr, (mla_test_int16_t) 2);
+    mla_array_list_add(mla_arr, (mla_test_int16_t) 3);
 
-    mla_bool_t found = mla_array_list_contains(mla_arr, (mla_test_int16_t)2);
+    mla_bool_t found = mla_array_list_contains(mla_arr, (mla_test_int16_t) 2);
     assert_true(found, "List should contain '2'");
-    found = mla_array_list_contains(mla_arr, (mla_test_int16_t)4);
+    found = mla_array_list_contains(mla_arr, (mla_test_int16_t) 4);
     assert_false(found, "List should not contain '4'");
 
     mla_test_int16_t value;
@@ -101,12 +100,9 @@ void ArrayListContainsTest() {
     } else {
         assert_fail("List size should be greater than 1");
     }
-
-
 }
 
 void ArrayListRemoveTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>();
     mla_array_list_add(mla_arr, 1);
     mla_array_list_add(mla_arr, 2);
@@ -120,11 +116,9 @@ void ArrayListRemoveTest() {
     assert_true(mla_array_list_contains<int>(mla_arr, 3), "List should still contain '3'");
 
     assert_equal(mla_arr.size, (mla_size_t)2, "List size should be 2 after removal");
-
 }
 
 void ArrayListClearTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>();
     mla_array_list_add(mla_arr, 1);
     mla_array_list_add(mla_arr, 2);
@@ -138,7 +132,6 @@ void ArrayListClearTest() {
 }
 
 void ArrayListIndexOfTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>();
     mla_array_list_add(mla_arr, 1);
     mla_array_list_add(mla_arr, 2);
@@ -148,11 +141,9 @@ void ArrayListIndexOfTest() {
     assert_equal(index, (mla_int32_t)1, "Index of '2' should be 1");
     index = mla_array_list_index_of<int>(mla_arr, 4);
     assert_equal(index, (mla_int32_t)-1, "Index of '4' should be -1 (not found)");
-
 }
 
 void ArrayListAddMuchItemsTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>();
     for (int i = 0; i < 1000; ++i) {
         mla_array_list_add(mla_arr, i);
@@ -166,9 +157,8 @@ void ArrayListAddMuchItemsTest() {
 }
 
 void ArrayListAddMuchItemsNoGrowTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(1000);
-    int* internal_buffer = mla_arr.items;
+    int *internal_buffer = mla_arr.items;
 
     for (int i = 0; i < 1000; ++i) {
         mla_array_list_add(mla_arr, i);
@@ -183,7 +173,6 @@ void ArrayListAddMuchItemsNoGrowTest() {
 }
 
 void ArrayListGrowTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(10);
     for (int i = 0; i < 20; ++i) {
         mla_array_list_add(mla_arr, i);
@@ -198,7 +187,6 @@ void ArrayListGrowTest() {
 }
 
 void ArrayListShrinkTest() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(50);
     for (int i = 0; i < 20; ++i) {
         mla_array_list_add(mla_arr, i);
@@ -211,7 +199,6 @@ void ArrayListShrinkTest() {
 }
 
 void ArrayListItemMemoryManagementTest() {
-
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
@@ -229,18 +216,21 @@ void ArrayListItemMemoryManagementTest() {
     }
 
 
-    mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
+    mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t,
+        mla_string_initializer>();
     mla_array_list_add(mla_arr, mla_str1);
     mla_array_list_add(mla_arr, mla_str2);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2,
+                     "String 1 should have refCount of 2 after adding to list");
     } else {
         assert_fail("String 1 dataOwner buffer should not be null after adding to list");
     }
 
     if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2,
+                     "String 2 should have refCount of 2 after adding to list");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null after adding to list");
     }
@@ -248,13 +238,15 @@ void ArrayListItemMemoryManagementTest() {
     mla_array_list_remove(mla_arr, 0);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after removal from list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 1 should have refCount of 1 after removal from list");
     } else {
         assert_fail("String 1 dataOwner buffer should not be null after removal from list");
     }
 
     if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should still have refCount of 2 after removal of String 1");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2,
+                     "String 2 should still have refCount of 2 after removal of String 1");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null after removal of String 1");
     }
@@ -263,21 +255,21 @@ void ArrayListItemMemoryManagementTest() {
     mla_array_list_clear(mla_arr);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after clearing list");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 1 should have refCount of 1 after clearing list");
     } else {
         assert_fail("String 1 dataOwner buffer should not be null after clearing list");
     }
 
     if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after clearing list");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 2 should have refCount of 1 after clearing list");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null after clearing list");
     }
-
 }
 
 void ArrayListItemMemoryManagementDestroyTest() {
-
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
@@ -292,46 +284,45 @@ void ArrayListItemMemoryManagementDestroyTest() {
         assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null");
-    }
-
-    {
-        mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
+    } {
+        mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t,
+            mla_string_initializer>();
         mla_array_list_add(mla_arr, mla_str1);
         mla_array_list_add(mla_arr, mla_str2);
 
         if (mla_str1.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after adding to list");
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2,
+                         "String 1 should have refCount of 2 after adding to list");
         } else {
             assert_fail("String 1 dataOwner buffer should not be null after adding to list");
         }
 
         if (mla_str2.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after adding to list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2,
+                         "String 2 should have refCount of 2 after adding to list");
         } else {
             assert_fail("String 2 dataOwner buffer should not be null after adding to list");
         }
-
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
     if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 1 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 1 dataOwner buffer should not be null after array list destruction");
     }
 
     if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 2 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null after array list destruction");
     }
-
-
 }
 
 
 void ArrayListItemMemoryManagementDestroy2Test() {
-
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
@@ -346,14 +337,11 @@ void ArrayListItemMemoryManagementDestroy2Test() {
         assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null");
-    }
-
-    {
-
-        mla_array_list_t<mla_string_t, mla_string_initializer> other = mla_array_list<mla_string_t, mla_string_initializer>();
-
-        {
-            mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t, mla_string_initializer>();
+    } {
+        mla_array_list_t<mla_string_t, mla_string_initializer> other = mla_array_list<mla_string_t,
+            mla_string_initializer>(); {
+            mla_array_list_t<mla_string_t, mla_string_initializer> mla_arr = mla_array_list<mla_string_t,
+                mla_string_initializer>();
             mla_array_list_add(mla_arr, mla_str1);
             mla_array_list_add(mla_arr, mla_str2);
             other = mla_arr;
@@ -361,33 +349,35 @@ void ArrayListItemMemoryManagementDestroy2Test() {
 
         assert_equal(mla_array_list_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        if (mla_str1.dataOwner.buffer !=nullptr) {
-            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2, "String 1 should have refCount of 2 after assignment to other list");
+        if (mla_str1.dataOwner.buffer != nullptr) {
+            assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)2,
+                         "String 1 should have refCount of 2 after assignment to other list");
         } else {
             assert_fail("String 1 dataOwner buffer should not be null after assignment to other list");
         }
 
         if (mla_str2.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2, "String 2 should have refCount of 2 after assignment to other list");
+            assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)2,
+                         "String 2 should have refCount of 2 after assignment to other list");
         } else {
             assert_fail("String 2 dataOwner buffer should not be null after assignment to other list");
         }
-
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
     if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1, "String 1 should have refCount of 1 after array list destruction");
+        assert_equal(mla_str1.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 1 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 1 dataOwner buffer should not be null after array list destruction");
     }
 
     if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1, "String 2 should have refCount of 1 after array list destruction");
+        assert_equal(mla_str2.dataOwner.buffer->refCount, (mla_size_t)1,
+                     "String 2 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 2 dataOwner buffer should not be null after array list destruction");
     }
-
 }
 
 void addOneItemToArray(mla_array_list_t<int> &list, int i) {
@@ -395,8 +385,7 @@ void addOneItemToArray(mla_array_list_t<int> &list, int i) {
 }
 
 void ArrayListMultiVariableAndMutationTest() {
-
-    my_array_list_container_t container = { mla_array_list<int>() };
+    my_array_list_container_t container = {mla_array_list<int>()};
 
     mla_array_list_add(container.arr, 1);
     mla_array_list_add(container.arr, 2);
@@ -404,24 +393,24 @@ void ArrayListMultiVariableAndMutationTest() {
 
     // Create multiple variables pointing to the same array list
     mla_array_list_t<int> other1 = container.arr;
-    mla_array_list_t<int>* other2 = &container.arr;
+    mla_array_list_t<int> *other2 = &container.arr;
 
-    assert_equal(mla_array_list_size(container.arr), (mla_size_t)3, "Container should have size 3 after adding 3 items");
+    assert_equal(mla_array_list_size(container.arr), (mla_size_t)3,
+                 "Container should have size 3 after adding 3 items");
     assert_equal(mla_array_list_size(other1), (mla_size_t)3, "Other1 should have size 3 after assignment");
     assert_equal(mla_array_list_size(*other2), (mla_size_t)3, "Other2 should have size 3 after assignment");
 
     // Mutate the original array list
     addOneItemToArray(container.arr, 4);
 
-    assert_equal(mla_array_list_size(container.arr), (mla_size_t)4, "Container should have size 3 after adding 3 items");
+    assert_equal(mla_array_list_size(container.arr), (mla_size_t)4,
+                 "Container should have size 3 after adding 3 items");
     assert_equal(mla_array_list_size(other1), (mla_size_t)3, "Other1 should have size 3 after assignment");
     assert_equal(mla_array_list_size(*other2), (mla_size_t)4, "Other2 should have size 4 after mutation of container");
-
 }
 
 
 void ArrayListWithValueStructTest() {
-
     mla_array_list_t<my_array_list_test_struct> list = mla_array_list<my_array_list_test_struct>(10);
 
     my_array_list_test_struct item1 = {1, 100};
@@ -442,7 +431,7 @@ void ArrayListWithValueStructTest() {
     assert_equal(value.test1, 2, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200, "Value test2 should be equal to 200");
 
-    my_array_list_test_struct* valueRef = mla_array_list_get_ref(list, 1);
+    my_array_list_test_struct *valueRef = mla_array_list_get_ref(list, 1);
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check
@@ -459,8 +448,8 @@ void ArrayListWithValueStructTest() {
 
 
 void ArrayListWithValueConstStructTest() {
-
-    mla_array_list_t<my_array_list_with_const_test_struct> list = mla_array_list<my_array_list_with_const_test_struct>(10);
+    mla_array_list_t<my_array_list_with_const_test_struct> list = mla_array_list<
+        my_array_list_with_const_test_struct>(10);
 
     my_array_list_with_const_test_struct item1 = {1, 100};
     my_array_list_with_const_test_struct item2 = {2, 200};
@@ -481,7 +470,7 @@ void ArrayListWithValueConstStructTest() {
     assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
 
-    my_array_list_with_const_test_struct* valueRef = mla_array_list_get_ref(list, 1);
+    my_array_list_with_const_test_struct *valueRef = mla_array_list_get_ref(list, 1);
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check
@@ -496,10 +485,85 @@ void ArrayListWithValueConstStructTest() {
     assert_null(mla_array_list_get_ref(list, 999), "Get ref for out of bounds index should return null");
 }
 
+mla_int32_t compare_int(const int &a, const int &b) {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+}
+
+mla_int32_t compare_int_desc(const int &a, const int &b) {
+    if (a > b) return -1;
+    if (a < b) return 1;
+    return 0;
+}
+
+void ArrayListSortTest() {
+    mla_array_list_t<int> mla_arr = mla_array_list<int>();
+
+    // Add unsorted items
+    mla_array_list_add(mla_arr, 5);
+    mla_array_list_add(mla_arr, 2);
+    mla_array_list_add(mla_arr, 8);
+    mla_array_list_add(mla_arr, 1);
+    mla_array_list_add(mla_arr, 9);
+    mla_array_list_add(mla_arr, 3);
+
+    // Sort ascending
+    mla_array_list_sort(mla_arr, compare_int);
+
+    if (mla_array_list_size(mla_arr) == 6) {
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 0), 1, "First element should be 1");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 1), 2, "Second element should be 2");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 2), 3, "Third element should be 3");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 3), 5, "Fourth element should be 5");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 4), 8, "Fifth element should be 8");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 5), 9, "Sixth element should be 9");
+    } else {
+        assert_fail("ArrayList size should be 6 after adding 6 elements");
+    }
+
+
+    // Sort descending
+    mla_array_list_sort(mla_arr, compare_int_desc);
+
+    if (mla_array_list_size(mla_arr) == 6) {
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 0), 9, "First element should be 9");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 1), 8, "Second element should be 8");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 2), 5, "Third element should be 5");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 3), 3, "Fourth element should be 3");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 4), 2, "Fifth element should be 2");
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 5), 1, "Sixth element should be 1");
+    } else {
+        assert_fail("ArrayList size should be 6 after adding 6 elements");
+    }
+
+}
+
+void ArrayListSortEmptyTest() {
+    mla_array_list_t<int> mla_arr = mla_array_list<int>();
+
+    // Sort empty list should not crash
+    mla_array_list_sort(mla_arr, compare_int);
+
+    assert_equal(mla_array_list_size(mla_arr), (mla_size_t)0, "Empty list should remain empty");
+}
+
+void ArrayListSortSingleElementTest() {
+    mla_array_list_t<int> mla_arr = mla_array_list<int>();
+    mla_array_list_add(mla_arr, 42);
+
+    // Sort single element list
+    mla_array_list_sort(mla_arr, compare_int);
+
+    if (mla_array_list_size(mla_arr) == 1) {
+        assert_equal(mla_array_list_get_unsafe(mla_arr, 0), 42, "Element should be 42");
+    } else {
+        assert_fail("ArrayList size should be 1 after adding 1 element");
+    }
+}
 
 
 void RegisterArrayListTests(mla_test_executor_t &p_TestExecutor) {
-
     mla_test_t test = mla_test("ContainsMlaString", test_category, ArrayListContainsMlaStringTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -545,23 +609,27 @@ void RegisterArrayListTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("WithValueConstStruct", test_category, ArrayListWithValueConstStructTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("Sort", test_category, ArrayListSortTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("SortEmpty", test_category, ArrayListSortEmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("SortSingleElement", test_category, ArrayListSortSingleElementTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
 }
 
-mla_array_list_t<int>  mla_array = mla_array_list_empty<int>();
+mla_array_list_t<int> mla_array = mla_array_list_empty<int>();
 
 void SetupArrayListContainsBenchmark() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(CONST_LIST_CONTAINS_COUNT);
 
     for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_array_list_add(mla_arr, i);
     }
-
 }
 
 void ArrayListContainsBenchmark() {
-
     for (int i = 0; i < CONST_LIST_CONTAINS_COUNT; ++i) {
         mla_bool_t found = mla_array_list_contains<int>(mla_array, i);
 
@@ -570,7 +638,6 @@ void ArrayListContainsBenchmark() {
             static_assert(true, "Element not found in array");
         }
     }
-
 }
 
 void TearDownArrayListContainsBenchmark() {
@@ -578,7 +645,6 @@ void TearDownArrayListContainsBenchmark() {
 }
 
 void ArrayListAddMuchItemsBenchmark() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(1000);
     for (int i = 0; i < 1000; ++i) {
         mla_array_list_add(mla_arr, i);
@@ -586,28 +652,25 @@ void ArrayListAddMuchItemsBenchmark() {
 }
 
 void ArrayListAddMuchItemsWithResizeBenchmark() {
-
     mla_array_list_t<int> mla_arr = mla_array_list<int>(10);
     for (int i = 0; i < 1000; ++i) {
         mla_array_list_add(mla_arr, i);
     }
 }
 
-mla_array_list_t<mla_string_t, mla_string_initializer>  mla_string_array = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_array = mla_array_list_empty<mla_string_t,
+    mla_string_initializer>();
 
 void SetupArrayListDestroyBenchmark() {
-
     mla_string_array = mla_array_list<mla_string_t, mla_string_initializer>(1000);
 
     for (int i = 0; i < 1000; ++i) {
         mla_string_t data = mla_string_concat(mla_string("Item"), mla_string("Next"));
         mla_array_list_add(mla_string_array, data);
     }
-
 }
 
 void ArrayListDestroyBenchmark() {
-
     mla_string_array = mla_array_list_empty<mla_string_t, mla_string_initializer>();
 }
 
@@ -615,10 +678,29 @@ void TearDownArrayListDestroyBenchmark() {
     mla_string_array = mla_array_list_empty<mla_string_t, mla_string_initializer>();
 }
 
+mla_array_list_t<int> mla_sort_array = mla_array_list_empty<int>();
+
+void SetupArrayListSortBenchmark() {
+    mla_sort_array = mla_array_list<int>(1000);
+
+    // Add items in reverse order to create worst-case scenario
+    for (int i = 999; i >= 0; --i) {
+        mla_array_list_add(mla_sort_array, i);
+    }
+}
+
+void ArrayListSortBenchmark() {
+    mla_array_list_sort(mla_sort_array, compare_int);
+}
+
+void TearDownArrayListSortBenchmark() {
+    mla_sort_array = mla_array_list_empty<int>();
+}
+
 
 void RegisterArrayListBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
-
-    mla_benchmark_t benchmark = mla_benchmark("Contains", benchmark_category, ArrayListContainsBenchmark, SetupArrayListContainsBenchmark, TearDownArrayListContainsBenchmark);
+    mla_benchmark_t benchmark = mla_benchmark("Contains", benchmark_category, ArrayListContainsBenchmark,
+                                              SetupArrayListContainsBenchmark, TearDownArrayListContainsBenchmark);
     mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
@@ -630,8 +712,14 @@ void RegisterArrayListBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) 
     mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    benchmark = mla_benchmark("ArrayCleanUp", benchmark_category, ArrayListDestroyBenchmark, SetupArrayListDestroyBenchmark, TearDownArrayListDestroyBenchmark);
+    benchmark = mla_benchmark("ArrayCleanUp", benchmark_category, ArrayListDestroyBenchmark,
+                              SetupArrayListDestroyBenchmark, TearDownArrayListDestroyBenchmark);
     mla_benchmark_set_iteration_division(benchmark, 100);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("Sort", benchmark_category, ArrayListSortBenchmark,
+                              SetupArrayListSortBenchmark, TearDownArrayListSortBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 }
 

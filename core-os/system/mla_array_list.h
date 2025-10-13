@@ -221,6 +221,52 @@ mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, cons
 }
 
 template <mla_array_list_template>
+void __mla_array_list_quicksort_partition(T* items, mla_int32_t low, mla_int32_t high, mla_int32_t (*compare)(const T&, const T&)) {
+    if (low < high) {
+        // Choose pivot (middle element for better average performance)
+        mla_int32_t mid = low + (high - low) / 2;
+        T pivot = items[mid];
+
+        // Move pivot to end
+        T temp = items[mid];
+        items[mid] = items[high];
+        items[high] = temp;
+
+        mla_int32_t i = low - 1;
+
+        for (mla_int32_t j = low; j < high; ++j) {
+            if (compare(items[j], pivot) <= 0) {
+                ++i;
+                // Swap items[i] and items[j]
+                temp = items[i];
+                items[i] = items[j];
+                items[j] = temp;
+            }
+        }
+
+        // Move pivot to correct position
+        temp = items[i + 1];
+        items[i + 1] = items[high];
+        items[high] = temp;
+
+        mla_int32_t partitionIndex = i + 1;
+
+        // Recursively sort partitions
+        __mla_array_list_quicksort_partition(items, low, partitionIndex - 1, compare);
+        __mla_array_list_quicksort_partition(items, partitionIndex + 1, high, compare);
+    }
+}
+
+template <mla_array_list_template>
+void mla_array_list_sort(mla_array_list_t<T, TInit>& list, mla_int32_t (*compare)(const T&, const T&)) {
+    if (list.size < 2) {
+        return;
+    }
+
+    __mla_array_list_quicksort_partition<T, TInit>(list.items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
+}
+
+template <mla_array_list_template>
 struct mla_array_list_initializer {
 
     static mla_array_list_t<T, TInit> init() {

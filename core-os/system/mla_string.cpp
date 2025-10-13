@@ -74,6 +74,110 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
     return mla_memcmp(p_String1.data, p_String2.data, p_String1.length) == 0; // Compare the actual data
 }
 
+mla_int32_t mla_string_compare(const mla_string_t &p_String1, const mla_string_t &p_String2) {
+
+    mla_size_t minLength = p_String1.length < p_String2.length ? p_String1.length : p_String2.length;
+
+    mla_int32_t result = mla_memcmp(p_String1.data, p_String2.data, minLength);
+
+    if (result != 0) {
+        return result; // Characters differ
+    }
+
+    // All compared characters are equal, compare lengths
+    if (p_String1.length < p_String2.length) {
+        return -1;
+    } else if (p_String1.length > p_String2.length) {
+        return 1;
+    }
+
+    return 0; // Strings are equal
+
+}
+
+mla_int32_t mla_string_compare_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2) {
+
+    mla_size_t minLength = p_String1.length < p_String2.length ? p_String1.length : p_String2.length;
+
+    for (mla_size_t i = 0; i < minLength; ++i) {
+        mla_char_t char1 = mla_char_toLower(p_String1.data[i]);
+        mla_char_t char2 = mla_char_toLower(p_String2.data[i]);
+
+        if (char1 < char2) {
+            return -1;
+        } else if (char1 > char2) {
+            return 1;
+        }
+    }
+
+    // All compared characters are equal, compare lengths
+    if (p_String1.length < p_String2.length) {
+        return -1;
+    } else if (p_String1.length > p_String2.length) {
+        return 1;
+    }
+
+    return 0; // Strings are equal ignoring case
+
+}
+
+mla_string_t mla_string_to_lower(const mla_string_t &p_String) {
+
+    // Check if all characters are already lowercase
+    mla_bool_t alreadyLower = true;
+    for (mla_size_t i = 0; i < p_String.length; ++i) {
+        if (p_String.data[i] != mla_char_toLower(p_String.data[i])) {
+            alreadyLower = false;
+            break;
+        }
+    }
+
+    if (alreadyLower) {
+        return p_String; // Return as-is, no conversion needed
+    }
+
+    mla_char_t *newData = mla_create_char_array(p_String.length);
+
+    if (newData == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    for (mla_size_t i = 0; i < p_String.length; ++i) {
+        newData[i] = mla_char_toLower(p_String.data[i]);
+    }
+
+    return { newData, p_String.length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(newData)};
+}
+
+mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
+
+    // Check if all characters are already uppercase
+    mla_bool_t alreadyUpper = true;
+    for (mla_size_t i = 0; i < p_String.length; ++i) {
+        if (p_String.data[i] != mla_char_toUpper(p_String.data[i])) {
+            alreadyUpper = false;
+            break;
+        }
+    }
+
+    if (alreadyUpper) {
+        return p_String; // Return as-is, no conversion needed
+    }
+
+    mla_char_t *newData = mla_create_char_array(p_String.length);
+
+    if (newData == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    for (mla_size_t i = 0; i < p_String.length; ++i) {
+        newData[i] = mla_char_toUpper(p_String.data[i]);
+    }
+
+    return { newData, p_String.length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(newData)};
+}
+
+
 mla_bool_t mla_string_is_empty(const mla_string_t &p_String) {
     return p_String.length == 0;
 }

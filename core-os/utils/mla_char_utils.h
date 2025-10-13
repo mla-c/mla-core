@@ -14,6 +14,14 @@ inline mla_char_t mla_char_toLower(const mla_char_t p_Char) {
     return p_Char;
 }
 
+inline mla_char_t mla_char_toUpper(const mla_char_t p_Char) {
+
+    if (p_Char >= 'a' && p_Char <= 'z') {
+        return p_Char - ('a' - 'A');
+    }
+    return p_Char;
+}
+
 inline mla_bool_t mla_char_is_whitespace(const mla_char_t p_Char) {
     return (p_Char == ' ') || (p_Char == '\t') || (p_Char == '\n') || (p_Char == '\r');
 }
