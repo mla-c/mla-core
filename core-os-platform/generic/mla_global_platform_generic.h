@@ -37,14 +37,6 @@ mla_size_t __generic_strlen(const mla_char_t* str) {
     return (mla_size_t)strlen(str);
 }
 
-mla_int32_t __generic_snprintf(mla_char_t* dest, mla_size_t size, const mla_char_t* format, ...) {
-    va_list args;
-    va_start(args, format);
-    mla_int32_t result = vsnprintf(dest, size, format, args);
-    va_end(args);
-    return result;
-}
-
 const mla_char_t* __generic_strstr(const mla_char_t* str, const mla_char_t* substr) {
     return strstr(str, substr);
 }

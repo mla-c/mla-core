@@ -50,8 +50,8 @@ mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size) {
 mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, const char* source, mla_uint32_t line) {
 
     if (!g_task_low_level_access.lock_mutex(mutex.resource, timeout)) {
-        mla_format(lineAndSource, 64, "%s:%u", source, line);
-        mla_string_t message = mla_string_concat("Failed to lock mutex: ", mutex.name, " ",  lineAndSource);
+        mla_string_t line_number = mla_string_from_uint32(line);
+        mla_string_t message = mla_string_concat("Failed to lock mutex: ", mutex.name, " ",  source, ":", line_number);
         mla_error(message);
         return false;
     }
@@ -61,8 +61,8 @@ mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, con
 mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const char* source, mla_uint32_t line) {
 
     if (!g_task_low_level_access.unlock_mutex(mutex.resource)) {
-        mla_format(lineAndSource, 64, "%s:%u", source, line);
-        mla_string_t message = mla_string_concat("Failed to lock mutex: ", mutex.name, " ",  lineAndSource);
+        mla_string_t line_number = mla_string_from_uint32(line);
+        mla_string_t message = mla_string_concat("Failed to lock mutex: ", mutex.name, " ",  source, ":", line_number);
         mla_error(message);
         return false;
     }

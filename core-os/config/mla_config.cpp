@@ -205,8 +205,8 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
                     serializer.write_bytes(serializer, deserializer.current_token.complex.bytes_value);
                     break;
                 default:
-                    mla_error(mla_string_concat("Invalid token type in deserializer: ",
-                        (mla_int32_t) deserializer.current_token.type));
+                    mla_error(mla_string_concat("Invalid token type in deserializer: ", mla_string_from_int32(
+                        (mla_int32_t) deserializer.current_token.type)));
                     return false;
             }
         }
@@ -276,7 +276,7 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
                         break;
                     default:
                         mla_error(mla_string_concat("Invalid token type in deserializer: ",
-                            (mla_int32_t) deserializer.current_token.type));
+                            mla_string_from_int32((mla_int32_t) deserializer.current_token.type)));
                         return false;
                 }
             }

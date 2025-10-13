@@ -833,7 +833,7 @@ void SetupInjectBenchmarks() {
 
     // Register 100 additional Services
     for (mla_int32_t i = 0; i < 100; ++i) {
-        mla_inject_register_service(mla_string_concat("Dummy", i), mla_test_service_instance_per_request_t::get_instance);
+        mla_inject_register_service(mla_string_concat("Dummy", mla_string_from_int32(i)), mla_test_service_instance_per_request_t::get_instance);
     }
 
 }

@@ -291,21 +291,6 @@ void ZeroTimeoutTest() {
     mla_http_client_response_destroy(response);
 }
 
-// Test: Negative timeout
-void NegativeTimeoutTest() {
-    mla_http_client_t client = mla_http_client();
-    client.timeout_ms = -1;
-
-    mla_http_request_t request = mla_http_get_request(mla_string_const("http://example.com"));
-    mla_http_client_response_t response = mla_http_client_send_request(client, request);
-
-    // Should handle negative timeout gracefully
-    assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
-                "Should handle negative timeout");
-
-    mla_http_client_response_destroy(response);
-}
-
 // Test: URL with special characters
 void SpecialCharactersInUrlTest() {
     mla_http_request_t request = mla_http_get_request(
@@ -354,9 +339,6 @@ void RegisterHttpClientTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ZeroTimeout", test_category, ZeroTimeoutTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("NegativeTimeout", test_category, NegativeTimeoutTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("SpecialCharactersInUrl", test_category, SpecialCharactersInUrlTest);

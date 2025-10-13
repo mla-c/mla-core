@@ -128,7 +128,6 @@ typedef struct mla_low_level_operations_t {
     // Function pointers for string operations
     mla_char_t* (*strcpy)(mla_char_t* dest, const mla_char_t* src);
     mla_size_t (*strlen)(const mla_char_t* str);
-    mla_int32_t (*snprintf)(mla_char_t* dest, mla_size_t size, const mla_char_t* format, ...);
     const mla_char_t* (*strstr)(const mla_char_t* str, const mla_char_t* substr);
 
     // Memory allocation and deallocation functions
@@ -164,7 +163,6 @@ mla_global mla_low_level_operations_t g_low_level_access;
 // Unsafe C String functions
 #define mla_strcpy(dest, src) g_low_level_access.strcpy((dest), (src))
 #define mla_strlen(str) g_low_level_access.strlen((str))
-#define mla_snprintf(dest, size, format, ...) g_low_level_access.snprintf((dest), (size), (format), __VA_ARGS__)
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
@@ -217,10 +215,5 @@ struct mla_default_initializer {
 };
 
 #define mla_default_init(T) mla_default_initializer<T>
-
-// String Helper
-#define mla_format(bufferFieldName, bufferSize, format, ...) \
-    mla_char_t bufferFieldName[(bufferSize)]; \
-    g_low_level_access.snprintf(bufferFieldName, (bufferSize), (format), __VA_ARGS__)
 
 #endif

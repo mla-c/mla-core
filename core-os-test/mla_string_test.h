@@ -766,6 +766,87 @@ void StringConcatBenchmark() {
     mla_string_destroy(result);
 }
 
+void StringFromInt8Benchmark() {
+    mla_int8_t value = 42;
+    mla_string_t str = mla_string_from_int8(value);
+    mla_string_destroy(str);
+}
+
+void StringFromInt16Benchmark() {
+    mla_int16_t value = 1234;
+    mla_string_t str = mla_string_from_int16(value);
+    mla_string_destroy(str);
+}
+
+void StringFromInt32Benchmark() {
+    mla_int32_t value = 123456;
+    mla_string_t str = mla_string_from_int32(value);
+    mla_string_destroy(str);
+}
+
+void StringFromInt64Benchmark() {
+    mla_int64_t value = 123456789012LL;
+    mla_string_t str = mla_string_from_int64(value);
+    mla_string_destroy(str);
+}
+
+void StringFromUInt8Benchmark() {
+    mla_uint8_t value = 42;
+    mla_string_t str = mla_string_from_uint8(value);
+    mla_string_destroy(str);
+}
+
+void StringFromUInt16Benchmark() {
+    mla_uint16_t value = 1234;
+    mla_string_t str = mla_string_from_uint16(value);
+    mla_string_destroy(str);
+}
+
+void StringFromUInt32Benchmark() {
+    mla_uint32_t value = 123456;
+    mla_string_t str = mla_string_from_uint32(value);
+    mla_string_destroy(str);
+}
+
+void StringFromUInt64Benchmark() {
+    mla_uint64_t value = 123456789012ULL;
+    mla_string_t str = mla_string_from_uint64(value);
+    mla_string_destroy(str);
+}
+
+void StringFromFloatBenchmark() {
+    mla_float_t value = 3.14159f;
+    mla_string_t str = mla_string_from_float(value, 5);
+    mla_string_destroy(str);
+}
+
+void StringFromDoubleBenchmark() {
+    mla_double_t value = 3.14159265358979;
+    mla_string_t str = mla_string_from_double(value, 10);
+    mla_string_destroy(str);
+}
+
+void StringFromBoolBenchmark() {
+    mla_bool_t value = true;
+    mla_string_t str = mla_string_from_bool(value);
+    mla_string_destroy(str);
+}
+
+void StringFromUtf16BufferBenchmark() {
+    mla_utf_16_char_t data[] = {0x20AC, ' ', '1', '0', '0', 0x00};
+    mla_string_utf16_buffer_t buffer = {data, 5};
+    mla_string_t str = mla_string_from_utf16_buffer(buffer);
+    mla_string_destroy(str);
+}
+
+void StringFromUtf32BufferBenchmark() {
+    mla_utf_32_char_t data[] = {0x000020AC, ' ', '1', '0', '0', 0x00000000};
+    mla_string_utf32_buffer_t buffer = {data, 5};
+    mla_string_t str = mla_string_from_utf32_buffer(buffer);
+    mla_string_destroy(str);
+}
+
+
 void StringContains_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
     mla_test_int32_t length = (mla_test_int32_t) strlen(data); // Length of the string
@@ -913,6 +994,47 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     ////////////////////////////////////////////
     mla_benchmark_t benchmark = mla_benchmark("Concat", benchmark_category, StringConcatBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    // From Benchmarks
+////////////////////////////////////////////
+benchmark = mla_benchmark("FromInt8", benchmark_category, StringFromInt8Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromInt16", benchmark_category, StringFromInt16Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromInt32", benchmark_category, StringFromInt32Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromInt64", benchmark_category, StringFromInt64Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUInt8", benchmark_category, StringFromUInt8Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUInt16", benchmark_category, StringFromUInt16Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUInt32", benchmark_category, StringFromUInt32Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUInt64", benchmark_category, StringFromUInt64Benchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromFloat", benchmark_category, StringFromFloatBenchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromDouble", benchmark_category, StringFromDoubleBenchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromBool", benchmark_category, StringFromBoolBenchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUtf16Buffer", benchmark_category, StringFromUtf16BufferBenchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+benchmark = mla_benchmark("FromUtf32Buffer", benchmark_category, StringFromUtf32BufferBenchmark);
+mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // Ref Count Benchmarks
     ////////////////////////////////////////////

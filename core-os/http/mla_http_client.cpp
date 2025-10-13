@@ -102,7 +102,7 @@ mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, c
             break;
         default:
             response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL;
-            response.errorMessage = mla_string_concat("Unsupported HTTP version: ", request.version);
+            response.errorMessage = mla_string_concat("Unsupported HTTP version: ", mla_string_from_int32(request.version));
             return false;
     }
 
