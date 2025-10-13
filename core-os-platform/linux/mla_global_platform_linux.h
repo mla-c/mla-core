@@ -44,7 +44,6 @@ mla_low_level_operations_t g_low_level_access ={
         __generic_memmove,
         __generic_strcpy,
         __generic_strlen,
-        __generic_snprintf,
         __generic_strstr,
         __generic_malloc,
         __generic_free,

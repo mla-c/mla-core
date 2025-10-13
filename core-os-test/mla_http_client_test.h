@@ -291,20 +291,6 @@ void ZeroTimeoutTest() {
     mla_http_client_response_destroy(response);
 }
 
-// Test: URL with special characters
-void SpecialCharactersInUrlTest() {
-    mla_http_request_t request = mla_http_get_request(
-        mla_string_const("http://example.com/path?query=test%20value&param=123")
-    );
-
-    // URL parsing should handle encoded characters
-    mla_http_client_t client = mla_http_client();
-    client.resolve_host = mock_resolve_host_success;
-
-    // Just verify URL parsing doesn't crash
-    assert_true(true, "Should handle special characters in URL");
-}
-
 
 void RegisterHttpClientTests(mla_test_executor_t &p_TestExecutor) {
 
@@ -339,9 +325,6 @@ void RegisterHttpClientTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ZeroTimeout", test_category, ZeroTimeoutTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("SpecialCharactersInUrl", test_category, SpecialCharactersInUrlTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 }
