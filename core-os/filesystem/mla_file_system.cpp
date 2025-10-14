@@ -6,9 +6,14 @@
 
 #include "../task/mla_mutx.h"
 
-mla_file_system_t mla_mla_file_system_empty() {
-    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+mla_file_system_t mla_file_system_empty() {
+    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, mla_buffer_reference_noOwner() };
 }
+
+mla_file_system_stream_t mla_file_system_stream_empty() {
+    return { mla_string_empty(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, mla_buffer_reference_noOwner() };
+}
+
 
 struct mla_file_system_mount_t {
     mla_string_t mount_path;
@@ -17,7 +22,7 @@ struct mla_file_system_mount_t {
 
 struct mla_file_system_mount_initializer {
     static mla_file_system_mount_t init() {
-        return { mla_string_empty(), mla_mla_file_system_empty() };
+        return { mla_string_empty(), mla_file_system_empty() };
     }
 };
 
@@ -191,7 +196,7 @@ mla_string_t __mla_get_relative_path(const mla_string_t& full_path, const mla_st
     return mla_string_to_lower(path);
 }
 
-mla_bool_t mla_file_exists(const mla_string_t& path) {
+mla_bool_t mla_fs_file_exists(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -205,47 +210,12 @@ mla_bool_t mla_file_exists(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.file_exists(relative_path);
+    return file_system_mount.file_system.file_exists(file_system_mount.file_system, relative_path);
 
 }
 
-mla_bool_t mla_open_file_for_write(const mla_string_t& path, mla_stream_output_t& out_stream) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
-
-    if (!__mla_find_file_system_for_file(path, file_system_mount)) {
-        return false;
-    }
-
-    mla_string_t relative_path = __mla_get_relative_path(path, file_system_mount.mount_path);
-
-    if (file_system_mount.file_system.open_file_for_write == nullptr) {
-        return false;
-    }
-
-    return file_system_mount.file_system.open_file_for_write(relative_path, out_stream);
-
-}
-
-mla_bool_t mla_open_file_for_read(const mla_string_t& path, mla_stream_input_t& out_stream) {
-
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
-
-    if (!__mla_find_file_system_for_file(path, file_system_mount)) {
-        return false;
-    }
-
-    mla_string_t relative_path = __mla_get_relative_path(path, file_system_mount.mount_path);
-
-    if (file_system_mount.file_system.open_file_for_read == nullptr) {
-        return false;
-    }
-
-    return file_system_mount.file_system.open_file_for_read(relative_path, out_stream);
-
-}
-
-mla_bool_t mla_delete_file(const mla_string_t& path) {
+mla_bool_t mla_fs_delete_file(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -259,11 +229,11 @@ mla_bool_t mla_delete_file(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.delete_file(relative_path);
+    return file_system_mount.file_system.delete_file(file_system_mount.file_system, relative_path);
 
 }
 
-mla_bool_t mla_list_files(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+mla_bool_t mla_fs_list_files(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -277,11 +247,11 @@ mla_bool_t mla_list_files(const mla_string_t& path, mla_array_list_t<mla_string_
         return false;
     }
 
-    return file_system_mount.file_system.list_files(relative_path, out_entries);
+    return file_system_mount.file_system.list_files(file_system_mount.file_system, relative_path, out_entries);
 
 }
 
-mla_bool_t mla_create_directory(const mla_string_t& path) {
+mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -295,11 +265,11 @@ mla_bool_t mla_create_directory(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.create_directory(relative_path);
+    return file_system_mount.file_system.create_directory(file_system_mount.file_system, relative_path);
 
 }
 
-mla_bool_t mla_directory_exists(const mla_string_t& path) {
+mla_bool_t mla_fs_directory_exists(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -313,11 +283,11 @@ mla_bool_t mla_directory_exists(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.directory_exists(relative_path);
+    return file_system_mount.file_system.directory_exists(file_system_mount.file_system, relative_path);
 
 }
 
-mla_bool_t mla_delete_directory(const mla_string_t& path) {
+mla_bool_t mla_fs_delete_directory(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -331,10 +301,10 @@ mla_bool_t mla_delete_directory(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.delete_directory(relative_path);
+    return file_system_mount.file_system.delete_directory(file_system_mount.file_system, relative_path);
 }
 
-mla_bool_t mla_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -348,5 +318,22 @@ mla_bool_t mla_list_directory(const mla_string_t& path, mla_array_list_t<mla_str
         return false;
     }
 
-    return file_system_mount.file_system.list_directory(relative_path, out_entries);
+    return file_system_mount.file_system.list_directory(file_system_mount.file_system, relative_path, out_entries);
+}
+
+mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_file_open_mode& out_stream) {
+
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+
+    if (!__mla_find_file_system_for_file(path, file_system_mount)) {
+        return false;
+    }
+
+    mla_string_t relative_path = __mla_get_relative_path(path, file_system_mount.mount_path);
+
+    if (file_system_mount.file_system.open_file == nullptr) {
+        return false;
+    }
+
+    return file_system_mount.file_system.open_file(file_system_mount.file_system, relative_path, mode, out_stream);
 }
