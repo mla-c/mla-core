@@ -223,7 +223,7 @@ void AutoMemoryManagementTest() {
 
 void SubStringTest() {
     mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World!"));
-    mla_string_t sub_str = mla_string_substr(mla_str, 7, 11); // "World"
+    mla_string_t sub_str = mla_string_substr(mla_str, 7, 5); // "World"
 
     // Check memory managemant
     if (sub_str.dataOwner.buffer != nullptr) {

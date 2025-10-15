@@ -3,8 +3,8 @@
 //
 
 #include "mla_file_system_inmemory.h"
-#include "../mla_data_types.h"
-#include "../system/mla_string_concat.h"
+#include "../../mla_data_types.h"
+#include "../../system/mla_string_concat.h"
 
 #define mla_file_system_inmemory_buffer_item_size 512 // 512 bytes per item
 
@@ -312,8 +312,10 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
     freeBlock->type = MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_DIRECTORY;
     freeBlock->next = mla_size_max;
 
+    __mla_file_system_inmemory_read_string_data()
 
-    return false;
+
+    return true;
 }
 
 mla_bool_t __mla_file_system_inmemory_directory_exists(mla_file_system_t &file_system, const mla_string_t &path) {

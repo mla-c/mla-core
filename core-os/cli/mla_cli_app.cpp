@@ -334,11 +334,10 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_i
 
     while (lineEnd != -1) {
         // Process the line
-        mla_string_t line = mla_string_substr(app.unprocessedInput, 0, lineEnd - 1); // Exclude the newline character
+        mla_string_t line = mla_string_substr(app.unprocessedInput, 0, lineEnd); // Exclude the newline character
 
         // Remove the processed line from unprocessed input
-        mla_string_t remainingInput = mla_string_substr(app.unprocessedInput, lineEnd + 1,
-                                                        app.unprocessedInput.length - 1);
+        mla_string_t remainingInput = mla_string_substr(app.unprocessedInput, lineEnd + 1);
         app.unprocessedInput = remainingInput;
 
         // Parse and execute the command

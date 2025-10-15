@@ -274,16 +274,22 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     return -1; // Substring not found
 }
 
-mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End) {
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length) {
 
     // For an substring we dont need to copy any data we can just play with pointers
-    if (p_Start >= p_String.length || p_End >= p_String.length || p_Start > p_End) {
+    if (p_Start >= p_String.length || p_Length == 0) {
         return mla_string_empty(); // Invalid range
+    }
+
+    mla_uint64_t l_maxLength = static_cast<mla_uint64_t>(p_Start) + static_cast<mla_uint64_t>(p_Length);
+
+    if (l_maxLength > static_cast<mla_uint64_t>(p_String.length)) {
+        p_Length = p_String.length - p_Start; // Adjust length to the maximum possible
     }
 
     return {
         p_String.data + p_Start,
-        p_End - p_Start + 1,
+        p_Length,
         MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
         p_String.dataOwner
     };
@@ -291,7 +297,12 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter) {
 
-    mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+    if (p_String.length == 0) {
+        // If the original string is empty, return an empty list
+        return mla_array_list_empty<mla_string_t, mla_string_initializer>();
+    }
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_array_list<mla_string_t, mla_string_initializer>(1);
 
     if (p_Delimiter.length == 0) {
         // If the delimiter is empty, return the original string as the only element
@@ -305,21 +316,20 @@ mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const ml
 
     while (start < p_String.length) {
         // Create a substring from the current position
-        mla_string_t searchString = mla_string_substr(p_String, start, p_String.length - 1);
+        mla_string_t searchString = mla_string_substr(p_String, start);
 
         // Find the next delimiter
         delimiterIndex = mla_string_index_of(searchString, p_Delimiter);
 
         if (delimiterIndex == -1) {
             // No more delimiters found, add the rest of the string
-            mla_string_t part = mla_string_substr(p_String, start, p_String.length - 1);
-            mla_array_list_add(result, part);
+            mla_array_list_add(result, searchString);
             break;
+
         }
 
         // Add the substring before the delimiter
-        mla_size_t end = start + delimiterIndex - 1;
-        mla_string_t part = mla_string_substr(p_String, start, end);
+        mla_string_t part = mla_string_substr(searchString, 0, delimiterIndex);
         mla_array_list_add(result, part);
 
         // Move past the delimiter

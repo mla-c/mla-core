@@ -693,8 +693,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                         instance.current_token.type = MLA_DESERIALIZER_VALUE_BYTES;
 
                         // This is a bytes value
-                        mla_string_t base64Part = mla_string_substr(str_data, bytes_prefix.length,
-                                                                      str_data.length - 1);
+                        mla_string_t base64Part = mla_string_substr(str_data, bytes_prefix.length);
                         instance.current_token.complex.bytes_value = mla_bytes_from_base64(base64Part);
                         mla_string_destroy(base64Part);
 

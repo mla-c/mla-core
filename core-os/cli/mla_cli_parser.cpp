@@ -52,7 +52,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
             const mla_cli_command_t &cmd = mla_array_list_get_unsafe(parser.availableCommands, j);
             if (mla_string_starts_with(cmd.name, command)) {
                 mla_array_list_add(result.possibleAutoCompletions,
-                                   mla_string_substr(cmd.name, command.length, cmd.name.length - 1));
+                                   mla_string_substr(cmd.name, command.length));
             }
         }
 
@@ -92,7 +92,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         }
 
         matchedPositon = paramNameEnd;
-        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - 1);
+        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
 
         // Skip whitespace between parameter name and value
         while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
@@ -144,13 +144,13 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         mla_string_t paramValue = mla_string_empty();
 
         if (isQuoted) {
-            paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - 1);
+            paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - paramValueStart);
             paramValueEnd++; // Skip the ending quote
         } else {
             if (paramNameEnd == command.length - 1) {
                 paramValue = mla_string_substr(command, paramValueStart, paramValueEnd);
             } else {
-                paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - 1);
+                paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - paramValueStart);
             }
         }
 
@@ -185,7 +185,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         while (paramNameEnd < command.length && command.data[paramNameEnd] != ' ') {
             paramNameEnd++;
         }
-        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - 1);
+        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
         for (mla_size_t i = 0; i < mla_array_list_size(result.matchingCommand.parameters); ++i) {
             mla_cli_command_parameter_t *command_parameter = mla_array_list_get_ref(result.matchingCommand.parameters, i);
 
@@ -195,7 +195,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
             if (mla_string_starts_with(command_parameter->parameterName, paramName)) {
                 mla_array_list_add(result.possibleAutoCompletions,
-                                   mla_string_substr(command_parameter->parameterName, paramName.length, command_parameter->parameterName.length - 1));
+                                   mla_string_substr(command_parameter->parameterName, paramName.length));
             }
         }
     } else {

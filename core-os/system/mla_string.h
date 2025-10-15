@@ -111,7 +111,11 @@ mla_bool_t mla_string_ends_with(const mla_string_t &p_String, const mla_string_t
 mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
-mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_End);
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length);
+
+inline mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start) {
+    return mla_string_substr(p_String, p_Start, mla_size_max);
+}
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter);
 mla_string_t mla_string_trim(const mla_string_t &p_String);
 

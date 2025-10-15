@@ -39,7 +39,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         return false; // Invalid URL without scheme
     }
 
-    outUrl.scheme = mla_string_substr(urlString, 0, schemeEndPos -1);
+    outUrl.scheme = mla_string_substr(urlString, 0, schemeEndPos);
     pos = schemeEndPos + 3; // Skip "://"
 
     // Find the end of host (could be '/', '?', '#', or end of string)
@@ -63,9 +63,9 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     }
 
     if (portPos != -1) {
-        outUrl.host = mla_string_substr(urlString, hostStart, portPos -1);
+        outUrl.host = mla_string_substr(urlString, hostStart, portPos - hostStart);
         // Parse port number
-        mla_string_t portString = mla_string_substr(urlString, portPos + 1, pathStart -1);
+        mla_string_t portString = mla_string_substr(urlString, portPos + 1, pathStart - portPos - 1);
         mla_uint16_t portValue = 0;
         if (!mla_parse_uint16(portString, portValue)) {
             mla_string_destroy(portString);
@@ -74,7 +74,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         mla_string_destroy(portString);
         outUrl.port = portValue;
     } else {
-        outUrl.host = mla_string_substr(urlString, hostStart, pathStart - 1);
+        outUrl.host = mla_string_substr(urlString, hostStart, pathStart - hostStart);
 
         // default ports based on scheme
         if (mla_string_equals_const(outUrl.scheme, "http")) {
@@ -100,7 +100,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
                urlString.data[pathEnd] != '#') {
             pathEnd++;
         }
-        outUrl.path = mla_string_substr(urlString, pos, pathEnd -1);
+        outUrl.path = mla_string_substr(urlString, pos, pathEnd - pos);
         pos = pathEnd;
     } else {
         outUrl.path = mla_string_empty();
@@ -125,7 +125,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
             }
 
             mla_url_query_param_t param = mla_url_query_param_empty();
-            param.key = mla_string_substr(urlString, paramStart, equalSign-1);
+            param.key = mla_string_substr(urlString, paramStart, equalSign - paramStart);
 
             if (equalSign < queryEnd && urlString.data[equalSign] == '=') {
                 mla_size_t valueStart = equalSign + 1;
@@ -133,7 +133,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
                 while (valueEnd < queryEnd && urlString.data[valueEnd] != '&') {
                     valueEnd++;
                 }
-                param.value = mla_string_substr(urlString, valueStart, valueEnd -1);
+                param.value = mla_string_substr(urlString, valueStart, valueEnd - valueStart);
                 paramStart = valueEnd;
             } else {
                 paramStart = equalSign;
@@ -152,7 +152,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     // Parse fragment
     if (pos < urlString.length && urlString.data[pos] == '#') {
         pos++; // Skip '#'
-        outUrl.fragment = mla_string_substr(urlString, pos, urlString.length - 1);
+        outUrl.fragment = mla_string_substr(urlString, pos);
     } else {
         outUrl.fragment = mla_string_empty();
     }

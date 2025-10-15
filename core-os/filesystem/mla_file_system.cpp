@@ -87,6 +87,10 @@ mla_bool_t mla_file_system_is_locked() {
 
 mla_bool_t __mla_isvalid_directory_path(const mla_string_t& path) {
 
+    if (path.length == 1 && mla_string_equals(path, mla_fs_directory_seperator)) {
+        return true;
+    }
+
     // A valid directory path must start and end with a slash
     if (path.length < 2) {
         return false;
@@ -95,7 +99,7 @@ mla_bool_t __mla_isvalid_directory_path(const mla_string_t& path) {
     if (!mla_string_starts_with(path, mla_fs_directory_seperator))
         return false;
 
-    if (mla_string_ends_with(path, mla_fs_directory_seperator))
+    if (!mla_string_ends_with(path, mla_fs_directory_seperator))
         return false;
 
     return true;
@@ -192,7 +196,7 @@ mla_bool_t __mla_find_file_system_for_file(const mla_string_t& file_path, mla_fi
 
 mla_string_t __mla_get_relative_path(const mla_string_t& full_path, const mla_string_t& mount_path) {
 
-    mla_string_t path = mla_string_substr(full_path, mount_path.length, full_path.length - 1);
+    mla_string_t path = mla_string_substr(full_path, mount_path.length);
     return mla_string_to_lower(path);
 }
 
@@ -336,4 +340,111 @@ mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_
     }
 
     return file_system_mount.file_system.open_file(file_system_mount.file_system, relative_path, mode, out_stream);
+}
+
+mla_bool_t mla_fs_is_directory_path(const mla_string_t& path) {
+    // Must start and end with a slash
+    return __mla_isvalid_directory_path(path);
+}
+
+mla_string_t mla_fs_get_parent_directory(const mla_string_t& path) {
+
+    // Find the last slash in the path
+    mla_int32_t last_slash_index = mla_string_last_index_of(path, mla_fs_directory_seperator);
+
+    if (last_slash_index < 0) {
+        return mla_string_empty();
+    }
+
+    return mla_string_substr(path, 0, last_slash_index + 1); // Include the slash
+
+}
+mla_string_t mla_fs_get_file_name(const mla_string_t& path) {
+
+    // Find the last slash in the path
+    mla_size_t last_slash_index = mla_string_last_index_of(path, mla_fs_directory_seperator);
+
+    if (last_slash_index == (mla_size_t)-1) {
+        return path; // No slashes, return the whole path
+    }
+
+    return mla_string_substr(path, last_slash_index + 1);
+
+}
+
+mla_string_t mla_fs_get_file_extension(const mla_string_t& path) {
+
+    mla_string_t file_name = mla_fs_get_file_name(path);
+
+    mla_size_t last_dot_index = mla_string_last_index_of(file_name, mla_string_const("."));
+    if (last_dot_index == (mla_size_t)-1) {
+        return mla_string_empty(); // No extension
+    }
+
+    return mla_string_substr(file_name, last_dot_index + 1);
+}
+
+mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_string_t& new_extension) {
+
+    mla_string_t file_name = mla_fs_get_file_name(path);
+    mla_int32_t last_dot_index = mla_string_last_index_of(file_name, mla_string_const("."));
+
+    mla_string_t base_name = mla_string_empty();
+    if (last_dot_index < 0) {
+        base_name = file_name; // No extension
+    } else {
+        base_name = mla_string_substr(file_name, 0, last_dot_index);
+    }
+
+    mla_string_t new_file_name = mla_string_empty();
+    if (new_extension.length == 0) {
+        new_file_name = base_name; // Remove extension
+    } else {
+        new_file_name = mla_string_concat(base_name, mla_string_const("."), new_extension);
+    }
+
+    mla_string_t parent_directory = mla_fs_get_parent_directory(path);
+    if (parent_directory.length == 0) {
+        return new_file_name; // No parent directory
+    }
+
+    return mla_string_concat(parent_directory, new_file_name);
+}
+
+mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2) {
+
+    if (path1.length == 0 && path2.length == 0) {
+        return mla_fs_directory_seperator;
+    }
+
+    if (path1.length == 0) {
+
+        if (!mla_string_starts_with(path2, mla_fs_directory_seperator)) {
+            return mla_string_concat(mla_fs_directory_seperator, path2);
+        }
+
+        return path2;
+    }
+
+    if (path2.length == 0) {
+
+        if (!mla_string_starts_with(path1, mla_fs_directory_seperator)) {
+            return mla_string_concat(mla_fs_directory_seperator, path1);
+        }
+
+        return path1;
+    }
+
+    mla_string_t p1 = path1;
+    mla_string_t p2 = path2;
+
+    if (mla_string_ends_with(p1, mla_fs_directory_seperator)) {
+        p1 = mla_string_substr(p1, 0, p1.length - 1);
+    }
+
+    if (mla_string_starts_with(p2, mla_fs_directory_seperator)) {
+        p2 = mla_string_substr(p2, 1);
+    }
+
+    return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
 }

@@ -29,9 +29,14 @@
 #include "mla_task_cli_module_test.h"
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
+
+// Network
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
 #include "mla_http_client_test.h"
+
+// File System
+#include "mla_file_system_test.h"
 
 #include "native_string_test.h"
 #include "native_list_test.h"
@@ -39,7 +44,7 @@
 
 int run() {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(200);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(250);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -59,9 +64,14 @@ int run() {
     RegisterTaskCliModuleTests(l_TestExecutor);
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
+
+    // Network Tests
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
     RegisterHttpClientTests(l_TestExecutor);
+
+    // File System Tests
+    RegisterFileSystemPathTests(l_TestExecutor);
 
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(75);
