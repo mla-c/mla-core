@@ -20,10 +20,10 @@ enum mla_file_system_file_open_mode: mla_uint8_t {
 struct mla_file_system_stream_t {
     mla_string_t path;
 
-    mla_bool_t (*seek)(mla_file_system_stream_t& stream, mla_size_t offset);
+    mla_bool_t (*seek)(const mla_file_system_stream_t& stream, mla_size_t offset);
     mla_size_t (*position)(const mla_file_system_stream_t& stream);
     mla_size_t (*length)(const mla_file_system_stream_t& stream);
-    mla_bool_t (*set_length)(mla_file_system_stream_t& stream, mla_size_t length); // Optional, can be nullptr if not supported
+    mla_bool_t (*set_length)(const mla_file_system_stream_t& stream, mla_size_t length); // Optional, can be nullptr if not supported
 
     mla_size_t (*read)(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Optional, can be nullptr if not supported
     mla_size_t (*write)(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer); // Optional, can be nullptr if not supported
