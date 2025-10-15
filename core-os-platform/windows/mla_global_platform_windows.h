@@ -3,6 +3,7 @@
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"
+#include "../../core-os/filesystem/mla_file_system.h"
 
 #include <windows.h>
 
@@ -59,7 +60,9 @@ mla_low_level_operations_t g_low_level_access {
 void mla_boot_os_application() {
     // This function can be used to perform any additional bootstrapping
     // required for the OS application, such as initializing logging or other subsystems.
-    // Currently, it does nothing but can be extended in the future.
+
+    // Finish FileSystem Setup
+    mla_file_system_lock();
 }
 
 #endif

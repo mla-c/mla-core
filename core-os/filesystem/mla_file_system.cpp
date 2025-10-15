@@ -325,7 +325,7 @@ mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_
     return file_system_mount.file_system.list_directory(file_system_mount.file_system, relative_path, out_entries);
 }
 
-mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_file_open_mode& out_stream) {
+mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
 
@@ -339,7 +339,12 @@ mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_
         return false;
     }
 
-    return file_system_mount.file_system.open_file(file_system_mount.file_system, relative_path, mode, out_stream);
+    if (file_system_mount.file_system.open_file(file_system_mount.file_system, relative_path, mode, out_stream)) {
+        out_stream.path = path; // Set the full path
+        return true;
+    }
+
+    return false;
 }
 
 mla_bool_t mla_fs_is_directory_path(const mla_string_t& path) {

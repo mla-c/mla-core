@@ -214,6 +214,67 @@ mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t 
     return false; // Substring not found
 }
 
+mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t &p_OldSubstring, const mla_string_t &p_NewSubstring) {
+
+    // Edge cases
+    if (p_OldSubstring.length == 0) {
+        return p_String; // Nothing to replace
+    }
+    if (p_String.length == 0) {
+        return p_String; // Empty string, nothing to replace
+    }
+    // Count occurrences to calculate new size
+    mla_size_t occurrenceCount = 0;
+    mla_size_t pos = 0;
+    while (pos <= p_String.length - p_OldSubstring.length) {
+        if (mla_memcmp(p_String.data + pos, p_OldSubstring.data, p_OldSubstring.length) == 0) {
+            ++occurrenceCount;
+            pos += p_OldSubstring.length; // Skip past the found substring
+        } else {
+            ++pos;
+        }
+    }
+
+    if (occurrenceCount == 0) {
+        return p_String; // No occurrences found, return original string
+    }
+
+    // Calculate new string length
+    mla_size_t oldTotalLength = occurrenceCount * p_OldSubstring.length;
+    mla_size_t newTotalLength = occurrenceCount * p_NewSubstring.length;
+    mla_size_t resultLength = p_String.length - oldTotalLength + newTotalLength;
+
+    // Allocate new buffer
+    mla_char_t *newData = mla_create_char_array(resultLength);
+    if (newData == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    // Build the new string
+    mla_size_t sourcePos = 0;
+    mla_size_t destPos = 0;
+
+    while (sourcePos < p_String.length) {
+        // Check if we found the old substring at current position
+        if (sourcePos <= p_String.length - p_OldSubstring.length &&
+            mla_memcmp(p_String.data + sourcePos, p_OldSubstring.data, p_OldSubstring.length) == 0) {
+
+            // Copy new substring
+            if (p_NewSubstring.length > 0) {
+                mla_memcpy(newData + destPos, p_NewSubstring.data, p_NewSubstring.length);
+                destPos += p_NewSubstring.length;
+            }
+            sourcePos += p_OldSubstring.length;
+        } else {
+            // Copy single character
+            newData[destPos++] = p_String.data[sourcePos++];
+        }
+    }
+
+    return { newData, resultLength, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(newData) };
+}
+
+
 mla_bool_t mla_string_starts_with(const mla_string_t &p_String, const mla_string_t &p_Prefix) {
     if (p_Prefix.length > p_String.length) {
         return false; // Prefix cannot be longer than the string

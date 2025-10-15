@@ -185,7 +185,202 @@ void FileSystemCombinePathsTest() {
     mla_string_destroy(combined);
 }
 
+void FileSystemFileExistsTest() {
+    // Test non-existent file
+    assert_false(mla_fs_file_exists(mla_string("/test/nonexistent.txt")),
+                 "Non-existent file should return false");
 
+    // Create a directory and file for testing
+    assert_true(mla_fs_create_directory(mla_string("/testdir/")),
+                "Should create test directory");
+
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/testdir/test.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream),
+                "Should create test file");
+
+    // Test existing file
+    assert_true(mla_fs_file_exists(mla_string("/testdir/test.txt")),
+                "Created file should exist");
+
+    // Cleanup
+    mla_fs_delete_file(mla_string("/testdir/test.txt"));
+    mla_fs_delete_directory(mla_string("/testdir/"));
+}
+
+void FileSystemDeleteFileTest() {
+    // Create test file
+    assert_true(mla_fs_create_directory(mla_string("/deltest/")),
+                "Should create test directory");
+
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/deltest/todelete.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream),
+                "Should create file to delete");
+
+    // Verify file exists
+    assert_true(mla_fs_file_exists(mla_string("/deltest/todelete.txt")),
+                "File should exist before deletion");
+
+    // Delete file
+    assert_true(mla_fs_delete_file(mla_string("/deltest/todelete.txt")),
+                "Should successfully delete file");
+
+    // Verify file no longer exists
+    assert_false(mla_fs_file_exists(mla_string("/deltest/todelete.txt")),
+                 "File should not exist after deletion");
+
+    // Try deleting non-existent file
+    assert_false(mla_fs_delete_file(mla_string("/deltest/nonexistent.txt")),
+                 "Deleting non-existent file should fail");
+
+    // Cleanup
+    mla_fs_delete_directory(mla_string("/deltest/"));
+}
+
+void FileSystemDirectoryExistsTest() {
+    // Test non-existent directory
+    assert_false(mla_fs_directory_exists(mla_string("/nonexistentdir/")),
+                 "Non-existent directory should return false");
+
+    // Create directory
+    assert_true(mla_fs_create_directory(mla_string("/existingdir/")),
+                "Should create test directory");
+
+    // Test existing directory
+    assert_true(mla_fs_directory_exists(mla_string("/existingdir/")),
+                "Created directory should exist");
+
+    // Cleanup
+    mla_fs_delete_directory(mla_string("/existingdir/"));
+}
+
+void FileSystemCreateDirectoryTest() {
+    // Create simple directory
+    assert_true(mla_fs_create_directory(mla_string("/newdir/")),
+                "Should create new directory");
+    assert_true(mla_fs_directory_exists(mla_string("/newdir/")),
+                "Created directory should exist");
+
+    // Create nested directory
+    assert_true(mla_fs_create_directory(mla_string("/parent/")),
+                "Should create parent directory");
+    assert_true(mla_fs_create_directory(mla_string("/parent/child/")),
+                "Should create child directory");
+    assert_true(mla_fs_directory_exists(mla_string("/parent/child/")),
+                "Nested directory should exist");
+
+    // Cleanup
+    mla_fs_delete_directory(mla_string("/parent/child/"));
+    mla_fs_delete_directory(mla_string("/parent/"));
+    mla_fs_delete_directory(mla_string("/newdir/"));
+}
+
+void FileSystemDeleteDirectoryTest() {
+    // Create test directory
+    assert_true(mla_fs_create_directory(mla_string("/toremove/")),
+                "Should create directory to delete");
+    assert_true(mla_fs_directory_exists(mla_string("/toremove/")),
+                "Directory should exist before deletion");
+
+    // Delete directory
+    assert_true(mla_fs_delete_directory(mla_string("/toremove/")),
+                "Should successfully delete directory");
+    assert_false(mla_fs_directory_exists(mla_string("/toremove/")),
+                 "Directory should not exist after deletion");
+
+    // Try deleting non-existent directory
+    assert_false(mla_fs_delete_directory(mla_string("/nonexistent/")),
+                 "Deleting non-existent directory should fail");
+}
+
+void FileSystemListDirectoryTest() {
+    // Create test directory structure
+    assert_true(mla_fs_create_directory(mla_string("/listtest/")),
+                "Should create test directory");
+    assert_true(mla_fs_create_directory(mla_string("/listtest/subdir1/")),
+                "Should create subdirectory 1");
+    assert_true(mla_fs_create_directory(mla_string("/listtest/subdir2/")),
+                "Should create subdirectory 2");
+
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+    mla_fs_open_file(mla_string("/listtest/file1.txt"),
+                     MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream);
+    mla_fs_open_file(mla_string("/listtest/file2.txt"),
+                     MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream);
+
+    // List directory contents
+    mla_array_list_t<mla_string_t, mla_string_initializer> entries = mla_array_list_empty<mla_string_t, mla_string_initializer>();;
+    assert_true(mla_fs_list_directory(mla_string("/listtest/"), entries),
+                "Should list directory contents");
+
+    assert_equal(mla_array_list_size(entries), (mla_size_t)4,
+                 "Should have 4 entries (2 dirs + 2 files)");
+
+    // Cleanup
+    mla_fs_delete_file(mla_string("/listtest/file1.txt"));
+    mla_fs_delete_file(mla_string("/listtest/file2.txt"));
+    mla_fs_delete_directory(mla_string("/listtest/subdir1/"));
+    mla_fs_delete_directory(mla_string("/listtest/subdir2/"));
+    mla_fs_delete_directory(mla_string("/listtest/"));
+}
+
+void FileSystemListFilesTest() {
+    // Create test directory with files
+    assert_true(mla_fs_create_directory(mla_string("/filestest/")),
+                "Should create test directory");
+
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+    mla_fs_open_file(mla_string("/filestest/doc1.txt"),
+                     MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream);
+    mla_fs_open_file(mla_string("/filestest/doc2.txt"),
+                     MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream);
+    mla_fs_open_file(mla_string("/filestest/image.png"),
+                     MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream);
+
+    // List only files
+    mla_array_list_t<mla_string_t, mla_string_initializer> files = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+    assert_true(mla_fs_list_files(mla_string("/filestest/"), files),
+                "Should list files");
+
+    assert_equal(mla_array_list_size(files), (mla_size_t)3,
+                 "Should have 3 files");
+
+    // Cleanup
+    mla_fs_delete_file(mla_string("/filestest/doc1.txt"));
+    mla_fs_delete_file(mla_string("/filestest/doc2.txt"));
+    mla_fs_delete_file(mla_string("/filestest/image.png"));
+    mla_fs_delete_directory(mla_string("/filestest/"));
+}
+
+void FileSystemOpenFileTest() {
+    assert_true(mla_fs_create_directory(mla_string("/opentest/")),
+                "Should create test directory");
+
+    // Test write mode
+    mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/opentest/write.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
+                "Should open file in write mode");
+    assert_true(mla_fs_file_exists(mla_string("/opentest/write.txt")),
+                "File should exist after opening in write mode");
+
+    // Test read mode
+    mla_file_system_stream_t readStream = mla_file_system_stream_empty();;
+    assert_true(mla_fs_open_file(mla_string("/opentest/write.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, readStream),
+                "Should open existing file in read mode");
+
+    // Test read/write mode
+    mla_file_system_stream_t rwStream = mla_file_system_stream_empty();;
+    assert_true(mla_fs_open_file(mla_string("/opentest/write.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ_AND_WRITE, rwStream),
+                "Should open file in read/write mode");
+
+    // Cleanup
+    mla_fs_delete_file(mla_string("/opentest/write.txt"));
+    mla_fs_delete_directory(mla_string("/opentest/"));
+}
 
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
@@ -204,6 +399,30 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("CombinePaths", test_category, FileSystemCombinePathsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FileExists", test_category, FileSystemFileExistsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("DeleteFile", test_category, FileSystemDeleteFileTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("DirectoryExists", test_category, FileSystemDirectoryExistsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CreateDirectory", test_category, FileSystemCreateDirectoryTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("DeleteDirectory", test_category, FileSystemDeleteDirectoryTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ListDirectory", test_category, FileSystemListDirectoryTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ListFiles", test_category, FileSystemListFilesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("OpenFile", test_category, FileSystemOpenFileTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
