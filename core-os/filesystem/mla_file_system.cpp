@@ -92,10 +92,10 @@ mla_bool_t __mla_isvalid_directory_path(const mla_string_t& path) {
         return false;
     }
 
-    if (!mla_string_starts_with(path, mla_directory_seperator))
+    if (!mla_string_starts_with(path, mla_fs_directory_seperator))
         return false;
 
-    if (mla_string_ends_with(path, mla_directory_seperator))
+    if (mla_string_ends_with(path, mla_fs_directory_seperator))
         return false;
 
     return true;
@@ -181,7 +181,7 @@ mla_bool_t __mla_find_file_system_for_path(const mla_string_t& path, mla_file_sy
 mla_bool_t __mla_find_file_system_for_file(const mla_string_t& file_path, mla_file_system_mount_t& out_file_system) {
 
     // Split the in the file path into directory and file name
-    mla_size_t last_slash_index = mla_string_last_index_of(file_path, mla_directory_seperator);
+    mla_size_t last_slash_index = mla_string_last_index_of(file_path, mla_fs_directory_seperator);
     if (last_slash_index == (mla_size_t)-1) {
         return false;
     }
