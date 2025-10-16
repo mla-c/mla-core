@@ -101,6 +101,11 @@
 #define mla_min(a, b) ((a) < (b) ? (a) : (b))
 #define mla_max(a, b) ((a) > (b) ? (a) : (b))
 
+// Macro for INFINITY
+#include <cmath>
+#define mla_infinity_pos INFINITY
+#define mla_infinity_neg (-INFINITY)
+
 
 //////////////////////////////////////////////////////
 // Loging and Debugging Macros

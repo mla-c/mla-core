@@ -12,14 +12,14 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 #include "../core-os-test-support/mla_test_executor.h"
 
-static mla_byte_t* buffer = nullptr;
+static mla_byte_t* mla_serializer_buffer = nullptr;
 
 inline void SetupSerializerTest() {
-    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
 }
 
 inline void TearDownSerializerTest() {
-    mla_free(buffer);
+    mla_free(mla_serializer_buffer);
 }
 
 struct mla_all_types_inner_struct {
@@ -291,8 +291,8 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
 
 inline void BinarySerializerAllTypesTest() {
 
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(buffer, 1024);
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     mla_serializer_t serializer = mla_binary_serializer(stream_output);
     mla_deserializer_t deserializer = mla_binary_deserializer(stream_input);
@@ -303,8 +303,8 @@ inline void BinarySerializerAllTypesTest() {
 
 inline void JsonSerializerAllTypesTest() {
 
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(buffer, 1024);
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     mla_serializer_t serializer = mla_json_serializer(stream_output);
     mla_deserializer_t deserializer = mla_json_deserializer(stream_input);
@@ -350,8 +350,8 @@ static mla_all_types_struct g_benchmarkAllTypes = {
 
 inline void SetupSerializerBenchmark() {
 
-    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     g_benchmarkAllTypes = {
         true,
@@ -410,7 +410,7 @@ inline void TearDownSerializerBenchmark() {
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
 
-    mla_free(buffer);
+    mla_free(mla_serializer_buffer);
 }
 
 
@@ -476,7 +476,7 @@ inline void TearDownDeserializerBenchmark() {
         mla_array_list_empty<mla_int32_t>(),
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
-    mla_free(buffer);
+    mla_free(mla_serializer_buffer);
 }
 
 
@@ -500,7 +500,7 @@ inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
 
 inline void BinarySerializerBenchmark() {
 
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     mla_serializer_t serializer = mla_binary_serializer(stream_output);
     AllTypesSerializerBenchmark(serializer);
@@ -510,8 +510,8 @@ inline void BinarySerializerBenchmark() {
 
 inline void SetupBinaryDeserializerBenchmark() {
 
-    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
-    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
     mla_serializer_t serializer = mla_binary_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
 
@@ -520,7 +520,7 @@ inline void SetupBinaryDeserializerBenchmark() {
 
 inline void BinaryDeserializerBenchmark() {
 
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
 
     mla_deserializer_t deserializer = mla_binary_deserializer(stream_input);
     AllTypesDeserializerBenchmark(deserializer);
@@ -529,7 +529,7 @@ inline void BinaryDeserializerBenchmark() {
 
 inline void JsonSerializerBenchmark() {
 
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     mla_serializer_t serializer = mla_json_serializer(stream_output);
     AllTypesSerializerBenchmark(serializer);
@@ -538,8 +538,8 @@ inline void JsonSerializerBenchmark() {
 
 inline void SetupJsonDeserializerBenchmark() {
 
-    buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
-    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(buffer, 1024);
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
     mla_serializer_t serializer = mla_json_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
 
@@ -547,7 +547,7 @@ inline void SetupJsonDeserializerBenchmark() {
 
 inline void JsonDeserializerBenchmark() {
 
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
 
     mla_deserializer_t deserializer = mla_json_deserializer(stream_input);
     AllTypesDeserializerBenchmark(deserializer);

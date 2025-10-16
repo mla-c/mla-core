@@ -485,28 +485,28 @@ void ArrayListWithValueConstStructTest() {
     assert_null(mla_array_list_get_ref(list, 999), "Get ref for out of bounds index should return null");
 }
 
-mla_int32_t compare_int(const int &a, const int &b) {
+mla_int32_t compare_int(const mla_test_int32_t &a, const mla_test_int32_t &b) {
     if (a < b) return -1;
     if (a > b) return 1;
     return 0;
 }
 
-mla_int32_t compare_int_desc(const int &a, const int &b) {
+mla_int32_t compare_int_desc(const mla_test_int32_t &a, const mla_test_int32_t &b) {
     if (a > b) return -1;
     if (a < b) return 1;
     return 0;
 }
 
 void ArrayListSortTest() {
-    mla_array_list_t<int> mla_arr = mla_array_list<int>();
+    mla_array_list_t<mla_test_int32_t> mla_arr = mla_array_list<mla_test_int32_t>();
 
     // Add unsorted items
-    mla_array_list_add(mla_arr, 5);
-    mla_array_list_add(mla_arr, 2);
-    mla_array_list_add(mla_arr, 8);
-    mla_array_list_add(mla_arr, 1);
-    mla_array_list_add(mla_arr, 9);
-    mla_array_list_add(mla_arr, 3);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)5);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)2);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)8);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)1);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)9);
+    mla_array_list_add(mla_arr, (mla_test_int32_t)3);
 
     // Sort ascending
     mla_array_list_sort(mla_arr, compare_int);
@@ -540,7 +540,7 @@ void ArrayListSortTest() {
 }
 
 void ArrayListSortEmptyTest() {
-    mla_array_list_t<int> mla_arr = mla_array_list<int>();
+    mla_array_list_t<mla_test_int32_t> mla_arr = mla_array_list<mla_test_int32_t>();
 
     // Sort empty list should not crash
     mla_array_list_sort(mla_arr, compare_int);
@@ -549,8 +549,8 @@ void ArrayListSortEmptyTest() {
 }
 
 void ArrayListSortSingleElementTest() {
-    mla_array_list_t<int> mla_arr = mla_array_list<int>();
-    mla_array_list_add(mla_arr, 42);
+    mla_array_list_t<mla_test_int32_t> mla_arr = mla_array_list<mla_test_int32_t>();
+    mla_array_list_add(mla_arr, (mla_test_int32_t)42);
 
     // Sort single element list
     mla_array_list_sort(mla_arr, compare_int);
@@ -678,13 +678,13 @@ void TearDownArrayListDestroyBenchmark() {
     mla_string_array = mla_array_list_empty<mla_string_t, mla_string_initializer>();
 }
 
-mla_array_list_t<int> mla_sort_array = mla_array_list_empty<int>();
+mla_array_list_t<mla_test_int32_t> mla_sort_array = mla_array_list_empty<mla_test_int32_t>();
 
 void SetupArrayListSortBenchmark() {
-    mla_sort_array = mla_array_list<int>(1000);
+    mla_sort_array = mla_array_list<mla_test_int32_t>(1000);
 
     // Add items in reverse order to create worst-case scenario
-    for (int i = 999; i >= 0; --i) {
+    for (mla_test_int32_t i = 999; i >= 0; --i) {
         mla_array_list_add(mla_sort_array, i);
     }
 }
@@ -694,7 +694,7 @@ void ArrayListSortBenchmark() {
 }
 
 void TearDownArrayListSortBenchmark() {
-    mla_sort_array = mla_array_list_empty<int>();
+    mla_sort_array = mla_array_list_empty<mla_test_int32_t>();
 }
 
 

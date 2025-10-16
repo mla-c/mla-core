@@ -284,11 +284,11 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         buffer[0] = 'N'; buffer[1] = 'a'; buffer[2] = 'N'; buffer[3] = '\0';
         return { buffer, 3, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }
-    if (p_Value == 1.0f / 0.0f) { // +Infinity
+    if (p_Value == mla_infinity_pos) { // +Infinity
         buffer[0] = 'i'; buffer[1] = 'n'; buffer[2] = 'f'; buffer[3] = '\0';
         return { buffer, 3, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }
-    if (p_Value == -1.0f / 0.0f) { // -Infinity
+    if (p_Value == mla_infinity_neg) { // -Infinity
         buffer[0] = '-'; buffer[1] = 'i'; buffer[2] = 'n'; buffer[3] = 'f'; buffer[4] = '\0';
         return { buffer, 4, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }
@@ -363,11 +363,11 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         buffer[0] = 'N'; buffer[1] = 'a'; buffer[2] = 'N'; buffer[3] = '\0';
         return { buffer, 3, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }
-    if (p_Value == 1.0 / 0.0) { // +Infinity
+    if (p_Value == mla_infinity_pos) { // +Infinity
         buffer[0] = 'i'; buffer[1] = 'n'; buffer[2] = 'f'; buffer[3] = '\0';
         return { buffer, 3, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }
-    if (p_Value == -1.0 / 0.0) { // -Infinity
+    if (p_Value == mla_infinity_neg) { // -Infinity
         buffer[0] = '-'; buffer[1] = 'i'; buffer[2] = 'n'; buffer[3] = 'f'; buffer[4] = '\0';
         return { buffer, 4, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
     }

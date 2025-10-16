@@ -210,8 +210,6 @@ mla_bool_t __mla_http_client_read_line(const mla_stream_input_t & inputStream, m
                 return true;
             }
 
-            line = mla_string_copy(buffer, bytesRead - 2); // Exclude \r\n
-            return true;
         }
 
         if (bytesRead >= mla_stream_fast_read_buffer_size) {
