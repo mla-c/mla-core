@@ -827,6 +827,79 @@ void StringToUpperTest() {
 }
 
 
+void ReplaceTest() {
+    // Test basic replacement
+    mla_string_t str = mla_string("Hello, World!");
+    mla_string_t result = mla_string_replace(str, mla_string("World"), mla_string("Universe"));
+    assert_true(mla_string_equals(result, mla_string("Hello, Universe!")),
+                "Basic replacement should work");
+    mla_string_destroy(result);
+
+    // Test multiple occurrences
+    str = mla_string("foo bar foo baz foo");
+    result = mla_string_replace(str, mla_string("foo"), mla_string("qux"));
+    assert_true(mla_string_equals(result, mla_string("qux bar qux baz qux")),
+                "Multiple occurrences should be replaced");
+    mla_string_destroy(result);
+
+    // Test substring not found
+    str = mla_string("Hello, World!");
+    result = mla_string_replace(str, mla_string("Mars"), mla_string("Venus"));
+    assert_true(mla_string_equals(result, str),
+                "No replacement when substring not found");
+    mla_string_destroy(result);
+
+    // Test empty old substring
+    str = mla_string("Hello");
+    result = mla_string_replace(str, mla_string(""), mla_string("X"));
+    assert_true(mla_string_equals(result, str),
+                "Empty old substring should return original");
+    mla_string_destroy(result);
+
+    // Test replacement with empty string (deletion)
+    str = mla_string("Hello, World!");
+    result = mla_string_replace(str, mla_string(", "), mla_string(""));
+    assert_true(mla_string_equals(result, mla_string("HelloWorld!")),
+                "Replacing with empty string should delete substring");
+    mla_string_destroy(result);
+
+    // Test replacing entire string
+    str = mla_string("Test");
+    result = mla_string_replace(str, mla_string("Test"), mla_string("Success"));
+    assert_true(mla_string_equals(result, mla_string("Success")),
+                "Replacing entire string should work");
+    mla_string_destroy(result);
+
+    // Test replacement at start
+    str = mla_string("Start Middle End");
+    result = mla_string_replace(str, mla_string("Start"), mla_string("Begin"));
+    assert_true(mla_string_equals(result, mla_string("Begin Middle End")),
+                "Replacement at start should work");
+    mla_string_destroy(result);
+
+    // Test replacement at end
+    str = mla_string("Start Middle End");
+    result = mla_string_replace(str, mla_string("End"), mla_string("Finish"));
+    assert_true(mla_string_equals(result, mla_string("Start Middle Finish")),
+                "Replacement at end should work");
+    mla_string_destroy(result);
+
+    // Test replacement with longer string
+    str = mla_string("Hi");
+    result = mla_string_replace(str, mla_string("Hi"), mla_string("Hello World"));
+    assert_true(mla_string_equals(result, mla_string("Hello World")),
+                "Replacement with longer string should work");
+    mla_string_destroy(result);
+
+    // Test empty string
+    str = mla_string("");
+    result = mla_string_replace(str, mla_string("X"), mla_string("Y"));
+    assert_true(mla_string_equals(result, mla_string("")),
+                "Empty string should remain empty");
+}
+
+
+
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -955,6 +1028,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ToUpper", test_category, StringToUpperTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Replace", test_category, ReplaceTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
