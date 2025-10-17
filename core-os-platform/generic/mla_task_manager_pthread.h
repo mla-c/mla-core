@@ -253,7 +253,6 @@ void mla_task_manager_pthread_run() {
             return;
         }
 
-        mla_printf("%s - %u\n", "Wait for work", state);
         mla_sleep(250); // Sleep for 250 milliseconds
     }
 
