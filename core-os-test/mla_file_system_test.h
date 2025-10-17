@@ -403,6 +403,67 @@ void FileSystemOpenFileTest() {
     mla_fs_delete_directory(mla_string("/opentest/"));
 }
 
+void FileSystemReadWriteDataTest() {
+    // Create test directory
+    assert_true(mla_fs_create_directory(mla_string("/rwtest/")),
+                "Should create test directory");
+
+    // Test data to write
+    const char* testData = "Hello, this is test data for file I/O!";
+    mla_size_t dataLength = mla_strlen(testData);
+
+    // Open file for writing
+    mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/rwtest/data.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
+                "Should open file in write mode");
+
+    // Write test data
+    mla_size_t bytesWritten = writeStream.write(writeStream, 0, dataLength,
+                                               (const mla_byte_t*)testData);
+    assert_equal(bytesWritten, dataLength,
+                "Should write all test data bytes");
+
+    // Close write stream
+    writeStream = mla_file_system_stream_empty();
+
+    // Verify file exists
+    assert_true(mla_fs_file_exists(mla_string("/rwtest/data.txt")),
+                "File should exist after writing");
+
+    // Open file for reading
+    mla_file_system_stream_t readStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/rwtest/data.txt"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, readStream),
+                "Should open file in read mode");
+
+    // Get file length to verify
+    mla_size_t fileLength = readStream.length(readStream);
+    assert_equal(fileLength, dataLength,
+                "File length should match written data length");
+
+    // Read data back
+    mla_byte_t* readBuffer = (mla_byte_t*)mla_malloc(fileLength + 1);
+    mla_size_t bytesRead = readStream.read(readStream, 0, fileLength, readBuffer);
+    assert_equal(bytesRead, dataLength,
+                "Should read all data bytes");
+
+    // Null-terminate for string comparison
+    readBuffer[bytesRead] = 0;
+
+    // Compare data
+    assert_equal(mla_memcmp(readBuffer, testData, dataLength), 0,
+                "Read data should match written data");
+
+    // Close read stream
+    readStream = mla_file_system_stream_empty();
+
+    // Clean up
+    mla_free(readBuffer);
+    mla_fs_delete_file(mla_string("/rwtest/data.txt"));
+    mla_fs_delete_directory(mla_string("/rwtest/"));
+}
+
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -444,6 +505,9 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("OpenFile", test_category, FileSystemOpenFileTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
