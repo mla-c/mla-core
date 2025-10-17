@@ -133,7 +133,19 @@ mla_bool_t mla_task_manager_abort_task(const mla_string_t& name) {
         }
 
         if (!mla_task_is_done(task->sharedStates->processingState)) {
-            task->sharedStates->processingState = TASK_STATE_ABORTING; // Set the task state to aborting
+
+            for (mla_uint8_t count = 0; count < 10; ++count) {
+
+                task->sharedStates->processingState = TASK_STATE_ABORTING; // Set the task state to aborting
+                mla_sleep(1);
+                // Check if the task is done or the state is commited correct
+                // There are some race conditions possible here
+                if (mla_task_is_done(task->sharedStates->processingState) || task->sharedStates->processingState == TASK_STATE_ABORTING) {
+                    break; // Task has been aborted
+                }
+            }
+
+
             mla_debug(mla_string_concat("Task ", task->name, " is being aborted."));
         } else {
             mla_debug(mla_string_concat("Task ", task->name, " is already completed or aborted."));
