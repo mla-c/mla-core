@@ -38,7 +38,7 @@ struct mla_task_manager_t {
     mla_rw_lock_t taskLock;
 };
 
-enum mla_task_manager_state {
+enum mla_task_manager_state: mla_uint8_t {
     TASK_MANAGER_STATE_UNKNOWN,
     TASK_MANAGER_STATE_PROCESSING,
     TASK_MANAGER_STATE_WAITING_FOR_WORK
