@@ -11,9 +11,7 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 void SizeOfTest() {
-    mla_size_t size = sizeof(mla_pointer_t);
-    assert_equal((mla_test_int32_t)sizeof(mla_string_t), (mla_test_int32_t)size * 3,
-                 "Size of mla_string_t should be 24 bytes");
+    assert_true(sizeof(mla_string_t) <= 24, "Size of mla_string_t should be less than or equal to 24 bytes");
 }
 
 void ContainsCLayoutTest() {

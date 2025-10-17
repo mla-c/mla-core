@@ -30,20 +30,24 @@
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
 
+#if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
 #include "mla_http_client_test.h"
 
+#endif
+
+#if !defined mla_test_disable_file_system|| mla_test_disable_file_system != 1
 // File System
 #include "mla_file_system_test.h"
+
+#endif
 
 #include "native_string_test.h"
 #include "native_list_test.h"
 
-
 int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
-
     mla_test_executor_t l_TestExecutor = mla_test_executor(250);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
@@ -65,14 +69,17 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
 
+#if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Tests
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
     RegisterHttpClientTests(l_TestExecutor);
+#endif
 
+#if !defined mla_test_disable_file_system|| mla_test_disable_file_system != 1
     // File System Tests
     RegisterFileSystemPathTests(l_TestExecutor);
-
+#endif
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(75);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
@@ -114,7 +121,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
     printf("\n");
 
     if (runBenchmark) {
-
         printf("Running Benchmarks...\n\n");
         mla_benchmark_executor_run_all(l_BenchmarkExecutor);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 15);
@@ -127,7 +133,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
     mla_test_executor_destroy(l_TestExecutor);
     mla_benchmark_executor_destroy(l_BenchmarkExecutor);
 
-    return (int)l_FailedTest;
+    return (int) l_FailedTest;
 }
 
 #endif //MAIN_TEST_H
