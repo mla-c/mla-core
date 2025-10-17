@@ -419,10 +419,15 @@ void FileSystemReadWriteDataTest() {
                 "Should open file in write mode");
 
     // Write test data
-    mla_size_t bytesWritten = writeStream.write(writeStream, 0, dataLength,
+    if (writeStream.write != nullptr) {
+        mla_size_t bytesWritten = writeStream.write(writeStream, 0, dataLength,
                                                (const mla_byte_t*)testData);
-    assert_equal(bytesWritten, dataLength,
-                "Should write all test data bytes");
+        assert_equal(bytesWritten, dataLength,
+                    "Should write all test data bytes");
+    } else {
+        assert_true(false, "Write function should not be null");
+    }
+
 
     // Close write stream
     writeStream = mla_file_system_stream_empty();
@@ -438,22 +443,32 @@ void FileSystemReadWriteDataTest() {
                 "Should open file in read mode");
 
     // Get file length to verify
-    mla_size_t fileLength = readStream.length(readStream);
-    assert_equal(fileLength, dataLength,
-                "File length should match written data length");
+    mla_size_t fileLength = 0;
+    if (readStream.length != nullptr) {
+        fileLength = readStream.length(readStream);
+        assert_equal(fileLength, dataLength,
+                    "File length should match written data length");
+    } else {
+        assert_true(false, "Length function should not be null");
+    }
+
 
     // Read data back
     mla_byte_t* readBuffer = (mla_byte_t*)mla_malloc(fileLength + 1);
-    mla_size_t bytesRead = readStream.read(readStream, 0, fileLength, readBuffer);
-    assert_equal(bytesRead, dataLength,
-                "Should read all data bytes");
 
-    // Null-terminate for string comparison
-    readBuffer[bytesRead] = 0;
+    if (readBuffer != nullptr && readStream.read != nullptr) {
+        mla_size_t bytesRead = readStream.read(readStream, 0, fileLength, readBuffer);
+        assert_equal(bytesRead, dataLength,
+                    "Should read all data bytes");
+        // Null-terminate for string comparison
+        readBuffer[bytesRead] = 0;
 
-    // Compare data
-    assert_equal(mla_memcmp(readBuffer, testData, dataLength), 0,
-                "Read data should match written data");
+        // Compare data
+        assert_equal(mla_memcmp(readBuffer, testData, dataLength), 0,
+                    "Read data should match written data");
+    } else {
+        assert_true(false, "Should allocate read buffer");
+    }
 
     // Close read stream
     readStream = mla_file_system_stream_empty();
