@@ -42,7 +42,7 @@
 #include "native_list_test.h"
 
 
-int run() {
+int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
 
     mla_test_executor_t l_TestExecutor = mla_test_executor(250);
     RegisterDataTypesTests(l_TestExecutor);
@@ -95,26 +95,33 @@ int run() {
     // Run the tests
     ////////////////////////////////////////
 
-    printf("Running Tests...\n");
     mla_test_int32_t l_FailedTest = 0;
-    l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
-    //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
-    printf("Tests completed with %d failed tests\n", l_FailedTest);
+
+    if (runTest) {
+        printf("Running Tests...\n");
+        l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
+        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
+        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
+        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
+        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
+        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
+        printf("Tests completed with %d failed tests\n", l_FailedTest);
+    }
 
     // Running benchmarks
     ////////////////////////////////////////
 
     printf("\n");
-    printf("Running Benchmarks...\n\n");
-    mla_benchmark_executor_run_all(l_BenchmarkExecutor);
-    //mla_benchmark_executor_run(l_BenchmarkExecutor, 15);
-    //mla_benchmark_executor_run(l_BenchmarkExecutor, 19);
-    //mla_benchmark_executor_run(l_BenchmarkExecutor, 28);
-    printf("\nBenchmarks completed\n");
+
+    if (runBenchmark) {
+
+        printf("Running Benchmarks...\n\n");
+        mla_benchmark_executor_run_all(l_BenchmarkExecutor);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 15);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 19);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 28);
+        printf("\nBenchmarks completed\n");
+    }
 
     // Clean up resources
     mla_test_executor_destroy(l_TestExecutor);
