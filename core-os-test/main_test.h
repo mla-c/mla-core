@@ -122,12 +122,19 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     printf("\n");
 
     if (runBenchmark) {
-        printf("Running Benchmarks...\n\n");
+
+        if (benchmarkOutputFormat == mla_test_output_format_text) {
+            printf("Running Benchmarks...\n\n");
+        }
+
         mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 28, benchmarkOutputFormat);
-        printf("\nBenchmarks completed\n");
+
+        if (benchmarkOutputFormat == mla_test_output_format_text) {
+            printf("\nBenchmarks completed\n");
+        }
     }
 
     // Clean up resources

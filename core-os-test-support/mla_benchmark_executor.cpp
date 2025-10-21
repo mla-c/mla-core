@@ -26,7 +26,12 @@ void mla_benchmark_executor_destroy(mla_benchmark_executor_t &executor) {
     executor.max_benchmarks = 0;
 }
 
-void __mla_benchmark_print_into_text() {
+void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
+
+    if (output_format != mla_test_output_format_text) {
+        return;
+    }
+
 
 #ifdef mla_debug_build
     mla_test_printf("#########################################################################\n");
@@ -61,7 +66,7 @@ void __mla_benchmark_print_into_text() {
 
 void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test_output_format_t output_format) {
 
-    __mla_benchmark_print_into_text();
+    __mla_benchmark_print_into_text(output_format);
 
     for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
@@ -83,7 +88,7 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
 
 void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uint32_t benchmark_number, mla_test_output_format_t output_format) {
 
-    __mla_benchmark_print_into_text();
+    __mla_benchmark_print_into_text(output_format);
 
     mla_test_uint32_t benchmark_index = benchmark_number - 1; // Convert to zero-based index
 
