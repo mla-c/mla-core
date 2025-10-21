@@ -49,5 +49,8 @@ extern mla_test_print_t g_test_print;
 
 #define mla_test_printf(...) g_test_print.printf(__VA_ARGS__);
 
-
+enum mla_test_output_format_t: mla_test_uint8_t {
+    mla_test_output_format_text,
+    mla_test_output_format_json
+};
 #endif

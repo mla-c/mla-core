@@ -91,9 +91,16 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
-void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations) {
+void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
 
-    mla_test_printf("AAA|");
+    if (output_format == mla_test_output_format_text) {
+        mla_test_printf("AAA|");
+    } else if (output_format == mla_test_output_format_json) {
+        mla_test_printf(",\n")
+        mla_test_printf("{\n")
+        mla_test_printf("  \"WithMemoryArena\": true,\n");
+    }
+
 
     g_mla_benchmark_memory_arena_offset = 0;
     g_mla_benchmark_memory_arena_size = arena_size;
@@ -171,8 +178,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     }
 
-
-    mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+    if (output_format == mla_test_output_format_text) {
+        mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
                benchmark.category,
                name_with_arena_sufix,
                minTime,
@@ -180,13 +187,23 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
                averageTime,
                allocated_memory_per_interation,
                benchmarkIterations);
+    } else if (output_format == mla_test_output_format_json) {
+        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
+        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
+        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
+        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", allocated_memory_per_interation);
+        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
+        mla_test_printf("}");
+    }
 
     mla_free(g_mla_benchmark_memory_arena);
 
 }
 
 
-void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size_per_run) {
+void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size_per_run, mla_test_output_format_t output_format) {
 
 
 #if (mla_benchmark_max_arena_size > 0)
@@ -206,7 +223,7 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
 
     // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {
-        mla_benchmark_run_in_arena_fixed_size(benchmark, arena_size, benchmarkIterations);
+        mla_benchmark_run_in_arena_fixed_size(benchmark, arena_size, benchmarkIterations, output_format);
     }
 
 #else
@@ -219,7 +236,7 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
 
 #endif
 
-void mla_benchmark_run(mla_benchmark_t &benchmark) {
+void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t output_format) {
 
     if (benchmark.setUp) {
         benchmark.setUp();
@@ -276,7 +293,8 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
-    mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+    if (output_format == mla_test_output_format_text) {
+        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
            benchmark.category,
            benchmark.name,
            minTime,
@@ -284,19 +302,42 @@ void mla_benchmark_run(mla_benchmark_t &benchmark) {
            averageTime,
            (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
            benchmarkIterations);
+    } else if (output_format == mla_test_output_format_json) {
+        mla_test_printf("  \"WithMemoryArena\": false,\n");
+        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
+        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
+        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
+        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", (long long int)(mla_benchmark_allocated_memory / benchmarkIterations));
+        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
+        mla_test_printf("}");
+    }
 
     // Start the benchmark one more time but inside an memory arena
-    mla_benchmark_run_in_arena(benchmark, (mla_test_uint32_t)(mla_benchmark_allocated_memory / benchmarkIterations));
+    mla_benchmark_run_in_arena(benchmark, (mla_test_uint32_t)(mla_benchmark_allocated_memory / benchmarkIterations), output_format);
 
 #else
 
-    mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
-           benchmark.category,
-           benchmark.name,
-           minTime,
-           maxTime,
-           averageTime,
-           benchmarkIterations);
+    if (output_format == mla_test_output_format_text) {
+        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
+               benchmark.category,
+               benchmark.name,
+               minTime,
+               maxTime,
+               averageTime,
+               benchmarkIterations);
+    } else if (output_format == mla_test_output_format_json) {
+
+        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
+        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
+        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
+        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
+        mla_test_printf("}");
+    }
+
 
 #endif
 

@@ -47,7 +47,8 @@
 #include "native_string_test.h"
 #include "native_list_test.h"
 
-int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
+int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat) {
+
     mla_test_executor_t l_TestExecutor = mla_test_executor(250);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
@@ -122,10 +123,10 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark) {
 
     if (runBenchmark) {
         printf("Running Benchmarks...\n\n");
-        mla_benchmark_executor_run_all(l_BenchmarkExecutor);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 15);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 19);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 28);
+        mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 28, benchmarkOutputFormat);
         printf("\nBenchmarks completed\n");
     }
 

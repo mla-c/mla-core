@@ -7,10 +7,11 @@
 
 #include "mla_test_data_types.h"
 
-void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_test_bool_t& runBenchmark) {
+void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_test_bool_t& runBenchmark, mla_test_output_format_t& benchmarkOutputFormat) {
 
     runTest = false;
     runBenchmark = false;
+    benchmarkOutputFormat = mla_test_output_format_text;
 
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--test") == 0) {
@@ -19,6 +20,10 @@ void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_tes
 
         if (strcmp(argv[i], "--benchmark") == 0) {
             runBenchmark = true;
+        }
+
+        if (strcmp(argv[i], "--benchmark-output=json") == 0) {
+            benchmarkOutputFormat = mla_test_output_format_json;
         }
     }
 

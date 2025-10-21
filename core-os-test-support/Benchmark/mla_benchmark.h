@@ -39,7 +39,7 @@ mla_benchmark_t mla_benchmark(const mla_test_char_t *name,
 
 void mla_benchmark_set_iteration_division(mla_benchmark_t& benchmark, mla_test_uint32_t division);
 void mla_benchmark_destroy(mla_benchmark_t &benchmark);
-void mla_benchmark_run(mla_benchmark_t &benchmark);
+void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t output_format);
 
 struct mla_benchmark_timer_t {
     mla_test_uint64_t (*current_nanoseconds)(void);

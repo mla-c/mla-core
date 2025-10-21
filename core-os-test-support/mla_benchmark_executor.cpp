@@ -59,20 +59,29 @@ void __mla_benchmark_print_into_text() {
 #endif
 }
 
-void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor) {
+void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test_output_format_t output_format) {
 
     __mla_benchmark_print_into_text();
 
     for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
-            mla_test_printf("%3ld", i + 1);
-            mla_benchmark_run(executor.benchmarks[i]);
+
+            if (output_format == mla_test_output_format_text) {
+                mla_test_printf("%3ld", i + 1);
+            } else if (output_format == mla_test_output_format_json) {
+                if (i > 0) {
+                    mla_test_printf(",\n");
+                }
+                mla_test_printf("{\n");
+            }
+
+            mla_benchmark_run(executor.benchmarks[i], output_format);
         }
     }
 }
 
 
-void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uint32_t benchmark_number) {
+void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uint32_t benchmark_number, mla_test_output_format_t output_format) {
 
     __mla_benchmark_print_into_text();
 
@@ -84,8 +93,13 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
         return; // Invalid benchmark index
     }
 
-    mla_test_printf("%3ld", benchmark_number);
-    mla_benchmark_run(executor.benchmarks[benchmark_index]);
+    if (output_format == mla_test_output_format_text) {
+        mla_test_printf("%3ld", benchmark_number);
+    } else if (output_format == mla_test_output_format_json) {
+        mla_test_printf("{\n");
+    }
+
+    mla_benchmark_run(executor.benchmarks[benchmark_index], output_format);
 
 }
 
