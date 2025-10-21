@@ -26,6 +26,10 @@ struct mla_network_host_t {
 
 mla_network_host_t mla_network_host_invalid();
 
+//////////////////////////////////////////////////////////////////
+/// Client Connection
+//////////////////////////////////////////////////////////////////
+
 struct mla_network_connection_t {
     mla_network_host_t host;
     mla_stream_input_t inputStream;
@@ -38,10 +42,31 @@ mla_bool_t mla_network_host_resolve(mla_network_host_t &host, const mla_string_t
 mla_bool_t mla_network_connection_connect(mla_network_connection_t &connection, const mla_network_host_t &host, mla_connection_type_t type, mla_size_t timeout_ms);
 mla_bool_t mla_network_connection_disconnect(mla_network_connection_t &connection);
 
+//////////////////////////////////////////////////////////////////
+/// Server Operations
+//////////////////////////////////////////////////////////////////
+
+struct mla_network_listener_t {
+    mla_network_host_t host;
+    mla_buffer_reference_t listenerOwner;
+    mla_bool_t (*accept_connection)(const mla_network_listener_t& listener, mla_network_connection_t &connection);
+    mla_callback_userdata userdata;
+};
+
+mla_network_listener_t mla_network_listener_invalid();
+
+mla_bool_t mla_network_listener_bind_and_listen(mla_network_listener_t& listener, const mla_network_host_t &host, mla_connection_type_t type);
+mla_bool_t mla_network_listener_close(mla_network_listener_t& listener);
+mla_bool_t mla_network_listener_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection);
+
+/////////////////////////////////////////////////////////////////
+/// Low Level Operations
+/////////////////////////////////////////////////////////////////
 
 struct mla_network_low_level_operations_t {
     mla_bool_t (*resolve_host)(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port);
     mla_bool_t (*connect)(mla_network_connection_t &connection, const mla_network_host_t &host, mla_connection_type_t type, mla_size_t timeout_ms);
+    mla_bool_t (*bind_and_listen)(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type);
 };
 
 

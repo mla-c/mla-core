@@ -54,3 +54,36 @@ mla_bool_t mla_network_connection_disconnect(mla_network_connection_t &connectio
     connection.host = mla_network_host_invalid();
     return true;
 }
+
+mla_network_listener_t mla_network_listener_invalid() {
+
+    return {
+        mla_network_host_invalid(),
+        mla_buffer_reference_noOwner(),
+        nullptr
+    };
+}
+
+mla_bool_t mla_network_listener_bind_and_listen(mla_network_listener_t& listener, const mla_network_host_t &host, mla_connection_type_t type) {
+
+    if (host.port == 0 || host.address.address.length == 0) {
+        return false;
+    }
+
+    return g_network_low_level_operations.bind_and_listen(listener, host , type);
+
+}
+
+mla_bool_t mla_network_listener_close(mla_network_listener_t& listener) {
+    listener = mla_network_listener_invalid();
+    return true;
+}
+
+mla_bool_t mla_network_listener_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
+
+    if (listener.accept_connection == nullptr) {
+        return false;
+    }
+
+    return listener.accept_connection(listener, connection);
+}

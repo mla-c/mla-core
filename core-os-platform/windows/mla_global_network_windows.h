@@ -250,9 +250,174 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     return true;
 }
 
+mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
+
+    SOCKET listenSock = listener.userdata;
+
+    if (listenSock == INVALID_SOCKET) {
+        return false;
+    }
+
+    // Only support TCP here
+    int sockType = 0;
+    int optLen = (int)sizeof(sockType);
+    if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, (char*)&sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
+        return false;
+    }
+
+    // Accept client
+    sockaddr_storage clientAddr{};
+    int clientLen = (int)sizeof(clientAddr);
+    SOCKET clientSock = accept(listenSock, (sockaddr*)&clientAddr, &clientLen);
+    if (clientSock == INVALID_SOCKET) {
+        return false;
+    }
+
+    // Fill connection.host from peer address
+    mla_network_host_t peer = mla_network_host_invalid();
+    char ip4[INET_ADDRSTRLEN] = {0};
+    char ip6[INET6_ADDRSTRLEN] = {0};
+
+    if (clientAddr.ss_family == AF_INET) {
+        sockaddr_in* a4 = (sockaddr_in*)&clientAddr;
+        inet_ntop(AF_INET, &a4->sin_addr, ip4, sizeof(ip4));
+        peer.address.address = mla_string_copy(ip4, mla_strlen(ip4));
+        peer.address.is_ipv6 = false;
+        peer.port = ntohs(a4->sin_port);
+    } else if (clientAddr.ss_family == AF_INET6) {
+        sockaddr_in6* a6 = (sockaddr_in6*)&clientAddr;
+        inet_ntop(AF_INET6, &a6->sin6_addr, ip6, sizeof(ip6));
+        peer.address.address = mla_string_copy(ip6, mla_strlen(ip6));
+        peer.address.is_ipv6 = true;
+        peer.port = ntohs(a6->sin6_port);
+    } else {
+        closesocket(clientSock);
+        return false;
+    }
+
+    connection.host = peer;
+
+    // Create reference so socket is cleaned up with \`__windows_socket_cleanup\`
+    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)clientSock, true, __windows_socket_cleanup, 0);
+
+    // Wire up I/O streams (blocking mode by default)
+    connection.inputStream = {
+        clientSock,
+        __windows_socket_read,
+        __windows_socket_remaining_bytes,
+        ref
+    };
+
+    connection.outputStream = {
+        clientSock,
+        __windows_socket_write,
+        nullptr,
+        ref
+    };
+
+    return true;
+
+}
+
+
+mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
+
+    listener.host = host;
+
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        return false;
+    }
+
+    int family   = host.address.is_ipv6 ? AF_INET6 : AF_INET;
+    int sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    int protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
+
+    SOCKET sock = socket(family, sockType, protocol);
+    if (sock == INVALID_SOCKET) {
+        WSACleanup();
+        return false;
+    }
+
+    // Prefer exclusive address use on Windows to avoid port hijacking
+    {
+        BOOL exclusive = TRUE;
+        setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char*)&exclusive, sizeof(exclusive));
+        // Optional: also allow quick rebinding if your use-case needs it
+        // BOOL reuse = TRUE;
+        // setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
+    }
+
+    // For IPv6 sockets: allow dual-stack unless you explicitly want v6-only
+    if (family == AF_INET6) {
+        DWORD v6only = 0;
+        setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&v6only, sizeof(v6only));
+    }
+
+    sockaddr_storage ss{};
+    int addrLen = 0;
+
+    mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
+
+    if (cAddress.c_str == nullptr) {
+        closesocket(sock);
+        WSACleanup();
+        return false;
+    }
+
+    if (host.address.is_ipv6) {
+        sockaddr_in6* addr6 = reinterpret_cast<sockaddr_in6*>(&ss);
+        addr6->sin6_family = AF_INET6;
+        addr6->sin6_port = htons(host.port);
+        mla_bool_t ok = (inet_pton(AF_INET6, cAddress.c_str, &addr6->sin6_addr) == 1);
+        if (!ok) {
+            addr6->sin6_addr = in6addr_any; // bind to ::
+        }
+        addrLen = sizeof(sockaddr_in6);
+    } else {
+        sockaddr_in* addr4 = reinterpret_cast<sockaddr_in*>(&ss);
+        addr4->sin_family = AF_INET;
+        addr4->sin_port = htons(host.port);
+        mla_bool_t ok = (inet_pton(AF_INET, cAddress.c_str, &addr4->sin_addr) == 1);
+
+        if (!ok) {
+            addr4->sin_addr.s_addr = htonl(INADDR_ANY); // bind to 0.0.0.0
+        }
+        addrLen = sizeof(sockaddr_in);
+    }
+
+    if (cAddress.isOwner) {
+        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+    }
+
+    if (bind(sock, reinterpret_cast<sockaddr*>(&ss), addrLen) == SOCKET_ERROR) {
+        closesocket(sock);
+        WSACleanup();
+        return false;
+    }
+
+    if (type == mla_connection_type_tcp) {
+        if (listen(sock, SOMAXCONN) == SOCKET_ERROR) {
+            closesocket(sock);
+            WSACleanup();
+            return false;
+        }
+    }
+
+    // Attach socket to listener using the common reference/cleanup pattern
+    // Adapt field names if your mla_network_listener_t differs.
+    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
+    listener.accept_connection = __windows_accept_connection;
+    listener.userdata = sock;
+
+    return true;
+
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __windows_resolve_host,
     __windows_connect,
+    __windows_bind_and_listen
 };
 
 #endif
