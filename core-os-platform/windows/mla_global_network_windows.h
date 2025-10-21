@@ -57,14 +57,13 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
         host.address.address = mla_string_copy(ip, mla_strlen(ip));
         host.address.is_ipv6 = false;
         host.port = port;
-        // Store ip and port in host structure
     } else if (result->ai_family == AF_INET6) {
         sockaddr_in6 *addr = (sockaddr_in6 *) result->ai_addr;
         char ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
 
         host.address.address = mla_string_copy(ip, mla_strlen(ip));
-        host.address.is_ipv6 = false;
+        host.address.is_ipv6 = true;
         host.port = port;
     }
 
@@ -232,8 +231,8 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
 
     connection.inputStream = {
-          sock,
-            __windows_socket_read,
+        sock,
+        __windows_socket_read,
         __windows_socket_remaining_bytes,
         ref
     };
@@ -241,11 +240,9 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     connection.outputStream = {
         sock,
         __windows_socket_write,
-                nullptr,
-                ref
+        nullptr,
+        ref
     };
-
-
 
     return true;
 }
@@ -253,24 +250,33 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
 mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
 
     SOCKET listenSock = listener.userdata;
-
     if (listenSock == INVALID_SOCKET) {
         return false;
     }
 
-    // Only support TCP here
     int sockType = 0;
     int optLen = (int)sizeof(sockType);
     if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, (char*)&sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
         return false;
     }
 
-    // Accept client
     sockaddr_storage clientAddr{};
     int clientLen = (int)sizeof(clientAddr);
+
     SOCKET clientSock = accept(listenSock, (sockaddr*)&clientAddr, &clientLen);
     if (clientSock == INVALID_SOCKET) {
+        int err = WSAGetLastError();
+        if (err == WSAEWOULDBLOCK) {
+            // No pending connection; non-blocking accept
+            return false;
+        }
         return false;
+    }
+
+    // Optional: return accepted socket to blocking mode for normal I/O
+    {
+        u_long blocking = 0;
+        ioctlsocket(clientSock, FIONBIO, &blocking);
     }
 
     // Fill connection.host from peer address
@@ -297,10 +303,8 @@ mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, m
 
     connection.host = peer;
 
-    // Create reference so socket is cleaned up with \`__windows_socket_cleanup\`
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)clientSock, true, __windows_socket_cleanup, 0);
 
-    // Wire up I/O streams (blocking mode by default)
     connection.inputStream = {
         clientSock,
         __windows_socket_read,
@@ -316,7 +320,6 @@ mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, m
     };
 
     return true;
-
 }
 
 
@@ -339,16 +342,13 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
         return false;
     }
 
-    // Prefer exclusive address use on Windows to avoid port hijacking
+    // Exclusive address use
     {
         BOOL exclusive = TRUE;
         setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char*)&exclusive, sizeof(exclusive));
-        // Optional: also allow quick rebinding if your use-case needs it
-        // BOOL reuse = TRUE;
-        // setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
     }
 
-    // For IPv6 sockets: allow dual-stack unless you explicitly want v6-only
+    // Allow dual-stack for IPv6
     if (family == AF_INET6) {
         DWORD v6only = 0;
         setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&v6only, sizeof(v6only));
@@ -358,7 +358,6 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
     int addrLen = 0;
 
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
-
     if (cAddress.c_str == nullptr) {
         closesocket(sock);
         WSACleanup();
@@ -371,7 +370,7 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
         addr6->sin6_port = htons(host.port);
         mla_bool_t ok = (inet_pton(AF_INET6, cAddress.c_str, &addr6->sin6_addr) == 1);
         if (!ok) {
-            addr6->sin6_addr = in6addr_any; // bind to ::
+            addr6->sin6_addr = in6addr_any;
         }
         addrLen = sizeof(sockaddr_in6);
     } else {
@@ -379,9 +378,8 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
         mla_bool_t ok = (inet_pton(AF_INET, cAddress.c_str, &addr4->sin_addr) == 1);
-
         if (!ok) {
-            addr4->sin_addr.s_addr = htonl(INADDR_ANY); // bind to 0.0.0.0
+            addr4->sin_addr.s_addr = htonl(INADDR_ANY);
         }
         addrLen = sizeof(sockaddr_in);
     }
@@ -402,16 +400,21 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
             WSACleanup();
             return false;
         }
+
+        // Make the listening socket non-blocking so accept() will not block
+        u_long nb = 1;
+        if (ioctlsocket(sock, FIONBIO, &nb) == SOCKET_ERROR) {
+            closesocket(sock);
+            WSACleanup();
+            return false;
+        }
     }
 
-    // Attach socket to listener using the common reference/cleanup pattern
-    // Adapt field names if your mla_network_listener_t differs.
-    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
+    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)(uintptr_t)sock, true, __windows_socket_cleanup, 0);
     listener.accept_connection = __windows_accept_connection;
     listener.userdata = sock;
 
     return true;
-
 }
 
 mla_network_low_level_operations_t g_network_low_level_operations = {
