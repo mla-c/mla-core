@@ -6,6 +6,26 @@
 
 mla_global mla_network_low_level_operations_t g_network_low_level_operations;
 
+mla_network_host_t mla_network_host_ip4(const mla_string_t &address, mla_uint16_t port) {
+
+    return {
+                {
+                    address,
+                false,
+                }, port
+            };
+}
+
+mla_network_host_t mla_network_host_ip6(const mla_string_t &address, mla_uint16_t port) {
+
+    return {
+            {
+                address,
+            true,
+            }, port
+        };
+}
+
 mla_network_host_t mla_network_host_invalid() {
 
     return {

@@ -7,6 +7,7 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 #include "../system/mla_number.h"
+#include "mla_http_utils.h"
 
 mla_bool_t __mla_http_client_default_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
 
@@ -119,34 +120,8 @@ mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, c
     }
 
     // Write Headers
-    for (mla_size_t i = 0; i < mla_array_list_size(request.headers); i++) {
-        const mla_http_header_t* header = mla_array_list_get_ref(request.headers, i);
-        if (!mla_stream_output_write_string(connection, header->name)) {
-            return false;
-        }
-        if (!mla_stream_output_write_string(connection, mla_string_const(": "))) {
-            return false;
-        }
-        if (header->type == MLA_HTTP_HEADER_TYPE_SINGLE) {
-            if (!mla_stream_output_write_string(connection, header->value)) {
-                return false;
-            }
-        } else {
-            for (mla_size_t j = 0; j < mla_array_list_size(header->values); j++) {
-                const mla_string_t* value = mla_array_list_get_ref(header->values, j);
-                if (!mla_stream_output_write_string(connection, *value)) {
-                    return false;
-                }
-                if (j < mla_array_list_size(header->values) - 1) {
-                    if (!mla_stream_output_write_string(connection, mla_string_const(", "))) {
-                        return false;
-                    }
-                }
-            }
-        }
-        if (!mla_stream_output_write_string(connection, mla_string_const("\r\n"))) {
-            return false;
-        }
+    if (!mla_http_utils_write_headers(request.headers, connection)) {
+        return false;
     }
 
     if (!mla_stream_output_write_string(connection, mla_string_const("\r\n"))) {
@@ -168,100 +143,11 @@ mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, con
     return true;
 }
 
-mla_bool_t __mla_http_client_read_line(const mla_stream_input_t & inputStream, mla_string_t & line) {
-
-    mla_char_t buffer[mla_stream_fast_read_buffer_size];
-    mla_size_t bytesRead = 0;
-
-    mla_char_t* finalResultBuffer = nullptr;
-    mla_size_t finalResultBufferSize = 0;
-
-    while (true) {
-        mla_size_t result = inputStream.read(inputStream, bytesRead, 1, reinterpret_cast<mla_byte_t*>(&buffer[0]));
-
-        if (result == 0) {
-            // End of stream
-            break;
-        }
-
-        bytesRead += result;
-
-        if (bytesRead >= 2 && buffer[bytesRead - 2] == '\r' && buffer[bytesRead - 1] == '\n') {
-            // End of line found
-
-            if (finalResultBuffer == nullptr) {
-                // Fast path, line is in buffer
-                line = mla_string_copy(buffer, bytesRead - 2); // Exclude \r\n
-                return true;
-            } else {
-                // Combine final buffer and current buffer
-                mla_char_t* newBuffer = mla_create_char_array(finalResultBufferSize + bytesRead - 2); // Exclude \r\n
-
-                if (newBuffer == nullptr) {
-                    // Memory allocation failed
-                    mla_free(finalResultBuffer);
-                    return false;
-                }
-
-                mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
-                mla_free(finalResultBuffer);
-                mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead - 2);
-                line = mla_string_from_buffer_with_ownership(finalResultBuffer, finalResultBufferSize + bytesRead - 2);
-                return true;
-            }
-
-        }
-
-        if (bytesRead >= mla_stream_fast_read_buffer_size) {
-            // Move to finalbuffer
-            if (finalResultBuffer == nullptr) {
-                finalResultBuffer = mla_create_char_array(bytesRead);
-
-                if (finalResultBuffer == nullptr) {
-                    // Memory allocation failed
-                    return false;
-                }
-
-                mla_memcpy(finalResultBuffer, buffer, bytesRead);
-            } else {
-                mla_char_t* newBuffer = mla_create_char_array(finalResultBufferSize + bytesRead);
-
-                if (newBuffer == nullptr) {
-                    // Memory allocation failed
-                    mla_free(finalResultBuffer);
-                    return false;
-                }
-
-                mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
-                mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead);
-                mla_free(finalResultBuffer);
-                finalResultBuffer = newBuffer;
-            }
-        }
-
-        if ((finalResultBufferSize + bytesRead) >= mla_http_max_header_size) {
-
-            if (finalResultBuffer != nullptr) {
-                mla_free(finalResultBuffer);
-            }
-
-            // Line too long
-            return false;
-        }
-    }
-
-    if (finalResultBuffer != nullptr) {
-        mla_free(finalResultBuffer);
-    }
-
-    return false;
-}
-
 mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & inputStream, mla_http_response_t & response) {
 
     mla_string_t statusLine = mla_string_empty();
 
-    if (!__mla_http_client_read_line(inputStream, statusLine)) {
+    if (!mla_http_utils_read_line(inputStream, statusLine)) {
         response.statusCode = 400;
         response.statusMessage = mla_string_const("Failed to read status line");
         return false;
@@ -278,16 +164,11 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
     // HTTP version is parts[0]
     mla_string_t versionStr = *mla_array_list_get_ref(parts, 0);
 
-    if (mla_string_equals_const(versionStr, "HTTP/1.0")) {
-        response.version = MLA_HTTP_VERSION_1_0;
-    } else if (mla_string_equals_const(versionStr, "HTTP/1.1")) {
-        response.version = MLA_HTTP_VERSION_1_1;
-    } else {
+    if (!mla_http_utils_parse_http_version(versionStr, response.version)) {
         response.statusCode = 400;
         response.statusMessage = mla_string_concat("Unsupported HTTP version: ", versionStr);
         return false;
     }
-
 
     // HTTP status code is parts[1]
     mla_string_t statusCodeStr = *mla_array_list_get_ref(parts, 1);
@@ -298,34 +179,10 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
         return false;
     }
 
-    mla_string_t doublePoint = mla_string_const(":");
-
-    // Parse the response headers
-    while (true) {
-        mla_string_t headerLine = mla_string_empty();
-        if (!__mla_http_client_read_line(inputStream, headerLine)) {
-            response.statusCode = 400;
-            response.statusMessage = mla_string_const("Failed to read header line");
-            return false;
-        }
-
-        if (mla_string_is_empty(headerLine)) {
-            // End of headers
-            break;
-        }
-
-        mla_int32_t colonPos = mla_string_index_of(headerLine, doublePoint);
-        if (colonPos < 0) {
-            response.statusCode = 400;
-            response.statusMessage = mla_string_const("Invalid header line");
-            return false;
-        }
-
-        mla_string_t headerName = mla_string_trim(mla_string_substr(headerLine, 0, colonPos));
-        mla_string_t headerValue = mla_string_trim(mla_string_substr(headerLine, colonPos + 1));
-
-        // Add header to response
-        mla_http_headers_add(response.headers, headerName, headerValue);
+    if (!mla_http_utils_read_headers(response.headers, inputStream)) {
+        response.statusCode = 400;
+        response.statusMessage = mla_string_const("Failed to read header line");
+        return false;
     }
 
     return true;

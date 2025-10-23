@@ -24,6 +24,8 @@ struct mla_network_host_t {
     mla_uint16_t port;
 };
 
+mla_network_host_t mla_network_host_ip4(const mla_string_t &address, mla_uint16_t port);
+mla_network_host_t mla_network_host_ip6(const mla_string_t &address, mla_uint16_t port);
 mla_network_host_t mla_network_host_invalid();
 
 //////////////////////////////////////////////////////////////////

@@ -35,6 +35,7 @@
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
 #include "mla_http_client_test.h"
+#include "mla_http_server_test.h"
 
 #endif
 
@@ -75,6 +76,8 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
     RegisterHttpClientTests(l_TestExecutor);
+    RegisterHttpServerTests(l_TestExecutor);
+
 #endif
 
 #if !defined mla_test_disable_file_system|| mla_test_disable_file_system != 1

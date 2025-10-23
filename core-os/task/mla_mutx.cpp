@@ -20,6 +20,15 @@ mla_buffer_cleanup_mode __mla_mutex_cleanup_hook(mla_pointer_t data, mla_callbac
     return CLEAN_UP_SKIP; // Indicate that the resource needs to be cleaned up
 }
 
+mla_mutex_t mla_mutex_invalid() {
+
+    return {
+        mla_string_empty(),
+        nullptr,
+        mla_buffer_reference_noOwner(),
+    };
+}
+
 mla_mutex_t mla_mutex(mla_string_t name) {
 
     mla_mutex_t mutex = {
@@ -47,7 +56,14 @@ mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size) {
     return  mla_mutex(mla_string(name, size));
 }
 
-mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, const char* source, mla_uint32_t line) {
+mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, const mla_char_t* source, mla_uint32_t line) {
+
+    if (mutex.name.length == 0) {
+        mla_string_t line_number = mla_string_from_uint32(line);
+        mla_string_t message = mla_string_concat("Attempting to lock an invalid mutex: ", source, ":", line_number);
+        mla_error(message);
+        return false;
+    }
 
     if (!g_task_low_level_access.lock_mutex(mutex.resource, timeout)) {
         mla_string_t line_number = mla_string_from_uint32(line);
@@ -58,7 +74,7 @@ mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, con
     return true;
 }
 
-mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const char* source, mla_uint32_t line) {
+mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const mla_char_t* source, mla_uint32_t line) {
 
     if (!g_task_low_level_access.unlock_mutex(mutex.resource)) {
         mla_string_t line_number = mla_string_from_uint32(line);

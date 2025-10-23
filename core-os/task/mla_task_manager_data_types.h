@@ -8,7 +8,7 @@
 #include "../mla_data_types.h"
 #include "../system/mla_buffer.h"
 
-enum mla_task_process_result_state {
+enum mla_task_process_result_state: mla_uint8_t {
     TASK_PROCESS_RESULT_DONE,
     TASK_PROCESS_RESULT_CONTINUE,
 };

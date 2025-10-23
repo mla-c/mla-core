@@ -19,10 +19,11 @@ struct mla_mutex_t {
     mla_buffer_reference_t resourceOwner; // Resource owner for the mutex
 };
 
+mla_mutex_t mla_mutex_invalid();
 mla_mutex_t mla_mutex(mla_string_t name);
 mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size);
-mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, const char* source, mla_uint32_t line);
-mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const char* source, mla_uint32_t line);
+mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, const mla_char_t* source, mla_uint32_t line);
+mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const mla_char_t* source, mla_uint32_t line);
 
 #define mla_mutex_lock(mutex) mla_mutex_try_lock(mutex, mla_mutex_default_wait_timeout, __FILE__, __LINE__)
 #define mla_mutex_lock_timeout(mutex, timeout) mla_mutex_try_lock(mutex, timeout, __FILE__, __LINE__)
