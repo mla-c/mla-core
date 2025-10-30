@@ -197,7 +197,7 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
     // Check if the key already exists in the bucket
     for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
 
-        auto item = mla_array_list_get_unsafe(bucket.items, i);
+        auto &item = mla_array_list_get_unsafe(bucket.items, i);
 
         if (item.key == key) {
             // Key already exists, update the value
@@ -352,7 +352,8 @@ void mla_hash_map_clear(mla_hash_map_t<mla_hash_map_t_param_full> &map) {
     for (mla_size_t i = 0; i < map.bucketCount; ++i) {
 
         mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, i);
-        bucket.items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+        // Clear existing items instead of creating new array to avoid memory leak
+        mla_array_list_clear(bucket.items);
 
     }
 
