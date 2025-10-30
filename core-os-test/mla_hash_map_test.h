@@ -454,6 +454,64 @@ void HashMapItemMemoryManagementDestroy2Test() {
 
 }
 
+void HashMapPushReplaceTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    
+    // Add initial value
+    auto result1 = mla_hash_map_push(map, (mla_int32_t)42, (mla_int32_t)100);
+    assert_equal(result1, MLA_HASH_MAP_PUSH_ADDED, "First push should return ADDED");
+    
+    mla_int32_t value;
+    assert_true(mla_hash_map_get(map, (mla_int32_t)42, value), "HashMap should contain key 42");
+    assert_equal(value, 100l, "Initial value should be 100");
+    
+    // Replace value with the same key - this tests that the reference fix works
+    auto result2 = mla_hash_map_push(map, (mla_int32_t)42, (mla_int32_t)200);
+    assert_equal(result2, MLA_HASH_MAP_PUSH_REPLACED, "Second push should return REPLACED");
+    
+    // Verify the value was actually updated
+    assert_true(mla_hash_map_get(map, (mla_int32_t)42, value), "HashMap should still contain key 42");
+    assert_equal(value, 200l, "Value should be updated to 200");
+    
+    // Replace again to ensure it works multiple times
+    mla_hash_map_push(map, (mla_int32_t)42, (mla_int32_t)300);
+    assert_true(mla_hash_map_get(map, (mla_int32_t)42, value), "HashMap should still contain key 42");
+    assert_equal(value, 300l, "Value should be updated to 300");
+}
+
+void HashMapClearMemoryTest() {
+
+    mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
+    
+    // Add multiple items to different buckets
+    for (mla_int32_t i = 0; i < 50; ++i) {
+        mla_hash_map_push(map, i, i * 10);
+    }
+    
+    assert_equal(mla_hash_map_size(map), (mla_size_t)50l, "HashMap should have 50 items");
+    
+    // Clear the map - this tests that memory is properly freed
+    mla_hash_map_clear(map);
+    
+    assert_equal(mla_hash_map_size(map), (mla_size_t)0l, "HashMap should be empty after clear");
+    
+    // Verify we can still use the map after clearing
+    mla_hash_map_push(map, (mla_int32_t)5, (mla_int32_t)50);
+    
+    mla_int32_t value;
+    assert_true(mla_hash_map_get(map, (mla_int32_t)5, value), "HashMap should contain key 5 after clear");
+    assert_equal(value, 50l, "Value should be 50 after clear");
+    
+    // Clear again and add more items to verify repeated clears work
+    mla_hash_map_clear(map);
+    for (mla_int32_t i = 0; i < 10; ++i) {
+        mla_hash_map_push(map, i, i + 100);
+    }
+    
+    assert_equal(mla_hash_map_size(map), (mla_size_t)10l, "HashMap should have 10 items after second clear and add");
+}
+
 
 void RegisterHashMapTests(mla_test_executor_t &p_TestExecutor) {
 
@@ -491,6 +549,12 @@ void RegisterHashMapTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("HashMapItemMemoryManagementDestroy2", test_category, HashMapItemMemoryManagementDestroy2Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("PushReplace", test_category, HashMapPushReplaceTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ClearMemory", test_category, HashMapClearMemoryTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
