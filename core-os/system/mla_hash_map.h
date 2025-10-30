@@ -108,6 +108,29 @@ enum mla_hash_map_push_result {
 template < mla_hash_map_template_full >
 mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, const TValue &value) {
 
+    if (map.bucketCount == 0) {
+        // Initialize with a default bucket count if not already initialized
+
+        map.loadFactor = CONST_mla_hash_map_default_load_factor;
+        map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_default_bucket_size);
+        map.bucketCount = mla_array_list_capacity(map.buckets);
+
+        for (mla_size_t i = 0; i < map.bucketCount; ++i) {
+
+            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+
+            mla_array_list_add(map.buckets, {
+                items,
+            });
+        }
+
+        if (map.bucketCount == 0) {
+            // Failed to initialize buckets
+
+            return MLA_HASH_MAP_PUSH_ERROR;
+        }
+    }
+
     // Check the load factor
     mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
     if (currentLoadFactor > map.loadFactor) {
@@ -162,29 +185,6 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
             mla_array_list_destroy(newBuckets); // Clean up the newly created buckets since we won't use them
         }
 
-    }
-
-    if (map.bucketCount == 0) {
-        // Initialize with a default bucket count if not already initialized
-
-        map.loadFactor = CONST_mla_hash_map_default_load_factor;
-        map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_default_bucket_size);
-        map.bucketCount = mla_array_list_capacity(map.buckets);
-
-        for (mla_size_t i = 0; i < map.bucketCount; ++i) {
-
-            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
-
-            mla_array_list_add(map.buckets, {
-                items,
-            });
-        }
-
-        if (map.bucketCount == 0) {
-            // Failed to initialize buckets
-
-            return MLA_HASH_MAP_PUSH_ERROR;
-        }
     }
 
 
