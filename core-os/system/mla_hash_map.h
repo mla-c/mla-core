@@ -273,7 +273,7 @@ mla_array_list_t<TKey, TKeyInit> mla_hash_map_keys(const mla_hash_map_t<mla_hash
 
     mla_array_list_t<TKey, TKeyInit> keys = mla_array_list< TKey, TKeyInit >(map.size);
 
-    for (mla_size_t i = 0; i < mla_array_list_size(map.buckets); ++i) {
+    for (mla_size_t i = 0; i < map.bucketCount; ++i) {
 
         auto bucketItem = mla_array_list_get_ref(map.buckets, i);
 
