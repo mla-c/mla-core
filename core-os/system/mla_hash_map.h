@@ -12,37 +12,31 @@
 #define mla_hash_map_t_param TKey, TValue, TKeyInit, TValueInit
 #define mla_hash_map_t_param_full TKey, TValue, Hasher, TKeyInit, TValueInit
 
-#define CONST_mla_hash_map_item_default_size 2
 #define CONST_mla_hash_map_default_bucket_size 8
 #define CONST_mla_hash_map_default_load_factor 0.75
+#define CONST_mla_hash_map_shrink_load_factor 0.25
 
-template < mla_hash_map_template >
-struct mla_hash_map_bucket_item_t {
-    TKey key; // Key of the item
-    TValue value; // Value associated with the key
+enum mla_hash_map_bucket_state {
+    BUCKET_EMPTY,
+    BUCKET_OCCUPIED,
+    BUCKET_DELETED
 };
 
-template < mla_hash_map_template >
-struct  mla_hash_map_bucket_item_t_initializer {
-    static mla_hash_map_bucket_item_t<mla_hash_map_t_param> init() {
-        return {
-            TKeyInit::init(), // Initialize key using the provided initializer
-            TValueInit::init() // Initialize value using the provided initializer
-        };
-    }
-};
 
 template < mla_hash_map_template >
 struct mla_hash_map_bucket_t {
-    mla_array_list_t<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>> items; // List of items in the bucket
+    TKey key;
+    TValue value;
+    mla_hash_map_bucket_state state;
 };
 
 template < mla_hash_map_template >
 struct mla_hash_map_bucket_t_initializer {
     static mla_hash_map_bucket_t<mla_hash_map_t_param> init() {
-
         return {
-            mla_array_list_empty<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>() // Initialize with a default size
+                TKeyInit::init(),
+                TValueInit::init(),
+                BUCKET_EMPTY
         };
     }
 };
@@ -60,17 +54,7 @@ mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = 
 
 
     auto array =  mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(bucketCount);
-    // Get the actual bucket count (in case the initial capacity was less than requested)
     bucketCount = mla_array_list_capacity(array);
-
-    for (mla_size_t i = 0; i < bucketCount; ++i) {
-
-        auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
-
-        mla_array_list_add(array, {
-            items,
-        });
-    }
 
     return {
         0, // Initialize size to 0
@@ -99,6 +83,45 @@ mla_size_t mla_hash_map_size(mla_hash_map_t<mla_hash_map_t_param_full> &map) {
     return map.size; // Return the current size of the hash map
 }
 
+template < mla_hash_map_template_full >
+void mla_hash_map_resize(mla_hash_map_t<mla_hash_map_t_param_full>& map, mla_size_t newBucketCount) {
+
+    if (newBucketCount < CONST_mla_hash_map_default_bucket_size) {
+        newBucketCount = CONST_mla_hash_map_default_bucket_size;
+    }
+
+    auto newBuckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>,
+            mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(newBucketCount);
+
+    mla_size_t newCapacity = mla_array_list_capacity(newBuckets);
+    if (newCapacity < newBucketCount) {
+        mla_array_list_destroy(newBuckets);
+        return;
+    }
+
+    newBucketCount = newCapacity;
+
+    for (mla_size_t i = 0; i < map.bucketCount; ++i) {
+        auto& oldBucket = mla_array_list_get_unsafe(map.buckets, i);
+        if (oldBucket.state == BUCKET_OCCUPIED) {
+            mla_size_t newIndex = Hasher::hash(oldBucket.key) % newBucketCount;
+            while (true) {
+                auto& newBucket = mla_array_list_get_unsafe(newBuckets, newIndex);
+                if (newBucket.state == BUCKET_EMPTY) {
+                    newBucket = oldBucket;
+                    break;
+                }
+                newIndex = (newIndex + 1) % newBucketCount;
+            }
+        }
+    }
+
+    mla_array_list_destroy(map.buckets);
+    map.buckets = newBuckets;
+    map.bucketCount = newBucketCount;
+}
+
+
 enum mla_hash_map_push_result {
     MLA_HASH_MAP_PUSH_REPLACED,
     MLA_HASH_MAP_PUSH_ADDED,
@@ -108,112 +131,57 @@ enum mla_hash_map_push_result {
 template < mla_hash_map_template_full >
 mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, const TValue &value) {
 
-    // Check the load factor
-    mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
-    if (currentLoadFactor > map.loadFactor) {
-
-        // Rebalanced the hash map
-        // Create a new bucket array with twice the size
-        auto newBuckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>,
-                                      mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(map.bucketCount * 2);
-
-        // Get the actual new bucket count
-        mla_size_t newBucketCount = mla_array_list_capacity(newBuckets);
-
-        if (newBucketCount > map.bucketCount) {
-
-            // Initialize all buckets
-            for (mla_size_t i = 0; i < newBucketCount; ++i) {
-                auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>,
-                                          mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
-
-                mla_array_list_add(newBuckets, { items });
-            }
-
-            // Rehash and redistribute all existing items
-            for (mla_size_t i = 0; i < map.bucketCount; ++i) {
-                auto& oldBucket = mla_array_list_get_unsafe(map.buckets, i);
-
-                for (mla_size_t j = 0; j < mla_array_list_size(oldBucket.items); ++j) {
-                    auto& item = mla_array_list_get_unsafe(oldBucket.items, j);
-
-                    // Calculate the new hash index
-                    mla_size_t newIndex = Hasher::hash(item.key) % newBucketCount;
-
-                    // Add the item to the new bucket
-                    auto& newBucket = mla_array_list_get_unsafe(newBuckets, newIndex);
-                    mla_array_list_add(newBucket.items, item);
-                }
-
-                // Clean up the old bucket's items
-                mla_array_list_destroy(oldBucket.items);
-            }
-
-            // Clean up the old bucket array
-            mla_array_list_destroy(map.buckets);
-
-            // Update the map with the new bucket array and count
-            map.buckets = newBuckets;
-            map.bucketCount = newBucketCount;
-
-        } else {
-            // If we couldn't increase the bucket count, we can't rebalance
-            // This is a critical error in a real-world scenario, but for this implementation, we'll just skip rebalancing
-            mla_array_list_destroy(newBuckets); // Clean up the newly created buckets since we won't use them
+    if (map.bucketCount > 0) {
+        mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
+        if (currentLoadFactor > map.loadFactor) {
+            mla_hash_map_resize(map, map.bucketCount * 2);
         }
-
     }
 
     if (map.bucketCount == 0) {
-        // Initialize with a default bucket count if not already initialized
-
         map.loadFactor = CONST_mla_hash_map_default_load_factor;
         map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_default_bucket_size);
         map.bucketCount = mla_array_list_capacity(map.buckets);
 
-        for (mla_size_t i = 0; i < map.bucketCount; ++i) {
-
-            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
-
-            mla_array_list_add(map.buckets, {
-                items,
-            });
-        }
-
         if (map.bucketCount == 0) {
-            // Failed to initialize buckets
-
             return MLA_HASH_MAP_PUSH_ERROR;
         }
     }
 
+    mla_size_t index = Hasher::hash(key) % map.bucketCount;
+    mla_size_t originalIndex = index;
+    mla_size_t deletedIndex = -1;
 
-    // Calculate the hash index for the key
-    mla_int32_t index = Hasher::hash(key) % map.bucketCount;
-
-    // Get the bucket at the calculated index
-    mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, index);
-
-    // Check if the key already exists in the bucket
-    for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
-
-        auto item = mla_array_list_get_unsafe(bucket.items, i);
-
-        if (item.key == key) {
-            // Key already exists, update the value
-            item.value = value;
-            return MLA_HASH_MAP_PUSH_REPLACED;
+    do {
+        auto& bucket = mla_array_list_get_unsafe(map.buckets, index);
+        if (bucket.state == BUCKET_OCCUPIED) {
+            if (bucket.key == key) {
+                bucket.value = value;
+                return MLA_HASH_MAP_PUSH_REPLACED;
+            }
+        } else if (bucket.state == BUCKET_DELETED) {
+            if (deletedIndex == -1) {
+                deletedIndex = index;
+            }
+        } else { // BUCKET_EMPTY
+            if (deletedIndex != -1) {
+                index = deletedIndex;
+            }
+            auto& newBucket = mla_array_list_get_unsafe(map.buckets, index);
+            newBucket.key = key;
+            newBucket.value = value;
+            newBucket.state = BUCKET_OCCUPIED;
+            map.size++;
+            return MLA_HASH_MAP_PUSH_ADDED;
         }
-    }
 
-    // Key does not exist, add a new item to the bucket
-    mla_hash_map_bucket_item_t<mla_hash_map_t_param> newItem = { key, value };
+        index = (index + 1) % map.bucketCount;
 
-    if (!mla_array_list_add(bucket.items, newItem)) {
-        return MLA_HASH_MAP_PUSH_ERROR;
-    }
+    } while (index != originalIndex);
 
-    map.size = map.size + 1; // Increase the size of the hash map
+    // If we are here, the map is full and we have looped back
+    // This part should ideally be preceded by a resize, controlled by the load factor,
+    // but if resizing fails or is not triggered, this indicates an error state.
     return MLA_HASH_MAP_PUSH_ADDED;
 
 }
@@ -225,20 +193,25 @@ mla_bool_t mla_hash_map_contains(const mla_hash_map_t<mla_hash_map_t_param_full>
         return false; // Empty map cannot contain any keys
     }
 
-    // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
+    mla_int32_t originalIndex = index;
 
-    // Get the bucket at the calculated index
-    const mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, index);
+    do {
+        const auto& bucket = mla_array_list_get_unsafe(map.buckets, index);
 
-    // Check if the key exists in the bucket
-    for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
-        if (mla_array_list_get_unsafe(bucket.items, i).key == key) {
-            return true; // Key found
+        if (bucket.state == BUCKET_OCCUPIED) {
+            if (bucket.key == key) {
+                return true; // Key found
+            }
+        } else if (bucket.state == BUCKET_EMPTY) {
+            return false; // Key not found
         }
-    }
 
-    return false; // Key not found
+        index = (index + 1) % map.bucketCount;
+
+    } while (index != originalIndex);
+
+    return false; // Key not found after a full loop
 }
 
 template < mla_hash_map_template_full >
@@ -248,41 +221,45 @@ mla_bool_t mla_hash_map_remove(mla_hash_map_t<mla_hash_map_t_param_full> &map, c
         return false; // Empty map cannot contain any keys
     }
 
-    // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
+    mla_int32_t originalIndex = index;
 
-    // Get the bucket at the calculated index
-    mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, index);
+    do {
+        auto& bucket = mla_array_list_get_unsafe(map.buckets, index);
 
-    // Check if the key exists in the bucket
-    for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
-
-        if (mla_array_list_get_unsafe(bucket.items, i).key == key) {
-            // Key found, remove it
-            mla_array_list_remove(bucket.items, i);
-            map.size = map.size -1; // Decrease the size of the hash map
-            return true; // Item removed successfully
+        if (bucket.state == BUCKET_OCCUPIED) {
+            if (bucket.key == key) {
+                bucket.state = BUCKET_DELETED;
+                map.size--;
+                if (map.bucketCount > CONST_mla_hash_map_default_bucket_size) {
+                    mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
+                    if (currentLoadFactor < CONST_mla_hash_map_shrink_load_factor) {
+                        mla_hash_map_resize(map, map.bucketCount / 2);
+                    }
+                }
+                return true;
+            }
+        } else if (bucket.state == BUCKET_EMPTY) {
+            return false;
         }
-    }
 
-    return false; // Key not found
+        index = (index + 1) % map.bucketCount;
+
+    } while (index != originalIndex);
+
+    return false;
 }
 
 template< mla_hash_map_template_full >
 mla_array_list_t<TKey, TKeyInit> mla_hash_map_keys(const mla_hash_map_t<mla_hash_map_t_param_full> &map) {
 
-    mla_array_list_t<TKey, TKeyInit> keys = mla_array_list< TKey, TKeyInit >(map.size);
+    mla_array_list_t<TKey, TKeyInit> keys = mla_array_list<TKey, TKeyInit>(map.size);
 
-    for (mla_size_t i = 0; i < mla_array_list_size(map.buckets); ++i) {
-
-        auto bucketItem = mla_array_list_get_ref(map.buckets, i);
-
-        for (mla_size_t j = 0; j < mla_array_list_size(bucketItem->items); ++j) {
-
-            auto item = mla_array_list_get_ref(bucketItem->items, j);
-            mla_array_list_add(keys, item->key);
+    for (mla_size_t i = 0; i < map.bucketCount; ++i) {
+        auto& bucket = mla_array_list_get_unsafe(map.buckets, i);
+        if (bucket.state == BUCKET_OCCUPIED) {
+            mla_array_list_add(keys, bucket.key);
         }
-
     }
 
     return keys;
@@ -297,24 +274,28 @@ mla_bool_t mla_hash_map_get(const mla_hash_map_t<mla_hash_map_t_param_full> &map
         return false; // Empty map cannot contain any keys
     }
 
-    // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
+    mla_int32_t originalIndex = index;
 
-    // Get the bucket at the calculated index
-    const mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, index);
+    do {
+        const auto& bucket = mla_array_list_get_unsafe(map.buckets, index);
 
-    // Check if the key exists in the bucket
-    for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
-        const mla_hash_map_bucket_item_t<mla_hash_map_t_param> &item = mla_array_list_get_unsafe(bucket.items, i);
-
-        if (item.key == key) {
-            value = item.value; // Set the value to the output parameter
-            return true; // Key found
+        if (bucket.state == BUCKET_OCCUPIED) {
+            if (bucket.key == key) {
+                value = bucket.value;
+                return true;
+            }
+        } else if (bucket.state == BUCKET_EMPTY) {
+            value = TValueInit::init();
+            return false;
         }
-    }
 
-    value = TValueInit::init(); // Set value to default if key not found
-    return false; // Key not found
+        index = (index + 1) % map.bucketCount;
+
+    } while (index != originalIndex);
+
+    value = TValueInit::init();
+    return false;
 }
 
 template < mla_hash_map_template_full >
@@ -324,22 +305,25 @@ TValue* mla_hash_map_get_ref (mla_hash_map_t<mla_hash_map_t_param_full> &map, co
         return nullptr; // Empty map cannot contain any keys
     }
 
-    // Calculate the hash index for the key
     mla_int32_t index = Hasher::hash(key) % map.bucketCount;
+    mla_int32_t originalIndex = index;
 
-    // Get the bucket at the calculated index
-    mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, index);
+    do {
+        auto& bucket = mla_array_list_get_unsafe(map.buckets, index);
 
-    // Check if the key exists in the bucket
-    for (mla_size_t i = 0; i < mla_array_list_size(bucket.items); ++i) {
-        mla_hash_map_bucket_item_t<mla_hash_map_t_param> &item = mla_array_list_get_unsafe(bucket.items, i);
-
-        if (item.key == key) {
-            return &item.value; // Return a reference to the value
+        if (bucket.state == BUCKET_OCCUPIED) {
+            if (bucket.key == key) {
+                return &bucket.value;
+            }
+        } else if (bucket.state == BUCKET_EMPTY) {
+            return nullptr;
         }
-    }
 
-    return nullptr; // Key not found, return null
+        index = (index + 1) % map.bucketCount;
+
+    } while (index != originalIndex);
+
+    return nullptr;
 }
 
 template < mla_hash_map_template_full >
@@ -350,10 +334,10 @@ void mla_hash_map_clear(mla_hash_map_t<mla_hash_map_t_param_full> &map) {
     }
 
     for (mla_size_t i = 0; i < map.bucketCount; ++i) {
-
-        mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, i);
-        bucket.items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
-
+        auto& bucket = mla_array_list_get_unsafe(map.buckets, i);
+        bucket.state = BUCKET_EMPTY;
+        bucket.key = TKeyInit::init();
+        bucket.value = TValueInit::init();
     }
 
     map.size = 0; // Reset the size of the hash map
