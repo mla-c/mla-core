@@ -11,13 +11,95 @@
 
 #define mla_list_list_template typename  T, typename TInit = mla_default_init(T)
 
+const mla_size_t MLA_LINK_LIST_DEFAULT_POOL_SIZE = 16;
+
+template < mla_list_list_template >
+struct mla_link_list_node_t;
+
+template < mla_list_list_template >
+struct mla_link_list_memory_pool_block_t {
+    mla_link_list_memory_pool_block_t<T, TInit>* next;
+    mla_byte_t* data;
+};
+
+template < mla_list_list_template >
+struct mla_link_list_memory_pool_t {
+    mla_link_list_memory_pool_block_t<T, TInit>* blocks;
+    mla_link_list_node_t<T, TInit>* freeList;
+    mla_size_t nodeSize;
+    mla_size_t blockSize;
+};
+
+
+template < mla_list_list_template >
+mla_link_list_memory_pool_t<T, TInit>* __mla_link_list_memory_pool_create(mla_size_t p_NodeSize, mla_size_t p_BlockSize) {
+    mla_link_list_memory_pool_t<T, TInit>* pool = static_cast<mla_link_list_memory_pool_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_memory_pool_t<T, TInit>)));
+    if (!pool) {
+        return nullptr;
+    }
+    pool->blocks = nullptr;
+    pool->freeList = nullptr;
+    pool->nodeSize = p_NodeSize;
+    pool->blockSize = p_BlockSize;
+    return pool;
+}
+
+template < mla_list_list_template >
+void __mla_link_list_memory_pool_destroy(mla_link_list_memory_pool_t<T, TInit>* p_Pool) {
+    mla_link_list_memory_pool_block_t<T, TInit>* current = p_Pool->blocks;
+    while (current) {
+        mla_link_list_memory_pool_block_t<T, TInit>* next = current->next;
+        mla_free(current->data);
+        mla_free(current);
+        current = next;
+    }
+    mla_free(p_Pool);
+}
+
+template < mla_list_list_template >
+mla_link_list_node_t<T, TInit>* __mla_link_list_memory_pool_alloc(mla_link_list_memory_pool_t<T, TInit>* p_Pool) {
+    if (p_Pool->freeList) {
+        mla_link_list_node_t<T, TInit>* node = p_Pool->freeList;
+        p_Pool->freeList = node->next;
+        return node;
+    }
+
+    mla_link_list_memory_pool_block_t<T, TInit>* newBlock = static_cast<mla_link_list_memory_pool_block_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_memory_pool_block_t<T, TInit>)));
+    if (!newBlock) {
+        return nullptr;
+    }
+
+    newBlock->data = static_cast<mla_byte_t*>(mla_malloc(p_Pool->nodeSize * p_Pool->blockSize));
+    if (!newBlock->data) {
+        mla_free(newBlock);
+        return nullptr;
+    }
+
+    newBlock->next = p_Pool->blocks;
+    p_Pool->blocks = newBlock;
+
+    for (mla_size_t i = 0; i < p_Pool->blockSize; ++i) {
+        mla_link_list_node_t<T, TInit>* node = reinterpret_cast<mla_link_list_node_t<T, TInit>*>(newBlock->data + i * p_Pool->nodeSize);
+        node->next = p_Pool->freeList;
+        p_Pool->freeList = node;
+    }
+
+    mla_link_list_node_t<T, TInit>* node = p_Pool->freeList;
+    p_Pool->freeList = node->next;
+    return node;
+}
+
+template < mla_list_list_template >
+void __mla_link_list_memory_pool_free(mla_link_list_memory_pool_t<T, TInit>* p_Pool, mla_link_list_node_t<T, TInit>* p_Node) {
+    p_Node->next = p_Pool->freeList;
+    p_Pool->freeList = p_Node;
+}
+
 
 template < mla_list_list_template >
 struct mla_link_list_node_t {
     mla_link_list_node_t<T, TInit>* next; // Pointer to the next node in the list
     mla_link_list_node_t<T, TInit>* prev; // Pointer to the previous node in the list
-    mla_buffer_reference_t nextOwner;
-    mla_buffer_reference_t prevOwner;
     T data;
 };
 
@@ -25,14 +107,13 @@ template < mla_list_list_template >
 struct mla_link_list_data_t {
     mla_link_list_node_t<T, TInit>* head; // Pointer to the first node in the list
     mla_link_list_node_t<T, TInit>* tail; // Pointer to the last node in the list
+    mla_link_list_memory_pool_t<T, TInit>* memoryPool;
 };
 
 template < mla_list_list_template >
 struct mla_link_list_t {
 
     mla_size_t size; // Number of elements in the list
-    mla_buffer_reference_t headOwner; // Reference to the head node's buffer
-    mla_buffer_reference_t tailOwner; // Reference to the tail node's buffer
     mla_link_list_data_t<T, TInit>* data;
     mla_buffer_reference_t dataOwner; // Reference to the data buffer
 };
@@ -54,27 +135,17 @@ mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, ml
 
 template < mla_list_list_template >
 mla_buffer_cleanup_mode __mla_link_list_data_cleanup_hook(mla_pointer_t p_Data, mla_callback_userdata userData) {
-
     (void)userData; // Silences the unused parameter warning
 
     // Custom cleanup hook for the linked list node
     mla_link_list_data_t<T, TInit>* data = static_cast<mla_link_list_data_t<T, TInit>*>(p_Data);
 
-    if (!data->head) {
-        return CLEAN_UP_NEEDED;
-    }
-
-    // Iterate through the linked list and clean up each node
-    mla_link_list_node_t<T, TInit>* current = data->head;
-    while (current) {
-        mla_link_list_node_t<T, TInit>* nextNode = current->next;
-        current->nextOwner = mla_buffer_reference_noOwner();
-        current->prevOwner = mla_buffer_reference_noOwner();
-        current = nextNode; // Move to the next node
+    if (data->memoryPool) {
+        __mla_link_list_memory_pool_destroy(data->memoryPool);
+        data->memoryPool = nullptr;
     }
 
     return CLEAN_UP_NEEDED;
-
 }
 
 template < mla_list_list_template >
@@ -88,6 +159,11 @@ inline mla_link_list_data_t<T, TInit>* __mla_link_list_data() {
     }
 
     mla_memset(data, 0, sizeof(mla_link_list_data_t<T, TInit>)); // Initialize the data structure
+    data->memoryPool = __mla_link_list_memory_pool_create<T, TInit>(sizeof(mla_link_list_node_t<T, TInit>), MLA_LINK_LIST_DEFAULT_POOL_SIZE);
+    if (!data->memoryPool) {
+        mla_free(data);
+        return nullptr;
+    }
     return data; // Return the initialized data structure
 }
 
@@ -96,8 +172,6 @@ inline mla_link_list_t<T, TInit>  mla_link_list_empty() {
 
     return {
         0,
-        mla_buffer_reference_noOwner(),
-        mla_buffer_reference_noOwner(),
         nullptr,
         mla_buffer_reference_noOwner() // Initialize with no data owner
     };
@@ -113,7 +187,7 @@ inline mla_link_list_t<T, TInit> mla_link_list() {
         return mla_link_list_empty<T, TInit>(); // Return an empty list if memory allocation fails
     }
 
-    mla_link_list_t<T, TInit> list = { 0, mla_buffer_reference_noOwner(), mla_buffer_reference_noOwner(), data, mla_buffer_reference(data, true, __mla_link_list_data_cleanup_hook<T, TInit>) };
+    mla_link_list_t<T, TInit> list = { 0, data, mla_buffer_reference(data, true, __mla_link_list_data_cleanup_hook<T, TInit>) };
     return list; // Initialize an empty linked list
 }
 
@@ -122,8 +196,6 @@ void mla_link_list_destroy(mla_link_list_t<T, TInit>& list) {
 
     list.size = 0; // Reset the size
     list.dataOwner = mla_buffer_reference_noOwner(); // Clear data owner reference
-    list.headOwner = mla_buffer_reference_noOwner(); // Clear head owner reference
-    list.tailOwner = mla_buffer_reference_noOwner(); // Clear tail owner reference
     list.data = nullptr; // Clear the head pointer
 }
 
@@ -141,30 +213,23 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
         list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
     }
 
-    // Create a new node
-    mla_link_list_node_t<T, TInit>* newNode = static_cast<mla_link_list_node_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_node_t<T, TInit>)));
+    // Create a new node from the memory pool
+    mla_link_list_node_t<T, TInit>* newNode = __mla_link_list_memory_pool_alloc(list.data->memoryPool);
 
     if (newNode == nullptr) {
         return false; // Return false if memory allocation fails
     }
 
-    mla_memset(newNode, 0, sizeof(mla_link_list_node_t<T, TInit>)); // Initialize the new node
-    mla_buffer_reference_t newNodeRef = mla_buffer_reference(newNode, false, __mla_link_list_node_cleanup_hook<T, TInit>);
-
     newNode->data = item; // Set the data
     newNode->prev = list.data->tail; // Set previous pointer to the current tail
-    newNode->prevOwner = list.tailOwner; // Initialize previous owner reference
     newNode->next = nullptr; // Set next pointer to null
-    newNode->nextOwner = mla_buffer_reference_noOwner(); // Initialize next owner reference
+
     if (list.data->tail) {
         list.data->tail->next = newNode; // Link the new node to the current tail
-        list.data->tail->nextOwner = newNodeRef;
     } else {
         list.data->head = newNode; // If the list was empty, set head to the new node
-        list.headOwner = newNodeRef; // Initialize head owner reference
     }
     list.data->tail = newNode; // Update the tail to the new node
-    list.tailOwner = newNodeRef;
     list.size++; // Increment the size of the list
     return true;
 }
@@ -192,27 +257,19 @@ mla_bool_t mla_link_list_remove(mla_link_list_t<T, TInit>& list, mla_int32_t ind
     while (current) {
         if (index == 0) {
             // If the node to remove is the head
-
-            // Store the references to the next and previous owners before unlinking
-            mla_buffer_reference_t current_nextOwner = current->nextOwner;
-            mla_buffer_reference_t current_prevOwner = current->prevOwner;
-            current->nextOwner = mla_buffer_reference_noOwner();
-            current->prevOwner = mla_buffer_reference_noOwner();
-
             if (current->prev) {
                 current->prev->next = current->next; // Link previous node to next node
-                current->prev->nextOwner = current_nextOwner; // Update previous node's next owner reference
             } else {
                 list.data->head = current->next; // Update head if removing the first node
-                list.headOwner = current_nextOwner; // Update head owner reference
             }
             if (current->next) {
                 current->next->prev = current->prev; // Link next node to previous node
-                current->next->prevOwner = current_prevOwner; // Update next node's previous owner reference
             } else {
                 list.data->tail = current->prev; // Update tail if removing the last node
-                list.tailOwner = current_prevOwner; // Update tail owner reference
             }
+
+            __mla_link_list_memory_pool_free(list.data->memoryPool, current);
+
             list.size--; // Decrement the size of the list
             return true; // Return true indicating successful removal
         }
