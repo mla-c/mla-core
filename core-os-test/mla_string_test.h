@@ -896,6 +896,120 @@ void ReplaceTest() {
                 "Empty string should remain empty");
 }
 
+void TrimTest() {
+    // Test trimming whitespace from both ends
+    mla_string_t str = mla_string("  Hello, World!  ");
+    mla_string_t result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, mla_string("Hello, World!")),
+                "Trimming whitespace from both ends should work");
+    mla_string_destroy(result);
+
+    // Test trimming only from the left
+    str = mla_string("  Leading whitespace");
+    result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, mla_string("Leading whitespace")),
+                "Trimming leading whitespace should work");
+    mla_string_destroy(result);
+
+    // Test trimming only from the right
+    str = mla_string("Trailing whitespace  ");
+    result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, mla_string("Trailing whitespace")),
+                "Trimming trailing whitespace should work");
+    mla_string_destroy(result);
+
+    // Test with no whitespace to trim
+    str = mla_string("NoWhitespace");
+    result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, str),
+                "String with no whitespace should remain unchanged");
+    mla_string_destroy(result);
+
+    // Test with only whitespace
+    str = mla_string("   ");
+    result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, mla_string("")),
+                "String with only whitespace should become empty");
+    mla_string_destroy(result);
+
+    // Test empty string
+    str = mla_string("");
+    result = mla_string_trim(str);
+    assert_true(mla_string_equals(result, mla_string("")),
+                "Empty string should remain empty");
+    mla_string_destroy(result);
+}
+
+void SplitTest() {
+    // Test basic split
+    mla_string_t str = mla_string("apple,banana,cherry");
+    mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_string_split(str, mla_string(","));
+
+    assert_equal(result.size, (mla_size_t)3, "Split should produce 3 substrings");
+    assert_true(mla_string_equals(result.get(0), mla_string("apple")), "First substring should be 'apple'");
+    assert_true(mla_string_equals(result.get(1), mla_string("banana")), "Second substring should be 'banana'");
+    assert_true(mla_string_equals(result.get(2), mla_string("cherry")), "Third substring should be 'cherry'");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test with a different delimiter
+    str = mla_string("one;two;three");
+    result = mla_string_split(str, mla_string(";"));
+    assert_equal(result.size, (mla_size_t)3, "Split with semicolon should produce 3 substrings");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test with multiple character delimiter
+    str = mla_string("alpha--beta--gamma");
+    result = mla_string_split(str, mla_string("--"));
+    assert_equal(result.size, (mla_size_t)3, "Split with multi-char delimiter should work");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test with no delimiter present
+    str = mla_string("no_delimiter_here");
+    result = mla_string_split(str, mla_string(","));
+    assert_equal(result.size, (mla_size_t)1, "Split with no delimiter should return the original string");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test with delimiter at the start
+    str = mla_string(",start");
+    result = mla_string_split(str, mla_string(","));
+    assert_equal(result.size, (mla_size_t)2, "Split with leading delimiter should produce empty string first");
+    assert_true(mla_string_equals(result.get(0), mla_string("")), "First element should be empty");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test with delimiter at the end
+    str = mla_string("end,");
+    result = mla_string_split(str, mla_string(","));
+    assert_equal(result.size, (mla_size_t)2, "Split with trailing delimiter should produce empty string last");
+    assert_true(mla_string_equals(result.get(1), mla_string("")), "Last element should be empty");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+
+    // Test empty string
+    str = mla_string("");
+    result = mla_string_split(str, mla_string(","));
+    assert_equal(result.size, (mla_size_t)1, "Splitting an empty string should result in one empty string");
+    for (mla_size_t i = 0; i < result.size; i++) {
+        mla_string_destroy(result.get(i));
+    }
+    result.destroy();
+}
 
 
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
@@ -1029,6 +1143,12 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Replace", test_category, ReplaceTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Trim", test_category, TrimTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Split", test_category, SplitTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
