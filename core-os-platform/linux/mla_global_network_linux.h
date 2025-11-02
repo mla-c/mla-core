@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
 
@@ -98,18 +99,14 @@ mla_size_t __linux_socket_remaining_bytes(const mla_stream_input_t& input) {
         return 0;
     }
 
-    char buffer[1];
-    ssize_t result = recv(sock, buffer, 1, MSG_PEEK);
-
-    if (result < 0) {
-        return 0;
+    int pending = 0;
+    if (ioctl(sock, FIONREAD, &pending) == 0) {
+        if (pending > 0) {
+            return mla_size_max;
+        }
     }
 
-    if (result > 0) {
-        return mla_size_max; // Data available but unknown size
-    }
-
-    return 0; // No data available
+    return 0;
 }
 
 mla_size_t __linux_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
@@ -229,9 +226,160 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
     return true;
 }
 
+mla_bool_t __linux_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
+    int listenSock = (int)(intptr_t)listener.userdata;
+    if (listenSock < 0) {
+        return false;
+    }
+
+    int sockType = 0;
+    socklen_t optLen = sizeof(sockType);
+    if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, &sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
+        return false;
+    }
+
+    struct sockaddr_storage clientAddr;
+    socklen_t clientLen = sizeof(clientAddr);
+
+    int clientSock = accept(listenSock, (struct sockaddr*)&clientAddr, &clientLen);
+    if (clientSock < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // No pending connection; non-blocking accept
+            return false;
+        }
+        return false;
+    }
+
+    // Set accepted socket to blocking mode for normal I/O
+    int flags = fcntl(clientSock, F_GETFL, 0);
+    fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
+
+    // Fill connection.host from peer address
+    mla_network_host_t peer = mla_network_host_invalid();
+    char ip4[INET_ADDRSTRLEN] = {0};
+    char ip6[INET6_ADDRSTRLEN] = {0};
+
+    if (clientAddr.ss_family == AF_INET) {
+        struct sockaddr_in* a4 = (struct sockaddr_in*)&clientAddr;
+        inet_ntop(AF_INET, &a4->sin_addr, ip4, sizeof(ip4));
+        peer.address.address = mla_string_copy(ip4, mla_strlen(ip4));
+        peer.address.is_ipv6 = false;
+        peer.port = ntohs(a4->sin_port);
+    } else if (clientAddr.ss_family == AF_INET6) {
+        struct sockaddr_in6* a6 = (struct sockaddr_in6*)&clientAddr;
+        inet_ntop(AF_INET6, &a6->sin6_addr, ip6, sizeof(ip6));
+        peer.address.address = mla_string_copy(ip6, mla_strlen(ip6));
+        peer.address.is_ipv6 = true;
+        peer.port = ntohs(a6->sin6_port);
+    } else {
+        close(clientSock);
+        return false;
+    }
+
+    connection.host = peer;
+
+    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)clientSock, true, __linux_socket_cleanup, 0);
+
+    connection.inputStream = {
+        (mla_callback_userdata)clientSock,
+        __linux_socket_read,
+        __linux_socket_remaining_bytes,
+        ref
+    };
+
+    connection.outputStream = {
+        (mla_callback_userdata)clientSock,
+        __linux_socket_write,
+        nullptr,
+        ref
+    };
+
+    return true;
+}
+
+mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
+    listener.host = host;
+
+    int family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
+    int sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    int protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
+
+    int sock = socket(family, sockType, protocol);
+    if (sock < 0) {
+        return false;
+    }
+
+    // Enable address reuse
+    int reuseAddr = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr));
+
+    // Allow dual-stack for IPv6
+    if (family == AF_INET6) {
+        int v6only = 0;
+        setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only));
+    }
+
+    struct sockaddr_storage ss;
+    mla_memset(&ss, 0, sizeof(ss));
+    socklen_t addrLen = 0;
+
+    mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
+    if (cAddress.c_str == nullptr) {
+        close(sock);
+        return false;
+    }
+
+    if (host.address.is_ipv6) {
+        struct sockaddr_in6* addr6 = (struct sockaddr_in6*)&ss;
+        addr6->sin6_family = AF_INET6;
+        addr6->sin6_port = htons(host.port);
+        mla_bool_t ok = (inet_pton(AF_INET6, cAddress.c_str, &addr6->sin6_addr) == 1);
+        if (!ok) {
+            addr6->sin6_addr = in6addr_any;
+        }
+        addrLen = sizeof(struct sockaddr_in6);
+    } else {
+        struct sockaddr_in* addr4 = (struct sockaddr_in*)&ss;
+        addr4->sin_family = AF_INET;
+        addr4->sin_port = htons(host.port);
+        mla_bool_t ok = (inet_pton(AF_INET, cAddress.c_str, &addr4->sin_addr) == 1);
+        if (!ok) {
+            addr4->sin_addr.s_addr = htonl(INADDR_ANY);
+        }
+        addrLen = sizeof(struct sockaddr_in);
+    }
+
+    if (cAddress.isOwner) {
+        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+    }
+
+    if (bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {
+        close(sock);
+        return false;
+    }
+
+    if (type == mla_connection_type_tcp) {
+        if (listen(sock, SOMAXCONN) < 0) {
+            close(sock);
+            return false;
+        }
+
+        // Make the listening socket non-blocking so accept() will not block
+        int flags = fcntl(sock, F_GETFL, 0);
+        fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __linux_socket_cleanup, 0);
+    listener.accept_connection = __linux_accept_connection;
+    listener.userdata = (mla_callback_userdata)sock;
+
+    return true;
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __linux_resolve_host,
     __linux_connect,
+    __linux_bind_and_listen
 };
 
 

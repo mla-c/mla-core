@@ -80,7 +80,8 @@ mla_network_listener_t mla_network_listener_invalid() {
     return {
         mla_network_host_invalid(),
         mla_buffer_reference_noOwner(),
-        nullptr
+        nullptr,
+        0
     };
 }
 

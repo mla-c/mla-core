@@ -246,13 +246,18 @@ void mla_task_manager_windows_native_run() {
 
 }
 
+mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
+    return MULTI_TASK_MODE_NATIVE;
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_create_task,
         mla_task_manager_windows_native_run,
         mla_task_manager_windows_native_create_mutex,
         mla_task_manager_windows_native_lock_mutex,
         mla_task_manager_windows_native_unlock_mutex,
-        mla_task_manager_windows_native_destroy_mutex
+        mla_task_manager_windows_native_destroy_mutex,
+        mla_task_manager_windows_multi_task_mode
 };
 
 

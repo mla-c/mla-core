@@ -191,6 +191,9 @@ void mla_task_manager_single_thread_run() {
 
 }
 
+mla_multi_task_mode mla_task_manager_single_thread_multi_task_mode() {
+    return MULTI_TASK_MODE_SIMULATED;
+}
 
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_create_task,
@@ -198,7 +201,8 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_create_mutex,
     mla_task_manager_single_thread_lock_mutex,
     mla_task_manager_single_thread_unlock_mutex,
-    mla_task_manager_single_thread_destroy_mutex
+    mla_task_manager_single_thread_destroy_mutex,
+    mla_task_manager_single_thread_multi_task_mode
 };
 
 

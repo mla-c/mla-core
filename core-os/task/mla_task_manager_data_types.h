@@ -40,6 +40,11 @@ enum mla_task_state: mla_uint8_t {
     TASK_STATE_UNKNOWN // Task state is unknown or not set
 };
 
+enum mla_multi_task_mode: mla_uint8_t {
+    MULTI_TASK_MODE_SIMULATED, // Not real Multi Tasking, but simulates it in single thread
+    MULTI_TASK_MODE_NATIVE, // Uses the native OS Multi Tasking capabilities
+};
+
 // Represents shared states for a task, and the plaform logices
 struct mla_task_shared_states {
     mla_task_state processingState;
@@ -55,8 +60,11 @@ struct mla_task_manager_low_level_access {
     mla_bool_t (*lock_mutex)(mla_pointer_t mutex, mla_int32_t timeout);
     mla_bool_t (*unlock_mutex)(mla_pointer_t mutex);
     mla_bool_t (*destroy_mutex)(mla_pointer_t mutex);
+    mla_multi_task_mode (*get_multi_task_mode)();
 };
 
 mla_global mla_task_manager_low_level_access g_task_low_level_access;
+
+#define mla_is_native_multi_tasking g_task_low_level_access.get_multi_task_mode() == MULTI_TASK_MODE_NATIVE
 
 #endif

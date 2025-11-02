@@ -40,8 +40,15 @@ inline void StartSimpleHttpServerTest() {
 
 void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
 
-    mla_test_t test = mla_test("StartSimpleHttpServer", test_category, StartSimpleHttpServerTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+    if (mla_is_native_multi_tasking) {
+
+        // Only run HTTP server tests in native multi-tasking environments
+        // Because it need two threads to run the server and the client simultaneously
+        mla_test_t test = mla_test("StartSimpleHttpServer", test_category, StartSimpleHttpServerTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+    }
+
+
 }
 
 #endif

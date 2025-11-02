@@ -258,6 +258,9 @@ void mla_task_manager_pthread_run() {
 
 }
 
+mla_multi_task_mode mla_task_manager_pthread_multi_task_mode() {
+    return MULTI_TASK_MODE_NATIVE;
+}
 
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_pthread_create_task,
@@ -265,7 +268,8 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_pthread_create_mutex,
     mla_task_manager_pthread_lock_mutex,
     mla_task_manager_pthread_unlock_mutex,
-    mla_task_manager_pthread_destroy_mutex
+    mla_task_manager_pthread_destroy_mutex,
+    mla_task_manager_pthread_multi_task_mode
 };
 
 #endif
