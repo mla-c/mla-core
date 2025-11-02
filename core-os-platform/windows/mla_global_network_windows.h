@@ -100,25 +100,20 @@ mla_size_t __windows_socket_read(const mla_stream_input_t& input, mla_size_t off
 }
 
 mla_size_t __windows_socket_remaining_bytes(const mla_stream_input_t& input) {
-
     SOCKET sock = (SOCKET)(uintptr_t)input.userdata;
     if (sock == INVALID_SOCKET) {
         return 0;
     }
 
-    char buffer[1];
-    int result = recv(sock, buffer, 1, MSG_PEEK);
-
-    if (result == SOCKET_ERROR) {
-        return 0;
+    u_long pending = 0;
+    if (ioctlsocket(sock, FIONREAD, &pending) == 0) {
+        // Exact bytes currently queued for TCP; 0 means closed or none
+        if (pending > 0) {
+            return mla_size_max;
+        }
     }
 
-    if (result > 0) {
-        return mla_size_max; // Data available but unknown size
-    }
-
-    return 0; // No data available
-
+    return 0;
 }
 
 mla_size_t __windows_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {

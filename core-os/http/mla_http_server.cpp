@@ -173,7 +173,8 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     if (connection.inputStream.remaining_bytes != nullptr) {
         mla_size_t remaining = connection.inputStream.remaining_bytes(connection.inputStream);
         if (remaining == 0) {
-            return false;
+            request.content = mla_stream_noop_input();
+            return true;
         }
     }
 
@@ -289,7 +290,7 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_callback_userda
         break;
     }
 
-    if (__mla_http_server_response_send(clientConnection, response)) {
+    if (!__mla_http_server_response_send(clientConnection, response)) {
         mla_warning(
             mla_string_concat("Failed to send HTTP response to client ", clientConnection.host.address.address, ":",
                 mla_string_from_uint16(clientConnection.host.port), " for URL: ", request.url));
@@ -306,7 +307,7 @@ mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_pointer_t data, mla_c
         mla_http_server_internal_resource_cleanup_userdata *>(data);
 
     for (mla_size_t i = 0; i < mla_array_list_size(cleanup_userdata->active_tasks); ++i) {
-        mla_string_t task_name = mla_array_list_get_unsafe(cleanup_userdata->active_tasks, i);
+        mla_string_t& task_name = mla_array_list_get_unsafe(cleanup_userdata->active_tasks, i);
         if (!mla_task_manager_abort_task(task_name)) {
             mla_warning(mla_string_concat("Failed to abort HTTP server task ", task_name));
         }
@@ -362,6 +363,9 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
         mla_error("Failed to allocate memory for HTTP server cleanup userdata");
         return false;
     }
+
+    mla_memset(cleanup_userdata, 0, sizeof(mla_http_server_internal_resource_cleanup_userdata));
+    cleanup_userdata->active_tasks = mla_array_list_empty<mla_string_t, mla_string_initializer>();
 
     server.serverOwner = mla_buffer_reference(cleanup_userdata, true, __mla_http_server_cleanup_hook, 0);
 
