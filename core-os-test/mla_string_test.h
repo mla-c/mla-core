@@ -945,70 +945,63 @@ void SplitTest() {
     mla_string_t str = mla_string("apple,banana,cherry");
     mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_string_split(str, mla_string(","));
 
-    assert_equal(result.size, (mla_size_t)3, "Split should produce 3 substrings");
-    assert_true(mla_string_equals(result.get(0), mla_string("apple")), "First substring should be 'apple'");
-    assert_true(mla_string_equals(result.get(1), mla_string("banana")), "Second substring should be 'banana'");
-    assert_true(mla_string_equals(result.get(2), mla_string("cherry")), "Third substring should be 'cherry'");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
+    if (mla_array_list_size(result) == 3) {
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 0), mla_string("apple")), "First substring should be 'apple'");
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 1), mla_string("banana")), "Second substring should be 'banana'");
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 2), mla_string("cherry")), "Third substring should be 'cherry'");
+    } else {
+        assert_fail("Split did not produce expected number of substrings");
     }
-    result.destroy();
 
     // Test with a different delimiter
     str = mla_string("one;two;three");
     result = mla_string_split(str, mla_string(";"));
-    assert_equal(result.size, (mla_size_t)3, "Split with semicolon should produce 3 substrings");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
-    }
-    result.destroy();
+    assert_equal(mla_array_list_size(result), (mla_size_t)3, "Split with semicolon should produce 3 substrings");
+
 
     // Test with multiple character delimiter
     str = mla_string("alpha--beta--gamma");
     result = mla_string_split(str, mla_string("--"));
-    assert_equal(result.size, (mla_size_t)3, "Split with multi-char delimiter should work");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
-    }
-    result.destroy();
+    assert_equal(mla_array_list_size(result), (mla_size_t)3, "Split with multi-char delimiter should work");
+
 
     // Test with no delimiter present
     str = mla_string("no_delimiter_here");
     result = mla_string_split(str, mla_string(","));
-    assert_equal(result.size, (mla_size_t)1, "Split with no delimiter should return the original string");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
-    }
-    result.destroy();
+    assert_equal(mla_array_list_size(result), (mla_size_t)1, "Split with no delimiter should return the original string");
+
 
     // Test with delimiter at the start
     str = mla_string(",start");
     result = mla_string_split(str, mla_string(","));
-    assert_equal(result.size, (mla_size_t)2, "Split with leading delimiter should produce empty string first");
-    assert_true(mla_string_equals(result.get(0), mla_string("")), "First element should be empty");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
+
+    if (mla_array_list_size(result) == 2) {
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 0), mla_string("")),
+                    "First substring should be empty");
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 1), mla_string("start")),
+                    "Second substring should be 'start'");
+    } else {
+        assert_fail("Split with leading delimiter did not produce expected number of substrings");
     }
-    result.destroy();
 
     // Test with delimiter at the end
     str = mla_string("end,");
     result = mla_string_split(str, mla_string(","));
-    assert_equal(result.size, (mla_size_t)2, "Split with trailing delimiter should produce empty string last");
-    assert_true(mla_string_equals(result.get(1), mla_string("")), "Last element should be empty");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
+
+    if (mla_array_list_size(result) == 2) {
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 0), mla_string("end")),
+                    "First substring should be 'end'");
+        assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 1), mla_string("")),
+                    "Second substring should be empty");
+    } else {
+        assert_fail("Split with trailing delimiter did not produce expected number of substrings");
     }
-    result.destroy();
 
     // Test empty string
     str = mla_string("");
     result = mla_string_split(str, mla_string(","));
-    assert_equal(result.size, (mla_size_t)1, "Splitting an empty string should result in one empty string");
-    for (mla_size_t i = 0; i < result.size; i++) {
-        mla_string_destroy(result.get(i));
-    }
-    result.destroy();
+    assert_equal(mla_array_list_size(result), (mla_size_t)1, "Splitting an empty string should result in one empty string");
+
 }
 
 

@@ -358,12 +358,12 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter) {
 
-    if (p_String.length == 0) {
-        // If the original string is empty, return an empty list
-        return mla_array_list_empty<mla_string_t, mla_string_initializer>();
-    }
-
     mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_array_list<mla_string_t, mla_string_initializer>(1);
+
+    if (p_String.length == 0) {
+        mla_array_list_add(result, p_String);
+        return result;
+    }
 
     if (p_Delimiter.length == 0) {
         // If the delimiter is empty, return the original string as the only element
@@ -395,6 +395,11 @@ mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const ml
 
         // Move past the delimiter
         start = start + delimiterIndex + p_Delimiter.length;
+    }
+
+    if (start == p_String.length) {
+        // If the string ends with a delimiter, add an empty string at the end
+        mla_array_list_add(result, mla_string_empty());
     }
 
     return result;
