@@ -7,6 +7,7 @@
 #include "../log/mla_logging.h"
 #include "../task/mla_task_manager.h"
 #include "mla_http_utils.h"
+#include "../system/mla_id.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
 
@@ -369,10 +370,12 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 
     server.serverOwner = mla_buffer_reference(cleanup_userdata, true, __mla_http_server_cleanup_hook, 0);
 
+    mla_string_t runtime_id = mla_generate_runtime_id();
+
     for (mla_uint8_t i = 0; i < number_of_tasks; i++) {
         mla_string_t task_name = mla_string_concat("HttpServerTask_", server.host.address.address, ":",
                                                    mla_string_from_uint16(server.host.port), "_",
-                                                   mla_string_from_uint8(i));
+                                                   mla_string_from_uint8(i), "_", runtime_id);
 
         mla_task_t http_task = mla_task_repeating(
             task_name,

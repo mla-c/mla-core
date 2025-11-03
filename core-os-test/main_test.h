@@ -29,6 +29,7 @@
 #include "mla_task_cli_module_test.h"
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
+#include "mla_id_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -70,6 +71,8 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterTaskCliModuleTests(l_TestExecutor);
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
+    RegisterIdTests(l_TestExecutor);
+
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Tests
