@@ -133,6 +133,8 @@ Testing and benchmarking infrastructure:
 - **Benchmark Executor** - `mla_benchmark_executor.h` - Performance testing framework
 - **Benchmark Timer** - Platform-specific timing (STD, ESP8266)
 
+Current Benchmark Result: [HERE](https://cs-benchmark.github.io/benchmark-app/?project=CoreOS-Application-Test)
+
 ### Example Application (`core-os-exmaple-app/`)
 
 Reference implementation demonstrating library usage:
