@@ -5,34 +5,33 @@
 #include "mla_id.h"
 #include "../task/mla_mutx.h"
 
-void __mla_string_from_uint32_hex(mla_char_t* buffer, mla_uint32_t value, mla_size_t padding) {
+void __mla_string_from_uint32_hex(mla_char_t *buffer, mla_uint32_t value, mla_size_t padding) {
     // Convert to hex from right to left
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint32_t nibble = value & 0xF;
         if (nibble < 10) {
-            buffer[i - 1] = (mla_char_t)('0' + nibble);
+            buffer[i - 1] = (mla_char_t) ('0' + nibble);
         } else {
-            buffer[i - 1] = (mla_char_t)('a' + (nibble - 10));
+            buffer[i - 1] = (mla_char_t) ('a' + (nibble - 10));
         }
         value >>= 4;
     }
 }
 
-void __mla_string_from_uint16_hex(mla_char_t* buffer, mla_uint16_t value, mla_size_t padding) {
+void __mla_string_from_uint16_hex(mla_char_t *buffer, mla_uint16_t value, mla_size_t padding) {
     // Convert to hex from right to left
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint16_t nibble = value & 0xF;
         if (nibble < 10) {
-            buffer[i - 1] = (mla_char_t)('0' + nibble);
+            buffer[i - 1] = (mla_char_t) ('0' + nibble);
         } else {
-            buffer[i - 1] = (mla_char_t)('a' + (nibble - 10));
+            buffer[i - 1] = (mla_char_t) ('a' + (nibble - 10));
         }
         value >>= 4;
     }
 }
 
 mla_string_t mla_generate_uuid() {
-
     // Get random data source
     mla_uint32_t rand1 = mla_random_uint32();
     mla_uint32_t rand2 = mla_random_uint32();
@@ -41,11 +40,11 @@ mla_string_t mla_generate_uuid() {
 
     // Format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     // Set version (4) and variant bits
-    mla_uint16_t time_hi = (rand2 & 0x0FFF) | 0x4000;  // Version 4
+    mla_uint16_t time_hi = (rand2 & 0x0FFF) | 0x4000; // Version 4
     mla_uint16_t clock_seq = (rand3 & 0x3FFF) | 0x8000; // Variant 10
 
     // Build UUID directly in buffer: 36 chars + null terminator
-    mla_char_t* buffer = mla_create_char_array(37);
+    mla_char_t *buffer = mla_create_char_array(37);
 
     if (buffer == nullptr) {
         return mla_string_empty(); // Memory allocation failed
@@ -67,9 +66,7 @@ mla_string_t mla_generate_uuid() {
 }
 
 
-
 mla_string_t mla_generate_runtime_id() {
-
     // Static generator state
     struct mla_runtime_id_generator {
         mla_mutex_t mutex;
@@ -96,14 +93,26 @@ mla_string_t mla_generate_runtime_id() {
 }
 
 mla_uint32_t mla_random_uint32() {
-
     static mla_uint32_t seed = 0;
     static mla_bool_t initialized = false;
 
     // Initialize seed on first call using system time
     if (!initialized) {
-        // Use combination of time and memory address for better entropy
-        seed = ((mla_uint32_t)(uintptr_t)&seed) ^ ((mla_uint32_t)(uintptr_t)&initialized);
+        if (sizeof(mla_pointer_t) == 8) {
+            // 64-bit pointers: mix high and low bits
+            mla_uint64_t addr1 = (mla_uint64_t) &seed;
+            mla_uint64_t addr2 = (mla_uint64_t) &initialized;
+            seed = (mla_uint32_t) (addr1 ^ (addr1 >> 32) ^ addr2 ^ (addr2 >> 32));
+        } else if (sizeof(mla_pointer_t) == 4) {
+            // 32-bit pointers: direct XOR
+            mla_uint32_t addr1 = (mla_uint32_t)(mla_uint64_t) &seed;
+            mla_uint32_t addr2 = (mla_uint32_t)(mla_uint64_t) &initialized;
+            seed = addr1 ^ addr2;
+        } else {
+            mla_error(mla_string_const("Unsupported pointer size for random seed initialization."));
+            seed = 0x12345678; // Fallback constant
+        }
+
         initialized = true;
     }
 
