@@ -28,7 +28,7 @@ inline mla_bool_t mla_http_server_request_echo_handler(const mla_http_request_t 
 
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
-    mla_http_response_set_body(response, request.body, mla_buffer_reference_noOwner());
+    response.content = mla_stream_input_from_buffer((mla_byte_t*)request.body.data, request.body.length);
 
     return true;
 }
@@ -38,7 +38,8 @@ inline mla_bool_t mla_http_server_request_test_handler(const mla_http_request_t 
     (void)request;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
-    mla_http_response_set_body(response, mla_string_const("test"), mla_buffer_reference_noOwner());
+    const mla_string_t body = mla_string_const("test");
+    response.content = mla_stream_input_from_buffer((mla_byte_t*)body.data, body.length);
 
     return true;
 }
