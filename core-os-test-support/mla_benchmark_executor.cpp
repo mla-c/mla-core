@@ -68,6 +68,10 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
 
     __mla_benchmark_print_into_text(output_format);
 
+    if (output_format == mla_test_output_format_json) {
+        mla_test_printf("[\n");
+    }
+
     for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
 
@@ -82,6 +86,10 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
 
             mla_benchmark_run(executor.benchmarks[i], output_format);
         }
+    }
+
+    if (output_format == mla_test_output_format_json) {
+        mla_test_printf("\n]\n");
     }
 }
 
