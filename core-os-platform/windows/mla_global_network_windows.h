@@ -221,7 +221,7 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
 
     // Set socket back to blocking mode
     mode = 0;
-    ioctlsocket(sock, FIONBIO, &mode);
+    //ioctlsocket(sock, FIONBIO, &mode);
 
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
 
