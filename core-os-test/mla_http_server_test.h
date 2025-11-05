@@ -117,7 +117,7 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("HttpServerMultiHandler", test_category, HttpServerMultiHandlerTest);
-        //mla_test_executor_register_test(p_TestExecutor, test);
+        mla_test_executor_register_test(p_TestExecutor, test);
     }
 
 

@@ -207,3 +207,39 @@ mla_stream_input_t mla_http_content_input_stream(const mla_stream_input_t &input
     return mla_stream_input_limited_wrapper(timeout_stream, content_size);
 
 }
+
+mla_bool_t mla_http_utils_write_content_headers(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t& content, const mla_stream_output_t & connection) {
+
+    // Check if Content-Length header is set for body
+    mla_string_t contentLengthStr = mla_http_headers_get_value(headers, mla_string_const("Content-Length"));
+
+    if (!mla_string_is_empty(contentLengthStr)) {
+        return true;
+    }
+
+    mla_size_t bytes = 0;
+
+    if (content.remaining_bytes != nullptr) {
+        bytes = content.remaining_bytes(content);
+    }
+
+    if (bytes > 0 && bytes != mla_uint32_max) {
+        // Set Content-Length header
+        mla_string_t contentLengthValue = mla_string_from_uint32(bytes);
+
+        if (!mla_stream_output_write_string(connection, mla_string_const("Content-Length: "))) {
+            return false;
+        }
+
+        if (!mla_stream_output_write_string(connection, contentLengthValue)) {
+            return false;
+        }
+
+        if (!mla_stream_output_write_string(connection, mla_string_const("\r\n"))) {
+            return false;
+        }
+    }
+
+    return true;
+
+}

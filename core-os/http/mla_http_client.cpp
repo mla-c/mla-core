@@ -124,6 +124,11 @@ mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, c
         return false;
     }
 
+    // Write Content Length if body is present
+    if (!mla_http_utils_write_content_headers(request.headers, request.content, connection)) {
+        return false;
+    }
+
     if (!mla_stream_output_write_string(connection, mla_string_const("\r\n"))) {
         return false;
     }

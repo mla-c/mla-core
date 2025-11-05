@@ -225,6 +225,11 @@ mla_bool_t __mla_http_server_response_send(const mla_network_connection_t &conne
         return false;
     }
 
+    // Write Content Length if body is present
+    if (!mla_http_utils_write_content_headers(response.headers, response.content, connection.outputStream)) {
+        return false;
+    }
+
     if (!mla_stream_output_write_string(connection.outputStream, mla_string_const("\r\n"))) {
         return false;
     }
