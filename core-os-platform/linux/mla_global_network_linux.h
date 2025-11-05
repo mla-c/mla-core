@@ -116,7 +116,7 @@ mla_size_t __linux_socket_write(const mla_stream_output_t& output, mla_size_t of
         return 0;
     }
 
-    ssize_t bytesSent = send(sock, (const char*)buffer + offset, length, 0);
+    ssize_t bytesSent = send(sock, (const char*)buffer + offset, length, MSG_NOSIGNAL);
     if (bytesSent <= 0) {
         return 0;
     }
@@ -205,7 +205,7 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
     }
 
     // Set socket back to blocking mode
-    fcntl(sock, F_SETFL, flags);
+    //fcntl(sock, F_SETFL, flags);
 
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __linux_socket_cleanup, 0);
 

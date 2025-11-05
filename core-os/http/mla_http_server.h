@@ -51,6 +51,7 @@ struct mla_http_server_t {
     mla_mutex_t listenerLock;
     mla_buffer_reference_t serverOwner;
     mla_http_server_status_t status;
+    mla_int32_t timeout_ms;
 };
 
 

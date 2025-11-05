@@ -92,10 +92,9 @@ inline void HttpServerMultiHandlerTest() {
 
     mla_char_t body_2_buffer[12] = {0};
     response2.response.content.read(response2.response.content,0, 12, (mla_byte_t*)body_2_buffer);
-    mla_string_t body_2_string = mla_string_from_buffer_without_ownership(body_2_buffer, 12);
+    mla_string_t body_2_string = mla_string_from_buffer_without_ownership(body_2_buffer, 11);
 
     assert_struct_equal(mla_string_t, mla_string_const("hello world"), body_2_string, "Should receive echoed body from multi handler server");
-    mla_string_destroy(echo_url);
 
     // Test Not Found
     mla_string_t not_found_url = mla_string_concat(test_server_url, mla_string_const("/not_found"));
@@ -103,7 +102,6 @@ inline void HttpServerMultiHandlerTest() {
     mla_http_client_response_t response3 = mla_http_client_send_request(request3);
     assert_equal(response3.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK, "HTTP GET request to non-existent path should succeed");
     assert_equal(response3.response.statusCode, mla_http_status_not_found, "Should receive 404 Not Found from multi handler server");
-    mla_string_destroy(not_found_url);
 
     server = mla_http_server_invalid();
 }
@@ -118,7 +116,7 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_t test = mla_test("StartSimpleHttpServer", test_category, StartSimpleHttpServerTest);
         mla_test_executor_register_test(p_TestExecutor, test);
 
-        //test = mla_test("HttpServerMultiHandler", test_category, HttpServerMultiHandlerTest);
+        test = mla_test("HttpServerMultiHandler", test_category, HttpServerMultiHandlerTest);
         //mla_test_executor_register_test(p_TestExecutor, test);
     }
 

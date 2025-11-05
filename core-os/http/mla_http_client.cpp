@@ -35,7 +35,7 @@ mla_bool_t __mla_http_client_default_connect(const mla_http_client_t &client, ml
 
 mla_http_client_t mla_http_client() {
     return {
-        30000, // Default timeout 30 seconds
+        mla_default_http_timeout_ms, // Default timeout 30 seconds
         __mla_http_client_default_resolve_host,
         __mla_http_client_default_connect
     };
@@ -143,11 +143,11 @@ mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, con
     return true;
 }
 
-mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & inputStream, mla_http_response_t & response) {
+mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & inputStream, mla_http_response_t & response, mla_int32_t timeout_ms) {
 
     mla_string_t statusLine = mla_string_empty();
 
-    if (!mla_http_utils_read_line(inputStream, statusLine)) {
+    if (!mla_http_utils_read_line(inputStream, statusLine, timeout_ms)) {
         response.statusCode = 400;
         response.statusMessage = mla_string_const("Failed to read status line");
         return false;
@@ -179,7 +179,7 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
         return false;
     }
 
-    if (!mla_http_utils_read_headers(response.headers, inputStream)) {
+    if (!mla_http_utils_read_headers(response.headers, inputStream, timeout_ms)) {
         response.statusCode = 400;
         response.statusMessage = mla_string_const("Failed to read header line");
         return false;
@@ -189,7 +189,7 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
 
 }
 
-mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response, const mla_network_connection_t & connection) {
+mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response, const mla_network_connection_t & connection, mla_int32_t timeout_ms) {
 
     // Check for Content-Length header
     mla_string_t contentLengthStr = mla_http_headers_get_value(response.headers, mla_string_const("Content-Length"));
@@ -199,15 +199,24 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
         return false;
     }
 
-    if (connection.inputStream.remaining_bytes != nullptr) {
+    mla_size_t content_size = 0;
 
-        mla_size_t remaining = connection.inputStream.remaining_bytes(connection.inputStream);
-        if (remaining == 0) {
-            return false;
-        }
+    if (mla_parse_uint32(contentLengthStr, content_size)) {
+        response.content = mla_http_content_input_stream(connection.inputStream, timeout_ms, content_size);
+        return true;
     }
 
-    response.content = connection.inputStream;
+    // No Content-Length, use chunked or until close
+    mla_string_t transferEncoding = mla_http_headers_get_value(response.headers, mla_string_const("Transfer-Encoding"));
+
+    if (mla_string_equals_const(transferEncoding, "chunked")) {
+        // Chunked encoding not implemented yet
+        response.statusCode = 501;
+        response.statusMessage = mla_string_const("Chunked transfer encoding is not supported");
+        return false;
+    }
+
+    response.content = mla_stream_noop_input();
     return true;
 }
 
@@ -274,13 +283,13 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     ////////////
 
     // Parse Response Header
-    if (!__mla_http_client_parse_response_header(connection.inputStream, response.response)) {
+    if (!__mla_http_client_parse_response_header(connection.inputStream, response.response, client.timeout_ms)) {
         __mla_http_client_close_connection(connection);
         return response;
     }
 
     // Handle Response Body
-    if (!__mla_http_client_handle_response_body(response.response, connection)) {
+    if (!__mla_http_client_handle_response_body(response.response, connection, client.timeout_ms)) {
         __mla_http_client_close_connection(connection);
         return response;
     }

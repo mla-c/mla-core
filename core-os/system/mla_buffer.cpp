@@ -72,6 +72,7 @@ mla_buffer_reference_t::mla_buffer_reference_t(mla_buffer_t* p_Buffer) : buffer(
 
 mla_buffer_reference_t::~mla_buffer_reference_t() {
     mla_buffer_destroy(buffer);
+    buffer = nullptr;
 
 }
 

@@ -51,4 +51,12 @@ mla_bool_t mla_stream_copy(const mla_stream_input_t &input, const mla_stream_out
 
 mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, const mla_string_t &string);
 
+
+///////////////////////////////////////////////////////////////////
+/// Wrapper
+///////////////////////////////////////////////////////////////////
+
+mla_stream_input_t mla_stream_input_timeout_wrapper(const mla_stream_input_t &input, mla_int32_t timeout_ms);
+mla_stream_input_t mla_stream_input_limited_wrapper(const mla_stream_input_t &input, mla_size_t size);
+
 #endif

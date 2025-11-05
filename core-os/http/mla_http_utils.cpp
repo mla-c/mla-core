@@ -18,14 +18,14 @@ mla_bool_t mla_http_utils_parse_http_version(const mla_string_t &versionStr, mla
 
 }
 
-mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t & connection) {
+mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t & connection, mla_int32_t timeout_ms) {
 
     mla_string_t doublePoint = mla_string_const(":");
 
     // Parse the response headers
     while (true) {
         mla_string_t headerLine = mla_string_empty();
-        if (!mla_http_utils_read_line(connection, headerLine)) {
+        if (!mla_http_utils_read_line(connection, headerLine, timeout_ms)) {
             return false;
         }
 
@@ -47,6 +47,11 @@ mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_h
     }
 
     return true;
+}
+
+mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t & connection) {
+
+    return mla_http_utils_read_headers(headers, connection, -1);
 }
 
 mla_bool_t mla_http_utils_write_headers(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_output_t & connection) {
@@ -92,6 +97,10 @@ mla_bool_t mla_http_utils_write_headers(const mla_array_list_t<mla_http_header_t
 }
 
 mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_string_t & line) {
+    return mla_http_utils_read_line(inputStream, line, -1);
+}
+
+mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_string_t & line, mla_int32_t timeout_ms) {
 
     mla_char_t buffer[mla_stream_fast_read_buffer_size];
     mla_size_t bytesRead = 0;
@@ -99,10 +108,20 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
     mla_char_t* finalResultBuffer = nullptr;
     mla_size_t finalResultBufferSize = 0;
 
+    mla_int32_t remaining_timeout = timeout_ms;
+
     while (true) {
         mla_size_t result = inputStream.read(inputStream, bytesRead, 1, reinterpret_cast<mla_byte_t*>(&buffer[0]));
 
         if (result == 0) {
+
+            if (remaining_timeout > 0) {
+                // Wait and retry
+                mla_sleep(10);
+                remaining_timeout -= 10;
+                continue;
+            }
+
             // End of stream
             break;
         }
@@ -178,5 +197,13 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
     }
 
     return false;
+
+}
+
+
+mla_stream_input_t mla_http_content_input_stream(const mla_stream_input_t &input, mla_int32_t timeout_ms, mla_size_t content_size) {
+
+    mla_stream_input_t timeout_stream = mla_stream_input_timeout_wrapper(input, timeout_ms);
+    return mla_stream_input_limited_wrapper(timeout_stream, content_size);
 
 }

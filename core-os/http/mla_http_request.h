@@ -33,7 +33,7 @@ inline mla_http_request_t mla_http_request_empty() {
 
 inline mla_http_request_t mla_http_request(const mla_string_t &p_Url, const mla_string_t &p_Method) {
     return {
-        MLA_HTTP_VERSION_1_0,
+        MLA_HTTP_VERSION_1_1,
             p_Url,
             p_Method,
             mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(),

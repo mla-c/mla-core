@@ -9,9 +9,13 @@
 #include "mla_http_header.h"
 #include "mla_http_data_types.h"
 
-mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_string_t & line);
+#define mla_default_http_timeout_ms 30000
+
+mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_string_t & line, mla_int32_t timeout_ms);
 mla_bool_t mla_http_utils_write_headers(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_output_t & connection);
-mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t & connection);
+mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, const mla_stream_input_t & connection, mla_int32_t timeout_ms);
 mla_bool_t mla_http_utils_parse_http_version(const mla_string_t &versionStr, mla_http_version &version);
+
+mla_stream_input_t mla_http_content_input_stream(const mla_stream_input_t &input, mla_int32_t timeout_ms, mla_size_t content_size);
 
 #endif

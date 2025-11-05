@@ -8,6 +8,7 @@
 #include "../task/mla_task_manager.h"
 #include "mla_http_utils.h"
 #include "../system/mla_id.h"
+#include "../system/mla_number.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
 
@@ -98,7 +99,8 @@ mla_http_server_t mla_http_server_invalid() {
         mla_network_listener_invalid(),
         mla_mutex_invalid(),
         mla_buffer_reference_noOwner(),
-        MLA_HTTP_SERVER_STATUS_STOPPED
+        MLA_HTTP_SERVER_STATUS_STOPPED,
+        0
     };
 }
 
@@ -110,7 +112,8 @@ mla_http_server_t mla_http_server(const mla_network_host_t &host) {
         mla_mutex(mla_string_concat("HttpServerListenerLock_", host.address.address, ":",
                                     mla_string_from_uint16(host.port))),
         mla_buffer_reference_noOwner(),
-        MLA_HTTP_SERVER_STATUS_STOPPED
+        MLA_HTTP_SERVER_STATUS_STOPPED,
+        mla_default_http_timeout_ms
     };
 }
 
@@ -132,10 +135,10 @@ mla_bool_t mla_http_server_register_handler(mla_http_server_t &server,
     return result;
 }
 
-mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connection, mla_http_request_t &request) {
+mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connection, mla_http_request_t &request, mla_int32_t timeout_ms) {
     // Read request line
     mla_string_t requestLine = mla_string_empty();
-    if (!mla_http_utils_read_line(connection.inputStream, requestLine)) {
+    if (!mla_http_utils_read_line(connection.inputStream, requestLine, timeout_ms)) {
         return false;
     }
 
@@ -158,7 +161,7 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     }
 
     // Read headers
-    if (!mla_http_utils_read_headers(request.headers, connection.inputStream)) {
+    if (!mla_http_utils_read_headers(request.headers, connection.inputStream, timeout_ms)) {
         return false;
     }
 
@@ -171,15 +174,22 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
         return false;
     }
 
-    if (connection.inputStream.remaining_bytes != nullptr) {
-        mla_size_t remaining = connection.inputStream.remaining_bytes(connection.inputStream);
-        if (remaining == 0) {
-            request.content = mla_stream_noop_input();
-            return true;
-        }
+    mla_size_t content_size = 0;
+
+    if (mla_parse_uint32(contentLengthStr, content_size)) {
+        request.content = mla_http_content_input_stream(connection.inputStream, timeout_ms, content_size);
+        return true;
     }
 
-    request.content = connection.inputStream;
+    // No Content-Length, use chunked or until close
+    mla_string_t transferEncoding = mla_http_headers_get_value(request.headers, mla_string_const("Transfer-Encoding"));
+
+    if (mla_string_equals_const(transferEncoding, "chunked")) {
+        mla_warning(mla_string_const("Chunked transfer encoding is not supported"));
+        return false;
+    }
+
+    request.content = mla_stream_noop_input();
     return true;
 }
 
@@ -249,9 +259,14 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_callback_userda
 
     mla_mutex_unlock(server.listenerLock);
 
+    if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
+        clientConnection = mla_network_connection_disconnected();
+        return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
+    }
+
     mla_http_request_t request = mla_http_request_empty();
 
-    if (!__mla_http_server_request_read(clientConnection, request)) {
+    if (!__mla_http_server_request_read(clientConnection, request, server.timeout_ms)) {
         mla_warning(
             mla_string_concat("Invalid http request from client ", clientConnection.host.address.address, ":",
                 mla_string_from_uint16(clientConnection.host.port)));
@@ -259,14 +274,21 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_callback_userda
         return TASK_PROCESS_RESULT_CONTINUE;
     }
 
+    if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
+        clientConnection = mla_network_connection_disconnected();
+        return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
+    }
+
+    mla_array_list_t<mla_http_server_handler_item_t, mla_http_server_handler_item_initializer> copyHandlers = server.handlers;
+
     mla_http_response_t response = mla_http_response_empty();
     response.version = request.version;
     response.statusCode = 404; // Default to Not Found
     response.statusMessage = mla_string_const("Not Found");
 
     // Find a handler for the request
-    for (mla_size_t i = 0; i < mla_array_list_size(server.handlers); i++) {
-        mla_http_server_handler_item_t &handlerItem = mla_array_list_get_unsafe(server.handlers, i);
+    for (mla_size_t i = 0; i < mla_array_list_size(copyHandlers); i++) {
+        mla_http_server_handler_item_t &handlerItem = mla_array_list_get_unsafe(copyHandlers, i);
 
         if (handlerItem.checker == nullptr) {
             continue; // No checker function, skip
@@ -289,6 +311,11 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_callback_userda
         }
 
         break;
+    }
+
+    if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
+        clientConnection = mla_network_connection_disconnected();
+        return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
     }
 
     if (!__mla_http_server_response_send(clientConnection, response)) {
