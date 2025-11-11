@@ -12,6 +12,10 @@
 #define mla_benchmark_max_arena_size (100 * 1024 * 1024) // 100 MB
 #endif
 
+#if (!defined(mla_benchmark_arena_alignment))
+#define mla_benchmark_arena_alignment 8u // 8 bytes alignment
+#endif
+
 
 typedef mla_test_pointer_t (*test_benchmark_malloc_hook_t)(mla_test_uint32_t size);
 typedef void (*test_benchmark_free_hook_t)(mla_test_pointer_t pointer);
@@ -32,17 +36,33 @@ static mla_pointer_t g_mla_benchmark_memory_arena = nullptr;
 static mla_size_t g_mla_benchmark_memory_arena_size = 0;
 static mla_size_t g_mla_benchmark_memory_arena_offset = 0;
 
+mla_size_t mla_align_up(mla_size_t value, mla_size_t alignment) {
+    return (value + (alignment - 1u)) & ~(alignment - 1u);
+}
+
 mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 
     mla_benchmark_allocated_memory += size;
 
-    if (g_mla_benchmark_memory_arena && (g_mla_benchmark_memory_arena_offset + size <= g_mla_benchmark_memory_arena_size)) {
-        auto* base = static_cast<mla_test_uint8_t*>(g_mla_benchmark_memory_arena);
-        auto* ptr  = base + g_mla_benchmark_memory_arena_offset;
-        g_mla_benchmark_memory_arena_offset += size;
-        return reinterpret_cast<mla_test_pointer_t>(ptr);
+    if (!g_mla_benchmark_memory_arena) {
+        return nullptr;
     }
-    return nullptr;
+
+    // Align current offset
+    mla_size_t aligned_offset = mla_align_up(g_mla_benchmark_memory_arena_offset, mla_benchmark_arena_alignment);
+
+    // Bounds check including padding
+    if (aligned_offset + size > g_mla_benchmark_memory_arena_size) {
+        return nullptr;
+    }
+
+    mla_test_uint8_t* base = (mla_test_uint8_t*)g_mla_benchmark_memory_arena;
+    mla_test_uint8_t* ptr  = base + aligned_offset;
+
+    // Advance offset
+    g_mla_benchmark_memory_arena_offset = aligned_offset + size;
+
+    return (mla_test_pointer_t)ptr;
 
 }
 
@@ -214,12 +234,14 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
     }
 
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
-    mla_test_uint32_t arena_size = arena_size_per_run * benchmarkIterations;
+    mla_test_uint32_t arena_size = mla_align_up(arena_size_per_run, mla_benchmark_arena_alignment) * benchmarkIterations;
 
     while (arena_size > mla_benchmark_max_arena_size) {
         benchmarkIterations = benchmarkIterations / 2;
         arena_size = (mla_test_uint32_t)((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
     }
+
+    arena_size = mla_align_up(arena_size, mla_benchmark_arena_alignment);
 
     // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {

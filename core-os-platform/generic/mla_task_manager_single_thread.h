@@ -51,6 +51,7 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex) 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
     }
+    mla_memset(mutex, 0, sizeof(mla_task_manager_single_thread_mutex));
 
     mutex->locked = false;
     *outMutex = static_cast<mla_pointer_t>(mutex);

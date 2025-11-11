@@ -157,6 +157,7 @@ mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex)
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
     }
+    mla_memset(mutex, 0, sizeof(mla_task_manager_windows_native_mutex_t));
 
     InitializeCriticalSection(&mutex->section);
     mutex->locked = false; // Initially not locked

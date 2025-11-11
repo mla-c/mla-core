@@ -8,10 +8,12 @@
 #include "../../core-os/network/mla_network.h"
 #include "winsock2.h"
 #include "ws2tcpip.h"
+#include <cstdio>
 
 
 mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     WSADATA wsaData;
+    mla_memset(&wsaData, 0, sizeof(WSADATA));
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         return false;
     }
@@ -29,13 +31,11 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     mla_c_string_t cHostName = mla_string_to_cString(hostname);
 
     if (cHostName.c_str == nullptr) {
-        WSACleanup();
         return false;
     }
 
     addrinfo *result = nullptr;
     if (getaddrinfo(cHostName.c_str, nullptr, &hints, &result) != 0) {
-        WSACleanup();
 
         if (cHostName.isOwner) {
             mla_free(const_cast<mla_char_t *>(cHostName.c_str));
@@ -68,7 +68,6 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     }
 
     freeaddrinfo(result);
-    WSACleanup();
     return true;
 }
 
@@ -77,7 +76,6 @@ mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, mla_callbac
     SOCKET sock = (SOCKET)(uintptr_t)data;
     if (sock != INVALID_SOCKET) {
         closesocket(sock);
-        WSACleanup();
     }
 
     return CLEAN_UP_SKIP;
@@ -138,6 +136,7 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     connection.host = host;
 
     WSADATA wsaData;
+    mla_memset(&wsaData, 0, sizeof(WSADATA));
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         return false;
     }
@@ -149,7 +148,6 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
 
     SOCKET sock = socket(family, sockType, protocol);
     if (sock == INVALID_SOCKET) {
-        WSACleanup();
         return false;
     }
 
@@ -169,7 +167,6 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
     if (cAddress.c_str == nullptr) {
         closesocket(sock);
-        WSACleanup();
         return false;
     }
 
@@ -209,12 +206,10 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
             result = select(0, nullptr, &writeSet, nullptr, &timeout);
             if (result <= 0) {
                 closesocket(sock);
-                WSACleanup();
                 return false;
             }
         } else {
             closesocket(sock);
-            WSACleanup();
             return false;
         }
     }
@@ -322,10 +317,6 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
 
     listener.host = host;
 
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        return false;
-    }
 
     int family   = host.address.is_ipv6 ? AF_INET6 : AF_INET;
     int sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
@@ -333,7 +324,6 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
 
     SOCKET sock = socket(family, sockType, protocol);
     if (sock == INVALID_SOCKET) {
-        WSACleanup();
         return false;
     }
 
@@ -355,7 +345,6 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
     if (cAddress.c_str == nullptr) {
         closesocket(sock);
-        WSACleanup();
         return false;
     }
 
@@ -385,14 +374,12 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
 
     if (bind(sock, reinterpret_cast<sockaddr*>(&ss), addrLen) == SOCKET_ERROR) {
         closesocket(sock);
-        WSACleanup();
         return false;
     }
 
     if (type == mla_connection_type_tcp) {
         if (listen(sock, SOMAXCONN) == SOCKET_ERROR) {
             closesocket(sock);
-            WSACleanup();
             return false;
         }
 
@@ -400,7 +387,6 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
         u_long nb = 1;
         if (ioctlsocket(sock, FIONBIO, &nb) == SOCKET_ERROR) {
             closesocket(sock);
-            WSACleanup();
             return false;
         }
     }
@@ -417,5 +403,36 @@ mla_network_low_level_operations_t g_network_low_level_operations = {
     __windows_connect,
     __windows_bind_and_listen
 };
+
+
+
+
+
+
+void __mla_network_teardown_platform_windows() {
+    WSACleanup();
+}
+
+void __mla_network_setup_platform_windows() {
+
+    WSADATA wsaData;
+    memset(&wsaData, 0, sizeof(WSADATA));
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        // Get more infos about the error
+        auto last_error = WSAGetLastError();
+        printf("WSAStartup failed: %d\n", last_error);
+
+    }
+
+}
+
+// RAII auto init
+struct MlaWinsockAutoInit {
+    MlaWinsockAutoInit()  { __mla_network_setup_platform_windows(); }
+    ~MlaWinsockAutoInit() { __mla_network_teardown_platform_windows(); }
+};
+
+// Single global instance
+static MlaWinsockAutoInit g_mlaWinsockAutoInit;
 
 #endif

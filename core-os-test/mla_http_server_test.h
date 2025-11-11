@@ -123,4 +123,45 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
 
 }
 
+
+
+static mla_http_server_t test_server = mla_http_server_invalid();
+
+void StartSimpleHttpServerTest_Setup() {
+
+    test_server = mla_http_server(test_server_host);
+    mla_http_server_handler_item_t handlerItem = mla_http_server_handler_all(mla_http_method_get, mla_http_server_request_hello_world_handler);
+    mla_http_server_register_handler(test_server, handlerItem);
+    mla_http_server_start(test_server, 1);
+}
+
+void StartSimpleHttpServerTest_TearDown() {
+
+    mla_http_server_stop(test_server);
+    test_server = mla_http_server_invalid();
+    mla_task_manager_cleanup();
+}
+
+void SimpleHttpServerBenchmark() {
+
+    mla_http_request_t request = mla_http_get_request(test_server_url);
+    mla_http_client_response_t response = mla_http_client_send_request(request);
+
+    if (response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK) {
+        mla_error(mla_string_concat("HTTP request to simple server failed with status: ",
+                                    mla_string_from_uint32((mla_uint32_t)response.status)));
+    }
+}
+
+void RegisterHttpServerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+    // Concat Benchmarks
+    ////////////////////////////////////////////
+    mla_benchmark_t benchmark = mla_benchmark("SimpleHttpServer", benchmark_category, SimpleHttpServerBenchmark,
+                                             StartSimpleHttpServerTest_Setup,
+                                             StartSimpleHttpServerTest_TearDown);
+    mla_benchmark_set_iteration_division(benchmark, 1000);
+
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+}
+
 #endif

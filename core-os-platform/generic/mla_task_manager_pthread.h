@@ -182,6 +182,7 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex) {
     if (mutex == nullptr) {
         return false;
     }
+    mla_memset(mutex, 0, sizeof(pthread_mutex_t));
 
     // Initialize the mutex
     int result = pthread_mutex_init(mutex, nullptr);

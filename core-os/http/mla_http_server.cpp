@@ -251,8 +251,12 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_callback_userda
 
     // Accept a new connection
 
-    if (!mla_mutex_lock(server.listenerLock)) {
+    if (!mla_mutex_lock_timeout(server.listenerLock, 100)) {
         return TASK_PROCESS_RESULT_CONTINUE; // No connection, yield and try again
+    }
+
+    if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
+        return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
     }
 
     mla_network_connection_t clientConnection = mla_network_connection_disconnected();
@@ -345,6 +349,8 @@ mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_pointer_t data, mla_c
             mla_warning(mla_string_concat("Failed to abort HTTP server task ", task_name));
         }
     }
+
+    mla_sleep(100); // Give some time for tasks to abort
 
     // Free active tasks list
     cleanup_userdata->active_tasks = mla_array_list_empty<mla_string_t, mla_string_initializer>();
@@ -453,6 +459,8 @@ mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
     server.status = MLA_HTTP_SERVER_STATUS_STOPPED;
 
     mla_mutex_unlock(server.listenerLock);
+    server.serverOwner = mla_buffer_reference_noOwner();
+
     mla_info(
         mla_string_concat("HTTP server stopped on ", server.host.address.address, ":", mla_string_from_uint16(server.
             host.port)));
