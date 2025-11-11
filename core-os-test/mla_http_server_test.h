@@ -154,14 +154,17 @@ void SimpleHttpServerBenchmark() {
 }
 
 void RegisterHttpServerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
-    // Concat Benchmarks
-    ////////////////////////////////////////////
-    mla_benchmark_t benchmark = mla_benchmark("SimpleHttpServer", benchmark_category, SimpleHttpServerBenchmark,
-                                             StartSimpleHttpServerTest_Setup,
-                                             StartSimpleHttpServerTest_TearDown);
-    mla_benchmark_set_iteration_division(benchmark, 1000);
 
-    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    if (mla_is_native_multi_tasking) {
+
+        mla_benchmark_t benchmark = mla_benchmark("SimpleHttpServer", benchmark_category, SimpleHttpServerBenchmark,
+                                                 StartSimpleHttpServerTest_Setup,
+                                                 StartSimpleHttpServerTest_TearDown);
+        mla_benchmark_set_iteration_division(benchmark, 1000);
+
+        mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    }
+
 }
 
 #endif

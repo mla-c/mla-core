@@ -30,6 +30,7 @@
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
 #include "mla_id_test.h"
+#include "mla_atomic_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -72,6 +73,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
     RegisterIdTests(l_TestExecutor);
+    RegisterAtomicTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
@@ -100,6 +102,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterReadWriteLockBenchmarks(l_BenchmarkExecutor);
     RegisterInjectBenchmarks(l_BenchmarkExecutor);
     RegisterSerializerBenchmarks(l_BenchmarkExecutor);
+    RegisterAtomicBenchmarks(l_BenchmarkExecutor);
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Benchmarks

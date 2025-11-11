@@ -196,6 +196,36 @@ mla_multi_task_mode mla_task_manager_single_thread_multi_task_mode() {
     return MULTI_TASK_MODE_SIMULATED;
 }
 
+void mla_task_manager_single_thread_atomic_int32_increment(mla_atomic_int32_t& value) {
+    value.value++;
+}
+
+void mla_task_manager_single_thread_atomic_int32_decrement(mla_atomic_int32_t& value) {
+    value.value--;
+}
+
+void mla_task_manager_single_thread_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+    value.value += addend;
+}
+
+void mla_task_manager_single_thread_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+    value.value -= subtrahend;
+}
+
+void mla_task_manager_single_thread_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+    value.value = newValue;
+}
+
+mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
+
+    if (value.value == expectedValue) {
+        value.value = newValue;
+        return true;
+    }
+    return false;
+
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_create_task,
     mla_task_manager_single_thread_run,
@@ -203,7 +233,13 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_lock_mutex,
     mla_task_manager_single_thread_unlock_mutex,
     mla_task_manager_single_thread_destroy_mutex,
-    mla_task_manager_single_thread_multi_task_mode
+    mla_task_manager_single_thread_multi_task_mode,
+    mla_task_manager_single_thread_atomic_int32_increment,
+    mla_task_manager_single_thread_atomic_int32_decrement,
+    mla_task_manager_single_thread_atomic_int32_add,
+    mla_task_manager_single_thread_atomic_int32_subtract,
+    mla_task_manager_single_thread_atomic_int32_exchange,
+    mla_task_manager_single_thread_atomic_int32_compare_exchange
 };
 
 

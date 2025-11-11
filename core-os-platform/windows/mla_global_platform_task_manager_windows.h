@@ -251,6 +251,39 @@ mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
     return MULTI_TASK_MODE_NATIVE;
 }
 
+static_assert(sizeof(mla_int32_t) == sizeof(LONG),
+              "mla_int32_t must be 32-bit for Interlocked APIs");
+
+void mla_task_manager_windows_atomic_int32_increment(mla_atomic_int32_t& value) {
+    InterlockedIncrement(reinterpret_cast<volatile LONG*>(&value.value));
+}
+
+void mla_task_manager_windows_atomic_int32_decrement(mla_atomic_int32_t& value) {
+    InterlockedDecrement(reinterpret_cast<volatile LONG*>(&value.value));
+}
+
+void mla_task_manager_windows_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+    InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(addend));
+}
+
+void mla_task_manager_windows_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+    InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(-subtrahend));
+}
+
+void mla_task_manager_windows_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+    InterlockedExchange(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(newValue));
+}
+
+mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
+
+    LONG prev = InterlockedCompareExchange(
+        reinterpret_cast<volatile LONG*>(&value.value),
+        static_cast<LONG>(newValue),
+        static_cast<LONG>(expectedValue));
+    return prev == static_cast<LONG>(expectedValue);
+
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_create_task,
         mla_task_manager_windows_native_run,
@@ -258,7 +291,14 @@ mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_lock_mutex,
         mla_task_manager_windows_native_unlock_mutex,
         mla_task_manager_windows_native_destroy_mutex,
-        mla_task_manager_windows_multi_task_mode
+        mla_task_manager_windows_multi_task_mode,
+        mla_task_manager_windows_atomic_int32_increment,
+        mla_task_manager_windows_atomic_int32_decrement,
+    mla_task_manager_windows_atomic_int32_add,
+    mla_task_manager_windows_atomic_int32_subtract,
+    mla_task_manager_windows_atomic_int32_exchange,
+    mla_task_manager_windows_atomic_int32_compare_exchange
+
 };
 
 
