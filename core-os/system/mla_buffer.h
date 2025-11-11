@@ -15,7 +15,7 @@ enum mla_buffer_cleanup_mode {
 typedef mla_buffer_cleanup_mode(*mla_buffer_cleanup_hook_t)(mla_pointer_t data, mla_callback_userdata userData);
 
 struct mla_buffer_t {
-    mla_size_t refCount;
+    mla_atomic_int32_t refCount;
     const mla_pointer_t data; // Pointer to the buffer data
     mla_buffer_cleanup_hook_t cleanupHook;
     mla_callback_userdata cleanupHookUserData;

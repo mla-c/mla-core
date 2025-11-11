@@ -30,7 +30,7 @@ void SimpleMemoryManagementTest() {
             mla_buffer_reference_t reference = mla_class_reference(resource);
 
             if (reference.buffer != nullptr) {
-                assert_equal(reference.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
+                assert_equal(reference.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after creation");
             } else {
                 assert_fail("Reference buffer should not be null after creation");
             }
@@ -38,7 +38,7 @@ void SimpleMemoryManagementTest() {
             other = reference; // Copy the reference
 
             if (reference.buffer != nullptr) {
-                assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after copying");
+                assert_equal(reference.buffer->refCount.value, (mla_int32_t)2, "Reference count should be 2 after copying");
             } else {
                 assert_fail("Reference buffer should not be null after copying");
             }
@@ -46,7 +46,7 @@ void SimpleMemoryManagementTest() {
             other2 = other;
 
             if (reference.buffer != nullptr) {
-                assert_equal(reference.buffer->refCount, (mla_size_t)3, "Reference count should be 2 after copying");
+                assert_equal(reference.buffer->refCount.value, (mla_int32_t)3, "Reference count should be 2 after copying");
             } else {
                 assert_fail("Reference buffer should not be null after copying to other2");
             }
@@ -54,7 +54,7 @@ void SimpleMemoryManagementTest() {
             other = mla_buffer_reference_noOwner(); // Clear the reference
 
             if (reference.buffer != nullptr) {
-                assert_equal(reference.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after clearing the first reference");
+                assert_equal(reference.buffer->refCount.value, (mla_int32_t)2, "Reference count should be 2 after clearing the first reference");
             } else {
                 assert_fail("Reference buffer should not be null after clearing");
             }
@@ -63,7 +63,7 @@ void SimpleMemoryManagementTest() {
         }
 
         if (other2.buffer != nullptr) {
-            assert_equal(other2.buffer->refCount, (mla_size_t)1, "Reference count should be 2 after copying to other2");
+            assert_equal(other2.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 2 after copying to other2");
         } else {
             assert_fail("Reference buffer should not be null after clearing the first reference");
         }

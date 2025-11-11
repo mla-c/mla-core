@@ -64,11 +64,11 @@ struct mla_task_manager_low_level_access {
     mla_multi_task_mode (*get_multi_task_mode)();
 
     // atomic operations
-    void (*atomic_int32_increment)(mla_atomic_int32_t& value);
-    void (*atomic_int32_decrement)(mla_atomic_int32_t& value);
-    void (*atomic_int32_add)(mla_atomic_int32_t& value, mla_int32_t addend);
-    void (*atomic_int32_subtract)(mla_atomic_int32_t& value, mla_int32_t subtrahend);
-    void (*atomic_int32_exchange)(mla_atomic_int32_t& value, mla_int32_t newValue);
+    mla_int32_t (*atomic_int32_increment)(mla_atomic_int32_t& value);
+    mla_int32_t (*atomic_int32_decrement)(mla_atomic_int32_t& value);
+    mla_int32_t (*atomic_int32_add)(mla_atomic_int32_t& value, mla_int32_t addend);
+    mla_int32_t (*atomic_int32_subtract)(mla_atomic_int32_t& value, mla_int32_t subtrahend);
+    mla_int32_t (*atomic_int32_exchange)(mla_atomic_int32_t& value, mla_int32_t newValue);
     mla_bool_t (*atomic_int32_compare_exchange)(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue);
 };
 

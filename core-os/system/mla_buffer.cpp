@@ -3,6 +3,7 @@
 //
 
 #include "mla_buffer.h"
+#include "../task/mla_atomic.h"
 
 
 mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p_CleanupHook, mla_callback_userdata cleanupHookUserData) {
@@ -17,7 +18,7 @@ mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p
         return nullptr; // Return null if allocation fails
     }
 
-    buffer->refCount = 0; // Initialize reference count to 0
+    buffer->refCount = mla_atomic_int32(0); // Initialize reference count to 0
     buffer->data = p_Data;
     buffer->cleanupHook = p_CleanupHook; // Set the cleanup hook
     buffer->cleanupHookUserData = cleanupHookUserData; // Set the user data for the cleanup hook
@@ -26,7 +27,7 @@ mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p
 
 void __mla_buffer_destroy(mla_buffer_t* p_Buffer, mla_bool_t executeCleanupHook) {
     if (p_Buffer) {
-        if (--p_Buffer->refCount == 0) {
+        if (mla_atomic_decrement(p_Buffer->refCount) == 0) {
             mla_pointer_t l_Data = const_cast<mla_pointer_t>(p_Buffer->data);
 
             if (l_Data) {
@@ -60,13 +61,13 @@ void mla_buffer_destroy(mla_buffer_t* p_Buffer) {
 
 mla_buffer_reference_t::mla_buffer_reference_t(const mla_buffer_reference_t& p_Other) : buffer(p_Other.buffer) {
     if (buffer) {
-        buffer->refCount++; // Increment reference count
+        mla_atomic_increment(buffer->refCount);
     }
 }
 
 mla_buffer_reference_t::mla_buffer_reference_t(mla_buffer_t* p_Buffer) : buffer(p_Buffer) {
     if (buffer) {
-        buffer->refCount++; // Increment reference count
+        mla_atomic_increment(buffer->refCount);
     }
 }
 
@@ -96,7 +97,7 @@ mla_buffer_reference_t& mla_buffer_reference_t::operator=(const mla_buffer_refer
 
         // Increment reference count of the new buffer
         if (buffer) {
-            buffer->refCount++; // Increment reference count
+            mla_atomic_increment(buffer->refCount);
         }
     }
     return *this;

@@ -254,24 +254,24 @@ mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
 static_assert(sizeof(mla_int32_t) == sizeof(LONG),
               "mla_int32_t must be 32-bit for Interlocked APIs");
 
-void mla_task_manager_windows_atomic_int32_increment(mla_atomic_int32_t& value) {
-    InterlockedIncrement(reinterpret_cast<volatile LONG*>(&value.value));
+mla_int32_t mla_task_manager_windows_atomic_int32_increment(mla_atomic_int32_t& value) {
+    return InterlockedIncrement(reinterpret_cast<volatile LONG*>(&value.value));
 }
 
-void mla_task_manager_windows_atomic_int32_decrement(mla_atomic_int32_t& value) {
-    InterlockedDecrement(reinterpret_cast<volatile LONG*>(&value.value));
+mla_int32_t mla_task_manager_windows_atomic_int32_decrement(mla_atomic_int32_t& value) {
+    return InterlockedDecrement(reinterpret_cast<volatile LONG*>(&value.value));
 }
 
-void mla_task_manager_windows_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
-    InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(addend));
+mla_int32_t mla_task_manager_windows_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+    return InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(addend));
 }
 
-void mla_task_manager_windows_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
-    InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(-subtrahend));
+mla_int32_t mla_task_manager_windows_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+    return InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(-subtrahend));
 }
 
-void mla_task_manager_windows_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
-    InterlockedExchange(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(newValue));
+mla_int32_t mla_task_manager_windows_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+    return InterlockedExchange(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(newValue));
 }
 
 mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {

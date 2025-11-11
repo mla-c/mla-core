@@ -9,24 +9,24 @@ mla_atomic_int32_t mla_atomic_int32(mla_int32_t initialValue) {
     return {initialValue};
 }
 
-void mla_atomic_increment(mla_atomic_int32_t& value) {
-    g_task_low_level_access.atomic_int32_increment(value);
+mla_int32_t mla_atomic_increment(mla_atomic_int32_t& value) {
+    return g_task_low_level_access.atomic_int32_increment(value);
 }
 
-void mla_atomic_decrement(mla_atomic_int32_t& value) {
-    g_task_low_level_access.atomic_int32_decrement(value);
+mla_int32_t mla_atomic_decrement(mla_atomic_int32_t& value) {
+    return g_task_low_level_access.atomic_int32_decrement(value);
 }
 
-void mla_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend) {
-    g_task_low_level_access.atomic_int32_add(value, addend);
+mla_int32_t mla_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+    return g_task_low_level_access.atomic_int32_add(value, addend);
 }
 
-void mla_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
-    g_task_low_level_access.atomic_int32_subtract(value, subtrahend);
+mla_int32_t mla_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+    return g_task_low_level_access.atomic_int32_subtract(value, subtrahend);
 }
 
-void mla_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
-    g_task_low_level_access.atomic_int32_exchange(value, newValue);
+mla_int32_t mla_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+    return g_task_low_level_access.atomic_int32_exchange(value, newValue);
 }
 
 mla_bool_t mla_atomic_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {

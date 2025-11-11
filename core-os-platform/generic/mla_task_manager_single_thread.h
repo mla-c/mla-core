@@ -196,24 +196,27 @@ mla_multi_task_mode mla_task_manager_single_thread_multi_task_mode() {
     return MULTI_TASK_MODE_SIMULATED;
 }
 
-void mla_task_manager_single_thread_atomic_int32_increment(mla_atomic_int32_t& value) {
-    value.value++;
+mla_int32_t mla_task_manager_single_thread_atomic_int32_increment(mla_atomic_int32_t& value) {
+    return ++value.value;
 }
 
-void mla_task_manager_single_thread_atomic_int32_decrement(mla_atomic_int32_t& value) {
-    value.value--;
+mla_int32_t mla_task_manager_single_thread_atomic_int32_decrement(mla_atomic_int32_t& value) {
+    return --value.value;
 }
 
-void mla_task_manager_single_thread_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+mla_int32_t mla_task_manager_single_thread_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
     value.value += addend;
+    return value.value;
 }
 
-void mla_task_manager_single_thread_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+mla_int32_t mla_task_manager_single_thread_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
     value.value -= subtrahend;
+    return value.value;
 }
 
-void mla_task_manager_single_thread_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+mla_int32_t mla_task_manager_single_thread_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
     value.value = newValue;
+    return value.value;
 }
 
 mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {

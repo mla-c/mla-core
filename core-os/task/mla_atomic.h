@@ -7,17 +7,13 @@
 
 #include "../mla_data_types.h"
 
-struct mla_atomic_int32_t {
-    volatile mla_int32_t value;
-};
-
 mla_atomic_int32_t mla_atomic_int32(mla_int32_t initialValue);
 
-void mla_atomic_increment(mla_atomic_int32_t& value);
-void mla_atomic_decrement(mla_atomic_int32_t& value);
-void mla_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend);
-void mla_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend);
-void mla_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue);
+mla_int32_t mla_atomic_increment(mla_atomic_int32_t& value);
+mla_int32_t mla_atomic_decrement(mla_atomic_int32_t& value);
+mla_int32_t mla_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend);
+mla_int32_t mla_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend);
+mla_int32_t mla_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue);
 mla_bool_t mla_atomic_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue);
 
 #endif

@@ -84,6 +84,11 @@
 #define mla_byte_min mla_uint8_min
 #define mla_byte_max mla_uint8_max
 
+// Atomic types
+struct mla_atomic_int32_t {
+    volatile mla_int32_t value;
+};
+
 // Methode Visibility
 #define mla_global extern
 

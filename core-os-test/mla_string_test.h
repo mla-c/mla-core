@@ -182,12 +182,12 @@ void AutoMemoryManagementTest() {
             assert_equal(data.length, (mla_uint32_t)46, "Concatenated string length should be 58");
 
             if (data.dataOwner.buffer != nullptr) {
-                assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)1,
+                assert_equal(data.dataOwner.buffer->refCount.value, (mla_int32_t)1,
                              "Reference count should be 1 after concatenation");
                 datacopy = data;
-                assert_equal(data.dataOwner.buffer->refCount, (mla_uint32_t)2,
+                assert_equal(data.dataOwner.buffer->refCount.value, (mla_int32_t)2,
                              "Reference count should be 2 after copying");
-                assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)2,
+                assert_equal(datacopy.dataOwner.buffer->refCount.value, (mla_int32_t)2,
                              "Reference count should be 2 after copying");
                 assert_equal(datacopy.dataOwner.buffer->data, data.dataOwner.buffer->data,
                              "Copied string data should match original");
@@ -199,7 +199,7 @@ void AutoMemoryManagementTest() {
         }
 
         if (datacopy.dataOwner.buffer != nullptr) {
-            assert_equal(datacopy.dataOwner.buffer->refCount, (mla_uint32_t)1,
+            assert_equal(datacopy.dataOwner.buffer->refCount.value, (mla_int32_t)1,
                          "Reference count should be 1 after clearing the original string");
 
             assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
@@ -225,7 +225,7 @@ void SubStringTest() {
 
     // Check memory managemant
     if (sub_str.dataOwner.buffer != nullptr) {
-        assert_equal(sub_str.dataOwner.buffer->refCount, (mla_uint32_t)2,
+        assert_equal(sub_str.dataOwner.buffer->refCount.value, (mla_int32_t)2,
                      "Reference count should be 2 after creating substring");
     } else {
         assert_fail("Data buffer should not be null after concatenation");

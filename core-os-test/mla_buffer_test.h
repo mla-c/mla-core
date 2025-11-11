@@ -47,7 +47,7 @@ void SimpleReleaseTest() {
     my_buffer_test_t container = {data, mla_buffer(data)};
 
     if (container.dataOwner.buffer != nullptr) {
-        assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
+        assert_equal(container.dataOwner.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after creation");
     } else {
         assert_fail("Data buffer should not be null after creation");
     }
@@ -58,7 +58,7 @@ void SimpleReleaseTest() {
         my_buffer_test_t container2 = container; // Copy constructor
 
         if (container2.dataOwner.buffer != nullptr) {
-            assert_equal(container2.dataOwner.buffer->refCount, (mla_size_t)2, "Reference count should be 2 after copy");
+            assert_equal(container2.dataOwner.buffer->refCount.value, (mla_int32_t)2, "Reference count should be 2 after copy");
         } else {
             assert_fail("Data buffer should not be null after copy");
         }
@@ -67,7 +67,7 @@ void SimpleReleaseTest() {
     }
 
     if (container.dataOwner.buffer != nullptr) {
-        assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after copy goes out of scope");
+        assert_equal(container.dataOwner.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after copy goes out of scope");
     } else {
         assert_fail("Data buffer should not be null after copy goes out of scope");
     }
@@ -93,7 +93,7 @@ void CleanUpHookTests() {
     my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, 42)};
 
     if (container.dataOwner.buffer != nullptr) {
-        assert_equal(container.dataOwner.buffer->refCount, (mla_size_t)1, "Reference count should be 1 after creation");
+        assert_equal(container.dataOwner.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after creation");
     } else {
         assert_fail("Data buffer should not be null after creation");
     }
