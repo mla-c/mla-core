@@ -26,6 +26,8 @@ mla_bytes_t mla_bytes_from_buffer_with_ownership(mla_byte_t* p_Data, const mla_s
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes);
 mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String);
 
+mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes);
+
 mla_bytes_t mla_bytes_copy(const mla_bytes_t& p_Bytes);
 
 mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes);

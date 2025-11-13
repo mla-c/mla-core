@@ -99,6 +99,16 @@ void mla_bytes_destroy(mla_bytes_t& p_Bytes) {
 
 }
 
+mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
+
+    if (p_Bytes.data == nullptr || p_Bytes.size == 0) {
+        return mla_string_empty();
+    }
+
+    return { reinterpret_cast<const mla_char_t*>(p_Bytes.data), p_Bytes.size, MLA_STRING_MEMORY_LAYOUT_BUFFER, p_Bytes.dataOwner};
+
+}
+
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
 
     if (p_Bytes.data == nullptr || p_Bytes.size == 0) {

@@ -75,6 +75,10 @@ mla_bool_t mla_network_connection_disconnect(mla_network_connection_t &connectio
     return true;
 }
 
+mla_bool_t mla_network_connection_is_connected(const mla_network_connection_t &connection) {
+    return connection.host.port == 0 || mla_string_is_empty(connection.host.address.address);
+}
+
 mla_network_listener_t mla_network_listener_invalid() {
 
     return {

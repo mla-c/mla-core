@@ -43,6 +43,7 @@ mla_network_connection_t mla_network_connection_disconnected();
 mla_bool_t mla_network_host_resolve(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port);
 mla_bool_t mla_network_connection_connect(mla_network_connection_t &connection, const mla_network_host_t &host, mla_connection_type_t type, mla_size_t timeout_ms);
 mla_bool_t mla_network_connection_disconnect(mla_network_connection_t &connection);
+mla_bool_t mla_network_connection_is_connected(const mla_network_connection_t &connection);
 
 //////////////////////////////////////////////////////////////////
 /// Server Operations
