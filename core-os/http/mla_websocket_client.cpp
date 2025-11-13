@@ -8,6 +8,8 @@
 #include "../system/mla_string_concat.h"
 #include "../utils/mla_endian_utils.h"
 #include "../system/mla_id.h"
+#include "mla_http_utils.h"
+#include "../hash/mla_sha1.h"
 
 // WebSocket frame opcodes
 #define MLA_WEBSOCKET_OPCODE_CONTINUATION 0x00
@@ -54,13 +56,113 @@ mla_websocket_client_t mla_websocket_client_invalid() {
     };
 }
 
+mla_string_t __mla_websocket_client_websocket_key() {
+
+    // Generate random 16-byte WebSocket key
+    mla_bytes_t random_bytes = mla_bytes(16);
+    mla_byte_t *key_data = mla_bytes_get_data_for_writing(random_bytes);
+    for (mla_size_t i = 0; i < 16; i++) {
+        key_data[i] = (mla_byte_t)(mla_random_uint32() & 0xFF);
+    }
+    return mla_bytes_to_base64(random_bytes);
+
+}
+
 mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_network_host_t &host,
                                         mla_size_t timeout_ms) {
-    (void)client;
-    (void)host;
-    (void)timeout_ms;
-    return false;
+    // Create TCP connection
+    mla_network_connection_t connection = mla_network_connection_disconnected();
+    if (!mla_network_connection_connect(connection, host, mla_connection_type_tcp, timeout_ms)) {
+        return false;
+    }
+
+    mla_stream_output_t &output = connection.outputStream;
+    mla_stream_input_t &input = connection.inputStream;
+
+    // Generate random WebSocket key (16 bytes, base64 encoded)
+    mla_string_t ws_key = __mla_websocket_client_websocket_key();
+
+    // Build HTTP upgrade request
+    if (!mla_stream_output_write_string(output, mla_string_const("GET / HTTP/1.1\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("Host: "))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, host.address.address)) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("Upgrade: websocket\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("Connection: Upgrade\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("Sec-WebSocket-Key: "))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, ws_key)) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("Sec-WebSocket-Version: 13\r\n"))) {
+        return false;
+    }
+    if (!mla_stream_output_write_string(output, mla_string_const("\r\n"))) {
+        return false;
+    }
+
+    // Read status line
+    mla_string_t status_line = mla_string_empty();
+    if (!mla_http_utils_read_line(input, status_line, timeout_ms)) {
+        return false;
+    }
+
+    // Verify "HTTP/1.1 101"
+    if (!mla_string_starts_with(status_line, mla_string_const("HTTP/1.1 101"))) {
+        return false;
+    }
+
+    // Read and verify headers
+    mla_array_list_t<mla_http_header_t, mla_http_header_initializer> headers = mla_array_list<mla_http_header_t, mla_http_header_initializer>();
+    if (!mla_http_utils_read_headers(headers, input, timeout_ms)) {
+        return false;
+    }
+
+    // Verify Upgrade: websocket header
+    mla_string_t upgrade = mla_http_headers_get_value(headers, mla_string_const("Upgrade"));
+    if (!mla_string_equals_const(upgrade, "websocket")) {
+        return false;
+    }
+
+
+
+    // Verify Sec-WebSocket-Accept header
+    mla_string_t accept_header = mla_http_headers_get_value(headers, mla_string_const("Sec-WebSocket-Accept"));
+    if (mla_string_is_empty(accept_header)) {
+        return false;
+    }
+
+    // Compute expected accept value: base64(sha1(key + GUID))
+    mla_string_t key_with_guid = mla_string_concat(ws_key, mla_string_const("258EAFA5-E914-47DA-95CA-C5AB0DC85B11"));
+    mla_bytes_t hash = mla_sha1(mla_bytes_from_string(key_with_guid));
+    mla_string_t expected_accept = mla_bytes_to_base64(hash);
+
+    // Verify accept header matches
+    if (!mla_string_equals(accept_header, expected_accept)) {
+        return false;
+    }
+
+    // Connection successful, store it
+    client.connection = connection;
+    return true;
 }
+
 
 mla_bool_t __mla_websocket_client_send_masking_key(mla_stream_output_t &output, mla_uint8_t (&masking_key)[MLA_WEBSOCKET_MASKING_KEY_SIZE]) {
 

@@ -109,6 +109,25 @@ mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
 
 }
 
+mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String) {
+
+    if (p_String.data == nullptr || p_String.length == 0) {
+        return mla_bytes_empty();
+    }
+
+    mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_malloc(p_String.length));
+
+    if (buffer == nullptr) {
+        return mla_bytes_empty();
+    }
+
+    return {
+        buffer,
+        p_String.length,
+        p_String.dataOwner
+    };
+}
+
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
 
     if (p_Bytes.data == nullptr || p_Bytes.size == 0) {
