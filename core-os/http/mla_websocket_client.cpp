@@ -7,6 +7,7 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 #include "../utils/mla_endian_utils.h"
+#include "../system/mla_id.h"
 
 mla_websocket_client_t mla_websocket_client_invalid() {
     return {
@@ -23,84 +24,15 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
     return false;
 }
 
-mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_uint16_t status_code,
-                                           const mla_string_t &reason) {
-    if (!mla_network_connection_is_connected(client.connection))
-        return true;
+mla_bool_t __mla_websocket_client_send_masking_key(mla_stream_output_t &output, mla_uint8_t (&masking_key)[4]) {
 
-    mla_stream_output_t &output = client.connection.outputStream;
-
-    // Calculate response payload length (2 bytes for status code + reason length)
-    mla_size_t reason_length = reason.length;
-    mla_size_t response_length = 2 + reason_length;
-
-    // Byte 0: FIN + Close opcode
-    mla_uint8_t fin_and_opcode = 0x88;
-    output.write(output, 0, 1, &fin_and_opcode);
-
-    // Byte 1: MASK bit + payload length
-    if (response_length < 126) {
-        mla_uint8_t mask_and_length = 0x80 | (mla_uint8_t) response_length;
-        output.write(output, 0, 1, &mask_and_length);
-    } else if (response_length < 65536) {
-        mla_uint8_t mask_and_length = 0x80 | 126;
-        output.write(output, 0, 1, &mask_and_length);
-        mla_uint16_t extended_length = mla_host_to_be_uint16((mla_uint16_t) response_length);
-        output.write(output, 0, 2, (mla_byte_t *) &extended_length);
-    } else {
-        mla_uint8_t mask_and_length = 0x80 | 127;
-        output.write(output, 0, 1, &mask_and_length);
-        mla_uint64_t extended_length = mla_host_to_be_uint64(response_length);
-        output.write(output, 0, 8, (mla_byte_t *) &extended_length);
-    }
-
-    // Generate masking key
-    mla_uint8_t masking_key[4];
     for (int i = 0; i < 4; i++) {
-        masking_key[i] = rand() & 0xFF;
+        masking_key[i] = mla_random_uint32() & 0xFF;
     }
-    output.write(output, 0, 4, masking_key);
-
-    // Write masked status code (big-endian)
-    mla_uint16_t status_be = mla_host_to_be_uint16(status_code);
-    mla_uint8_t *status_bytes = (mla_uint8_t *) &status_be;
-    for (int i = 0; i < 2; i++) {
-        mla_uint8_t masked_byte = status_bytes[i] ^ masking_key[i];
-        output.write(output, 0, 1, &masked_byte);
-    }
-
-    for (int i = 0; i < 2; i++) {
-        mla_uint8_t masked_byte = status_bytes[i] ^ masking_key[i];
-        output.write(output, 0, 1, &masked_byte);
-    }
-
-    // Write masked reason string
-    for (mla_size_t i = 0; i < reason_length; i++) {
-        mla_uint8_t masked_byte = reason.data[i] ^ masking_key[(i + 2) % 4];
-        output.write(output, 0, 1, &masked_byte);
-    }
-
-    client = mla_websocket_client_invalid();
-    return true;
+    return output.write(output, 0, 4, masking_key) == 4;
 }
 
-mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message,
-                                                  mla_bool_t is_final) {
-    if (!mla_network_connection_is_connected(client.connection))
-        return false;
-
-    // Sending the text message
-
-    mla_stream_output_t &output = client.connection.outputStream;
-
-    // Byte 0: FIN bit + opcode (0x01 for text)
-    mla_uint8_t fin_and_opcode = (is_final ? 0x80 : 0x00) | 0x01;
-
-    if (output.write(output, 0, 1, &fin_and_opcode) != 1)
-        return false;
-
-    // Payload length
-    mla_size_t payload_length = message.length;
+mla_bool_t __mla_websocket_client_write_message_length(mla_stream_output_t &output, mla_size_t payload_length) {
 
     if (payload_length < 126) {
         mla_uint8_t mask_and_length = 0x80 | (mla_uint8_t) payload_length;
@@ -127,13 +59,81 @@ mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client
             return false;
     }
 
-    // Generate and write masking key
+    return true;
+
+}
+
+mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_uint16_t status_code,
+                                           const mla_string_t &reason) {
+    if (!mla_network_connection_is_connected(client.connection))
+        return true;
+
+    mla_stream_output_t &output = client.connection.outputStream;
+
+    // Calculate response payload length (2 bytes for status code + reason length)
+    mla_size_t reason_length = reason.length;
+    mla_size_t response_length = 2 + reason_length;
+
+    // Byte 0: FIN + Close opcode
+    mla_uint8_t fin_and_opcode = 0x88;
+    output.write(output, 0, 1, &fin_and_opcode);
+
+    if (!__mla_websocket_client_write_message_length(output, response_length))
+        return false;
+
+    // Generate masking key
     mla_uint8_t masking_key[4];
-    for (int i = 0; i < 4; i++) {
-        masking_key[i] = rand() & 0xFF;
+    __mla_websocket_client_send_masking_key(output, masking_key);
+
+    // Write masked status code (big-endian)
+    mla_uint16_t status_be = mla_host_to_be_uint16(status_code);
+    mla_uint8_t *status_bytes = (mla_uint8_t *) &status_be;
+    for (int i = 0; i < 2; i++) {
+        mla_uint8_t masked_byte = status_bytes[i] ^ masking_key[i];
+        output.write(output, 0, 1, &masked_byte);
     }
 
-    if (output.write(output, 0, 4, masking_key) != 4)
+    for (int i = 0; i < 2; i++) {
+        mla_uint8_t masked_byte = status_bytes[i] ^ masking_key[i];
+        output.write(output, 0, 1, &masked_byte);
+    }
+
+    // Write masked reason string
+    for (mla_size_t i = 0; i < reason_length; i++) {
+        mla_uint8_t masked_byte = reason.data[i] ^ masking_key[(i + 2) % 4];
+        output.write(output, 0, 1, &masked_byte);
+    }
+
+    client = mla_websocket_client_invalid();
+    return true;
+}
+
+
+
+mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message,
+                                                  mla_bool_t is_final) {
+    if (!mla_network_connection_is_connected(client.connection))
+        return false;
+
+    // Sending the text message
+
+    mla_stream_output_t &output = client.connection.outputStream;
+
+    // Byte 0: FIN bit + opcode (0x01 for text)
+    mla_uint8_t fin_and_opcode = (is_final ? 0x80 : 0x00) | 0x01;
+
+    if (output.write(output, 0, 1, &fin_and_opcode) != 1)
+        return false;
+
+    // Payload length
+    mla_size_t payload_length = message.length;
+
+    if (!__mla_websocket_client_write_message_length(output, payload_length))
+        return false;
+
+    // Generate and write masking key
+    mla_uint8_t masking_key[4];
+    if (!__mla_websocket_client_send_masking_key(output, masking_key))
         return false;
 
     // Mask and write payload
@@ -164,38 +164,12 @@ mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &clie
     // Payload length
     mla_size_t payload_length = message.size;
 
-    if (payload_length < 126) {
-        mla_uint8_t mask_and_length = 0x80 | (mla_uint8_t) payload_length;
-        if (output.write(output, 0, 1, &mask_and_length) != 1)
-            return false;
-    } else if (payload_length < 65536) {
-        mla_uint8_t mask_and_length = 0x80 | 126;
-
-        if (output.write(output, 0, 1, &mask_and_length) != 1)
-            return false;
-
-        mla_uint16_t extended_length = mla_host_to_be_uint16((mla_uint16_t) payload_length);
-
-        if (output.write(output, 0, 2, (mla_byte_t *) &extended_length) != 2)
-            return false;
-    } else {
-        mla_uint8_t mask_and_length = 0x80 | 127;
-        if (output.write(output, 0, 1, &mask_and_length) != 1)
-            return false;
-
-        mla_uint64_t extended_length = mla_host_to_be_uint64(payload_length);
-
-        if (output.write(output, 0, 8, (mla_byte_t *) &extended_length) != 8)
-            return false;
-    }
+    if (!__mla_websocket_client_write_message_length(output, payload_length))
+        return false;
 
     // Generate and write masking key
     mla_uint8_t masking_key[4];
-    for (int i = 0; i < 4; i++) {
-        masking_key[i] = rand() & 0xFF;
-    }
-
-    if (output.write(output, 0, 4, masking_key) != 4)
+    if (!__mla_websocket_client_send_masking_key(output, masking_key))
         return false;
 
     // Mask and write payload
@@ -213,6 +187,7 @@ mla_bool_t __mla_mla_websocket_client_read(mla_stream_input_t &input, mla_size_t
                                            mla_size_t timeout_ms) {
     mla_size_t total_read = 0;
     mla_size_t elapsed_time = 0;
+
     const mla_int32_t sleep_interval = 10; // milliseconds
 
     while (total_read < size) {
@@ -259,12 +234,15 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
 
         // Read extended payload length if needed
         if (payload_length == 126) {
+
             mla_uint16_t extended_length;
             if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint16_t), (mla_byte_t *) &extended_length,
                                                  timeout_ms))
                 return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
             payload_length = mla_be_to_host_uint16(extended_length);
+
         } else if (payload_length == 127) {
+
             mla_uint64_t extended_length;
             if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint64_t), (mla_byte_t *) &extended_length,
                                                  timeout_ms))
