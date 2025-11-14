@@ -34,9 +34,11 @@ mla_double_t mla_host_to_le_double(mla_double_t val);
 
 mla_uint16_t mla_host_to_be_uint16(mla_uint16_t val);
 mla_uint64_t mla_host_to_be_uint64(mla_uint64_t val);
+mla_uint32_t mla_host_to_be_uint32(mla_uint32_t val);
 
 mla_uint16_t mla_be_to_host_uint16(mla_uint16_t val);
 mla_uint64_t mla_be_to_host_uint64(mla_uint64_t val);
+mla_uint32_t mla_be_to_host_uint32(mla_uint32_t val);
 
 // Little endian to host (same functions, just with more descriptive names)
 #define mla_le_to_host_int16 mla_host_to_le_int16

@@ -90,10 +90,18 @@ mla_uint64_t mla_host_to_be_uint64(mla_uint64_t val) {
     return MLA_BIG_ENDIAN ? val : mla_swap_uint64(val);
 }
 
+mla_uint32_t mla_host_to_be_uint32(mla_uint32_t val) {
+    return MLA_BIG_ENDIAN ? val : mla_swap_uint32(val);
+}
+
 mla_uint16_t mla_be_to_host_uint16(mla_uint16_t val) {
     return MLA_BIG_ENDIAN ? val : mla_swap_uint16(val);
 }
 
 mla_uint64_t mla_be_to_host_uint64(mla_uint64_t val) {
     return MLA_BIG_ENDIAN ? val : mla_swap_uint64(val);
+}
+
+mla_uint32_t mla_be_to_host_uint32(mla_uint32_t val) {
+    return MLA_BIG_ENDIAN ? val : mla_swap_uint32(val);
 }

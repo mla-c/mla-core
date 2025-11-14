@@ -115,11 +115,7 @@ mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String) {
         return mla_bytes_empty();
     }
 
-    mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_malloc(p_String.length));
-
-    if (buffer == nullptr) {
-        return mla_bytes_empty();
-    }
+    const mla_byte_t* buffer = reinterpret_cast<const mla_byte_t*>(p_String.data);
 
     return {
         buffer,
