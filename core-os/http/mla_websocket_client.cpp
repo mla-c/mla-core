@@ -401,7 +401,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
         }
 
         // Read and unmask payload
-        if (payload_length > SIZE_MAX) {
+        if (payload_length > mla_size_max) {
             // Payload too large to handle
             mla_warning(mla_string_concat("WebSocket client received payload too large: ", mla_string_from_uint64(payload_length)));
             return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
