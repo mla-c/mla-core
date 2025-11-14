@@ -58,10 +58,10 @@ struct mla_websocket_client_t {
  * when attempting to receive a message.
  */
 enum mla_websocket_client_message_receive_type_t: mla_uint8_t {
-    MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TEXT,    ///< Text message received
-    MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_BINARY,  ///< Binary message received
-    MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_CLOSED,  ///< Connection is already closed
-    MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT     ///< No message received (timeout)
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,    ///< Text message received
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_BINARY,  ///< Binary message received
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED,  ///< Connection is already closed
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT     ///< No message received (timeout)
 };
 
 /**
@@ -70,14 +70,20 @@ enum mla_websocket_client_message_receive_type_t: mla_uint8_t {
  */
 mla_websocket_client_t mla_websocket_client_invalid();
 
+mla_websocket_binary_message_t mla_websocket_binary_message_empty();
+mla_websocket_text_message_t mla_websocket_text_message_empty();
+
 /**
  * @brief Establishes a WebSocket connection to a remote host.
  * @param client The WebSocket client to initialize.
- * @param host The target host information (address, port, path).
+ * @param url The target host information (address, port, path).
  * @param timeout_ms Connection timeout in milliseconds.
  * @return True if connection successful, false otherwise.
  */
-mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_network_host_t &host, mla_size_t timeout_ms);
+mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url, mla_size_t timeout_ms);
+
+
+mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &client);
 
 /**
  * @brief Closes the WebSocket connection.
@@ -85,6 +91,9 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
  * @return True if disconnection successful, false otherwise.
  */
 mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client);
+mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_uint16_t status_code,
+                                           const mla_string_t &reason);
+
 
 /**
  * @brief Sends a text message over the WebSocket connection.

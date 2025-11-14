@@ -10,6 +10,7 @@
 #include "../system/mla_id.h"
 #include "mla_http_utils.h"
 #include "../hash/mla_sha1.h"
+#include "../url/mla_url.h"
 
 // WebSocket frame opcodes
 #define MLA_WEBSOCKET_OPCODE_CONTINUATION 0x00
@@ -56,6 +57,20 @@ mla_websocket_client_t mla_websocket_client_invalid() {
     };
 }
 
+mla_websocket_binary_message_t mla_websocket_binary_message_empty() {
+    return {
+        true,
+        mla_bytes_empty()
+    };
+}
+
+mla_websocket_text_message_t mla_websocket_text_message_empty() {
+    return {
+        true,
+        mla_string_empty()
+    };
+}
+
 mla_string_t __mla_websocket_client_websocket_key() {
 
     // Generate random 16-byte WebSocket key
@@ -68,8 +83,25 @@ mla_string_t __mla_websocket_client_websocket_key() {
 
 }
 
-mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_network_host_t &host,
+mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &client) {
+    return mla_network_connection_is_connected(client.connection);
+}
+
+mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url,
                                         mla_size_t timeout_ms) {
+
+    mla_url_t parsed_url = mla_url_empty();
+
+    if (!mla_url_parse(url, parsed_url)) {
+        return false;
+    }
+
+    mla_network_host_t host = mla_network_host_invalid();
+
+    if (!mla_network_host_resolve(host, parsed_url.host, parsed_url.port)) {
+        return false;
+    }
+
     // Create TCP connection
     mla_network_connection_t connection = mla_network_connection_disconnected();
     if (!mla_network_connection_connect(connection, host, mla_connection_type_tcp, timeout_ms)) {
@@ -83,13 +115,23 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
     mla_string_t ws_key = __mla_websocket_client_websocket_key();
 
     // Build HTTP upgrade request
-    if (!mla_stream_output_write_string(output, mla_string_const("GET / HTTP/1.1\r\n"))) {
+    if (!mla_stream_output_write_string(output, mla_string_const("GET "))) {
+        return false;
+    }
+
+    mla_string_t pathAndQuery = mla_url_to_string_pathAndQuery(parsed_url);
+
+    if (!mla_stream_output_write_string(output, pathAndQuery)) {
+        return false;
+    }
+
+    if (!mla_stream_output_write_string(output, mla_string_const(" HTTP/1.1\r\n"))) {
         return false;
     }
     if (!mla_stream_output_write_string(output, mla_string_const("Host: "))) {
         return false;
     }
-    if (!mla_stream_output_write_string(output, host.address.address)) {
+    if (!mla_stream_output_write_string(output, parsed_url.host)) {
         return false;
     }
     if (!mla_stream_output_write_string(output, mla_string_const("\r\n"))) {
@@ -203,6 +245,10 @@ mla_bool_t __mla_websocket_client_write_message_length(mla_stream_output_t &outp
 
     return true;
 
+}
+
+mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client) {
+    return mla_websocket_client_disconnect(client, MLA_WEBSOCKET_CLOSE_NORMAL, mla_string_empty());
 }
 
 mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_uint16_t status_code,
@@ -354,14 +400,14 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
     for (mla_size_t repeatCount = 0; repeatCount < MLA_WEBSOCKET_MAX_MESSAGES_PER_CALL; repeatCount++) {
 
         if (!mla_network_connection_is_connected(client.connection))
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_CLOSED;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED;
 
         mla_stream_input_t &input = client.connection.inputStream;
 
         // Read first byte (FIN + opcode)
         mla_uint8_t fin_and_opcode;
         if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, timeout_ms))
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
 
         mla_bool_t is_final = (fin_and_opcode & MLA_WEBSOCKET_FIN_BIT) != 0;
         mla_uint8_t opcode = fin_and_opcode & MLA_WEBSOCKET_OPCODE_MASK;
@@ -369,7 +415,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
         // Read second byte (MASK + payload length)
         mla_uint8_t mask_and_length;
         if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint8_t), &mask_and_length, timeout_ms))
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
 
         mla_bool_t is_masked = (mask_and_length & MLA_WEBSOCKET_MASK_BIT) != 0;
         mla_uint64_t payload_length = mask_and_length & MLA_WEBSOCKET_LENGTH_MASK;
@@ -380,7 +426,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
             mla_uint16_t extended_length;
             if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint16_t), (mla_byte_t *) &extended_length,
                                                  timeout_ms))
-                return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             payload_length = mla_be_to_host_uint16(extended_length);
 
         } else if (payload_length == MLA_WEBSOCKET_LENGTH_64BIT) {
@@ -388,7 +434,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
             mla_uint64_t extended_length;
             if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint64_t), (mla_byte_t *) &extended_length,
                                                  timeout_ms))
-                return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
 
             payload_length = mla_be_to_host_uint64(extended_length);
         }
@@ -397,28 +443,28 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
         mla_uint8_t masking_key[MLA_WEBSOCKET_MASKING_KEY_SIZE] = {0};
         if (is_masked) {
             if (!__mla_mla_websocket_client_read(input, sizeof(masking_key), masking_key, timeout_ms))
-                return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
         // Read and unmask payload
         if (payload_length > mla_size_max) {
             // Payload too large to handle
             mla_warning(mla_string_concat("WebSocket client received payload too large: ", mla_string_from_uint64(payload_length)));
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
         mla_bytes_t payload = mla_bytes((mla_size_t)payload_length);
         mla_byte_t *payload_write = mla_bytes_get_data_for_writing(payload);
 
         if (payload_write == nullptr) {
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
         for (mla_size_t i = 0; i < payload_length; i++) {
             mla_uint8_t byte = 0;
 
             if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint8_t), &byte, timeout_ms)) {
-                return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             }
             payload_write[i] = is_masked ? (byte ^ masking_key[i % MLA_WEBSOCKET_MASKING_KEY_SIZE]) : byte;
         }
@@ -431,7 +477,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
                 is_final,
                 mla_bytes_to_string(payload)
             };
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TEXT;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT;
 
         } else if (opcode == MLA_WEBSOCKET_OPCODE_BINARY) {
             // Binary message
@@ -441,7 +487,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
                 payload
             };
 
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_BINARY;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_BINARY;
         } else if (opcode == MLA_WEBSOCKET_OPCODE_CLOSE) {
             // Close
 
@@ -454,7 +500,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
 
             mla_websocket_client_disconnect(client, status_code, mla_string_empty());
 
-            return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_CLOSED;
+            return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED;
         } else if (opcode == MLA_WEBSOCKET_OPCODE_PING) {
             // Ping
 
@@ -463,13 +509,13 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
             mla_uint8_t pong_frame[2] = {MLA_WEBSOCKET_PONG_FRAME_HEADER, (mla_uint8_t) payload_length}; // FIN + Pong opcode
 
             if (output.write(output, 0, 2, pong_frame) != 2) {
-                return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             }
 
             // Echo payload if present
             if (payload_length > 0) {
                 if (output.write(output, 0, (mla_size_t)payload_length, payload.data) != (mla_size_t)payload_length) {
-                    return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+                    return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
                 }
             }
 
@@ -489,5 +535,5 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
 
     }
 
-    return MLA_WEBSOCKET_CLIENT_MESSAGE_TYPE_TIMEOUT;
+    return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
 }
