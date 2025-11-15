@@ -31,6 +31,7 @@ void SimpleLocalEchoTest() {
 }
 
 void RegisterWebsocketClientTests(mla_test_executor_t &p_TestExecutor) {
+
     (void)p_TestExecutor;
     //mla_test_t test = mla_test("SimpleLocalEcho", test_category, SimpleLocalEchoTest);
     //mla_test_executor_register_test(p_TestExecutor, test);
