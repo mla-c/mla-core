@@ -13,6 +13,7 @@ struct mla_rw_lock_t {
     const mla_int32_t readerCount; // Count of active readers
 };
 
+mla_rw_lock_t mla_rw_lock_invalid();
 mla_rw_lock_t mla_rw_lock(const mla_string_t &name);
 mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
 mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);

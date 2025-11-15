@@ -9,6 +9,7 @@
 #include "mla_http_response.h"
 #include "../network/mla_network.h"
 #include "../task/mla_mutx.h"
+#include "../task/mla_rw_lock.h"
 
 enum mla_http_server_status_t: mla_uint8_t {
     MLA_HTTP_SERVER_STATUS_STOPPED,
@@ -56,6 +57,7 @@ struct mla_http_server_handler_item_initializer {
 struct mla_http_server_websocket_connection_t {
     mla_network_connection_t connection;
     mla_string_t id;
+    mla_mutex_t lock;
 };
 
 mla_http_server_websocket_connection_t mla_http_server_websocket_connection_invalid();
@@ -103,6 +105,7 @@ struct mla_http_server_t {
     mla_array_list_t<mla_http_server_handler_item_t, mla_http_server_handler_item_initializer> handlers;
     mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer> websocketHandlers;
     mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> websocketConnections;
+    mla_rw_lock_t websocketConnectionsLock;
     mla_network_host_t host;
     mla_network_listener_t listener;
     mla_mutex_t listenerLock;

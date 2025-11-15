@@ -4,6 +4,14 @@
 
 #include "mla_rw_lock.h"
 
+mla_rw_lock_t mla_rw_lock_invalid() {
+    return {
+        mla_mutex_invalid(),
+        mla_mutex_invalid(),
+        0,
+    };
+}
+
 mla_rw_lock_t mla_rw_lock(const mla_string_t &name) {
     mla_rw_lock_t lock = {
         mla_mutex(mla_string_concat(name, " writer lock")),
