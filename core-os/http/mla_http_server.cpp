@@ -11,6 +11,8 @@
 #include "../system/mla_number.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
+#define mla_websocket_handler_item_array_param mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer
+#define mla_websocket_connection_array_param mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer
 
 mla_http_server_handler_item_t mla_http_server_handler(const mla_string_t &http_method,
                                                        const mla_callback_userdata &userdata,
@@ -36,6 +38,18 @@ mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_callback_user
     mla_string_t str_prefix = mla_string_from_buffer_without_ownership(pathPrefix, mla_strlen(pathPrefix));
 
     return mla_string_starts_with(url, str_prefix);
+}
+
+mla_bool_t __mla_http_server_handler_equals_checker(const mla_callback_userdata &userdata,
+                                                         const mla_string_t &url) {
+    mla_char_t *pathPrefix = reinterpret_cast<mla_char_t *>(userdata);
+
+    if (pathPrefix == nullptr)
+        return false;
+
+    mla_string_t str_prefix = mla_string_from_buffer_without_ownership(pathPrefix, mla_strlen(pathPrefix));
+
+    return mla_string_equals(url, str_prefix);
 }
 
 mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method,
@@ -87,6 +101,47 @@ mla_http_server_handler_item_t mla_http_server_handler_invalid() {
     };
 }
 
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler(const mla_callback_userdata& userdata, const mla_http_request_handler_checker_t& checker, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler, const mla_buffer_reference_t& userDataOwner) {
+    return {
+        userdata,
+        checker,
+        text_message_handler,
+        binary_message_handler,
+        userDataOwner
+    };
+}
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_equals(mla_string_t path, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler) {
+
+    mla_c_string_t c_string = mla_string_to_cString(path, true);
+
+    if (c_string.c_str == nullptr) {
+        return mla_http_server_websocket_handler_invalid();
+    }
+
+    if (!c_string.isOwner) {
+        return mla_http_server_websocket_handler_invalid();
+    }
+
+    return {
+        reinterpret_cast<mla_callback_userdata>(c_string.c_str),
+        __mla_http_server_handler_equals_checker,
+        text_message_handler,
+        binary_message_handler,
+        mla_buffer_reference(c_string.c_str, true)
+    };
+}
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_invalid() {
+    return {
+        0,
+        nullptr,
+        nullptr,
+        nullptr,
+        mla_buffer_reference_noOwner()
+    };
+}
+
 
 struct mla_http_server_internal_resource_cleanup_userdata {
     mla_array_list_t<mla_string_t, mla_string_initializer> active_tasks;
@@ -95,6 +150,8 @@ struct mla_http_server_internal_resource_cleanup_userdata {
 mla_http_server_t mla_http_server_invalid() {
     return {
         mla_array_list_empty<mla_handler_item_array_param>(),
+        mla_array_list_empty<mla_websocket_handler_item_array_param>(),
+        mla_array_list_empty<mla_websocket_connection_array_param>(),
         mla_network_host_invalid(),
         mla_network_listener_invalid(),
         mla_mutex_invalid(),
@@ -107,6 +164,8 @@ mla_http_server_t mla_http_server_invalid() {
 mla_http_server_t mla_http_server(const mla_network_host_t &host) {
     return {
         mla_array_list_empty<mla_handler_item_array_param>(),
+        mla_array_list_empty<mla_websocket_handler_item_array_param>(),
+        mla_array_list_empty<mla_websocket_connection_array_param>(),
         host,
         mla_network_listener_invalid(),
         mla_mutex(mla_string_concat("HttpServerListenerLock_", host.address.address, ":",
@@ -130,6 +189,24 @@ mla_bool_t mla_http_server_register_handler(mla_http_server_t &server,
     }
 
     mla_bool_t result = mla_array_list_add(server.handlers, handlerItem);
+
+    mla_mutex_unlock(server.listenerLock);
+    return result;
+}
+
+mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server, const mla_http_server_websocket_handler_item_t& handlerItem) {
+
+    if (!mla_mutex_lock(server.listenerLock)) {
+        return false;
+    }
+
+    if (server.status == MLA_HTTP_SERVER_STATUS_RUNNING) {
+        mla_mutex_unlock(server.listenerLock);
+        mla_error("Cannot register websocket handler while server is running");
+        return false;
+    }
+
+    mla_bool_t result = mla_array_list_add(server.websocketHandlers, handlerItem);
 
     mla_mutex_unlock(server.listenerLock);
     return result;
