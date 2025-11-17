@@ -8,7 +8,7 @@
 #include "mla_mutx.h"
 
 struct mla_rw_lock_state_t {
-    const mla_int32_t readerCount; // Count of active readers
+    mla_int32_t readerCount; // Count of active readers
 };
 
 struct mla_rw_lock_t {

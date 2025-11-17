@@ -48,8 +48,7 @@ mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const 
             return false;
         }
 
-        mla_int32_t *lockCounterRef = const_cast<mla_int32_t *>(&(lock.state)->readerCount);
-        (*lockCounterRef)++; // Increment the reader count
+        lock.state->readerCount++;
         mla_mutex_try_unlock(lock.readerLock, source, line);
         successfull = true; // Successfully acquired the read lock
     }
@@ -71,10 +70,8 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
             return true;
         }
 
-        mla_int32_t *lockCounterRef = const_cast<mla_int32_t *>(&(lock.state)->readerCount);
-
-        if (*lockCounterRef > 0) {
-            (*lockCounterRef)--; // Decrement the reader count
+        if (lock.state->readerCount > 0) {
+            lock.state->readerCount--;
             successfull = true; // Successfully unlocked the read lock
         } else {
             mla_error(mla_string_concat("Try to unlock reader by no read active ", lock.readerLock.name));
