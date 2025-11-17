@@ -12,6 +12,7 @@
 #include "mla_http_data_types.h"
 
 // Http Status codes
+#define mla_http_status_switching_protocols ((mla_uint16_t)101)
 #define mla_http_status_ok ((mla_uint16_t)200)
 #define mla_http_status_created ((mla_uint16_t)201)
 #define mla_http_status_accepted ((mla_uint16_t)202)

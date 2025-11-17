@@ -10,6 +10,7 @@
 #include "../system/mla_id.h"
 #include "../system/mla_number.h"
 #include "mla_websocket_utils.h"
+#include "../hash/mla_sha1.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
 #define mla_websocket_handler_item_array_param mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer
@@ -106,7 +107,26 @@ mla_http_server_websocket_connection_t mla_http_server_websocket_connection_inva
     return {
         mla_network_connection_disconnected(),
         mla_string_empty(),
-        mla_mutex_invalid()
+        mla_mutex_invalid(),
+        0,
+        nullptr,
+        nullptr,
+        mla_buffer_reference_noOwner()
+    };
+}
+
+mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem) {
+
+    const mla_string_t id = mla_generate_runtime_id();
+
+    return {
+        connection,
+        id,
+        mla_mutex(mla_string_concat("WebSocketConn_", id)),
+        handlerItem.userdata,
+        handlerItem.text_executor,
+        handlerItem.binary_executor,
+        handlerItem.userDataOwner
     };
 }
 
@@ -205,7 +225,7 @@ mla_bool_t mla_http_server_register_handler(mla_http_server_t &server,
         return false;
     }
 
-    mla_bool_t result = mla_array_list_add(server.handlers, handlerItem);
+    mla_bool_t result = mla_array_list_add(server.httpHandlers, handlerItem);
 
     mla_mutex_unlock(server.listenerLock);
     return result;
@@ -337,6 +357,17 @@ mla_bool_t __mla_http_server_response_send(const mla_network_connection_t &conne
     return true;
 }
 
+mla_string_t __mla_http_server_compute_websocket_accept(const mla_string_t& secWebSocketKey) {
+    const mla_string_t guid = mla_string_const("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+    mla_string_t input = mla_string_concat(secWebSocketKey, guid);
+
+    mla_bytes_t inputBytes = mla_bytes_from_string(input);
+    mla_bytes_t digest = mla_sha1(inputBytes);
+    mla_string_t accept = mla_bytes_to_base64(digest);
+    return accept;
+}
+
+
 mla_task_process_result_state __mla_http_server_handler_new_request(mla_callback_userdata userData) {
 
     mla_http_server_t& server = *reinterpret_cast<mla_http_server_t *>(userData);
@@ -384,13 +415,15 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_callback
         return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
     }
 
-    mla_array_list_t<mla_http_server_handler_item_t, mla_http_server_handler_item_initializer> copyHandlers = server.
-            handlers;
+    mla_array_list_t<mla_handler_item_array_param> copyHandlers = server.
+            httpHandlers;
 
     mla_http_response_t response = mla_http_response_empty();
     response.version = request.version;
     response.statusCode = 404; // Default to Not Found
     response.statusMessage = mla_string_const("Not Found");
+
+    mla_bool_t processed = false;
 
     // Find a handler for the request
     for (mla_size_t i = 0; i < mla_array_list_size(copyHandlers); i++) {
@@ -415,6 +448,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_callback
                 response.statusMessage = mla_string_const("Internal Server Error");
             }
         }
+        processed = true;
 
         break;
     }
@@ -424,15 +458,101 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_callback
         return TASK_PROCESS_RESULT_DONE; // Server stopped while accepting, exit task
     }
 
+    if (!processed) {
+
+        // Check for websocket handlers
+        mla_array_list_t<mla_websocket_handler_item_array_param> copyWebsocketHandlers = server.
+            websocketHandlers;
+
+        // Find a handler for the request
+        for (mla_size_t i = 0; i < mla_array_list_size(copyWebsocketHandlers); i++) {
+
+            mla_http_server_websocket_handler_item_t &handlerItem = mla_array_list_get_unsafe(copyWebsocketHandlers, i);
+
+            if (handlerItem.checker == nullptr) {
+                continue; // No checker function, skip
+            }
+
+            if (!handlerItem.checker(handlerItem.userdata, request.url)) {
+                continue; // Checker returned false, skip
+            }
+
+            // ... inside the websocket handler match block ...
+            // 1) Validate and compute accept
+            mla_string_t wsKey = mla_http_headers_get_value(request.headers, mla_string_const("Sec-WebSocket-Key"));
+            if (mla_string_is_empty(wsKey)) {
+                // Reject bad handshake
+                response.statusCode = 400;
+                response.statusMessage = mla_string_const("Bad Request");
+                break;
+            }
+
+            mla_string_t accept = __mla_http_server_compute_websocket_accept(wsKey);
+
+            // 2) Build 101 response (no body)
+            response.statusCode = mla_http_status_switching_protocols; // 101
+            response.statusMessage = mla_string_const("Switching Protocols");
+            mla_http_headers_add(response.headers, mla_string_const("Connection"), mla_string_const("Upgrade"));
+            mla_http_headers_add(response.headers, mla_string_const("Upgrade"), mla_string_const("websocket"));
+            mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Accept"), accept);
+            response.content = mla_stream_noop_input(); // ensure no body
+
+            // 3) Register the WebSocket connection and keep it open
+            mla_http_server_websocket_connection_t ws_connection = mla_http_server_websocket_connection(clientConnection, handlerItem);
+
+            if (mla_rw_lock_write(server.websocketConnectionsLock)) {
+                mla_array_list_add(server.websocketConnections, ws_connection);
+                mla_rw_unlock_write(server.websocketConnectionsLock);
+            }
+
+            processed = true;
+            break;
+
+        }
+    }
+
+    // Regular Http response
     if (!__mla_http_server_response_send(clientConnection, response)) {
         mla_warning(
             mla_string_concat("Failed to send HTTP response to client ", clientConnection.host.address.address, ":",
                 mla_string_from_uint16(clientConnection.host.port), " for URL: ", request.url));
     }
+
     clientConnection = mla_network_connection_disconnected();
+    return TASK_PROCESS_RESULT_CONTINUE;
 
-    return TASK_PROCESS_RESULT_CONTINUE; // Yield to allow other tasks to run
+}
 
+mla_bool_t __http_server_remove_websocket_connection(mla_http_server_t &server,
+                                                     const mla_http_server_websocket_connection_t &connection) {
+
+    if (!mla_rw_lock_read(server.websocketConnectionsLock)) {
+        return false;
+    }
+
+    mla_int32_t index = -1;
+
+    for (mla_size_t i = 0; i < mla_array_list_size(server.websocketConnections); ++i) {
+
+        mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, i);
+
+        if (mla_string_equals(current_connection.id, connection.id)) {
+            index = static_cast<mla_int32_t>(i);
+            break;
+        }
+
+    }
+
+    mla_rw_unlock_read(server.websocketConnectionsLock);
+
+    if (index < 0) {
+        return false;
+    }
+
+    mla_rw_lock_write(server.websocketConnectionsLock);
+    mla_bool_t removed = mla_array_list_remove(server.websocketConnections, index);
+    mla_rw_unlock_write(server.websocketConnectionsLock);
+    return removed;
 }
 
 mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_callback_userdata userData) {
@@ -442,10 +562,90 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_c
         return TASK_PROCESS_RESULT_DONE; // Server is not running, exit task
     }
 
-    mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> copyConnections = server.
-            websocketConnections;
+    mla_array_list_t<mla_websocket_connection_array_param> copyConnections = mla_array_list_empty<mla_websocket_connection_array_param>();
+
+    if (!mla_rw_lock_read(server.websocketConnectionsLock)) {
+        return TASK_PROCESS_RESULT_CONTINUE;
+    }
+
+    copyConnections = server.websocketConnections;
+
+    mla_rw_unlock_read(server.websocketConnectionsLock);
+
+    for (mla_size_t i = 0; i < mla_array_list_size(copyConnections); ++i) {
+
+        if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
+            return TASK_PROCESS_RESULT_DONE; // Server is not running, exit task
+        }
+
+        mla_http_server_websocket_connection_t connection = mla_array_list_get_unsafe(copyConnections, i);
+
+        if (!mla_mutex_lock(connection.lock))
+            continue;
+
+        mla_bool_t final = true;
+        mla_string_t textMessage = mla_string_empty();
+        mla_bytes_t binaryMessage = mla_bytes_empty();
+
+        mla_websocket_transport_message_receive_type_t receive_type = mla_websocket_transport_receive_message(connection.connection, server.timeout_ms, textMessage, binaryMessage, final);
+
+        enum mla_websocket_connection_action_t: mla_uint8_t {
+            MLA_WEBSOCKET_CONNECTION_NONE,
+            MLA_WEBSOCKET_CONNECTION_CLOSE,
+            MLA_WEBSOCKET_CONNECTION_REMOVE,
+        };
+
+        mla_websocket_connection_action_t action = MLA_WEBSOCKET_CONNECTION_NONE;
+
+        switch (receive_type) {
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TEXT:
+                if (connection.text_executor != nullptr) {
+                    if (!connection.text_executor(connection, textMessage, final, connection.userdata)) {
+                        mla_warning(mla_string_concat("WebSocket text message handler failed for connection ", connection.id, ". Closing connection."));
+                        action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                    }
+                } else {
+                    mla_warning(mla_string_concat("No WebSocket text message handler registered for connection ", connection.id, ". Closing connection."));
+                    action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                }
+                break;
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_BINARY:
+                if (connection.binary_executor != nullptr) {
+                    if (!connection.binary_executor(connection, binaryMessage, final, connection.userdata)) {
+                        mla_warning(mla_string_concat("WebSocket binary message handler failed for connection ", connection.id, ". Closing connection."));
+                        action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                    }
+                } else {
+                    mla_warning(mla_string_concat("No WebSocket binary message handler registered for connection ", connection.id, ". Closing connection."));
+                    action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                }
+                break;
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_CLOSED:
+                action = MLA_WEBSOCKET_CONNECTION_REMOVE;
+                break;
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_PONG:
+                // Ignore pong messages
+                break;
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT:
+                action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                break;
+            case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE:
+                // No message received -> Nothing to do
+                break;
+        }
+
+        mla_mutex_unlock(connection.lock);
+
+        if (action == MLA_WEBSOCKET_CONNECTION_CLOSE) {
+            mla_http_server_close_websocket_connection(server, connection, mla_websocket_close_abnormal, mla_string_const("Closing connection"));
+        } else if (action == MLA_WEBSOCKET_CONNECTION_REMOVE) {
+            __http_server_remove_websocket_connection(server, connection);
+        }
+
+    }
 
 
+    return TASK_PROCESS_RESULT_CONTINUE;
 
 }
 
@@ -500,7 +700,7 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
         return false;
     }
 
-    if (mla_array_list_size(server.handlers) == 0) {
+    if (mla_array_list_size(server.httpHandlers) == 0 && mla_array_list_size(server.websocketHandlers) == 0) {
         server.status = MLA_HTTP_SERVER_STATUS_ERROR;
         mla_mutex_unlock(server.listenerLock);
         mla_error("No handlers registered for HTTP server");
@@ -623,37 +823,6 @@ mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
     return true;
 }
 
-mla_bool_t __http_server_remove_websocket_connection(mla_http_server_t &server,
-                                                     const mla_http_server_websocket_connection_t &connection) {
-
-    if (!mla_rw_lock_read(server.websocketConnectionsLock)) {
-        return false;
-    }
-
-    mla_int32_t index = -1;
-
-    for (mla_size_t i = 0; i < mla_array_list_size(server.websocketConnections); ++i) {
-
-        mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, i);
-
-        if (mla_string_equals(current_connection.id, connection.id)) {
-            index = static_cast<mla_int32_t>(i);
-            break;
-        }
-
-    }
-
-    mla_rw_unlock_read(server.websocketConnectionsLock);
-
-    if (index < 0) {
-        return false;
-    }
-
-    mla_rw_lock_write(server.websocketConnectionsLock);
-    mla_bool_t removed = mla_array_list_remove(server.websocketConnections, index);
-    mla_rw_unlock_write(server.websocketConnectionsLock);
-    return removed;
-}
 
 mla_bool_t mla_http_server_find_websocket_connection(mla_http_server_t &server, const mla_string_t &connectionId,
                                                      mla_http_server_websocket_connection_t &outConnection) {

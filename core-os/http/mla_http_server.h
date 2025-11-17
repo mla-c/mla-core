@@ -54,10 +54,19 @@ struct mla_http_server_handler_item_initializer {
 /// HTTP Server WebSocket Handler Item
 //////////////////////////////////
 
+struct mla_http_server_websocket_connection_t;
+
+typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
+typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
+
 struct mla_http_server_websocket_connection_t {
     mla_network_connection_t connection;
     mla_string_t id;
     mla_mutex_t lock;
+    mla_callback_userdata userdata;
+    mla_http_websocket_text_message_handler_t text_executor;
+    mla_http_websocket_binary_message_handler_t binary_executor;
+    mla_buffer_reference_t userDataOwner;
 };
 
 mla_http_server_websocket_connection_t mla_http_server_websocket_connection_invalid();
@@ -68,10 +77,6 @@ struct mla_http_server_websocket_connection_initializer {
     }
 };
 
-
-typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
-typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
-
 struct mla_http_server_websocket_handler_item_t {
     mla_callback_userdata userdata;
     mla_http_request_handler_checker_t checker;
@@ -80,6 +85,7 @@ struct mla_http_server_websocket_handler_item_t {
     mla_buffer_reference_t userDataOwner;
 };
 
+mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem);
 
 mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler(const mla_callback_userdata& userdata, const mla_http_request_handler_checker_t& checker, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler, const mla_buffer_reference_t& userDataOwner);
 mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_equals(mla_string_t path, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler);
@@ -102,7 +108,7 @@ struct mla_http_server_websocket_handler_item_initializer {
 ///////////////////////////////////
 
 struct mla_http_server_t {
-    mla_array_list_t<mla_http_server_handler_item_t, mla_http_server_handler_item_initializer> handlers;
+    mla_array_list_t<mla_http_server_handler_item_t, mla_http_server_handler_item_initializer> httpHandlers;
     mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer> websocketHandlers;
     mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> websocketConnections;
     mla_rw_lock_t websocketConnectionsLock;
