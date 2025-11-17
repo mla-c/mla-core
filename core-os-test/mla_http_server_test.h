@@ -7,6 +7,7 @@
 
 #include "../core-os/system/mla_stream.h"
 #include "../core-os/http/mla_http_client.h"
+#include "../core-os/http/mla_websocket_client.h"
 #include "../core-os/http/mla_http_server.h"
 #include "../core-os/system/mla_string_concat.h"
 #include "../core-os-test-support/mla_test_executor.h"
@@ -14,6 +15,7 @@
 
 static mla_network_host_t test_server_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41258);
 static mla_string_t test_server_url = mla_string_const("http://127.0.0.1:41258");
+static mla_string_t test_server_url_ws = mla_string_const("ws://127.0.0.1:41258");
 
 inline mla_bool_t mla_http_server_request_hello_world_handler(const mla_http_request_t &request, mla_http_response_t &response) {
 
@@ -106,6 +108,60 @@ inline void HttpServerMultiHandlerTest() {
     server = mla_http_server_invalid();
 }
 
+
+inline mla_bool_t mla_websocket_echo_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment) {
+
+    // Echo the text message back to the client
+    return mla_http_server_send_websocket_text_message(connection, message, isFinalFragment);
+}
+
+inline mla_bool_t mla_websocket_binary_echo_handler(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment) {
+
+    // Echo the binary message back to the client
+    return mla_http_server_send_websocket_binary_message(connection, message, isFinalFragment);
+}
+
+inline void WebSocketEchoServerTest() {
+
+    // Setup server with WebSocket echo handler
+    mla_http_server_t server = mla_http_server(test_server_host);
+    mla_http_server_websocket_handler_item_t wsHandler = mla_http_server_websocket_handler_path_equals(
+        mla_string_const("/echo"),
+        mla_websocket_echo_handler,
+        mla_websocket_binary_echo_handler
+    );
+    assert_true(mla_http_server_register_websocket_handler(server, wsHandler), "Should register WebSocket echo handler");
+    assert_true(mla_http_server_start(server, 1), "Should start WebSocket echo server");
+
+    // Create client and connect
+    mla_websocket_client_t client = mla_websocket_client_invalid();
+    mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
+    assert_true(mla_websocket_client_connect(client, ws_url, 10000), "Should connect to WebSocket echo server");
+    assert_true(mla_websocket_client_is_connected(client), "WebSocket client should be connected");
+
+    // Test text message echo
+    for (mla_size_t i = 0; i < 5; ++i) {
+
+        mla_string_t test_message = mla_string_const("Hello, WebSocket Echo!");
+        assert_true(mla_websocket_client_send_text_message(client, test_message, true), "Should send text message");
+
+        mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
+        mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
+
+        mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(client, 10000, textMessage, binaryMessage);
+        assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT, "Should receive text message");
+        assert_struct_equal(mla_string_t, textMessage.message, test_message, "Echoed message should match sent message");
+
+    }
+
+    // Cleanup
+    assert_true(mla_websocket_client_disconnect(client), "Should disconnect from WebSocket server");
+    assert_false(mla_websocket_client_is_connected(client), "WebSocket client should be disconnected");
+
+    mla_http_server_stop(server);
+    server = mla_http_server_invalid();
+}
+
 void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
 
     // Only run HTTP server tests in native multi-tasking environments
@@ -118,12 +174,17 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
 
         test = mla_test("HttpServerMultiHandler", test_category, HttpServerMultiHandlerTest);
         mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("WebSocketEchoServer", test_category, WebSocketEchoServerTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
     }
 
 
 }
 
-
+///////////////////////////////////////////////////////////////////////////
+/// Benchmarks
+///////////////////////////////////////////////////////////////////////////
 
 static mla_http_server_t test_server = mla_http_server_invalid();
 
@@ -153,6 +214,47 @@ void SimpleHttpServerBenchmark() {
     }
 }
 
+
+
+static mla_websocket_client_t benchmark_ws_client = mla_websocket_client_invalid();
+
+void WebSocketEchoServerBenchmark_Setup() {
+    test_server = mla_http_server(test_server_host);
+    mla_http_server_websocket_handler_item_t wsHandler = mla_http_server_websocket_handler_path_equals(
+        mla_string_const("/echo"),
+        mla_websocket_echo_handler,
+        mla_websocket_binary_echo_handler
+    );
+    mla_http_server_register_websocket_handler(test_server, wsHandler);
+    mla_http_server_start(test_server, 1);
+
+    mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
+    mla_websocket_client_connect(benchmark_ws_client, ws_url, 10000);
+}
+
+void WebSocketEchoServerBenchmark_TearDown() {
+    mla_websocket_client_disconnect(benchmark_ws_client);
+    benchmark_ws_client = mla_websocket_client_invalid();
+    mla_http_server_stop(test_server);
+    test_server = mla_http_server_invalid();
+    mla_task_manager_cleanup();
+}
+
+void WebSocketEchoServerBenchmark() {
+    mla_string_t test_message = mla_string_const("Benchmark message");
+    mla_websocket_client_send_text_message(benchmark_ws_client, test_message, true);
+
+    mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
+    mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
+
+    mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
+        benchmark_ws_client, 10000, textMessage, binaryMessage);
+
+    if (result != MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT) {
+        mla_error(mla_string_const("WebSocket message receive failed"));
+    }
+}
+
 void RegisterHttpServerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     if (mla_is_native_multi_tasking) {
@@ -161,8 +263,15 @@ void RegisterHttpServerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor)
                                                  StartSimpleHttpServerTest_Setup,
                                                  StartSimpleHttpServerTest_TearDown);
         mla_benchmark_set_iteration_division(benchmark, 1000);
-
         mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+        mla_benchmark_t benchmark_ws = mla_benchmark("WebSocketEchoServer", benchmark_category,
+                                           WebSocketEchoServerBenchmark,
+                                           WebSocketEchoServerBenchmark_Setup,
+                                           WebSocketEchoServerBenchmark_TearDown);
+        mla_benchmark_set_iteration_division(benchmark_ws, 1000);
+
+        mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark_ws);
     }
 
 }

@@ -54,12 +54,14 @@ struct mla_http_server_handler_item_initializer {
 /// HTTP Server WebSocket Handler Item
 //////////////////////////////////
 
+struct mla_http_server_t;
 struct mla_http_server_websocket_connection_t;
 
-typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
-typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment, const mla_callback_userdata& userdata);
+typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment);
+typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment);
 
 struct mla_http_server_websocket_connection_t {
+    mla_http_server_t* server;
     mla_network_connection_t connection;
     mla_string_t id;
     mla_mutex_t lock;
@@ -85,7 +87,7 @@ struct mla_http_server_websocket_handler_item_t {
     mla_buffer_reference_t userDataOwner;
 };
 
-mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem);
+mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_http_server_t& http_server, mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem);
 
 mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler(const mla_callback_userdata& userdata, const mla_http_request_handler_checker_t& checker, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler, const mla_buffer_reference_t& userDataOwner);
 mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_equals(mla_string_t path, const mla_http_websocket_text_message_handler_t& text_message_handler, const mla_http_websocket_binary_message_handler_t& binary_message_handler);
@@ -134,13 +136,13 @@ mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server,
 mla_bool_t mla_http_server_find_websocket_connection(mla_http_server_t &server, const mla_string_t& connectionId, mla_http_server_websocket_connection_t& outConnection);
 mla_bool_t mla_http_server_is_websocket_connection_open(const mla_http_server_websocket_connection_t& connection);
 
-mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server, mla_http_server_websocket_connection_t& connection, mla_uint16_t closeCode, const mla_string_t& reason);
+mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_connection_t& connection, mla_uint16_t closeCode, const mla_string_t& reason);
 mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server, const mla_string_t& connectionId, mla_uint16_t closeCode, const mla_string_t& reason);
 
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final);
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final);
 mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final);
 
-mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final);
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final);
 mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final);
 
 
