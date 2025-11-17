@@ -43,6 +43,8 @@ mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const 
     if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
 
         if (lock.state == nullptr) {
+            mla_mutex_try_unlock(lock.readerLock, source, line);
+            mla_mutex_try_unlock(lock.writerLock, source, line); // Unlock the mutex after incrementing the reader count
             return false;
         }
 
@@ -64,6 +66,7 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
     if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
 
         if (lock.state == nullptr) {
+            mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
             // Was never locked
             return true;
         }
@@ -96,6 +99,8 @@ mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const
         if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
 
             if (lock.state == nullptr) {
+                mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
+                mla_mutex_try_unlock(lock.writerLock, source, line); // Unlock the reader lock
                 // Was never locked
                 return false;
             }

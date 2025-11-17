@@ -99,7 +99,7 @@ struct mla_http_server_websocket_handler_item_initializer {
             0,
             nullptr,
             nullptr,
-            __nullptr,
+            nullptr,
             mla_buffer_reference_noOwner()
         };
     }
