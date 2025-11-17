@@ -7,12 +7,18 @@
 
 #include "mla_mutx.h"
 
+struct mla_rw_lock_state_t {
+    mla_int32_t readerCount; // Count of active readers
+};
+
 struct mla_rw_lock_t {
     mla_mutex_t writerLock; // Mutex for writer access
     mla_mutex_t readerLock; // Mutex for reader access
-    const mla_int32_t readerCount; // Count of active readers
+    mla_rw_lock_state_t* state; // Pointer to the lock state
+    mla_buffer_reference_t stateOwner;
 };
 
+mla_rw_lock_t mla_rw_lock_invalid();
 mla_rw_lock_t mla_rw_lock(const mla_string_t &name);
 mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
 mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);

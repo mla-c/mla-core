@@ -61,7 +61,8 @@ enum mla_websocket_client_message_receive_type_t: mla_uint8_t {
     MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,    ///< Text message received
     MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_BINARY,  ///< Binary message received
     MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED,  ///< Connection is already closed
-    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT     ///< No message received (timeout)
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TIMEOUT,     ///< timeout
+    MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE,     ///< No message received
 };
 
 /**
