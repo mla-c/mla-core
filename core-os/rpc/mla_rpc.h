@@ -13,6 +13,8 @@ typedef mla_bool_t (*mla_rpc_procedure_handler_unsafe_t)(const mla_pointer_t inp
 
 struct mla_rpc_procedure_unsafe_t {
     mla_string_t procedureName;
+    mla_serialize_definition_t inputDefinition;
+    mla_serialize_definition_t outputDefinition;
     mla_rpc_procedure_handler_unsafe_t execute;
 };
 
