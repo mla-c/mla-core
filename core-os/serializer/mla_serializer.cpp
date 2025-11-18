@@ -4,11 +4,47 @@
 
 #include "mla_serializer.h"
 
-mla_serialize_definition_t mla_serialize_definition(
-    const mla_serialize_definition_read_function_t read_function,
-    const mla_serialize_definition_write_function_t write_function
+mla_serializer_t mla_serializer_invalid() {
+    return {
+        mla_stream_noop_output(),
+        0,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr
+    };
+}
+
+mla_deserializer_t mla_deserializer_invalid() {
+    return {
+        mla_stream_noop_input(),
+        0,
+{MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
+        nullptr
+    };
+}
+
+mla_serialize_definition_t mla_serialize_definition_create(
+    const mla_size_t data_size,
+    const mla_serialize_definition_read_function_t& read_function,
+    const mla_serialize_definition_write_function_t& write_function
 ) {
     return {
+        data_size,
         read_function,
         write_function
     };

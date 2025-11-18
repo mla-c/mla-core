@@ -5,6 +5,7 @@
 #include "mla_file_system.h"
 
 #include "../task/mla_mutx.h"
+#include "../lifecycle/mla_lifecycle_events.h"
 
 mla_file_system_t mla_file_system_empty() {
     return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, mla_buffer_reference_noOwner() };
@@ -31,8 +32,6 @@ struct mla_file_system_manager_t {
     mla_mutex_t mounded_file_systems_mutex;
     mla_array_list_t<mla_file_system_mount_t, mla_file_system_mount_initializer> mounted_file_systems;
 };
-
-
 
 static mla_file_system_manager_t file_system_manager = {
     false,
@@ -453,3 +452,5 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
 
     return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
 }
+
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_file_system_setup, mla_file_system_lock)

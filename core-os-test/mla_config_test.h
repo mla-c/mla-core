@@ -41,7 +41,7 @@ inline void test_config_struct_write(mla_serializer_t& serializer, const mla_poi
 
 // Helper to create a config definition
 inline mla_serialize_definition_t test_config_struct_serialize_def() {
-    return mla_serialize_definition(test_config_struct_read, test_config_struct_write);
+    return mla_serialize_definition(test_config_struct, test_config_struct_read, test_config_struct_write);
 }
 
 
@@ -93,7 +93,7 @@ inline void simple_config_write(mla_serializer_t& serializer, const mla_pointer_
 }
 
 inline mla_serialize_definition_t simple_config_serialize_def() {
-    return mla_serialize_definition(simple_config_read, simple_config_write);
+    return mla_serialize_definition(simple_config, simple_config_read, simple_config_write);
 }
 
 struct complex_config {
@@ -130,7 +130,7 @@ inline void complex_config_write(mla_serializer_t& serializer, const mla_pointer
 }
 
 inline mla_serialize_definition_t complex_config_serialize_def() {
-    return mla_serialize_definition(complex_config_read, complex_config_write);
+    return mla_serialize_definition(complex_config, complex_config_read, complex_config_write);
 }
 
 // Test: Multiple config write and read in same order

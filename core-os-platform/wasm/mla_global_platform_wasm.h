@@ -8,6 +8,7 @@
 #include "../../core-os/mla_data_types.h"
 #include <unistd.h>
 #include "../generic/mla_global_platform_generic.h"
+#include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 
 void __wasm_sleep(mla_uint32_t milliseconds) {
@@ -40,7 +41,9 @@ mla_low_level_operations_t g_low_level_access ={
 void mla_boot_os_application() {
     // This function can be used to perform any additional bootstrapping
     // required for the OS application, such as initializing logging or other subsystems.
-    // Currently, it does nothing but can be extended in the future.
+
+    // Finish boot
+    mla_lifecycle_fire_boot_events();
 }
 
 

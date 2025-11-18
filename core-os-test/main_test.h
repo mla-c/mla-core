@@ -23,7 +23,6 @@
 #include "mla_task_manager_test.h"
 #include "mla_rw_lock_test.h"
 #include "mla_mutex_test.h"
-#include "mla_inject_test.h"
 #include "mla_cli_parser_test.h"
 #include "mla_cli_app_test.h"
 #include "mla_task_cli_module_test.h"
@@ -68,7 +67,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterTaskManagerTests(l_TestExecutor);
     RegisterReadWriteLockTests(l_TestExecutor);
     RegisterMutexTests(l_TestExecutor);
-    RegisterInjectTests(l_TestExecutor);
     RegisterCliParserTests(l_TestExecutor);
     RegisterCliAppTests(l_TestExecutor);
     RegisterTaskCliModuleTests(l_TestExecutor);
@@ -104,7 +102,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHashMapBenchmarks(l_BenchmarkExecutor);
     RegisterMutexBenchmarks(l_BenchmarkExecutor);
     RegisterReadWriteLockBenchmarks(l_BenchmarkExecutor);
-    RegisterInjectBenchmarks(l_BenchmarkExecutor);
     RegisterSerializerBenchmarks(l_BenchmarkExecutor);
     RegisterAtomicBenchmarks(l_BenchmarkExecutor);
     RegisterSha1Benchmarks(l_BenchmarkExecutor);

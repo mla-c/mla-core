@@ -44,6 +44,8 @@ struct mla_serializer_t {
 
 };
 
+mla_serializer_t mla_serializer_invalid();
+
 enum mla_deserializer_token_type_t {
     MLA_DESERIALIZER_NULL = 0,
     MLA_DESERIALIZER_PROPERTY_NAME = 1,
@@ -106,6 +108,8 @@ struct mla_deserializer_t {
     mla_bool_t (*const read_next)(mla_deserializer_t& instance);
 };
 
+mla_deserializer_t mla_deserializer_invalid();
+
 enum mla_deserializer_read_result_t {
     MLA_DESERIALIZER_READ_HANDLED,
     MLA_DESERIALIZER_READ_SKIPPED,
@@ -120,14 +124,19 @@ typedef void (*mla_serialize_definition_write_function_t)(mla_serializer_t& seri
 
 /// Definition of serialization functions for a specific data structure
 struct mla_serialize_definition_t {
+    const mla_size_t data_size;
     const mla_serialize_definition_read_function_t read_function;
     const mla_serialize_definition_write_function_t write_function;
 };
 
-mla_serialize_definition_t mla_serialize_definition(
-        const mla_serialize_definition_read_function_t read_function,
-        const mla_serialize_definition_write_function_t write_function
+mla_serialize_definition_t mla_serialize_definition_create(
+        const mla_size_t data_size,
+        const mla_serialize_definition_read_function_t& read_function,
+        const mla_serialize_definition_write_function_t& write_function
 );
+
+#define mla_serialize_definition(data, read_fn, write_fn) \
+    mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
 
 /////////////////////////////////////////////////////////////////////////////
 /// Serializer Helpers

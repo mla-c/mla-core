@@ -7,6 +7,7 @@
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"
+#include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -46,6 +47,9 @@ void mla_boot_os_application() {
 
     // Disable the watchdog for testing purposes
     //system_soft_wdt_stop();
+
+    // Finish boot
+    mla_lifecycle_fire_boot_events();
 
 }
 

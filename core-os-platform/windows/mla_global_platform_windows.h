@@ -3,7 +3,7 @@
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"
-#include "../../core-os/filesystem/mla_file_system.h"
+#include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 #include <windows.h>
 
@@ -61,8 +61,8 @@ void mla_boot_os_application() {
     // This function can be used to perform any additional bootstrapping
     // required for the OS application, such as initializing logging or other subsystems.
 
-    // Finish FileSystem Setup
-    mla_file_system_lock();
+    // Finish boot
+    mla_lifecycle_fire_boot_events();
 }
 
 #endif
