@@ -352,8 +352,17 @@ mla_bool_t __mla_http_server_response_send(const mla_network_connection_t &conne
     }
 
     // Send body
-    if (!mla_stream_copy(response.content, connection.outputStream)) {
-        return false;
+    if (mla_http_response_content_writer_is_valid(response.contentWriter)) {
+
+        if (!response.contentWriter.writeTo(response.contentWriter, connection.outputStream)) {
+            return false;
+        }
+
+    } else {
+        // No content writer, send content stream
+        if (!mla_stream_copy(response.content, connection.outputStream)) {
+            return false;
+        }
     }
 
     return true;

@@ -38,6 +38,15 @@ mla_deserializer_t mla_deserializer_invalid() {
     };
 }
 
+mla_serialize_definition_t mla_serialize_definition_invalid() {
+    return {
+        0,
+        nullptr,
+        nullptr
+    };
+}
+
+
 mla_serialize_definition_t mla_serialize_definition_create(
     const mla_size_t data_size,
     const mla_serialize_definition_read_function_t& read_function,

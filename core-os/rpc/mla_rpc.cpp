@@ -20,7 +20,22 @@ mla_rpc_container_t g_rpc_container = {
 mla_rpc_procedure_unsafe_t mla_rpc_procedure_unsafe_invalid() {
     return {
         mla_string_empty(),
+        mla_serialize_definition_invalid(),
+        mla_serialize_definition_invalid(),
         nullptr
+    };
+}
+
+mla_rpc_procedure_unsafe_t mla_rpc_procedure_unsafe(
+        const mla_string_t &procedure_name,
+        const mla_serialize_definition_t &input_definition,
+        const mla_serialize_definition_t &output_definition,
+        const mla_rpc_procedure_handler_unsafe_t &execute_handler) {
+    return {
+        procedure_name,
+        input_definition,
+        output_definition,
+        execute_handler
     };
 }
 

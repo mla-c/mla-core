@@ -26,7 +26,12 @@ struct mla_rpc_procedure_unsafe_initializer {
     }
 };
 
-
+mla_rpc_procedure_unsafe_t mla_rpc_procedure_unsafe(
+        const mla_string_t &procedure_name,
+        const mla_serialize_definition_t &input_definition,
+        const mla_serialize_definition_t &output_definition,
+        const mla_rpc_procedure_handler_unsafe_t &execute_handler
+);
 mla_bool_t mla_rpc_register_procedure(const mla_rpc_procedure_unsafe_t &procedure);
 mla_bool_t mla_rpc_unregister_procedure(const mla_string_t &procedure_name);
 mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_procedure_unsafe_t& out_procedure);
@@ -44,13 +49,29 @@ mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initialize
 template<mla_rpc_safe_template_parameters>
 struct mla_rpc_procedure_safe_t {
     mla_string_t procedureName;
+    mla_serialize_definition_t inputDefinition;
+    mla_serialize_definition_t outputDefinition;
     mla_bool_t (*execute)(const TInput *input_data, TOutput *output_data);
 };
+
+template<mla_rpc_safe_template_parameters>
+mla_rpc_procedure_safe_t<TInput, TOutput> mla_rpc_procedure_safe(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,
+        mla_bool_t (*execute_handler)(const TInput *input_data, TOutput *output_data)
+) {
+    return {
+        procedure_name,
+        input_definition,
+        output_definition,
+        execute_handler
+    };
+}
 
 template<mla_rpc_safe_template_parameters>
 mla_rpc_procedure_unsafe_t mla_rpc_procedure_safe_to_unsafe(const mla_rpc_procedure_safe_t<TInput, TOutput> &safe_procedure) {
     return {
         safe_procedure.procedureName,
+        safe_procedure.inputDefinition,
+        safe_procedure.outputDefinition,
         static_cast<mla_rpc_procedure_handler_unsafe_t>(safe_procedure.execute)
     };
 }

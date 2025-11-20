@@ -14,33 +14,33 @@
 
 struct mla_serializer_t {
 
-    const mla_stream_output_t output;
+    mla_stream_output_t output;
     mla_callback_userdata userdata;
 
-    void (*const write_start_struct)(mla_serializer_t& instance);
-    void (*const write_end_struct)(mla_serializer_t& instance);
+    void (*write_start_struct)(mla_serializer_t& instance);
+    void (*write_end_struct)(mla_serializer_t& instance);
 
-    void (*const write_start_list)(mla_serializer_t& instance);
-    void (*const write_end_list)(mla_serializer_t& instance);
+    void (*write_start_list)(mla_serializer_t& instance);
+    void (*write_end_list)(mla_serializer_t& instance);
 
-    void (*const write_property_name)(mla_serializer_t& instance, const mla_string_t& name);
+    void (*write_property_name)(mla_serializer_t& instance, const mla_string_t& name);
 
-    void (*const write_bool)(mla_serializer_t& instance, const mla_bool_t value);
+    void (*write_bool)(mla_serializer_t& instance, const mla_bool_t value);
 
-    void (*const write_int8)(mla_serializer_t& instance, const mla_int8_t value);
-    void (*const write_int16)(mla_serializer_t& instance, const mla_int16_t value);
-    void (*const write_int32)(mla_serializer_t& instance, const mla_int32_t value);
-    void (*const write_int64)(mla_serializer_t& instance, const mla_int64_t value);
-    void (*const write_uint8)(mla_serializer_t& instance, const mla_uint8_t value);
-    void (*const write_uint16)(mla_serializer_t& instance, const mla_uint16_t value);
-    void (*const write_uint32)(mla_serializer_t& instance, const mla_uint32_t value);
-    void (*const write_uint64)(mla_serializer_t& instance, const mla_uint64_t value);
+    void (*write_int8)(mla_serializer_t& instance, const mla_int8_t value);
+    void (*write_int16)(mla_serializer_t& instance, const mla_int16_t value);
+    void (*write_int32)(mla_serializer_t& instance, const mla_int32_t value);
+    void (*write_int64)(mla_serializer_t& instance, const mla_int64_t value);
+    void (*write_uint8)(mla_serializer_t& instance, const mla_uint8_t value);
+    void (*write_uint16)(mla_serializer_t& instance, const mla_uint16_t value);
+    void (*write_uint32)(mla_serializer_t& instance, const mla_uint32_t value);
+    void (*write_uint64)(mla_serializer_t& instance, const mla_uint64_t value);
 
-    void (*const write_float)(mla_serializer_t& instance, const mla_float_t value);
-    void (*const write_double)(mla_serializer_t& instance, const mla_double_t value);
+    void (*write_float)(mla_serializer_t& instance, const mla_float_t value);
+    void (*write_double)(mla_serializer_t& instance, const mla_double_t value);
 
-    void (*const write_string)(mla_serializer_t& instance, const mla_string_t& value);
-    void (*const write_bytes)(mla_serializer_t& instance, const mla_bytes_t& bytes);
+    void (*write_string)(mla_serializer_t& instance, const mla_string_t& value);
+    void (*write_bytes)(mla_serializer_t& instance, const mla_bytes_t& bytes);
 
 };
 
@@ -101,11 +101,11 @@ struct mla_deserializer_token_t {
 
 struct mla_deserializer_t {
 
-    const mla_stream_input_t input;
+    mla_stream_input_t input;
     mla_callback_userdata userdata;
 
     mla_deserializer_token_t current_token;
-    mla_bool_t (*const read_next)(mla_deserializer_t& instance);
+    mla_bool_t (*read_next)(mla_deserializer_t& instance);
 };
 
 mla_deserializer_t mla_deserializer_invalid();
@@ -124,10 +124,12 @@ typedef void (*mla_serialize_definition_write_function_t)(mla_serializer_t& seri
 
 /// Definition of serialization functions for a specific data structure
 struct mla_serialize_definition_t {
-    const mla_size_t data_size;
-    const mla_serialize_definition_read_function_t read_function;
-    const mla_serialize_definition_write_function_t write_function;
+    mla_size_t data_size;
+    mla_serialize_definition_read_function_t read_function;
+    mla_serialize_definition_write_function_t write_function;
 };
+
+mla_serialize_definition_t mla_serialize_definition_invalid();
 
 mla_serialize_definition_t mla_serialize_definition_create(
         const mla_size_t data_size,
