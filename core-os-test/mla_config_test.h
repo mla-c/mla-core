@@ -7,7 +7,6 @@
 #include "../core-os/config/mla_config.h"
 #include "../core-os/system/mla_array_list.h"
 #include "../core-os-test-support/mla_test_executor.h"
-#include <cstring>
 
 // Test struct for config
 struct test_config_struct {
@@ -16,7 +15,7 @@ struct test_config_struct {
     mla_string_t strValue;
 };
 
-inline mla_deserializer_read_result_t test_config_struct_read(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t test_config_struct_deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
 
     test_config_struct* obj = static_cast<test_config_struct*>(config);
     if (mla_string_equals_const(property_name, "intValue")) {
@@ -31,7 +30,7 @@ inline mla_deserializer_read_result_t test_config_struct_read(mla_deserializer_t
 
 }
 
-inline void test_config_struct_write(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline void test_config_struct_serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
 
     const test_config_struct* obj = static_cast<const test_config_struct*>(config);
     mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
@@ -41,7 +40,7 @@ inline void test_config_struct_write(mla_serializer_t& serializer, const mla_poi
 
 // Helper to create a config definition
 inline mla_serialize_definition_t test_config_struct_serialize_def() {
-    return mla_serialize_definition(test_config_struct, test_config_struct_read, test_config_struct_write);
+    return mla_serialize_definition(test_config_struct);
 }
 
 
@@ -74,7 +73,7 @@ struct simple_config {
     mla_float_t value;
 };
 
-inline mla_deserializer_read_result_t simple_config_read(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t simple_config_deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
     simple_config* obj = static_cast<simple_config*>(config);
     if (mla_string_equals_const(property_name, "version")) {
         mla_deserializer_read_uint8(deserializer, obj->version);
@@ -86,14 +85,14 @@ inline mla_deserializer_read_result_t simple_config_read(mla_deserializer_t& des
 
 }
 
-inline void simple_config_write(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline void simple_config_serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
     const simple_config* obj = static_cast<const simple_config*>(config);
     mla_serializer_write_uint8(serializer, mla_string_const("version"), obj->version);
     mla_serializer_write_float(serializer, mla_string_const("value"), obj->value);
 }
 
 inline mla_serialize_definition_t simple_config_serialize_def() {
-    return mla_serialize_definition(simple_config, simple_config_read, simple_config_write);
+    return mla_serialize_definition(simple_config);
 }
 
 struct complex_config {
@@ -102,7 +101,7 @@ struct complex_config {
     mla_array_list_t<mla_int32_t> values;
 };
 
-inline mla_deserializer_read_result_t complex_config_read(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t complex_config_deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
     complex_config* obj = static_cast<complex_config*>(config);
     if (mla_string_equals_const(property_name, "id")) {
         mla_deserializer_read_int64(deserializer, obj->id);
@@ -122,7 +121,7 @@ inline mla_deserializer_read_result_t complex_config_read(mla_deserializer_t& de
 
 }
 
-inline void complex_config_write(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline void complex_config_serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
     const complex_config* obj = static_cast<const complex_config*>(config);
     mla_serializer_write_int64(serializer, mla_string_const("id"), obj->id);
     mla_serializer_write_string(serializer, mla_string_const("name"), obj->name);
@@ -130,7 +129,7 @@ inline void complex_config_write(mla_serializer_t& serializer, const mla_pointer
 }
 
 inline mla_serialize_definition_t complex_config_serialize_def() {
-    return mla_serialize_definition(complex_config, complex_config_read, complex_config_write);
+    return mla_serialize_definition(complex_config);
 }
 
 // Test: Multiple config write and read in same order

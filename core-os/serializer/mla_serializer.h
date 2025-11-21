@@ -132,13 +132,10 @@ struct mla_serialize_definition_t {
 mla_serialize_definition_t mla_serialize_definition_invalid();
 
 mla_serialize_definition_t mla_serialize_definition_create(
-        const mla_size_t data_size,
+        mla_size_t data_size,
         const mla_serialize_definition_read_function_t& read_function,
         const mla_serialize_definition_write_function_t& write_function
 );
-
-#define mla_serialize_definition(data, read_fn, write_fn) \
-    mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
 
 /////////////////////////////////////////////////////////////////////////////
 /// Serializer Helpers
@@ -172,6 +169,17 @@ void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t&
     serializer.write_end_list(serializer);
 
 }
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Meta Definitions Helpers
+///////////////////////////////////////////////////////////////////////////////
+
+#define mla_serialize_definition_custom(data, read_fn, write_fn) \
+mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
+
+#define mla_serialize_definition(data) \
+mla_serialize_definition_create(sizeof(data), data##_deserialize, data##_serialize)
+
 
 //////////////////////////////////////////////////////////////////////////////////
 /// Deserializer Helpers

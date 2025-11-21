@@ -87,3 +87,9 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures() {
     return mla_hash_map_values(g_rpc_container.procedures);
 }
+
+void __mla_rpc_container_lock() {
+    g_rpc_container.isLocked = true;
+}
+
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_setup, __mla_rpc_container_lock);
