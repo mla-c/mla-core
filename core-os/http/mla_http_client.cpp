@@ -139,7 +139,15 @@ mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, c
 
 mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, const mla_http_request_t & request, const mla_stream_output_t & connection) {
 
-    if (!mla_stream_copy(request.content, connection)) {
+    if (mla_http_request_content_writer_is_valid(request.contentWriter)) {
+
+        if (!request.contentWriter.writeTo(request.contentWriter, connection)) {
+            response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
+            response.errorMessage = mla_string_const("Failed to write request body using content writer");
+            return false;
+        }
+
+    } else if (!mla_stream_copy(request.content, connection)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
         response.errorMessage = mla_string_const("Failed to send request body");
         return false;

@@ -28,7 +28,7 @@ struct mla_rpc_procedure_unsafe_initializer {
 };
 
 typedef mla_bool_t (*mla_rpc_remote_endpoint_can_handle)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name);
-typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
+typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data);
 
 struct mla_rpc_remote_endpoint_t {
     mla_callback_userdata checker_userdata;
@@ -66,8 +66,8 @@ mla_bool_t mla_rpc_register_procedure(const mla_rpc_procedure_unsafe_t &procedur
 mla_bool_t mla_rpc_unregister_procedure(const mla_string_t &procedure_name);
 mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_procedure_unsafe_t& out_procedure);
 mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name);
-mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
-mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
+mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data);
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data);
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures();
 
 
@@ -124,7 +124,9 @@ mla_bool_t mla_rpc_register_procedure(const mla_rpc_procedure_safe_t<TInput, TOu
 
 template<mla_rpc_safe_template_parameters>
 mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const TInput *input_data, TOutput *output_data) {
-    return mla_rpc_execute_procedure(procedure_name, static_cast<const mla_pointer_t>(input_data), static_cast<mla_pointer_t>(output_data));
+    auto input_definition = mla_serialize_definition(TInput);
+    auto output_defintion = mla_serialize_definition(TOutput);
+    return mla_rpc_execute_procedure(procedure_name, input_definition, output_defintion, static_cast<const mla_pointer_t>(input_data), static_cast<mla_pointer_t>(output_data));
 }
 
 template<mla_rpc_safe_template_parameters>

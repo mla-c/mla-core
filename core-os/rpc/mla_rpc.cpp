@@ -8,6 +8,8 @@
 #include "../task/mla_rw_lock.h"
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
+#include "../serializer/mla_serializer.h"
+#include "../serializer/mla_binary_serializer.h"
 
 struct  mla_rpc_container_t {
     mla_array_list_t<mla_rpc_remote_endpoint_t, mla_rpc_remote_endpoint_initializer> remote_endpoints;
@@ -80,23 +82,82 @@ mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name) {
     return mla_hash_map_contains(g_rpc_container.procedures, procedure_name);
 }
 
-mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data) {
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
     if (!mla_rpc_find_procedure(procedure_name, procedure)) {
         // Try to execute the procedure remotely
-        return mla_rpc_execute_procedure_remote(procedure_name, input_data, output_data);
+        return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, input_data, output_data);
     }
 
     if (procedure.execute == nullptr) {
         return false; // Procedure has no handler
     }
 
-    return procedure.execute(input_data, output_data);
+    // Serialize also local calls to have the same behavior as remote calls
+    mla_pointer_t serialized_input = nullptr;
+
+    // Serialize input data
+    if (input_data != nullptr && input_definition.data_size > 0) {
+        serialized_input = mla_malloc(input_definition.data_size);
+
+        if (serialized_input == nullptr) {
+            return false; // Memory allocation failed
+        }
+
+        mla_serializer_t binarySerializer = mla_binary_serializer();
+        mla_serializer_write_struct(binarySerializer, input_data, input_definition.write_function);
+
+        mla_deserializer_t binaryDeserializer = mla_binary_deserializer();
+        if (!mla_deserializer_read_struct(binaryDeserializer, serialized_input, input_definition.read_function)) {
+            mla_free(serialized_input);
+            return false; // Serialization failed
+        }
+
+    }
+
+    // Create Output Buffer
+    mla_pointer_t serialized_output = nullptr;
+
+    if (output_data != nullptr && output_definition.data_size > 0) {
+        serialized_output = mla_malloc(output_definition.data_size);
+
+        if (serialized_output == nullptr) {
+            if (serialized_input != nullptr) {
+                mla_free(serialized_input);
+            }
+            return false; // Memory allocation failed
+        }
+    }
+
+    mla_bool_t result = procedure.execute(serialized_input, serialized_output);
+    mla_free(serialized_input);
+
+
+    if (result) {
+        // Deserialize output data
+        mla_serializer_t binarySerializer = mla_binary_serializer();
+        mla_serializer_write_struct(binarySerializer, serialized_output, input_definition.write_function);
+        mla_free(serialized_output);
+
+        mla_deserializer_t binaryDeserializer = mla_binary_deserializer();
+        if (!mla_deserializer_read_struct(binaryDeserializer, output_data, output_definition.read_function)) {
+            return false; // Serialization failed
+        }
+
+        return true;
+
+    } else {
+        if (serialized_output != nullptr) {
+            mla_free(serialized_output);
+        }
+
+        return false; // Procedure execution failed
+    }
 }
 
-mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data) {
 
 
     mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_invalid();
