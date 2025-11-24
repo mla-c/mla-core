@@ -120,6 +120,33 @@ void mla_rpc_auto_register_procedure_##handler() { \
 } \
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
 
+#define mla_rpc_auto_register_procedure_void_output(procedure_name, input, handler) \
+void mla_rpc_auto_register_procedure_##handler() { \
+    auto input_definition = mla_serialize_definition(input); \
+    auto output_defintion = mla_serialize_definition_void(); \
+    auto procedure = mla_rpc_procedure_safe<input, void>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
+    mla_rpc_register_procedure<input, void>(procedure); \
+} \
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
+
+#define mla_rpc_auto_register_procedure_void_input(procedure_name, output, handler) \
+void mla_rpc_auto_register_procedure_##handler() { \
+    auto input_definition = mla_serialize_definition_void(); \
+    auto output_defintion = mla_serialize_definition(output); \
+    auto procedure = mla_rpc_procedure_safe<void, output>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
+    mla_rpc_register_procedure<void, output>(procedure); \
+} \
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
+
+#define mla_rpc_auto_register_procedure_void(procedure_name, handler) \
+void mla_rpc_auto_register_procedure_##handler() { \
+    auto input_definition = mla_serialize_definition_void(); \
+    auto output_defintion = mla_serialize_definition_void(); \
+    auto procedure = mla_rpc_procedure_safe<void, void>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
+    mla_rpc_register_procedure<void, void>(procedure); \
+} \
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
+
 
 
 #endif

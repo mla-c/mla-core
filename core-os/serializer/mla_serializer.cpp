@@ -208,6 +208,22 @@ void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t 
     serializer.write_end_list(serializer);
 }
 
+void void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    (void)serializer;
+    (void)obj;
+    // Nothing to serialize for void
+}
+
+mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+
+    (void)deserializer;
+    (void)obj;
+    (void)property_name;
+    // Nothing to deserialize for void
+    return MLA_DESERIALIZER_READ_HANDLED;
+
+}
+
 
 mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_pointer_t data,
                                         const mla_serialize_definition_read_function_t &read_function) {

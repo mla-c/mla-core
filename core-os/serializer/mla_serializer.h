@@ -180,6 +180,12 @@ mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
 #define mla_serialize_definition(data) \
 mla_serialize_definition_create(sizeof(data), data##_deserialize, data##_serialize)
 
+#define mla_serialize_definition_void() \
+mla_serialize_definition_create(0, void_deserialize, void_serialize)
+
+// Helpers for void datatypes
+void void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj);
+mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name);
 
 //////////////////////////////////////////////////////////////////////////////////
 /// Deserializer Helpers
