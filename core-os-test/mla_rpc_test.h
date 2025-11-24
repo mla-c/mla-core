@@ -78,10 +78,23 @@ inline void FindRpcProcedureTest() {
 
 }
 
+inline void ExecuteRpcProcedureTest() {
+
+    my_rpc_test_input_t input = { 3, 4 };
+    my_rpc_test_output_t output = { 0 };
+
+    assert_true(mla_rpc_execute_procedure(mla_string_const(mla_rpc_procedure_math_sum_name), &input, &output), "Failed to execute RPC procedure");
+    assert_equal(output.sum, 7, "RPC procedure returned incorrect sum");
+
+}
+
 
 void RegisterRpcTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("FindRpcProcedure", test_category, FindRpcProcedureTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ExecuteRpcProcedure", test_category, ExecuteRpcProcedureTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 }

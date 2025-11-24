@@ -14,12 +14,29 @@ struct mla_lifecycle_event_manager_t {
     mla_bool_t boot_events_fired;
 };
 
-static mla_lifecycle_event_manager_t g_lifecycle_event_manager = {
-    mla_array_list_empty<mla_lifecycle_event_t>(),
-    false
-};
+mla_lifecycle_event_manager_t __mla_lifecycle_event_manager_init_once();
+
+static mla_bool_t g_lifecycle_event_manager_initialized = false;
+static mla_lifecycle_event_manager_t g_lifecycle_event_manager = __mla_lifecycle_event_manager_init_once();
+
+mla_lifecycle_event_manager_t __mla_lifecycle_event_manager_init_once() {
+
+    if (g_lifecycle_event_manager_initialized) {
+        return g_lifecycle_event_manager;
+    }
+
+    g_lifecycle_event_manager_initialized = true;
+    return {
+        mla_array_list_empty<mla_lifecycle_event_t>(),
+        false
+    };
+}
 
 void mla_lifecycle_boot_event_register(mla_int32_t priority, mla_lifecycle_event_callback_t callback) {
+
+    if (!g_lifecycle_event_manager_initialized) {
+        g_lifecycle_event_manager  = __mla_lifecycle_event_manager_init_once();
+    }
 
     if (g_lifecycle_event_manager.boot_events_fired) {
         mla_warning("Attempted to register boot event after boot events have been fired. Ignoring.");
