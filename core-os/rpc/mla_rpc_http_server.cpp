@@ -8,12 +8,9 @@
 #include "../serializer/mla_serializer.h"
 #include "../serializer/mla_json_serializer.h"
 #include "../serializer/mla_binary_serializer.h"
+#include "mla_rpc_http_data_types.h"
 
-enum mla_http_rpc_content_type: mla_uint8_t {
-    mla_http_rpc_content_type_unknown,
-    mla_http_rpc_content_type_json,
-    mla_http_rpc_content_type_binary
-};
+
 
 mla_http_rpc_content_type __mla_rpc_http_server_get_content_type(const mla_http_request_t& request) {
 

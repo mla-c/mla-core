@@ -72,7 +72,7 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
         mla_string_to_upper(http_method),
         __mla_http_server_handler_starts_with_checker,
         executor,
-        mla_buffer_reference(c_string.c_str, true)
+        mla_buffer_reference(c_string.c_str)
     };
 }
 

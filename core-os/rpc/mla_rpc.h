@@ -27,6 +27,35 @@ struct mla_rpc_procedure_unsafe_initializer {
     }
 };
 
+typedef mla_bool_t (*mla_rpc_remote_endpoint_can_handle)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name);
+typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
+
+struct mla_rpc_remote_endpoint_t {
+    mla_callback_userdata checker_userdata;
+    mla_callback_userdata procedure_userdata;
+    mla_string_t endpoint_id;
+    mla_rpc_remote_endpoint_can_handle can_handle;
+    mla_rpc_remote_endpoint_execute_procedure execute_procedure;
+    mla_buffer_reference_t checker_userDataOwner;
+    mla_buffer_reference_t procedure_userDataOwner;
+};
+
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_invalid();
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(mla_string_t start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint(mla_rpc_remote_endpoint_can_handle can_handle_handler, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata checker_userdata, mla_buffer_reference_t checker_userDataOwner, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
+mla_bool_t mla_rpc_register_remote_endpoint(const mla_rpc_remote_endpoint_t &endpoint);
+mla_bool_t mla_rpc_unregister_remote_endpoint(const mla_rpc_remote_endpoint_t &endpoint);
+mla_bool_t mla_rpc_remote_endpoint_find_handler(const mla_string_t &procedure_name, mla_rpc_remote_endpoint_t& out_endpoint);
+mla_bool_t mla_rpc_remote_endpoint_valid(const mla_rpc_remote_endpoint_t &endpoint);
+
+struct mla_rpc_remote_endpoint_initializer {
+    static mla_rpc_remote_endpoint_t init() {
+        return mla_rpc_remote_endpoint_invalid();
+    }
+};
+
+
 mla_rpc_procedure_unsafe_t mla_rpc_procedure_unsafe(
         const mla_string_t &procedure_name,
         const mla_serialize_definition_t &input_definition,
@@ -38,6 +67,7 @@ mla_bool_t mla_rpc_unregister_procedure(const mla_string_t &procedure_name);
 mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_procedure_unsafe_t& out_procedure);
 mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name);
 mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_pointer_t input_data, mla_pointer_t output_data);
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures();
 
 
@@ -95,6 +125,11 @@ mla_bool_t mla_rpc_register_procedure(const mla_rpc_procedure_safe_t<TInput, TOu
 template<mla_rpc_safe_template_parameters>
 mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const TInput *input_data, TOutput *output_data) {
     return mla_rpc_execute_procedure(procedure_name, static_cast<const mla_pointer_t>(input_data), static_cast<mla_pointer_t>(output_data));
+}
+
+template<mla_rpc_safe_template_parameters>
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const TInput *input_data, TOutput *output_data) {
+    return mla_rpc_execute_procedure_remote(procedure_name, static_cast<const mla_pointer_t>(input_data), static_cast<mla_pointer_t>(output_data));
 }
 
 template<mla_rpc_safe_template_parameters>
