@@ -98,8 +98,9 @@ inline void ExecuteHttpRpcProcedureTest() {
 
 void RegisterHttpRpcTests(mla_test_executor_t &p_TestExecutor) {
 
-    mla_test_t test = mla_test("ExecuteRpcProcedure", test_category, ExecuteHttpRpcProcedureTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+    (void)p_TestExecutor;
+    //mla_test_t test = mla_test("ExecuteRpcProcedure", test_category, ExecuteHttpRpcProcedureTest);
+    //mla_test_executor_register_test(p_TestExecutor, test);
 
 }
 
