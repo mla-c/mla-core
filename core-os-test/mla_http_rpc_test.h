@@ -17,51 +17,52 @@ static mla_string_t rpc_test_server_url = mla_string_const("http://127.0.0.1:412
 struct my_http_rpc_test_input_t {
     mla_int32_t a;
     mla_int32_t b;
-};
 
-inline void my_http_rpc_test_input_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
-    const my_http_rpc_test_input_t* input = static_cast<const my_http_rpc_test_input_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
-    mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
+        const my_http_rpc_test_input_t* input = static_cast<const my_http_rpc_test_input_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
+        mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
 
-}
-
-inline mla_deserializer_read_result_t my_http_rpc_test_input_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-
-    my_http_rpc_test_input_t* input = static_cast<my_http_rpc_test_input_t*>(obj);
-
-    if (mla_string_equals_const(property_name, "a")) {
-        mla_deserializer_read_int32(deserializer, input->a);
-    } else if (mla_string_equals_const(property_name, "b")) {
-        mla_deserializer_read_int32(deserializer, input->b);
-    } else {
-        return MLA_DESERIALIZER_READ_SKIPPED;
     }
 
-}
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+
+        my_http_rpc_test_input_t* input = static_cast<my_http_rpc_test_input_t*>(obj);
+
+        if (mla_string_equals_const(property_name, "a")) {
+            mla_deserializer_read_int32(deserializer, input->a);
+        } else if (mla_string_equals_const(property_name, "b")) {
+            mla_deserializer_read_int32(deserializer, input->b);
+        } else {
+            return MLA_DESERIALIZER_READ_SKIPPED;
+        }
+
+    }
+};
+
 
 struct my_http_rpc_test_output_t {
     mla_int32_t sum;
-};
 
-inline void my_http_rpc_test_output_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
-    const my_http_rpc_test_output_t* output = static_cast<const my_http_rpc_test_output_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
+        const my_http_rpc_test_output_t* output = static_cast<const my_http_rpc_test_output_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
 
-}
-
-inline mla_deserializer_read_result_t my_http_rpc_test_output_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-
-    my_http_rpc_test_output_t* output = static_cast<my_http_rpc_test_output_t*>(obj);
-
-    if (mla_string_equals_const(property_name, "sum")) {
-        mla_deserializer_read_int32(deserializer, output->sum);
-    } else {
-        return MLA_DESERIALIZER_READ_SKIPPED;
     }
-}
+
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+
+        my_http_rpc_test_output_t* output = static_cast<my_http_rpc_test_output_t*>(obj);
+
+        if (mla_string_equals_const(property_name, "sum")) {
+            mla_deserializer_read_int32(deserializer, output->sum);
+        } else {
+            return MLA_DESERIALIZER_READ_SKIPPED;
+        }
+    }
+};
 
 mla_bool_t my_http_rpc_test_procedure_handler(const my_http_rpc_test_input_t* input, my_http_rpc_test_output_t* output) {
 
@@ -69,8 +70,6 @@ mla_bool_t my_http_rpc_test_procedure_handler(const my_http_rpc_test_input_t* in
     return true;
 }
 
-mla_declare_serializable(my_http_rpc_test_input_t)
-mla_declare_serializable(my_http_rpc_test_output_t)
 #define mla_http_rpc_procedure_math_sum_name "http/math/sum"
 #define mla_http_rpc_procedure_math_sum_signature my_rpc_test_input_t, my_rpc_test_output_t
 

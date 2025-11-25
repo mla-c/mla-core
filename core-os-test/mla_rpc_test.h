@@ -11,51 +11,51 @@
 struct my_rpc_test_input_t {
     mla_int32_t a;
     mla_int32_t b;
-};
 
-inline void my_rpc_test_input_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
-    const my_rpc_test_input_t* input = static_cast<const my_rpc_test_input_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
-    mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
+        const my_rpc_test_input_t* input = static_cast<const my_rpc_test_input_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
+        mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
 
-}
-
-inline mla_deserializer_read_result_t my_rpc_test_input_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-
-    my_rpc_test_input_t* input = static_cast<my_rpc_test_input_t*>(obj);
-
-    if (mla_string_equals_const(property_name, "a")) {
-        mla_deserializer_read_int32(deserializer, input->a);
-    } else if (mla_string_equals_const(property_name, "b")) {
-        mla_deserializer_read_int32(deserializer, input->b);
-    } else {
-        return MLA_DESERIALIZER_READ_SKIPPED;
     }
 
-}
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+
+        my_rpc_test_input_t* input = static_cast<my_rpc_test_input_t*>(obj);
+
+        if (mla_string_equals_const(property_name, "a")) {
+            mla_deserializer_read_int32(deserializer, input->a);
+        } else if (mla_string_equals_const(property_name, "b")) {
+            mla_deserializer_read_int32(deserializer, input->b);
+        } else {
+            return MLA_DESERIALIZER_READ_SKIPPED;
+        }
+
+    }
+};
 
 struct my_rpc_test_output_t {
     mla_int32_t sum;
-};
 
-inline void my_rpc_test_output_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
-    const my_rpc_test_output_t* output = static_cast<const my_rpc_test_output_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
+        const my_rpc_test_output_t* output = static_cast<const my_rpc_test_output_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
 
-}
-
-inline mla_deserializer_read_result_t my_rpc_test_output_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-
-    my_rpc_test_output_t* output = static_cast<my_rpc_test_output_t*>(obj);
-
-    if (mla_string_equals_const(property_name, "sum")) {
-        mla_deserializer_read_int32(deserializer, output->sum);
-    } else {
-        return MLA_DESERIALIZER_READ_SKIPPED;
     }
-}
+
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+
+        my_rpc_test_output_t* output = static_cast<my_rpc_test_output_t*>(obj);
+
+        if (mla_string_equals_const(property_name, "sum")) {
+            mla_deserializer_read_int32(deserializer, output->sum);
+        } else {
+            return MLA_DESERIALIZER_READ_SKIPPED;
+        }
+    }
+};
 
 mla_bool_t my_rpc_test_procedure_handler(const my_rpc_test_input_t* input, my_rpc_test_output_t* output) {
 
@@ -63,8 +63,6 @@ mla_bool_t my_rpc_test_procedure_handler(const my_rpc_test_input_t* input, my_rp
     return true;
 }
 
-mla_declare_serializable(my_rpc_test_input_t)
-mla_declare_serializable(my_rpc_test_output_t)
 #define mla_rpc_procedure_math_sum_name "math/sum"
 #define mla_rpc_procedure_math_sum_signature my_rpc_test_input_t, my_rpc_test_output_t
 
@@ -74,44 +72,38 @@ mla_rpc_auto_register_procedure(mla_rpc_procedure_math_sum_name, my_rpc_test_inp
 /// void-like input, normal output
 struct my_rpc_void_in_output_t {
     mla_int32_t value;
-};
 
-inline void my_rpc_void_in_output_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
-    const auto* o = static_cast<const my_rpc_void_in_output_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("value"), o->value);
-}
-
-inline mla_deserializer_read_result_t my_rpc_void_in_output_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-    auto* o = static_cast<my_rpc_void_in_output_t*>(obj);
-    if (mla_string_equals_const(property_name, "value")) {
-        mla_deserializer_read_int32(deserializer, o->value);
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+        const auto* o = static_cast<const my_rpc_void_in_output_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("value"), o->value);
     }
-    return MLA_DESERIALIZER_READ_SKIPPED;
-}
 
-mla_declare_serializable(my_rpc_void_in_output_t)
-
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+        auto* o = static_cast<my_rpc_void_in_output_t*>(obj);
+        if (mla_string_equals_const(property_name, "value")) {
+            mla_deserializer_read_int32(deserializer, o->value);
+        }
+        return MLA_DESERIALIZER_READ_SKIPPED;
+    }
+};
 
 /// normal input, void-like output
 struct my_rpc_input_void_out_t {
     mla_int32_t inputValue;
-};
 
-inline void my_rpc_input_void_out_t_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
-    const auto* in = static_cast<const my_rpc_input_void_out_t*>(obj);
-    mla_serializer_write_int32(serializer, mla_string_const("inputValue"), in->inputValue);
-}
-
-inline mla_deserializer_read_result_t my_rpc_input_void_out_t_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
-    auto* in = static_cast<my_rpc_input_void_out_t*>(obj);
-    if (mla_string_equals_const(property_name, "inputValue")) {
-        mla_deserializer_read_int32(deserializer, in->inputValue);
+    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+        const auto* in = static_cast<const my_rpc_input_void_out_t*>(obj);
+        mla_serializer_write_int32(serializer, mla_string_const("inputValue"), in->inputValue);
     }
-    return MLA_DESERIALIZER_READ_SKIPPED;
-}
 
-mla_declare_serializable(my_rpc_input_void_out_t)
-
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+        auto* in = static_cast<my_rpc_input_void_out_t*>(obj);
+        if (mla_string_equals_const(property_name, "inputValue")) {
+            mla_deserializer_read_int32(deserializer, in->inputValue);
+        }
+        return MLA_DESERIALIZER_READ_SKIPPED;
+    }
+};
 
 /// handlers
 

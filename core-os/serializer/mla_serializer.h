@@ -174,14 +174,6 @@ void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t&
 /// Meta Definitions Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-template<typename T> struct mla_serialize_wrapper;
-
-#define mla_declare_serializable(Type)             \
-template<> struct mla_serialize_wrapper<Type> {         \
-    static constexpr auto deserialize = Type##_deserialize; \
-    static constexpr auto serialize   = Type##_serialize;   \
-};
-
 #define mla_serialize_definition_custom(data, read_fn, write_fn) \
 mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
 
@@ -189,8 +181,8 @@ template<typename T>
 mla_serialize_definition_t mla_serialize_definition()
 {
     return mla_serialize_definition_create(sizeof(T),
-                                           mla_serialize_wrapper<T>::deserialize,
-                                           mla_serialize_wrapper<T>::serialize);
+                                           T::deserialize,
+                                           T::serialize);
 }
 
 #define mla_serialize_definition_void() \
