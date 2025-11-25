@@ -230,3 +230,172 @@ mla_stream_output_t mla_stream_output_stdout() {
     };
 
 }
+
+struct mla_memory_stream_buffer_t {
+    mla_byte_t* buffer;
+    mla_size_t size;
+    mla_size_t position;
+};
+
+mla_size_t __mla_memory_stream_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(input.userdata);
+    if (memBuffer->position + length > memBuffer->size) {
+        length = memBuffer->size - memBuffer->position;
+    }
+
+    // Copy data to the buffer
+    mla_memcpy(buffer + offset, memBuffer->buffer + memBuffer->position, length);
+    memBuffer->position += length;
+    return length;
+}
+
+mla_size_t __mla_memory_stream_input_remaining_bytes(const mla_stream_input_t& input) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(input.userdata);
+    return memBuffer->size - memBuffer->position;
+}
+
+mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(output.userdata);
+
+    if (memBuffer->position + length > memBuffer->size) {
+        // Need to resize the buffer
+        mla_size_t newSize = mla_max(mla_max(memBuffer->size * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
+        // We can not use realloc so we need to use malloc and memcpy
+        mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
+        if (newBuffer != nullptr && memBuffer->buffer != nullptr) {
+            mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
+            mla_free(memBuffer->buffer);
+        }
+
+        if (newBuffer == nullptr) {
+            memBuffer->buffer = nullptr;
+            memBuffer->size = 0;
+            memBuffer->position = 0;
+            return 0; // Reallocation failed
+        } else {
+            memBuffer->buffer = newBuffer;
+            memBuffer->size = newSize;
+        }
+    }
+
+    // Copy the data
+    mla_memcpy(memBuffer->buffer + memBuffer->position, buffer + offset, length);
+    memBuffer->position += length;
+    return length;
+
+}
+
+mla_size_t __mla_memory_stream_output_available_bytes(const mla_stream_output_t& output) {
+    (void)output;
+    // The only limit is the heap
+    return mla_size_max;
+}
+
+
+mla_memory_stream_t mla_memory_stream_empty() {
+    return {
+        mla_stream_noop_input(),
+        mla_stream_noop_output()
+    };
+}
+
+mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
+
+    if (initial_size == 0) {
+        return mla_memory_stream_empty();
+    }
+
+    mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_malloc(sizeof(mla_memory_stream_buffer_t)));
+
+    if (memBuffer == nullptr) {
+        return mla_memory_stream_empty();
+    }
+
+    mla_memset(memBuffer, 0, sizeof(mla_memory_stream_buffer_t));
+    memBuffer->buffer = static_cast<mla_byte_t*>(mla_malloc(initial_size));
+
+    if (memBuffer->buffer == nullptr) {
+        mla_free(memBuffer);
+        return mla_memory_stream_empty();
+    }
+
+    mla_memset(memBuffer->buffer, 0, initial_size);
+    memBuffer->size = initial_size;
+    memBuffer->position = 0;
+
+    mla_buffer_reference_t bufferOwner = mla_buffer_reference(memBuffer);
+
+    return {
+        {
+            reinterpret_cast<mla_callback_userdata>(memBuffer),
+            __mla_memory_stream_input_read,
+            __mla_memory_stream_input_remaining_bytes,
+            bufferOwner
+        },
+        {
+            reinterpret_cast<mla_callback_userdata>(memBuffer),
+            __mla_memory_stream_output_write,
+            __mla_memory_stream_output_available_bytes,
+            bufferOwner
+        }
+    };
+}
+
+mla_size_t mla_memory_stream_get_size(const mla_memory_stream_t &memoryStream) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(memoryStream.input.userdata);
+
+    if (memBuffer == nullptr) {
+        return 0;
+    }
+
+    return memBuffer->size;
+}
+
+mla_size_t mla_memory_stream_get_position(const mla_memory_stream_t &memoryStream) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(memoryStream.input.userdata);
+
+    if (memBuffer == nullptr) {
+        return 0;
+    }
+
+    return memBuffer->position;
+}
+
+mla_bool_t mla_memory_stream_set_position(mla_memory_stream_t &memoryStream, mla_size_t position) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(memoryStream.input.userdata);
+
+    if (memBuffer == nullptr) {
+        return false;
+    }
+
+    if (position > memBuffer->size) {
+        return false; // Position out of bounds
+    }
+
+    memBuffer->position = position;
+    return true;
+}
+
+void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(memoryStream.input.userdata);
+
+    if (memBuffer == nullptr) {
+        return;
+    }
+
+    memBuffer->position = 0;
+
+    if (memBuffer->buffer == nullptr) {
+        return;
+    }
+
+    mla_memset(memBuffer->buffer, 0, memBuffer->size);
+
+}

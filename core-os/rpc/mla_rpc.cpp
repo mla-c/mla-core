@@ -98,6 +98,8 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     // Serialize also local calls to have the same behavior as remote calls
     mla_pointer_t serialized_input = nullptr;
 
+    mla_memory_stream_t memory_stream = mla_memory_stream_empty();
+
     // Serialize input data
     if (input_data != nullptr && input_definition.data_size > 0) {
         serialized_input = mla_malloc(input_definition.data_size);
@@ -106,10 +108,11 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
             return false; // Memory allocation failed
         }
 
-        mla_serializer_t binarySerializer = mla_binary_serializer();
+        mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
         mla_serializer_write_struct(binarySerializer, input_data, input_definition.write_function);
+        mla_memory_stream_set_position(memory_stream, 0);
 
-        mla_deserializer_t binaryDeserializer = mla_binary_deserializer();
+        mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
         if (!mla_deserializer_read_struct(binaryDeserializer, serialized_input, input_definition.read_function)) {
             mla_free(serialized_input);
             return false; // Serialization failed
@@ -136,12 +139,15 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
 
     if (result) {
+        mla_memory_stream_reset(memory_stream);
+
         // Deserialize output data
-        mla_serializer_t binarySerializer = mla_binary_serializer();
+        mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
         mla_serializer_write_struct(binarySerializer, serialized_output, input_definition.write_function);
         mla_free(serialized_output);
+        mla_memory_stream_set_position(memory_stream, 0);
 
-        mla_deserializer_t binaryDeserializer = mla_binary_deserializer();
+        mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
         if (!mla_deserializer_read_struct(binaryDeserializer, output_data, output_definition.read_function)) {
             return false; // Serialization failed
         }
