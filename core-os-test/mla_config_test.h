@@ -38,9 +38,11 @@ inline void test_config_struct_serialize(mla_serializer_t& serializer, const mla
     mla_serializer_write_string(serializer, mla_string_const("strValue"), obj->strValue);
 }
 
+mla_declare_serializable(test_config_struct)
+
 // Helper to create a config definition
 inline mla_serialize_definition_t test_config_struct_serialize_def() {
-    return mla_serialize_definition(test_config_struct);
+    return mla_serialize_definition<test_config_struct>();
 }
 
 
@@ -91,8 +93,10 @@ inline void simple_config_serialize(mla_serializer_t& serializer, const mla_poin
     mla_serializer_write_float(serializer, mla_string_const("value"), obj->value);
 }
 
+mla_declare_serializable(simple_config)
+
 inline mla_serialize_definition_t simple_config_serialize_def() {
-    return mla_serialize_definition(simple_config);
+    return mla_serialize_definition<simple_config>();
 }
 
 struct complex_config {
@@ -128,8 +132,10 @@ inline void complex_config_serialize(mla_serializer_t& serializer, const mla_poi
     mla_serializer_write_list(serializer, mla_string_const("values"), obj->values);
 }
 
+mla_declare_serializable(complex_config)
+
 inline mla_serialize_definition_t complex_config_serialize_def() {
-    return mla_serialize_definition(complex_config);
+    return mla_serialize_definition<complex_config>();
 }
 
 // Test: Multiple config write and read in same order

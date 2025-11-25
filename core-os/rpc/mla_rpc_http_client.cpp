@@ -33,9 +33,9 @@ mla_string_t __mla_http_rpc_content_type_to_string(mla_http_rpc_content_type con
     }
 }
 
-mla_bool_t __mla_http_rpc_request_content_writer(const mla_callback_userdata& userdata, const mla_stream_output_t &outputStream) {
+mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
-    mla_rpc_http_request_body_config* body_config = reinterpret_cast<mla_rpc_http_request_body_config*>(userdata);
+    mla_rpc_http_request_body_config* body_config = reinterpret_cast<mla_rpc_http_request_body_config*>(writer.userData);
 
     if (body_config == nullptr) {
         return false;
@@ -88,7 +88,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const m
         body_config->input_definition = input_definition;
         body_config->content_type = config->content_type;
 
-        request.contentWriter = mla_http_response_content_writer(reinterpret_cast<mla_callback_userdata>(body_config), mla_buffer_reference(body_config), __mla_http_rpc_request_content_writer);
+        request.contentWriter = mla_http_request_content_writer(reinterpret_cast<mla_callback_userdata>(body_config), mla_buffer_reference(body_config), __mla_http_rpc_request_content_writer);
     }
 
     mla_http_client_response_t client_response = mla_http_client_send_request(request);
@@ -115,7 +115,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const m
             return false;
         }
 
-        if (!mla_deserializer_read_struct(deserializer, output_data, input_definition.read_function)) {
+        if (!mla_deserializer_read_struct(deserializer, output_data, output_definition.read_function)) {
             return false; // Serialization failed
         }
 

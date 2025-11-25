@@ -63,6 +63,8 @@ mla_bool_t my_rpc_test_procedure_handler(const my_rpc_test_input_t* input, my_rp
     return true;
 }
 
+mla_declare_serializable(my_rpc_test_input_t)
+mla_declare_serializable(my_rpc_test_output_t)
 #define mla_rpc_procedure_math_sum_name "math/sum"
 #define mla_rpc_procedure_math_sum_signature my_rpc_test_input_t, my_rpc_test_output_t
 
@@ -87,6 +89,8 @@ inline mla_deserializer_read_result_t my_rpc_void_in_output_t_deserialize(mla_de
     return MLA_DESERIALIZER_READ_SKIPPED;
 }
 
+mla_declare_serializable(my_rpc_void_in_output_t)
+
 
 /// normal input, void-like output
 struct my_rpc_input_void_out_t {
@@ -105,6 +109,8 @@ inline mla_deserializer_read_result_t my_rpc_input_void_out_t_deserialize(mla_de
     }
     return MLA_DESERIALIZER_READ_SKIPPED;
 }
+
+mla_declare_serializable(my_rpc_input_void_out_t)
 
 
 /// handlers
@@ -125,13 +131,10 @@ inline mla_bool_t my_rpc_normal_in_void_out_handler(const my_rpc_input_void_out_
 
 
 #define mla_rpc_procedure_void_in_name "test/void_in"
-#define mla_rpc_procedure_void_in_signature void, void
 
 #define mla_rpc_procedure_void_in_normal_out_name "test/void_in_normal_out"
-#define mla_rpc_procedure_void_in_normal_out_signature void, my_rpc_void_in_output_t
 
 #define mla_rpc_procedure_normal_in_void_out_name "test/normal_in_void_out"
-#define mla_rpc_procedure_normal_in_void_out_signature my_rpc_input_void_out_t, void
 
 
 mla_rpc_auto_register_procedure_void(
@@ -175,10 +178,8 @@ inline void ExecuteRpcProcedureTest() {
 inline void ExecuteRpcProcedureVoidInVoidOutTest() {
 
     assert_true(
-        mla_rpc_execute_procedure<mla_rpc_procedure_void_in_signature>(
-            mla_string_const(mla_rpc_procedure_void_in_name),
-            nullptr,
-            nullptr
+        mla_rpc_execute_procedure(
+            mla_string_const(mla_rpc_procedure_void_in_name)
         ),
         "Failed to execute void-in/void-out RPC procedure"
     );
@@ -188,9 +189,8 @@ inline void ExecuteRpcProcedureVoidInNormalOutTest() {
     my_rpc_void_in_output_t output = {0};
 
     assert_true(
-        mla_rpc_execute_procedure<mla_rpc_procedure_void_in_normal_out_signature>(
+        mla_rpc_execute_procedure_void_input(
             mla_string_const(mla_rpc_procedure_void_in_normal_out_name),
-            nullptr,
             &output
         ),
         "Failed to execute void-in/normal-out RPC procedure"
@@ -202,10 +202,9 @@ inline void ExecuteRpcProcedureNormalInVoidOutTest() {
     my_rpc_input_void_out_t input{123};
 
     assert_true(
-        mla_rpc_execute_procedure<mla_rpc_procedure_normal_in_void_out_signature>(
+        mla_rpc_execute_procedure_void_output(
             mla_string_const(mla_rpc_procedure_normal_in_void_out_name),
-            &input,
-            nullptr
+            &input
         ),
         "Failed to execute normal-in/void-out RPC procedure"
     );

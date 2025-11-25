@@ -69,6 +69,8 @@ mla_bool_t my_http_rpc_test_procedure_handler(const my_http_rpc_test_input_t* in
     return true;
 }
 
+mla_declare_serializable(my_http_rpc_test_input_t)
+mla_declare_serializable(my_http_rpc_test_output_t)
 #define mla_http_rpc_procedure_math_sum_name "http/math/sum"
 #define mla_http_rpc_procedure_math_sum_signature my_rpc_test_input_t, my_rpc_test_output_t
 

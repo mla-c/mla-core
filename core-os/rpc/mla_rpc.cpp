@@ -166,7 +166,7 @@ mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, 
         return false; // No remote endpoint can handle this procedure
     }
 
-    return endpoint.execute_procedure(endpoint.procedure_userdata, procedure_name, input_data, output_data);
+    return endpoint.execute_procedure(endpoint.procedure_userdata, procedure_name, input_definition, output_definition, input_data, output_data);
 }
 
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures() {
