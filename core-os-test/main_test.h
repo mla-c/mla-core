@@ -32,6 +32,7 @@
 #include "mla_atomic_test.h"
 #include "mla_sha1_test.h"
 #include "mla_rpc_test.h"
+#include "mla_stream_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -78,6 +79,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterAtomicTests(l_TestExecutor);
     RegisterSha1Tests(l_TestExecutor);
     RegisterRpcTests(l_TestExecutor);
+    RegisterStreamTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1

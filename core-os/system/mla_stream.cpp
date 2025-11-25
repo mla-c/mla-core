@@ -411,6 +411,7 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
     }
 
     memBuffer->position = 0;
+    memBuffer->size = 0;
 
     if (memBuffer->buffer == nullptr) {
         return;
