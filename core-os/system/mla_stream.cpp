@@ -432,13 +432,14 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
         return;
     }
 
-    memBuffer->position = 0;
+    mla_size_t oldSize = memBuffer->size;
     memBuffer->size = 0;
+    memBuffer->position = 0;
 
     if (memBuffer->buffer == nullptr) {
         return;
     }
 
-    mla_memset(memBuffer->buffer, 0, memBuffer->size);
+    mla_memset(memBuffer->buffer, 0, oldSize);
 
 }
