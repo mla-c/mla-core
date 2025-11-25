@@ -146,7 +146,12 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
     header->write_function = procedure.outputDefinition.write_function;
 
     // Store content type and write function at the beginning of output buffer
-    mla_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(output) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+    mla_pointer_t outputData = nullptr;
+
+    if (output != nullptr) {
+        outputData = reinterpret_cast<mla_uint8_t*>(output) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+    }
+
     if (procedure.execute(input, outputData)) {
         mla_free(input);
 
@@ -161,6 +166,7 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
                 mla_http_headers_add(response.headers, mla_string_const("Content-Type"), mla_string_const("application/octet-stream"));
             } else {
                 mla_error(mla_string_concat("Unsupported Content-Type for procedure ", procedure_name));
+                mla_free(output);
                 return false;
             }
 

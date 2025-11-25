@@ -320,6 +320,22 @@ mla_memory_stream_t mla_memory_stream_empty() {
     return mla_memory_stream(0);
 }
 
+mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_pointer_t data, mla_callback_userdata userData) {
+
+    (void)userData;
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(data);
+
+    if (memBuffer == nullptr) {
+        return CLEAN_UP_SKIP;
+    }
+
+    if (memBuffer->buffer != nullptr) {
+        mla_free(memBuffer->buffer);
+    }
+
+    return CLEAN_UP_NEEDED;
+}
+
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
 
     mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_malloc(sizeof(mla_memory_stream_buffer_t)));
@@ -346,7 +362,7 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
     memBuffer->capacity = initial_size;
     memBuffer->position = 0;
 
-    mla_buffer_reference_t bufferOwner = mla_buffer_reference(memBuffer);
+    mla_buffer_reference_t bufferOwner = mla_buffer_reference(memBuffer, false, __mla_memory_stream_cleanup_hook);
 
     return {
         {

@@ -226,7 +226,7 @@ mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_callback_userd
 
     mla_string_t str_prefix = mla_string_from_buffer_without_ownership(pathPrefix, mla_strlen(pathPrefix));
 
-    return mla_string_equals(procedure_name, str_prefix);
+    return mla_string_starts_with(procedure_name, str_prefix);
 }
 
 
