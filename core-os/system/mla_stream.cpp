@@ -279,6 +279,12 @@ mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, m
                 mla_memset(newBuffer, 0, newSize);
             }
 
+        } else {
+
+            if (memBuffer->buffer != nullptr) {
+                mla_free(memBuffer->buffer);
+            }
+
         }
 
         if (newBuffer == nullptr) {
