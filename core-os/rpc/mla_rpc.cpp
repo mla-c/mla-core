@@ -113,6 +113,8 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
         mla_memory_stream_set_position(memory_stream, 0);
 
         mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
+        // Start reading
+        binaryDeserializer.read_next(binaryDeserializer);
         if (!mla_deserializer_read_struct(binaryDeserializer, serialized_input, input_definition.read_function)) {
             mla_free(serialized_input);
             return false; // Serialization failed
@@ -139,17 +141,22 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
 
     if (result) {
-        mla_memory_stream_reset(memory_stream);
 
-        // Deserialize output data
-        mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
-        mla_serializer_write_struct(binarySerializer, serialized_output, input_definition.write_function);
-        mla_free(serialized_output);
-        mla_memory_stream_set_position(memory_stream, 0);
+        if (serialized_output != nullptr) {
+            mla_memory_stream_reset(memory_stream);
 
-        mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
-        if (!mla_deserializer_read_struct(binaryDeserializer, output_data, output_definition.read_function)) {
-            return false; // Serialization failed
+            // Deserialize output data
+            mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
+            mla_serializer_write_struct(binarySerializer, serialized_output, output_definition.write_function);
+            mla_free(serialized_output);
+            mla_memory_stream_set_position(memory_stream, 0);
+
+            mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
+            // Start reading
+            binaryDeserializer.read_next(binaryDeserializer);
+            if (!mla_deserializer_read_struct(binaryDeserializer, output_data, output_definition.read_function)) {
+                return false; // Serialization failed
+            }
         }
 
         return true;

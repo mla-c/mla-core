@@ -78,7 +78,7 @@ mla_rpc_auto_register_procedure(mla_http_rpc_procedure_math_sum_name, my_http_rp
 inline void ExecuteHttpRpcProcedureTest() {
 
     mla_http_server_t server = mla_http_server(rpc_test_server_host);
-    mla_rpc_http_server_initialize(server);
+    assert_true(mla_rpc_http_server_initialize(server), "Should initialize HTTP RPC server");
     assert_true(mla_http_server_start(server, 1), "Should start simple HTTP server");
     mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(rpc_test_server_url, "/rpc/"), mla_http_rpc_content_type_binary);
     assert_true(mla_rpc_remote_endpoint_valid(endpoint), "Should create valid HTTP RPC remote endpoint");

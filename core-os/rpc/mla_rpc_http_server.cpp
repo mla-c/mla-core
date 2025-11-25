@@ -65,15 +65,8 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
 
 mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {
 
-    mla_url_t url = mla_url_empty();
-
-    if (!mla_url_parse(request.url, url)) {
-        mla_debug(mla_string_concat("Failed to parse URL ", request.url));
-        return false;
-    }
-
     // Remove "/rpc/" prefix
-    mla_string_t procedure_name = mla_string_substr(url.path, 5, url.path.length - 5);
+    mla_string_t procedure_name = mla_string_substr(request.url, 5, request.url.length - 5);
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
@@ -137,6 +130,8 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
 
     if (input != nullptr && procedure.inputDefinition.read_function != nullptr) {
 
+        // Start reading
+        deserializer.read_next(deserializer);
         if (!mla_deserializer_read_struct(deserializer, input, procedure.inputDefinition.read_function)) {
             response.statusCode = mla_http_status_bad_request;
             mla_error(mla_string_concat("Failed to deserialize input for procedure ", procedure_name));

@@ -174,9 +174,6 @@ void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t&
 /// Meta Definitions Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-#define mla_serialize_definition_custom(data, read_fn, write_fn) \
-mla_serialize_definition_create(sizeof(data), read_fn, write_fn)
-
 template<typename T>
 mla_serialize_definition_t mla_serialize_definition()
 {

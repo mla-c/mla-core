@@ -234,6 +234,7 @@ mla_stream_output_t mla_stream_output_stdout() {
 struct mla_memory_stream_buffer_t {
     mla_byte_t* buffer;
     mla_size_t size;
+    mla_size_t capacity;
     mla_size_t position;
 };
 
@@ -260,30 +261,44 @@ mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, m
 
     mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(output.userdata);
 
-    if (memBuffer->position + length > memBuffer->size) {
+    if (memBuffer->position + length > memBuffer->capacity) {
         // Need to resize the buffer
-        mla_size_t newSize = mla_max(mla_max(memBuffer->size * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
+        mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
         // We can not use realloc so we need to use malloc and memcpy
         mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
-        if (newBuffer != nullptr && memBuffer->buffer != nullptr) {
-            mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
-            mla_free(memBuffer->buffer);
+        if (newBuffer != nullptr) {
+
+            if (memBuffer->buffer != nullptr) {
+                mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
+                mla_free(memBuffer->buffer);
+                // Zero the new allocated part
+                if (newSize > memBuffer->size) {
+                    mla_memset(newBuffer + memBuffer->size, 0, newSize - memBuffer->size);
+                }
+            } else {
+                mla_memset(newBuffer, 0, newSize);
+            }
+
         }
 
         if (newBuffer == nullptr) {
             memBuffer->buffer = nullptr;
-            memBuffer->size = 0;
+            memBuffer->capacity = 0;
             memBuffer->position = 0;
+            memBuffer->size = 0;
             return 0; // Reallocation failed
         } else {
             memBuffer->buffer = newBuffer;
-            memBuffer->size = newSize;
+            memBuffer->capacity = newSize;
         }
     }
 
     // Copy the data
     mla_memcpy(memBuffer->buffer + memBuffer->position, buffer + offset, length);
     memBuffer->position += length;
+    if (memBuffer->position > memBuffer->size) {
+        memBuffer->size = memBuffer->position;
+    }
     return length;
 
 }
@@ -294,36 +309,41 @@ mla_size_t __mla_memory_stream_output_available_bytes(const mla_stream_output_t&
     return mla_size_max;
 }
 
-
-mla_memory_stream_t mla_memory_stream_empty() {
+mla_memory_stream_t mla_memory_stream_invalid() {
     return {
         mla_stream_noop_input(),
         mla_stream_noop_output()
     };
 }
 
-mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
+mla_memory_stream_t mla_memory_stream_empty() {
+    return mla_memory_stream(0);
+}
 
-    if (initial_size == 0) {
-        return mla_memory_stream_empty();
-    }
+mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
 
     mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_malloc(sizeof(mla_memory_stream_buffer_t)));
 
     if (memBuffer == nullptr) {
-        return mla_memory_stream_empty();
+        return mla_memory_stream_invalid();
     }
 
     mla_memset(memBuffer, 0, sizeof(mla_memory_stream_buffer_t));
-    memBuffer->buffer = static_cast<mla_byte_t*>(mla_malloc(initial_size));
 
-    if (memBuffer->buffer == nullptr) {
-        mla_free(memBuffer);
-        return mla_memory_stream_empty();
+    if (initial_size > 0) {
+
+        memBuffer->buffer = static_cast<mla_byte_t*>(mla_malloc(initial_size));
+
+        if (memBuffer->buffer == nullptr) {
+            mla_free(memBuffer);
+            return mla_memory_stream_invalid();
+        }
+
+        mla_memset(memBuffer->buffer, 0, initial_size);
     }
 
-    mla_memset(memBuffer->buffer, 0, initial_size);
-    memBuffer->size = initial_size;
+    memBuffer->size = 0;
+    memBuffer->capacity = initial_size;
     memBuffer->position = 0;
 
     mla_buffer_reference_t bufferOwner = mla_buffer_reference(memBuffer);
