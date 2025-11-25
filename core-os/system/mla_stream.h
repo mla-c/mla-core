@@ -59,4 +59,18 @@ mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, con
 mla_stream_input_t mla_stream_input_timeout_wrapper(const mla_stream_input_t &input, mla_int32_t timeout_ms);
 mla_stream_input_t mla_stream_input_limited_wrapper(const mla_stream_input_t &input, mla_size_t size);
 
+// Memory Stream
+struct mla_memory_stream_t {
+    mla_stream_input_t input;
+    mla_stream_output_t output;
+};
+
+mla_memory_stream_t mla_memory_stream_invalid();
+mla_memory_stream_t mla_memory_stream_empty();
+mla_memory_stream_t mla_memory_stream(mla_size_t initial_size);
+mla_size_t mla_memory_stream_get_size(const mla_memory_stream_t &memoryStream);
+mla_size_t mla_memory_stream_get_position(const mla_memory_stream_t &memoryStream);
+mla_bool_t mla_memory_stream_set_position(mla_memory_stream_t &memoryStream, mla_size_t position);
+void mla_memory_stream_reset(mla_memory_stream_t &memoryStream);
+
 #endif

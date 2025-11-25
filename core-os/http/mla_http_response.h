@@ -31,16 +31,51 @@
 #define mla_http_status_service_unavailable ((mla_uint16_t)503)
 #define mla_http_status_gateway_timeout ((mla_uint16_t)504)
 
+struct mla_http_response_content_writer_t;
+
+typedef mla_bool_t (*mla_http_response_content_writer_func_t)(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream);
+
+struct mla_http_response_content_writer_t {
+    mla_callback_userdata userData;
+    mla_buffer_reference_t userDataOwner;
+    mla_http_response_content_writer_func_t writeTo;
+};
+
+inline mla_http_response_content_writer_t mla_http_response_content_writer(
+    const mla_callback_userdata &userdata,
+    const mla_buffer_reference_t &userDataOwner,
+    const mla_http_response_content_writer_func_t &writer
+) {
+    return {
+        userdata,
+        userDataOwner,
+        writer
+    };
+}
+
+inline mla_http_response_content_writer_t mla_http_response_content_writer_invalid() {
+    return {
+        0,
+        mla_buffer_reference_noOwner(),
+        nullptr
+    };
+}
+
+inline mla_bool_t mla_http_response_content_writer_is_valid(const mla_http_response_content_writer_t &writer) {
+    return writer.writeTo != nullptr;
+}
+
 struct mla_http_response_t {
     mla_http_version version; // e.g., HTTP/1.1
     mla_uint16_t statusCode; // e.g., 200, 404, etc.
     mla_string_t statusMessage; // e.g., "OK", "Not Found", etc.
     mla_array_list_t<mla_http_header_t, mla_http_header_initializer> headers;
     mla_stream_input_t content; // Response body content
+    mla_http_response_content_writer_t contentWriter; // Optional content writer for dynamic content
 };
 
 inline mla_http_response_t mla_http_response_empty() {
-    return {MLA_HTTP_VERSION_1_0, 0, mla_string_empty(), mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(), mla_stream_noop_input()};
+    return {MLA_HTTP_VERSION_1_0, 0, mla_string_empty(), mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(), mla_stream_noop_input(), mla_http_response_content_writer_invalid()};
 }
 
 inline void mla_http_response_destroy(mla_http_response_t &response) {

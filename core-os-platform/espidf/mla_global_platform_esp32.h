@@ -10,6 +10,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
+#include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 void __esp32_sleep(mla_uint32_t milliseconds) {
 
@@ -43,6 +44,9 @@ void mla_boot_os_application() {
 
     // Disable the watchdog for testing purposes
     esp_task_wdt_deinit();
+
+    // Finish boot
+    mla_lifecycle_fire_boot_events();
 }
 
 #endif

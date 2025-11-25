@@ -11,6 +11,39 @@
 #include "../system/mla_stream.h"
 #include "mla_http_data_types.h"
 
+struct mla_http_request_content_writer_t;
+
+typedef mla_bool_t (*mla_http_request_content_writer_func_t)(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream);
+
+struct mla_http_request_content_writer_t {
+    mla_callback_userdata userData;
+    mla_buffer_reference_t userDataOwner;
+    mla_http_request_content_writer_func_t writeTo;
+};
+
+inline mla_http_request_content_writer_t mla_http_request_content_writer(
+    const mla_callback_userdata &userdata,
+    const mla_buffer_reference_t &userDataOwner,
+    const mla_http_request_content_writer_func_t &writer
+) {
+    return {
+        userdata,
+        userDataOwner,
+        writer
+    };
+}
+
+inline mla_http_request_content_writer_t mla_http_request_content_writer_invalid() {
+    return {
+        0,
+        mla_buffer_reference_noOwner(),
+        nullptr
+    };
+}
+
+inline mla_bool_t mla_http_request_content_writer_is_valid(const mla_http_request_content_writer_t &writer) {
+    return writer.writeTo != nullptr;
+}
 
 
 struct mla_http_request_t {
@@ -19,6 +52,7 @@ struct mla_http_request_t {
     mla_string_t method; // GET, POST, PUT, DELETE, etc.
     mla_array_list_t<mla_http_header_t, mla_http_header_initializer> headers;
     mla_stream_input_t  content; // Request body content
+    mla_http_request_content_writer_t contentWriter; // Optional content writer for dynamic content
 };
 
 inline mla_http_request_t mla_http_request_empty() {
@@ -27,7 +61,8 @@ inline mla_http_request_t mla_http_request_empty() {
             mla_string_empty(),
             mla_string_empty(),
             mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(),
-            mla_stream_noop_input()
+            mla_stream_noop_input(),
+        mla_http_request_content_writer_invalid()
     };
 }
 
@@ -37,7 +72,8 @@ inline mla_http_request_t mla_http_request(const mla_string_t &p_Url, const mla_
             p_Url,
             p_Method,
             mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(),
-            mla_stream_noop_input()
+            mla_stream_noop_input(),
+        mla_http_request_content_writer_invalid()
     };
 }
 

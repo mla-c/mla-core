@@ -23,7 +23,6 @@
 #include "mla_task_manager_test.h"
 #include "mla_rw_lock_test.h"
 #include "mla_mutex_test.h"
-#include "mla_inject_test.h"
 #include "mla_cli_parser_test.h"
 #include "mla_cli_app_test.h"
 #include "mla_task_cli_module_test.h"
@@ -32,6 +31,8 @@
 #include "mla_id_test.h"
 #include "mla_atomic_test.h"
 #include "mla_sha1_test.h"
+#include "mla_rpc_test.h"
+#include "mla_stream_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -40,6 +41,7 @@
 #include "mla_http_client_test.h"
 #include "mla_http_server_test.h"
 #include "mla_websocket_client_test.h"
+#include "mla_http_rpc_test.h"
 
 #endif
 
@@ -68,7 +70,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterTaskManagerTests(l_TestExecutor);
     RegisterReadWriteLockTests(l_TestExecutor);
     RegisterMutexTests(l_TestExecutor);
-    RegisterInjectTests(l_TestExecutor);
     RegisterCliParserTests(l_TestExecutor);
     RegisterCliAppTests(l_TestExecutor);
     RegisterTaskCliModuleTests(l_TestExecutor);
@@ -77,6 +78,8 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterIdTests(l_TestExecutor);
     RegisterAtomicTests(l_TestExecutor);
     RegisterSha1Tests(l_TestExecutor);
+    RegisterRpcTests(l_TestExecutor);
+    RegisterStreamTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
@@ -86,6 +89,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHttpClientTests(l_TestExecutor);
     RegisterHttpServerTests(l_TestExecutor);
     RegisterWebsocketClientTests(l_TestExecutor);
+    RegisterHttpRpcTests(l_TestExecutor);
 
 #endif
 
@@ -104,7 +108,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHashMapBenchmarks(l_BenchmarkExecutor);
     RegisterMutexBenchmarks(l_BenchmarkExecutor);
     RegisterReadWriteLockBenchmarks(l_BenchmarkExecutor);
-    RegisterInjectBenchmarks(l_BenchmarkExecutor);
     RegisterSerializerBenchmarks(l_BenchmarkExecutor);
     RegisterAtomicBenchmarks(l_BenchmarkExecutor);
     RegisterSha1Benchmarks(l_BenchmarkExecutor);

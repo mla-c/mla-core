@@ -106,7 +106,7 @@ enum mla_hash_map_push_result {
 };
 
 template < mla_hash_map_template_full >
-mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, const TValue &value) {
+mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, const TValue &value, mla_bool_t allowReplace) {
 
     // Check the load factor
     mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
@@ -200,6 +200,10 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
         auto item = mla_array_list_get_unsafe(bucket.items, i);
 
         if (item.key == key) {
+
+            if (!allowReplace)
+                return MLA_HASH_MAP_PUSH_ERROR;
+
             // Key already exists, update the value
             item.value = value;
             return MLA_HASH_MAP_PUSH_REPLACED;
@@ -216,6 +220,11 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
     map.size = map.size + 1; // Increase the size of the hash map
     return MLA_HASH_MAP_PUSH_ADDED;
 
+}
+
+template < mla_hash_map_template_full >
+mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key, const TValue &value) {
+    return mla_hash_map_push(map, key, value, true);
 }
 
 template < mla_hash_map_template_full >
@@ -286,6 +295,27 @@ mla_array_list_t<TKey, TKeyInit> mla_hash_map_keys(const mla_hash_map_t<mla_hash
     }
 
     return keys;
+
+}
+
+template< mla_hash_map_template_full >
+mla_array_list_t<TValue, TValueInit> mla_hash_map_values(const mla_hash_map_t<mla_hash_map_t_param_full> &map) {
+
+    mla_array_list_t<TValue, TValueInit> values = mla_array_list< TValue, TValueInit >(map.size);
+
+    for (mla_size_t i = 0; i < mla_array_list_size(map.buckets); ++i) {
+
+        auto bucketItem = mla_array_list_get_ref(map.buckets, i);
+
+        for (mla_size_t j = 0; j < mla_array_list_size(bucketItem->items); ++j) {
+
+            auto item = mla_array_list_get_ref(bucketItem->items, j);
+            mla_array_list_add(values, item->value);
+        }
+
+    }
+
+    return values;
 
 }
 
