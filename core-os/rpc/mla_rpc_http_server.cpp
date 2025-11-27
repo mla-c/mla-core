@@ -175,7 +175,7 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
             }
 
             // If its an short input we can optimize by writing it directly
-            mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size);
+            mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, false);
 
             if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, outputData, procedure.outputDefinition.write_function)) {
                 // If serialization was successful we can use the memory stream as content

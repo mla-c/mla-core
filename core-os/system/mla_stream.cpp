@@ -236,6 +236,7 @@ struct mla_memory_stream_buffer_t {
     mla_size_t size;
     mla_size_t capacity;
     mla_size_t position;
+    mla_bool_t can_grow;
 };
 
 mla_size_t __mla_memory_stream_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
@@ -262,40 +263,51 @@ mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, m
     mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(output.userdata);
 
     if (memBuffer->position + length > memBuffer->capacity) {
-        // Need to resize the buffer
-        mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
-        // We can not use realloc so we need to use malloc and memcpy
-        mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
-        if (newBuffer != nullptr) {
 
-            if (memBuffer->buffer != nullptr) {
-                mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
-                mla_free(memBuffer->buffer);
-                // Zero the new allocated part
-                if (newSize > memBuffer->size) {
-                    mla_memset(newBuffer + memBuffer->size, 0, newSize - memBuffer->size);
+        if (memBuffer->can_grow) {
+
+            // Need to resize the buffer
+            mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
+            // We can not use realloc so we need to use malloc and memcpy
+            mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
+            if (newBuffer != nullptr) {
+
+                if (memBuffer->buffer != nullptr) {
+                    mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
+                    mla_free(memBuffer->buffer);
+                    // Zero the new allocated part
+                    if (newSize > memBuffer->size) {
+                        mla_memset(newBuffer + memBuffer->size, 0, newSize - memBuffer->size);
+                    }
+                } else {
+                    mla_memset(newBuffer, 0, newSize);
                 }
+
             } else {
-                mla_memset(newBuffer, 0, newSize);
+
+                if (memBuffer->buffer != nullptr) {
+                    mla_free(memBuffer->buffer);
+                }
+
+            }
+
+            if (newBuffer == nullptr) {
+                memBuffer->buffer = nullptr;
+                memBuffer->capacity = 0;
+                memBuffer->position = 0;
+                memBuffer->size = 0;
+                return 0; // Reallocation failed
+            } else {
+                memBuffer->buffer = newBuffer;
+                memBuffer->capacity = newSize;
             }
 
         } else {
-
-            if (memBuffer->buffer != nullptr) {
-                mla_free(memBuffer->buffer);
+            // Cannot grow, limit the length
+            length = memBuffer->capacity - memBuffer->position;
+            if (length == 0) {
+                return 0; // No space available
             }
-
-        }
-
-        if (newBuffer == nullptr) {
-            memBuffer->buffer = nullptr;
-            memBuffer->capacity = 0;
-            memBuffer->position = 0;
-            memBuffer->size = 0;
-            return 0; // Reallocation failed
-        } else {
-            memBuffer->buffer = newBuffer;
-            memBuffer->capacity = newSize;
         }
     }
 
@@ -310,7 +322,17 @@ mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, m
 }
 
 mla_size_t __mla_memory_stream_output_available_bytes(const mla_stream_output_t& output) {
-    (void)output;
+
+    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(output.userdata);
+
+    if (memBuffer == nullptr) {
+        return 0;
+    }
+
+    if (!memBuffer->can_grow) {
+        return memBuffer->capacity - memBuffer->position;
+    }
+
     // The only limit is the heap
     return mla_size_max;
 }
@@ -323,7 +345,7 @@ mla_memory_stream_t mla_memory_stream_invalid() {
 }
 
 mla_memory_stream_t mla_memory_stream_empty() {
-    return mla_memory_stream(0);
+    return mla_memory_stream(0, true);
 }
 
 mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_pointer_t data, mla_callback_userdata userData) {
@@ -343,6 +365,10 @@ mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_pointer_t data, mla
 }
 
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
+    return mla_memory_stream(initial_size, true);
+}
+
+mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_grow) {
 
     mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_malloc(sizeof(mla_memory_stream_buffer_t)));
 
@@ -364,6 +390,7 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
         mla_memset(memBuffer->buffer, 0, initial_size);
     }
 
+    memBuffer->can_grow = can_grow;
     memBuffer->size = 0;
     memBuffer->capacity = initial_size;
     memBuffer->position = 0;

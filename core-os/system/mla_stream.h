@@ -67,6 +67,7 @@ struct mla_memory_stream_t {
 
 mla_memory_stream_t mla_memory_stream_invalid();
 mla_memory_stream_t mla_memory_stream_empty();
+mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_grow);
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size);
 mla_size_t mla_memory_stream_get_size(const mla_memory_stream_t &memoryStream);
 mla_size_t mla_memory_stream_get_position(const mla_memory_stream_t &memoryStream);

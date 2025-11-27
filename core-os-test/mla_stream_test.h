@@ -105,6 +105,24 @@ void MemoryStreamAutoGrowTest() {
     free(read_buffer);
 }
 
+void MemoryStreamNoGrowTest() {
+
+    mla_memory_stream_t stream = mla_memory_stream(8, false);
+    mla_string_t test_string = mla_string("0123456789AB");
+    mla_size_t written = stream.output.write(stream.output, 0, test_string.length, (const mla_byte_t*)test_string.data);
+
+    assert_equal(written, (mla_size_t)8, "Non-grow stream should stop at capacity");
+    assert_equal(mla_memory_stream_get_size(stream), (mla_size_t)8, "Size should equal capacity");
+    assert_equal(mla_memory_stream_get_position(stream), (mla_size_t)8, "Position should be at capacity");
+
+    assert_true(mla_memory_stream_set_position(stream, 0), "Reset position to read");
+    mla_byte_t read_buffer[16] = {0};
+    mla_size_t read_bytes = stream.input.read(stream.input, 0, 8, read_buffer);
+
+    assert_equal(read_bytes, (mla_size_t)8, "Should read only written bytes");
+    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, 8), (mla_test_int32_t)0, "Data should match truncated content");
+}
+
 void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("MemoryStreamCreateEmpty", test_category, MemoryStreamCreateEmptyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -125,6 +143,9 @@ void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MemoryStreamAutoGrow", test_category, MemoryStreamAutoGrowTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("MemoryStreamNoGrow", test_category, MemoryStreamNoGrowTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
