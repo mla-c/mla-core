@@ -29,6 +29,10 @@ mla_serializer_t mla_serializer_invalid() {
     };
 }
 
+mla_bool_t mla_serializer_is_invalid(const mla_serializer_t& serializer) {
+    return serializer.write_start_struct == nullptr;
+}
+
 mla_deserializer_t mla_deserializer_invalid() {
     return {
         mla_stream_noop_input(),

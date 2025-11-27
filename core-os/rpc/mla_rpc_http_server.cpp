@@ -30,6 +30,24 @@ struct mla_rpc_http_server_handler_content_writer_header_t {
     mla_serialize_definition_write_function_t write_function;
 };
 
+
+mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t outputData, const mla_serialize_definition_write_function_t &write_function) {
+
+    mla_serializer_t serializer = mla_serializer_invalid();
+
+    // Set Content-Type header
+    if (contentType == mla_http_rpc_content_type_json) {
+        serializer = mla_json_serializer(outputStream);
+    } else if (contentType == mla_http_rpc_content_type_binary) {
+        serializer = mla_binary_serializer(outputStream);
+    } else {
+        mla_error("Unsupported Content-Type in output writer");
+        return false;
+    }
+
+    return mla_serializer_write_data_struct(serializer, outputData, write_function);
+}
+
 mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
     mla_pointer_t buffer = reinterpret_cast<mla_pointer_t>(writer.userData);
@@ -46,20 +64,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
     // Store content type and write function at the beginning of output buffer
     mla_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
 
-    // Serialize output
-    mla_serializer_t serializer = mla_serializer_invalid();
-
-    // Set Content-Type header
-    if (header->contentType == mla_http_rpc_content_type_json) {
-        serializer = mla_json_serializer(outputStream);
-    } else if (header->contentType == mla_http_rpc_content_type_binary) {
-        serializer = mla_binary_serializer(outputStream);
-    } else {
-        mla_error("Unsupported Content-Type in output writer");
-        return false;
-    }
-
-    return mla_serializer_write_data_struct(serializer, outputData, header->write_function);
+    return __mla_rpc_http_server_handler_content_write(header->contentType, outputStream, outputData, header->write_function);
 }
 
 mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {
@@ -169,7 +174,20 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
                 return false;
             }
 
-            response.contentWriter = mla_http_response_content_writer(reinterpret_cast<mla_callback_userdata>(output), mla_buffer_reference(output), __mla_rpc_http_server_handler_content_writer);
+            // If its an short input we can optimize by writing it directly
+            mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size);
+
+            if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, outputData, procedure.outputDefinition.write_function)) {
+                // If serialization was successful we can use the memory stream as content
+                mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_int32(static_cast<mla_int32_t>(mla_memory_stream_get_size(temp_stream))));
+                mla_memory_stream_set_position(temp_stream, 0);
+                response.content = temp_stream.input;
+                mla_free(output);
+            } else {
+
+                mla_http_headers_add(response.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
+                response.contentWriter = mla_http_response_content_writer(reinterpret_cast<mla_callback_userdata>(output), mla_buffer_reference(output), __mla_rpc_http_server_handler_content_writer);
+            }
         }
 
     } else {

@@ -45,6 +45,7 @@ struct mla_serializer_t {
 };
 
 mla_serializer_t mla_serializer_invalid();
+mla_bool_t mla_serializer_is_invalid(const mla_serializer_t& serializer);
 
 enum mla_deserializer_token_type_t {
     MLA_DESERIALIZER_NULL = 0,

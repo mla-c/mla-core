@@ -76,14 +76,13 @@ mla_bool_t my_http_rpc_test_procedure_handler(const my_http_rpc_test_input_t* in
 
 mla_rpc_auto_register_procedure(mla_http_rpc_procedure_math_sum_name, my_http_rpc_test_input_t, my_http_rpc_test_output_t, my_http_rpc_test_procedure_handler)
 
-inline void ExecuteHttpRpcProcedureTest() {
+inline void ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type content_type) {
 
     mla_http_server_t server = mla_http_server(rpc_test_server_host);
     assert_true(mla_rpc_http_server_initialize(server), "Should initialize HTTP RPC server");
     assert_true(mla_http_server_start(server, 1), "Should start simple HTTP server");
-    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(rpc_test_server_url, "/rpc/"), mla_http_rpc_content_type_binary);
+    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(rpc_test_server_url, "/rpc/"), content_type);
     assert_true(mla_rpc_remote_endpoint_valid(endpoint), "Should create valid HTTP RPC remote endpoint");
-    assert_true(mla_rpc_register_remote_endpoint(endpoint), "Should register HTTP RPC remote endpoint");
 
     my_http_rpc_test_input_t input = { 3, 4 };
     my_http_rpc_test_output_t output = { 0 };
@@ -97,11 +96,21 @@ inline void ExecuteHttpRpcProcedureTest() {
 
 }
 
+inline void ExecuteHttpRpcProcedureBinaryModeTest() {
+    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_binary);
+}
+
+inline void ExecuteHttpRpcProcedureJsonModeTest() {
+    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_json);
+}
+
 void RegisterHttpRpcTests(mla_test_executor_t &p_TestExecutor) {
 
-    (void)p_TestExecutor;
-    //mla_test_t test = mla_test("ExecuteRpcProcedure", test_category, ExecuteHttpRpcProcedureTest);
-    //mla_test_executor_register_test(p_TestExecutor, test);
+    mla_test_t test = mla_test("ExecuteRpcProcedureBinary", test_category, ExecuteHttpRpcProcedureBinaryModeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ExecuteRpcProcedureJson", test_category, ExecuteHttpRpcProcedureJsonModeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
 
 }
 
