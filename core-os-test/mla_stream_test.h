@@ -35,7 +35,7 @@ void MemoryStreamWriteAndReadTest() {
     mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string.length, read_buffer);
 
     assert_equal(read_bytes, test_string.length, "Should read the full string back");
-    assert_equal(memcmp(read_buffer, test_string.data, test_string.length), 0, "Read data should match written data");
+    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match written data");
 }
 
 void MemoryStreamSetPositionAndSeekTest() {
@@ -49,7 +49,7 @@ void MemoryStreamSetPositionAndSeekTest() {
     mla_byte_t read_buffer[16] = {0};
     mla_size_t read_bytes = stream.input.read(stream.input, 0, 5, read_buffer); // Read from current position
     assert_equal(read_bytes, (mla_size_t)5, "Should read from the new position");
-    assert_equal(memcmp(read_buffer, "world", 5), 0, "Read data should be 'world'");
+    assert_equal((mla_test_int32_t)memcmp(read_buffer, "world", 5), (mla_test_int32_t)0, "Read data should be 'world'");
 
     assert_false(mla_memory_stream_set_position(stream, 20), "Should not be able to set position beyond size");
 }
@@ -84,7 +84,7 @@ void MemoryStreamOverwriteTest() {
 
     mla_byte_t read_buffer[32] = {0};
     stream.input.read(stream.input, 0, mla_memory_stream_get_size(stream), read_buffer);
-    assert_equal(memcmp(read_buffer, "initial newa", 12), 0, "Data should be partially overwritten");
+    assert_equal((mla_test_int32_t)memcmp(read_buffer, "initial newa", 12), (mla_test_int32_t)0, "Data should be partially overwritten");
 }
 
 void MemoryStreamAutoGrowTest() {
@@ -101,7 +101,7 @@ void MemoryStreamAutoGrowTest() {
     mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string.length, read_buffer);
 
     assert_equal(read_bytes, test_string.length, "Should read back the full string");
-    assert_equal(memcmp(read_buffer, test_string.data, test_string.length), 0, "Read data should match after auto-grow");
+    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match after auto-grow");
     free(read_buffer);
 }
 
