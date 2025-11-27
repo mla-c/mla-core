@@ -59,8 +59,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
         return false;
     }
 
-    mla_serializer_write_struct(serializer, outputData, header->write_function);
-    return true;
+    return mla_serializer_write_data_struct(serializer, outputData, header->write_function);
 }
 
 mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {

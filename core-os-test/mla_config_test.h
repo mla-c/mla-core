@@ -29,12 +29,13 @@ struct test_config_struct {
 
     }
 
-    static void serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
 
         const test_config_struct* obj = static_cast<const test_config_struct*>(config);
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
         mla_serializer_write_string(serializer, mla_string_const("strValue"), obj->strValue);
+        return true;
     }
 };
 
@@ -83,10 +84,12 @@ struct simple_config {
 
     }
 
-    static  void serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+
         const simple_config* obj = static_cast<const simple_config*>(config);
         mla_serializer_write_uint8(serializer, mla_string_const("version"), obj->version);
         mla_serializer_write_float(serializer, mla_string_const("value"), obj->value);
+        return true;
     }
 };
 
@@ -119,11 +122,13 @@ struct complex_config {
 
     }
 
-    static void serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+
         const complex_config* obj = static_cast<const complex_config*>(config);
         mla_serializer_write_int64(serializer, mla_string_const("id"), obj->id);
         mla_serializer_write_string(serializer, mla_string_const("name"), obj->name);
         mla_serializer_write_list(serializer, mla_string_const("values"), obj->values);
+        return true;
     }
 };
 

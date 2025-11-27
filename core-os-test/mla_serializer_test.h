@@ -42,12 +42,12 @@ inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function
     }
 }
 
-inline void __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline mla_bool_t __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
 
     const mla_all_types_inner_struct* obj = static_cast<const mla_all_types_inner_struct*>(config);
     mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
     mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
-
+    return true;
 }
 
 
@@ -141,7 +141,7 @@ inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_d
     }
 }
 
-inline void __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline mla_bool_t __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
 
     const mla_all_types_struct* obj = static_cast<const mla_all_types_struct*>(config);
 
@@ -168,6 +168,7 @@ inline void __mla_all_types_struct_write_function(mla_serializer_t& serializer, 
     // Inner struct list
     mla_serializer_write_list<mla_all_types_inner_struct>(serializer, mla_string_const("innerStructList"), obj->innerStructList, __mla_all_types_inner_struct_write_function);
 
+    return true;
 }
 
 inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer) {
@@ -211,7 +212,7 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
     mla_array_list_add(original.innerStructList, { 2, true });
     mla_array_list_add(original.innerStructList, { 3, false });
 
-    mla_serializer_write_struct(serializer, &original, __mla_all_types_struct_write_function);
+    assert_true(mla_serializer_write_data_struct(serializer, &original, __mla_all_types_struct_write_function), "Failed to serialize data");
 
 
     mla_all_types_struct deserialized = {
@@ -234,7 +235,7 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
     };
 
     // Start reading
-    deserializer.read_next(deserializer);
+    assert_true(deserializer.read_next(deserializer), "Failed to read next data from deserializer");
     assert_true(mla_deserializer_read_struct(deserializer, &deserialized, __mla_all_types_struct_read_function), "Deserialization failed");
 
     // Compare original and deserialized
@@ -453,7 +454,7 @@ inline void SetupDeserializerBenchmark(mla_serializer_t serializer) {
     mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, { 3, false });
 
 
-    mla_serializer_write_struct(serializer, &prepare_benchmarkAllTypes, __mla_all_types_struct_write_function);
+    mla_serializer_write_data_struct(serializer, &prepare_benchmarkAllTypes, __mla_all_types_struct_write_function);
 }
 
 inline void TearDownDeserializerBenchmark() {
@@ -482,7 +483,7 @@ inline void TearDownDeserializerBenchmark() {
 
 inline void AllTypesSerializerBenchmark(mla_serializer_t serializer) {
 
-    mla_serializer_write_struct(serializer, &g_benchmarkAllTypes, __mla_all_types_struct_write_function);
+    mla_serializer_write_data_struct(serializer, &g_benchmarkAllTypes, __mla_all_types_struct_write_function);
 }
 
 inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {

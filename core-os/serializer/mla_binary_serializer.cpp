@@ -11,156 +11,198 @@
 #include "../utils/mla_endian_utils.h"
 
 
-void __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
+mla_bool_t __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
 
     mla_uint8_t byteType = (mla_uint8_t)type;
-    output.write(output, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType));
+    return output.write(output, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType)) == sizeof(byteType);
 }
 
-void __mla_binary_serializer_write_string_data(const mla_stream_output_t& output, const mla_string_t& name) {
+mla_bool_t __mla_binary_serializer_write_string_data(const mla_stream_output_t& output, const mla_string_t& name) {
 
     // Write the length of the string as a 32-bit integer in little endian
     mla_size_t len_le = mla_host_to_le_uint32(name.length);
-    output.write(output, 0, sizeof(mla_size_t), reinterpret_cast<const mla_byte_t*>(&len_le));
+
+    if (output.write(output, 0, sizeof(mla_size_t), reinterpret_cast<const mla_byte_t*>(&len_le)) != sizeof(mla_size_t)) {
+        return false;
+    }
 
 
     if (name.length > 0) {
-        output.write(output, 0, name.length, reinterpret_cast<const mla_byte_t*>(name.data));
+        if (output.write(output, 0, name.length, reinterpret_cast<const mla_byte_t*>(name.data)) != name.length) {
+            return false;
+        }
     }
 
-}
-
-void mla_binary_serializer_write_start_struct(mla_serializer_t& instance) {
-
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_START);
+    return true;
 
 }
 
-void mla_binary_serializer_write_end_struct(mla_serializer_t& instance) {
+mla_bool_t mla_binary_serializer_write_start_struct(mla_serializer_t& instance) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_END);
-}
-
-void mla_binary_serializer_write_start_list(mla_serializer_t& instance) {
-
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_START);
+    return __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_START);
 
 }
 
-void mla_binary_serializer_write_end_list(mla_serializer_t& instance) {
+mla_bool_t mla_binary_serializer_write_end_struct(mla_serializer_t& instance) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_END);
+    return __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_STRUCT_END);
 }
 
-void mla_binary_serializer_write_property_name(mla_serializer_t& instance, const mla_string_t& name) {
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_PROPERTY_NAME);
-    __mla_binary_serializer_write_string_data(instance.output, name);
-}
+mla_bool_t mla_binary_serializer_write_start_list(mla_serializer_t& instance) {
 
-void mla_binary_serializer_write_bool(mla_serializer_t& instance, const mla_bool_t value) {
-
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BOOL);
-    instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
-}
-
-void mla_binary_serializer_write_int8(mla_serializer_t& instance, const mla_int8_t value) {
-
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT8);
-    instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
+    return __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_START);
 
 }
 
-void mla_binary_serializer_write_int16(mla_serializer_t& instance, const mla_int16_t value) {
+mla_bool_t mla_binary_serializer_write_end_list(mla_serializer_t& instance) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT16);
+    return __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_LIST_END);
+}
+
+mla_bool_t mla_binary_serializer_write_property_name(mla_serializer_t& instance, const mla_string_t& name) {
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_PROPERTY_NAME)) {
+        return false;
+    }
+    if (!__mla_binary_serializer_write_string_data(instance.output, name)) {
+        return false;
+    }
+    return true;
+}
+
+mla_bool_t mla_binary_serializer_write_bool(mla_serializer_t& instance, const mla_bool_t value) {
+
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BOOL)) {
+        return false;
+    }
+    return instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value)) == sizeof(value);
+}
+
+mla_bool_t mla_binary_serializer_write_int8(mla_serializer_t& instance, const mla_int8_t value) {
+
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT8)) {
+        return false;
+    }
+    return instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value)) == sizeof(value);
+
+}
+
+mla_bool_t mla_binary_serializer_write_int16(mla_serializer_t& instance, const mla_int16_t value) {
+
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT16)) {
+        return false;
+    }
 
     mla_int16_t le_value = mla_host_to_le_int16(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 }
 
-void mla_binary_serializer_write_int32(mla_serializer_t& instance, const mla_int32_t value) {
+mla_bool_t mla_binary_serializer_write_int32(mla_serializer_t& instance, const mla_int32_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT32);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT32)) {
+        return false;
+    }
 
     mla_int32_t le_value = mla_host_to_le_int32(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 }
 
-void mla_binary_serializer_write_int64(mla_serializer_t& instance, const mla_int64_t value) {
+mla_bool_t mla_binary_serializer_write_int64(mla_serializer_t& instance, const mla_int64_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT64);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_INT64)) {
+        return false;
+    }
 
     mla_int64_t le_value = mla_host_to_le_int64(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 
 }
 
-void mla_binary_serializer_write_uint8(mla_serializer_t& instance, const mla_uint8_t value) {
+mla_bool_t mla_binary_serializer_write_uint8(mla_serializer_t& instance, const mla_uint8_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT8);
-    instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value));
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT8)) {
+        return false;
+    }
+    return instance.output.write(instance.output, 0, sizeof(value), reinterpret_cast<const mla_byte_t*>(&value)) == sizeof(value);
 
 }
 
-void mla_binary_serializer_write_uint16(mla_serializer_t& instance, const mla_uint16_t value) {
+mla_bool_t mla_binary_serializer_write_uint16(mla_serializer_t& instance, const mla_uint16_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT16);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT16)) {
+        return false;
+    }
 
     mla_uint16_t le_value = mla_host_to_le_uint16(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 
 }
 
-void mla_binary_serializer_write_uint32(mla_serializer_t& instance, const mla_uint32_t value) {
+mla_bool_t mla_binary_serializer_write_uint32(mla_serializer_t& instance, const mla_uint32_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT32);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT32)) {
+        return false;
+    }
 
     mla_uint32_t le_value = mla_host_to_le_uint32(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 
 }
 
-void mla_binary_serializer_write_uint64(mla_serializer_t& instance, const mla_uint64_t value) {
+mla_bool_t mla_binary_serializer_write_uint64(mla_serializer_t& instance, const mla_uint64_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT64);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_UINT64)) {
+        return false;
+    }
 
     mla_uint64_t le_value = mla_host_to_le_uint64(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 
 }
 
-void mla_binary_serializer_write_float(mla_serializer_t& instance, const mla_float_t value) {
+mla_bool_t mla_binary_serializer_write_float(mla_serializer_t& instance, const mla_float_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_FLOAT);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_FLOAT)) {
+        return false;
+    }
 
     mla_float_t le_value = mla_host_to_le_float(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 }
 
-void mla_binary_serializer_write_double(mla_serializer_t& instance, const mla_double_t value) {
+mla_bool_t mla_binary_serializer_write_double(mla_serializer_t& instance, const mla_double_t value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_DOUBLE);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_DOUBLE)) {
+        return false;
+    }
 
     mla_double_t le_value = mla_host_to_le_double(value);
-    instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value));
+    return instance.output.write(instance.output, 0, sizeof(le_value), reinterpret_cast<const mla_byte_t*>(&le_value)) == sizeof(le_value);
 }
 
-void mla_binary_serializer_write_string(mla_serializer_t& instance, const mla_string_t& value) {
+mla_bool_t mla_binary_serializer_write_string(mla_serializer_t& instance, const mla_string_t& value) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_STRING);
-    __mla_binary_serializer_write_string_data(instance.output, value);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_STRING)) {
+        return false;
+    }
+    return __mla_binary_serializer_write_string_data(instance.output, value);
 }
 
-void mla_binary_serializer_write_bytes(mla_serializer_t& instance, const mla_bytes_t& bytes) {
+mla_bool_t mla_binary_serializer_write_bytes(mla_serializer_t& instance, const mla_bytes_t& bytes) {
 
-    __mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BYTES);
+    if (!__mla_binary_serializer_write_element_type(instance.output, MLA_DESERIALIZER_VALUE_BYTES)) {
+        return false;
+    }
 
     mla_size_t size_le = mla_host_to_le_uint32(bytes.size);
-    instance.output.write(instance.output, 0, sizeof(size_le), reinterpret_cast<const mla_byte_t*>(&size_le));
+    if (instance.output.write(instance.output, 0, sizeof(size_le), reinterpret_cast<const mla_byte_t*>(&size_le)) != sizeof(size_le)) {
+        return false;
+    }
 
     if (bytes.size > 0) {
-        instance.output.write(instance.output, 0, bytes.size, bytes.data);
+        return instance.output.write(instance.output, 0, bytes.size, bytes.data) == bytes.size;
     }
+
+    return true;
 }
 
 mla_serializer_t mla_binary_serializer(const mla_stream_output_t& output) {

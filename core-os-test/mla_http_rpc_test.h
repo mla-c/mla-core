@@ -18,12 +18,12 @@ struct my_http_rpc_test_input_t {
     mla_int32_t a;
     mla_int32_t b;
 
-    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
         const my_http_rpc_test_input_t* input = static_cast<const my_http_rpc_test_input_t*>(obj);
         mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
         mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
-
+        return true;
     }
 
     static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
@@ -45,10 +45,11 @@ struct my_http_rpc_test_input_t {
 struct my_http_rpc_test_output_t {
     mla_int32_t sum;
 
-    static void serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
         const my_http_rpc_test_output_t* output = static_cast<const my_http_rpc_test_output_t*>(obj);
         mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
+        return true;
 
     }
 

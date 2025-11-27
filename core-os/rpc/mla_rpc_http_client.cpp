@@ -52,8 +52,7 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
         return false;
     }
 
-    mla_serializer_write_struct(serializer, body_config->input_data, body_config->input_definition.write_function);
-    return true;
+    return mla_serializer_write_data_struct(serializer, body_config->input_data, body_config->input_definition.write_function);
 }
 
 mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data) {

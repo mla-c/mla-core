@@ -75,143 +75,232 @@ mla_bool_t mla_deserializer_token_type_is_value(const mla_deserializer_token_typ
            token_type == MLA_DESERIALIZER_VALUE_BYTES;
 }
 
-void mla_serializer_write_struct(mla_serializer_t &serializer, const mla_pointer_t value,
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_pointer_t value,
                                  const mla_serialize_definition_write_function_t &write_function) {
-    serializer.write_start_struct(serializer);
-    write_function(serializer, value);
-    serializer.write_end_struct(serializer);
+
+    if (!serializer.write_start_struct(serializer))
+        return false;
+
+    if (!write_function(serializer, value)) {
+        return false;
+    }
+
+    if (!serializer.write_end_struct(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_pointer_t value,
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_pointer_t value,
                                  const mla_serialize_definition_write_function_t &write_function) {
-    serializer.write_property_name(serializer, name);
-    mla_serializer_write_struct(serializer, value, write_function);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+
+    if (!mla_serializer_write_data_struct(serializer, value, write_function))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_bool_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_bool(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_bool(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint8_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_uint8(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_uint8(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint16_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_uint16(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_uint16(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint32_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_uint32(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_uint32(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint64_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_uint64(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_uint64(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int8_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_int8(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_int8(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int16_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_int16(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_int16(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int32_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_int32(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_int32(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int64_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_int64(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_int64(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_float_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_float(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_float(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_double_t> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_double(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_double(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void mla_serializer_write_list(mla_serializer_t &serializer, const mla_string_t &name,
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_string_t, mla_string_initializer> &list) {
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+    if (!serializer.write_start_list(serializer))
+        return false;
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        serializer.write_string(serializer, *mla_array_list_get_ref(list, i));
+        if (!serializer.write_string(serializer, *mla_array_list_get_ref(list, i)))
+            return false;
     }
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 }
 
-void void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
     (void)serializer;
     (void)obj;
     // Nothing to serialize for void
+    return true;
 }
 
 mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {

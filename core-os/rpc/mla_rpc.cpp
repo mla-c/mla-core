@@ -109,7 +109,10 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
         }
 
         mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
-        mla_serializer_write_struct(binarySerializer, input_data, input_definition.write_function);
+        if (!mla_serializer_write_data_struct(binarySerializer, input_data, input_definition.write_function)) {
+            mla_free(serialized_input);
+            return false; // Serialization failed
+        }
         mla_memory_stream_set_position(memory_stream, 0);
 
         mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
@@ -147,7 +150,10 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
             // Deserialize output data
             mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
-            mla_serializer_write_struct(binarySerializer, serialized_output, output_definition.write_function);
+            if (!mla_serializer_write_data_struct(binarySerializer, serialized_output, output_definition.write_function)) {
+                mla_free(serialized_output);
+                return false; // Serialization failed
+            }
             mla_free(serialized_output);
             mla_memory_stream_set_position(memory_stream, 0);
 

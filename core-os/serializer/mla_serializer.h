@@ -17,30 +17,30 @@ struct mla_serializer_t {
     mla_stream_output_t output;
     mla_callback_userdata userdata;
 
-    void (*write_start_struct)(mla_serializer_t& instance);
-    void (*write_end_struct)(mla_serializer_t& instance);
+    mla_bool_t (*write_start_struct)(mla_serializer_t& instance);
+    mla_bool_t (*write_end_struct)(mla_serializer_t& instance);
 
-    void (*write_start_list)(mla_serializer_t& instance);
-    void (*write_end_list)(mla_serializer_t& instance);
+    mla_bool_t (*write_start_list)(mla_serializer_t& instance);
+    mla_bool_t (*write_end_list)(mla_serializer_t& instance);
 
-    void (*write_property_name)(mla_serializer_t& instance, const mla_string_t& name);
+    mla_bool_t (*write_property_name)(mla_serializer_t& instance, const mla_string_t& name);
 
-    void (*write_bool)(mla_serializer_t& instance, const mla_bool_t value);
+    mla_bool_t (*write_bool)(mla_serializer_t& instance, const mla_bool_t value);
 
-    void (*write_int8)(mla_serializer_t& instance, const mla_int8_t value);
-    void (*write_int16)(mla_serializer_t& instance, const mla_int16_t value);
-    void (*write_int32)(mla_serializer_t& instance, const mla_int32_t value);
-    void (*write_int64)(mla_serializer_t& instance, const mla_int64_t value);
-    void (*write_uint8)(mla_serializer_t& instance, const mla_uint8_t value);
-    void (*write_uint16)(mla_serializer_t& instance, const mla_uint16_t value);
-    void (*write_uint32)(mla_serializer_t& instance, const mla_uint32_t value);
-    void (*write_uint64)(mla_serializer_t& instance, const mla_uint64_t value);
+    mla_bool_t (*write_int8)(mla_serializer_t& instance, const mla_int8_t value);
+    mla_bool_t (*write_int16)(mla_serializer_t& instance, const mla_int16_t value);
+    mla_bool_t (*write_int32)(mla_serializer_t& instance, const mla_int32_t value);
+    mla_bool_t (*write_int64)(mla_serializer_t& instance, const mla_int64_t value);
+    mla_bool_t (*write_uint8)(mla_serializer_t& instance, const mla_uint8_t value);
+    mla_bool_t (*write_uint16)(mla_serializer_t& instance, const mla_uint16_t value);
+    mla_bool_t (*write_uint32)(mla_serializer_t& instance, const mla_uint32_t value);
+    mla_bool_t (*write_uint64)(mla_serializer_t& instance, const mla_uint64_t value);
 
-    void (*write_float)(mla_serializer_t& instance, const mla_float_t value);
-    void (*write_double)(mla_serializer_t& instance, const mla_double_t value);
+    mla_bool_t (*write_float)(mla_serializer_t& instance, const mla_float_t value);
+    mla_bool_t (*write_double)(mla_serializer_t& instance, const mla_double_t value);
 
-    void (*write_string)(mla_serializer_t& instance, const mla_string_t& value);
-    void (*write_bytes)(mla_serializer_t& instance, const mla_bytes_t& bytes);
+    mla_bool_t (*write_string)(mla_serializer_t& instance, const mla_string_t& value);
+    mla_bool_t (*write_bytes)(mla_serializer_t& instance, const mla_bytes_t& bytes);
 
 };
 
@@ -120,7 +120,7 @@ enum mla_deserializer_read_result_t {
 typedef mla_deserializer_read_result_t (*mla_serialize_definition_read_function_t)(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name);
 
 // Called to write the entire struct
-typedef void (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_pointer_t config);
+typedef mla_bool_t (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_pointer_t config);
 
 /// Definition of serialization functions for a specific data structure
 struct mla_serialize_definition_t {
@@ -141,32 +141,40 @@ mla_serialize_definition_t mla_serialize_definition_create(
 /// Serializer Helpers
 //////////////////////////////////////////////////////////////////////////////
 
-void mla_serializer_write_struct(mla_serializer_t& serializer, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
-void mla_serializer_write_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
 
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_bool_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint8_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint16_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint32_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint64_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int8_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int16_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int32_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int64_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_float_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_double_t>& list);
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_string_t, mla_string_initializer>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_bool_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint8_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint16_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint32_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint64_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int8_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int16_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int32_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_int64_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_float_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_double_t>& list);
+mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_string_t, mla_string_initializer>& list);
 
 template <mla_array_list_template>
-void mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<T, TInit>& list, const mla_serialize_definition_write_function_t& write_function) {
+mla_bool_t mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<T, TInit>& list, const mla_serialize_definition_write_function_t& write_function) {
 
-    serializer.write_property_name(serializer, name);
-    serializer.write_start_list(serializer);
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+
+    if (!serializer.write_start_list(serializer))
+        return false;
+
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        mla_serializer_write_struct(serializer, mla_array_list_get_ref(list, i), write_function);
+        if (!mla_serializer_write_data_struct(serializer, mla_array_list_get_ref(list, i), write_function))
+            return false;
     }
 
-    serializer.write_end_list(serializer);
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
 
 }
 
@@ -186,7 +194,7 @@ mla_serialize_definition_t mla_serialize_definition()
 mla_serialize_definition_create(0, void_deserialize, void_serialize)
 
 // Helpers for void datatypes
-void void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj);
+mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj);
 mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name);
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -416,56 +424,125 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 // Serializer
 
 #define mla_serializer_write_bool(instance, name, value) \
-    instance.write_property_name(instance, name);\
-    instance.write_bool(instance, value)
+    if (!instance.write_property_name(instance, name)) { \
+        return false;\
+    }\
+    if (!instance.write_bool(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_int8(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_int8(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_int8(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_int16(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_int16(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_int16(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_int32(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_int32(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_int32(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_int64(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_int64(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_int64(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_uint8(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_uint8(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_uint8(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_uint16(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_uint16(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_uint16(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_uint32(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_uint32(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_uint32(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_uint64(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_uint64(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_uint64(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_float(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_float(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_float(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_double(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_double(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_double(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_string(instance, name, value)\
-    instance.write_property_name(instance, name);\
-    instance.write_string(instance, value)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_string(instance, value)) {\
+        return false;\
+    }
 
 #define mla_serializer_write_bytes(instance, name, bytes)\
-    instance.write_property_name(instance, name);\
-    instance.write_bytes(instance, bytes)
+    if (!instance.write_property_name(instance, name)) {\
+        return false;\
+    }\
+    if (!instance.write_bytes(instance, bytes)) {\
+        return false;\
+    }
+
+
+
+#define mla_serializer_write_list(instance, name, list)\
+    if (!mla_serializer_write_data_list(instance, name, list)) {\
+        return false;\
+    }
+
+#define mla_serializer_write_list_struct(instance, name, list, write_function)\
+    if (!mla_serializer_write_data_list(instance, name, list, write_function)) {\
+        return false;\
+    }
+
+#define mla_serializer_write_struct(instance, name, value, write_function)\
+    if (!mla_serializer_write_data_struct(instance, name, value, write_function)) {\
+        return false;\
+    }
 
 
 #endif
