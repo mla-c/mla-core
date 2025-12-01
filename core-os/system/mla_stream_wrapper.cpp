@@ -10,18 +10,13 @@ struct mla_stream_input_timeout_wrapper_data_t {
     mla_int32_t timeout_ms;
 };
 
-mla_size_t __mla_stream_input_timeout_wrapper_read(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
-    mla_stream_input_timeout_wrapper_data_t *data = reinterpret_cast<mla_stream_input_timeout_wrapper_data_t *>(input.userdata);
+mla_size_t mla_stream_input_read_with_timeout(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms) {
 
-    if (data == nullptr) {
-        return 0; // No data, return 0
-    }
-
-    mla_int32_t remaining_timeout = data->timeout_ms;
+    mla_int32_t remaining_timeout = timeout_ms;
     mla_size_t result = 0;
 
     while (true) {
-        result = result + data->base_input.read(data->base_input, offset + result, length - result, buffer);
+        result = result + input.read(input, offset + result, length - result, buffer);
 
         if (result == length) {
             break; // Read complete
@@ -37,6 +32,16 @@ mla_size_t __mla_stream_input_timeout_wrapper_read(const mla_stream_input_t &inp
     }
 
     return result;
+}
+
+mla_size_t __mla_stream_input_timeout_wrapper_read(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
+    mla_stream_input_timeout_wrapper_data_t *data = reinterpret_cast<mla_stream_input_timeout_wrapper_data_t *>(input.userdata);
+
+    if (data == nullptr) {
+        return 0; // No data, return 0
+    }
+
+    return mla_stream_input_read_with_timeout(data->base_input, offset, length, buffer, data->timeout_ms);
 }
 
 mla_size_t __mla_stream_input_timeout_wrapper_remaining_bytes(const mla_stream_input_t &input) {
@@ -70,7 +75,6 @@ mla_buffer_cleanup_mode __mla_stream_input_timeout_wrapper_cleanup(mla_pointer_t
     wrapper_data->base_input = mla_stream_noop_input(); // Clear base input to avoid dangling references
     return CLEAN_UP_NEEDED;
 }
-
 
 mla_stream_input_t mla_stream_input_timeout_wrapper(const mla_stream_input_t &input, mla_int32_t timeout_ms) {
     if (input.read == nullptr)

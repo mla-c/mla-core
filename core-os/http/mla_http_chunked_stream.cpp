@@ -91,7 +91,7 @@ mla_size_t __mla_http_chunked_stream_input_read(const mla_stream_input_t& input,
         }
 
         mla_size_t toRead = mla_min(userdata->chunkSizeRemaining, bytesRead);
-        mla_size_t result = userdata->baseStream.read(userdata->baseStream, offset, toRead, buffer);
+        mla_size_t result = mla_stream_input_read_with_timeout(userdata->baseStream, offset, toRead, buffer, userdata->timeout_ms);
         bytesRead -= result;
 
         if (result != toRead) {

@@ -59,7 +59,12 @@ mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, con
 mla_stream_input_t mla_stream_input_timeout_wrapper(const mla_stream_input_t &input, mla_int32_t timeout_ms);
 mla_stream_input_t mla_stream_input_limited_wrapper(const mla_stream_input_t &input, mla_size_t size);
 
+mla_size_t mla_stream_input_read_with_timeout(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
+
+
+//////////////////////////////////////////////////////////////////
 // Memory Stream
+/////////////////////////////////////////////////////////////////
 struct mla_memory_stream_t {
     mla_stream_input_t input;
     mla_stream_output_t output;
