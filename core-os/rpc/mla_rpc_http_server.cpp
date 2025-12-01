@@ -9,6 +9,7 @@
 #include "../serializer/mla_json_serializer.h"
 #include "../serializer/mla_binary_serializer.h"
 #include "mla_rpc_http_data_types.h"
+#include "../http/mla_http_chunked_stream.h"
 
 
 
@@ -45,7 +46,11 @@ mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type
         return false;
     }
 
-    return mla_serializer_write_data_struct(serializer, outputData, write_function);
+    if (!mla_serializer_write_data_struct(serializer, outputData, write_function)) {
+        return false;
+    }
+
+    return true;
 }
 
 mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
@@ -64,7 +69,15 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
     // Store content type and write function at the beginning of output buffer
     mla_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
 
-    return __mla_rpc_http_server_handler_content_write(header->contentType, outputStream, outputData, header->write_function);
+    mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output(outputStream);
+    mla_bool_t result = __mla_rpc_http_server_handler_content_write(header->contentType, chunked_output.output, outputData, header->write_function);
+
+    // Finalize chunked output
+    if (!mla_http_chunked_stream_output_finished(chunked_output)) {
+        return false;
+    }
+
+    return result;
 }
 
 mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {

@@ -141,16 +141,21 @@ mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
 
 // String creation from basic types
 mla_string_t mla_string_from_int8(mla_int8_t p_Value);
-mla_string_t mla_string_from_int16(mla_int16_t p_Value);
-mla_string_t mla_string_from_int32(mla_int32_t p_Value);
 mla_string_t mla_string_from_uint8(mla_uint8_t p_Value);
+mla_string_t mla_string_from_int16(mla_int16_t p_Value);
 mla_string_t mla_string_from_uint16(mla_uint16_t p_Value);
+mla_string_t mla_string_from_int32(mla_int32_t p_Value);
 mla_string_t mla_string_from_uint32(mla_uint32_t p_Value);
 mla_string_t mla_string_from_int64(mla_int64_t p_Value);
 mla_string_t mla_string_from_uint64(mla_uint64_t p_Value);
 mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_bool(mla_bool_t p_Value);
+
+mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value);
+mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value);
+mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value);
+mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value);
 
 
 struct mla_string_hash_t {

@@ -148,7 +148,7 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
                 mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
                 mla_free(finalResultBuffer);
                 mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead - 2);
-                line = mla_string_from_buffer_with_ownership(finalResultBuffer, finalResultBufferSize + bytesRead - 2);
+                line = mla_string_from_buffer_with_ownership(newBuffer, finalResultBufferSize + bytesRead - 2);
                 return true;
             }
 
@@ -165,6 +165,7 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
                 }
 
                 mla_memcpy(finalResultBuffer, buffer, bytesRead);
+                finalResultBufferSize = bytesRead;
             } else {
                 mla_char_t* newBuffer = mla_create_char_array(finalResultBufferSize + bytesRead);
 
@@ -178,7 +179,10 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
                 mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead);
                 mla_free(finalResultBuffer);
                 finalResultBuffer = newBuffer;
+                finalResultBufferSize += bytesRead;
             }
+
+            bytesRead = 0;
         }
 
         if ((finalResultBufferSize + bytesRead) >= mla_http_max_header_size) {

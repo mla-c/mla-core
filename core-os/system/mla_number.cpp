@@ -191,3 +191,90 @@ mla_bool_t mla_parse_bool(const mla_string_t &str, mla_bool_t& out_value) {
 
     return false;
 }
+
+mla_bool_t mla_parse_uint8_hex(const mla_string_t& str, mla_uint8_t& out_value) {
+    mla_uint64_t value;
+    if (!mla_parse_uint64_hex(str, value)) {
+        return false;
+    }
+
+    if (value > mla_uint8_max) {
+        return false;
+    }
+
+    out_value = static_cast<mla_uint8_t>(value);
+    return true;
+}
+
+mla_bool_t mla_parse_uint16_hex(const mla_string_t& str, mla_uint16_t& out_value) {
+    mla_uint64_t value;
+    if (!mla_parse_uint64_hex(str, value)) {
+        return false;
+    }
+
+    if (value > mla_uint16_max) {
+        return false;
+    }
+
+    out_value = static_cast<mla_uint16_t>(value);
+    return true;
+}
+
+mla_bool_t mla_parse_uint32_hex(const mla_string_t& str, mla_uint32_t& out_value) {
+    mla_uint64_t value;
+    if (!mla_parse_uint64_hex(str, value)) {
+        return false;
+    }
+
+    if (value > mla_uint32_max) {
+        return false;
+    }
+
+    out_value = static_cast<mla_uint32_t>(value);
+    return true;
+}
+
+mla_bool_t mla_parse_uint64_hex(const mla_string_t& str, mla_uint64_t& out_value) {
+    if (str.length == 0 || str.data == nullptr) {
+        return false;
+    }
+
+    mla_size_t start = 0;
+
+    // Skip optional "0x" or "0X" prefix
+    if (str.length >= 2 && str.data[0] == '0' && (str.data[1] == 'x' || str.data[1] == 'X')) {
+        start = 2;
+    }
+
+    if (start >= str.length) {
+        return false; // No digits after prefix
+    }
+
+    mla_uint64_t result = 0;
+
+    for (mla_size_t i = start; i < str.length; ++i) {
+        mla_char_t c = str.data[i];
+        mla_uint8_t digit;
+
+        if (c >= '0' && c <= '9') {
+            digit = c - '0';
+        } else if (c >= 'a' && c <= 'f') {
+            digit = 10 + (c - 'a');
+        } else if (c >= 'A' && c <= 'F') {
+            digit = 10 + (c - 'A');
+        } else {
+            return false; // Invalid hex character
+        }
+
+        // Check for overflow before shifting
+        if (result > (mla_uint64_max >> 4)) {
+            return false;
+        }
+
+        result = (result << 4) | digit;
+    }
+
+    out_value = result;
+    return true;
+}
+

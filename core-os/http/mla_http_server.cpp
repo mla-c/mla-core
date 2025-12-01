@@ -11,6 +11,7 @@
 #include "../system/mla_number.h"
 #include "mla_websocket_utils.h"
 #include "../hash/mla_sha1.h"
+#include "../http/mla_http_chunked_stream.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
 #define mla_websocket_handler_item_array_param mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer
@@ -302,8 +303,8 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     mla_string_t transferEncoding = mla_http_headers_get_value(request.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        mla_warning(mla_string_const("Chunked transfer encoding is not supported"));
-        return false;
+        request.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+        return true;
     }
 
     request.content = mla_stream_noop_input();

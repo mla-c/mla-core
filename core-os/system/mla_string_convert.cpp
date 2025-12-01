@@ -436,3 +436,100 @@ mla_string_t mla_string_from_bool(mla_bool_t p_Value) {
         return mla_string_const("false");
     }
 }
+
+const mla_char_t hexDigits[] = "0123456789ABCDEF";
+
+mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
+    const mla_size_t bufferSize = 5; // "0x" + 2 hex digits + null
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+
+    buffer[2] = hexDigits[(p_Value >> 4) & 0x0F];
+    buffer[3] = hexDigits[p_Value & 0x0F];
+    buffer[4] = '\0';
+
+    return { buffer, 4, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
+}
+
+mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
+    const mla_size_t bufferSize = 7; // "0x" + 4 hex digits + null
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+    buffer[2] = hexDigits[(p_Value >> 12) & 0x0F];
+    buffer[3] = hexDigits[(p_Value >> 8) & 0x0F];
+    buffer[4] = hexDigits[(p_Value >> 4) & 0x0F];
+    buffer[5] = hexDigits[p_Value & 0x0F];
+    buffer[6] = '\0';
+
+    return { buffer, 6, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
+}
+
+mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
+    const mla_size_t bufferSize = 11; // "0x" + 8 hex digits + null
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+    buffer[2] = hexDigits[(p_Value >> 28) & 0x0F];
+    buffer[3] = hexDigits[(p_Value >> 24) & 0x0F];
+    buffer[4] = hexDigits[(p_Value >> 20) & 0x0F];
+    buffer[5] = hexDigits[(p_Value >> 16) & 0x0F];
+    buffer[6] = hexDigits[(p_Value >> 12) & 0x0F];
+    buffer[7] = hexDigits[(p_Value >> 8) & 0x0F];
+    buffer[8] = hexDigits[(p_Value >> 4) & 0x0F];
+    buffer[9] = hexDigits[p_Value & 0x0F];
+    buffer[10] = '\0';
+
+    return { buffer, 10, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
+}
+
+mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
+    const mla_size_t bufferSize = 19; // "0x" + 16 hex digits + null
+    mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+    if (buffer == nullptr) {
+        return mla_string_empty();
+    }
+
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+    buffer[2] = hexDigits[(p_Value >> 60) & 0x0F];
+    buffer[3] = hexDigits[(p_Value >> 56) & 0x0F];
+    buffer[4] = hexDigits[(p_Value >> 52) & 0x0F];
+    buffer[5] = hexDigits[(p_Value >> 48) & 0x0F];
+    buffer[6] = hexDigits[(p_Value >> 44) & 0x0F];
+    buffer[7] = hexDigits[(p_Value >> 40) & 0x0F];
+    buffer[8] = hexDigits[(p_Value >> 36) & 0x0F];
+    buffer[9] = hexDigits[(p_Value >> 32) & 0x0F];
+    buffer[10] = hexDigits[(p_Value >> 28) & 0x0F];
+    buffer[11] = hexDigits[(p_Value >> 24) & 0x0F];
+    buffer[12] = hexDigits[(p_Value >> 20) & 0x0F];
+    buffer[13] = hexDigits[(p_Value >> 16) & 0x0F];
+    buffer[14] = hexDigits[(p_Value >> 12) & 0x0F];
+    buffer[15] = hexDigits[(p_Value >> 8) & 0x0F];
+    buffer[16] = hexDigits[(p_Value >> 4) & 0x0F];
+    buffer[17] = hexDigits[p_Value & 0x0F];
+    buffer[18] = '\0';
+
+    return { buffer, 18, MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference(buffer) };
+}

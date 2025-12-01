@@ -75,6 +75,9 @@ mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, mla_callbac
     (void)userData;
     SOCKET sock = (SOCKET)(uintptr_t)data;
     if (sock != INVALID_SOCKET) {
+
+        // Flush before closing
+        shutdown(sock, SD_SEND);
         closesocket(sock);
     }
 

@@ -385,7 +385,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
         // Add more space in case of unicode parsing
         if (position + 4 >= mla_stream_fast_read_buffer_size) {
             // Buffer full, append to string
-            out_str = mla_string_concat(out_str, mla_string(charBuffer, mla_stream_fast_read_buffer_size));
+            out_str = mla_string_concat(out_str, mla_string(charBuffer, position));
             position = 0;
         }
 

@@ -9,6 +9,7 @@
 #include "../serializer/mla_serializer.h"
 #include "../serializer/mla_binary_serializer.h"
 #include "../serializer/mla_json_serializer.h"
+#include "../http/mla_http_chunked_stream.h"
 
 struct mla_rpc_http_client_config {
     mla_string_t server_url;
@@ -46,7 +47,12 @@ mla_bool_t __mla_http_rpc_request_content_write(mla_http_rpc_content_type conten
         return false;
     }
 
-    return mla_serializer_write_data_struct(serializer, input_data, write_function);
+
+    if (!mla_serializer_write_data_struct(serializer, input_data, write_function)) {
+        return false;
+    }
+
+    return true;
 
 }
 
@@ -58,7 +64,17 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
         return false;
     }
 
-    return __mla_http_rpc_request_content_write(body_config->content_type, outputStream, body_config->input_data, body_config->input_definition.write_function);
+    mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output(outputStream);
+
+    mla_bool_t result = __mla_http_rpc_request_content_write(body_config->content_type, chunked_output.output, body_config->input_data, body_config->input_definition.write_function);
+
+    // Finalize chunked output
+    if (!mla_http_chunked_stream_output_finished(chunked_output)) {
+        return false;
+    }
+
+    return result;
+
 }
 
 mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data) {

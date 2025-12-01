@@ -19,6 +19,11 @@ mla_bool_t mla_parse_int8(const mla_string_t& str, mla_int8_t& out_value);
 mla_bool_t mla_parse_uint8(const mla_string_t& str, mla_uint8_t& out_value);
 mla_bool_t mla_parse_bool(const mla_string_t& str, mla_bool_t& out_value);
 
+mla_bool_t mla_parse_uint8_hex(const mla_string_t& str, mla_uint8_t& out_value);
+mla_bool_t mla_parse_uint16_hex(const mla_string_t& str, mla_uint16_t& out_value);
+mla_bool_t mla_parse_uint32_hex(const mla_string_t& str, mla_uint32_t& out_value);
+mla_bool_t mla_parse_uint64_hex(const mla_string_t& str, mla_uint64_t& out_value);
+
 
 
 #endif

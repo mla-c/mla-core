@@ -8,6 +8,7 @@
 #include "../system/mla_string_concat.h"
 #include "../system/mla_number.h"
 #include "mla_http_utils.h"
+#include "../http/mla_http_chunked_stream.h"
 
 mla_bool_t __mla_http_client_default_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
 
@@ -223,10 +224,8 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     mla_string_t transferEncoding = mla_http_headers_get_value(response.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        // Chunked encoding not implemented yet
-        response.statusCode = 501;
-        response.statusMessage = mla_string_const("Chunked transfer encoding is not supported");
-        return false;
+        response.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+        return true;
     }
 
     response.content = mla_stream_noop_input();
