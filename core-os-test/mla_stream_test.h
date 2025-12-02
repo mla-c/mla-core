@@ -35,7 +35,7 @@ void MemoryStreamWriteAndReadTest() {
     mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string.length, read_buffer);
 
     assert_equal(read_bytes, test_string.length, "Should read the full string back");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match written data");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match written data");
 }
 
 void MemoryStreamSetPositionAndSeekTest() {
@@ -49,7 +49,7 @@ void MemoryStreamSetPositionAndSeekTest() {
     mla_byte_t read_buffer[16] = {0};
     mla_size_t read_bytes = stream.input.read(stream.input, 0, 5, read_buffer); // Read from current position
     assert_equal(read_bytes, (mla_size_t)5, "Should read from the new position");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, "world", 5), (mla_test_int32_t)0, "Read data should be 'world'");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, "world", 5), (mla_test_int32_t)0, "Read data should be 'world'");
 
     assert_false(mla_memory_stream_set_position(stream, 20), "Should not be able to set position beyond size");
 }
@@ -84,7 +84,7 @@ void MemoryStreamOverwriteTest() {
 
     mla_byte_t read_buffer[32] = {0};
     stream.input.read(stream.input, 0, mla_memory_stream_get_size(stream), read_buffer);
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, "initial newa", 12), (mla_test_int32_t)0, "Data should be partially overwritten");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, "initial newa", 12), (mla_test_int32_t)0, "Data should be partially overwritten");
 }
 
 void MemoryStreamAutoGrowTest() {
@@ -97,12 +97,18 @@ void MemoryStreamAutoGrowTest() {
 
     mla_memory_stream_set_position(stream, 0); // Reset position to read from start
 
-    mla_byte_t* read_buffer = (mla_byte_t*)malloc(test_string.length);
-    mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string.length, read_buffer);
+    mla_byte_t* read_buffer = (mla_byte_t*)mla_malloc(test_string.length);
 
-    assert_equal(read_bytes, test_string.length, "Should read back the full string");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match after auto-grow");
-    free(read_buffer);
+    if (read_buffer != nullptr) {
+        mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string.length, read_buffer);
+
+        assert_equal(read_bytes, test_string.length, "Should read back the full string");
+        assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_string.data, test_string.length), (mla_test_int32_t)0, "Read data should match after auto-grow");
+        mla_free(read_buffer);
+    } else {
+        assert_fail("Memory allocation for read buffer failed");
+    }
+
 }
 
 void MemoryStreamNoGrowTest() {
@@ -120,7 +126,7 @@ void MemoryStreamNoGrowTest() {
     mla_size_t read_bytes = stream.input.read(stream.input, 0, 8, read_buffer);
 
     assert_equal(read_bytes, (mla_size_t)8, "Should read only written bytes");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_string.data, 8), (mla_test_int32_t)0, "Data should match truncated content");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_string.data, 8), (mla_test_int32_t)0, "Data should match truncated content");
 }
 
 void StreamInputBufferedWrapperTest() {
@@ -137,17 +143,17 @@ void StreamInputBufferedWrapperTest() {
     mla_byte_t read_buffer[32] = {0};
     mla_size_t read1 = buffered.read(buffered, 0, 5, read_buffer);
     assert_equal(read1, (mla_size_t)5, "Should read 5 bytes");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, "buffe", 5), (mla_test_int32_t)0, "First read data should match");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, "buffe", 5), (mla_test_int32_t)0, "First read data should match");
 
     // Continue reading - offset 0 because read_buffer + 5 already points to the right location
     mla_size_t read2 = buffered.read(buffered, 5, 10, read_buffer);
     assert_equal(read2, (mla_size_t)10, "Should read 10 more bytes");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, "buffered input ", 15), (mla_test_int32_t)0, "Combined read data should match");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, "buffered input ", 15), (mla_test_int32_t)0, "Combined read data should match");
 
     // Read remaining data
     mla_size_t read3 = buffered.read(buffered, 15, test_data.length - 15, read_buffer);
     assert_equal(read3, test_data.length - 15, "Should read remaining bytes");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_data.data, test_data.length), (mla_test_int32_t)0, "All data should match");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_data.data, test_data.length), (mla_test_int32_t)0, "All data should match");
 }
 
 void StreamOutputBufferedWrapperTest() {
@@ -177,7 +183,7 @@ void StreamOutputBufferedWrapperTest() {
     mla_byte_t read_buffer[32] = {0};
     mla_size_t total_length = data1.length + data2.length;
     dest.input.read(dest.input, 0, total_length, read_buffer);
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, "hello world test", total_length), (mla_test_int32_t)0, "All buffered data should match");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, "hello world test", total_length), (mla_test_int32_t)0, "All buffered data should match");
 }
 
 void StreamOutputBufferedFlushTest() {
@@ -199,7 +205,7 @@ void StreamOutputBufferedFlushTest() {
     mla_memory_stream_set_position(dest, 0);
     mla_byte_t read_buffer[32] = {0};
     dest.input.read(dest.input, 0, test_data.length, read_buffer);
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, test_data.data, test_data.length), (mla_test_int32_t)0, "Flushed data should match");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_data.data, test_data.length), (mla_test_int32_t)0, "Flushed data should match");
 }
 
 void StreamBufferedLargeDataTest() {
@@ -217,12 +223,19 @@ void StreamBufferedLargeDataTest() {
     mla_memory_stream_set_position(stream, 0);
     mla_stream_input_t buffered_in = mla_stream_input_buffered_wrapper(stream.input, 32);
 
-    mla_byte_t* read_buffer = (mla_byte_t*)malloc(large_data.length);
-    mla_size_t read_bytes = buffered_in.read(buffered_in, 0, large_data.length, read_buffer);
+    mla_byte_t* read_buffer = (mla_byte_t*)mla_malloc(large_data.length);
 
-    assert_equal(read_bytes, large_data.length, "Should read all data back");
-    assert_equal((mla_test_int32_t)memcmp(read_buffer, large_data.data, large_data.length), (mla_test_int32_t)0, "Buffered data should match");
-    free(read_buffer);
+    if (read_buffer != nullptr) {
+        mla_size_t read_bytes = buffered_in.read(buffered_in, 0, large_data.length, read_buffer);
+
+        assert_equal(read_bytes, large_data.length, "Should read all data back");
+        assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, large_data.data, large_data.length), (mla_test_int32_t)0, "Buffered data should match");
+        mla_free(read_buffer);
+    } else {
+        assert_fail("Memory allocation for read buffer failed");
+    }
+
+
 }
 
 
