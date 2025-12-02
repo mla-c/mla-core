@@ -35,6 +35,8 @@ mla_test_pointer_t mla_benchmark_malloc_stat_hook(mla_test_uint32_t size) {
 static mla_pointer_t g_mla_benchmark_memory_arena = nullptr;
 static mla_size_t g_mla_benchmark_memory_arena_size = 0;
 static mla_size_t g_mla_benchmark_memory_arena_offset = 0;
+static mla_bool_t g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
+static mla_test_uint64_t g_mla_benchmark_arena_mutex = 0;
 
 mla_size_t mla_align_up(mla_size_t value, mla_size_t alignment) {
     return (value + (alignment - 1u)) & ~(alignment - 1u);
@@ -48,11 +50,16 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
         return nullptr;
     }
 
+    if (!g_test_mutex.lock_mutex(g_mla_benchmark_arena_mutex)) {
+        return nullptr;
+    }
+
     // Align current offset
     mla_size_t aligned_offset = mla_align_up(g_mla_benchmark_memory_arena_offset, mla_benchmark_arena_alignment);
 
     // Bounds check including padding
     if (aligned_offset + size > g_mla_benchmark_memory_arena_size) {
+        g_mla_benchmark_memory_arena_out_of_memory_triggered = true;
         return nullptr;
     }
 
@@ -61,6 +68,8 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 
     // Advance offset
     g_mla_benchmark_memory_arena_offset = aligned_offset + size;
+
+    g_test_mutex.unlock_mutex(g_mla_benchmark_arena_mutex);
 
     return (mla_test_pointer_t)ptr;
 
@@ -125,6 +134,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_mla_benchmark_memory_arena_offset = 0;
     g_mla_benchmark_memory_arena_size = arena_size;
     g_mla_benchmark_memory_arena = mla_malloc(arena_size);
+    g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
+    g_mla_benchmark_arena_mutex = g_test_mutex.create_mutex();
 
     mla_benchmark_is_gcc_pointer_hook_original = g_low_level_access.is_gcc_pointer;
     g_low_level_access.is_gcc_pointer = mla_benchmark_is_arena_pointer;
@@ -145,6 +156,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_uint64_t totalTime(0);
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
+
         auto start = g_benchmark_timer.current_nanoseconds();
         benchmark.run();
         auto end = g_benchmark_timer.current_nanoseconds();
@@ -157,10 +169,23 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
             maxTime = elapsed;
         }
         totalTime += elapsed;
+
+        if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
+            break;
+        }
     }
 
     auto averageTime = totalTime / benchmarkIterations;
     auto allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / benchmarkIterations);
+
+    if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
+        // The arena was not big enough to run all iterations
+        allocated_memory_per_interation = 0;
+        benchmarkIterations = 0;
+        minTime = 999999;
+        maxTime = 999999;
+        averageTime = 999999;
+    }
 
     if (benchmark.tearDown) {
         benchmark.tearDown();
@@ -172,6 +197,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_benchmark_free_hook_original = nullptr;
     g_low_level_access.malloc = mla_benchmark_malloc_hook_original;
     mla_benchmark_malloc_hook_original = nullptr;
+    g_test_mutex.destroy_mutex(g_mla_benchmark_arena_mutex);
+    g_mla_benchmark_arena_mutex = 0;
 
 
     char name_with_arena_sufix[31] = {0};

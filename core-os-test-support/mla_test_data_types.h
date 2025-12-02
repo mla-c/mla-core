@@ -47,6 +47,15 @@ struct mla_test_print_t {
 
 extern mla_test_print_t g_test_print;
 
+struct mla_test_mutex_t {
+    mla_test_uint64_t (*create_mutex)();
+    mla_test_bool_t (*lock_mutex)(mla_test_uint64_t mutex_id);
+    void (*unlock_mutex)(mla_test_uint64_t mutex_id);
+    void (*destroy_mutex)(mla_test_uint64_t mutex_id);
+};
+
+extern mla_test_mutex_t g_test_mutex;
+
 #define mla_test_printf(...) g_test_print.printf(__VA_ARGS__);
 
 enum mla_test_output_format_t: mla_test_uint8_t {
