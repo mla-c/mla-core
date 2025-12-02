@@ -14,6 +14,7 @@ struct mla_http_chunked_stream_input_userdata_t {
 };
 
 mla_buffer_cleanup_mode __mla_http_chunked_stream_input_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+    (void)userData;
 
     mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(data);
 
