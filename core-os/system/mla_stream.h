@@ -53,13 +53,18 @@ mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, con
 
 
 ///////////////////////////////////////////////////////////////////
-/// Wrapper
+/// Wrapper and Helpers
 ///////////////////////////////////////////////////////////////////
+
+mla_size_t mla_stream_input_read_with_timeout(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
 
 mla_stream_input_t mla_stream_input_timeout_wrapper(const mla_stream_input_t &input, mla_int32_t timeout_ms);
 mla_stream_input_t mla_stream_input_limited_wrapper(const mla_stream_input_t &input, mla_size_t size);
 
-mla_size_t mla_stream_input_read_with_timeout(const mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
+mla_stream_input_t mla_stream_input_buffered_wrapper(const mla_stream_input_t &input, mla_size_t buffer_size);
+
+mla_stream_output_t mla_stream_output_buffered_wrapper(const mla_stream_output_t &output, mla_size_t buffer_size);
+void mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output);
 
 
 //////////////////////////////////////////////////////////////////

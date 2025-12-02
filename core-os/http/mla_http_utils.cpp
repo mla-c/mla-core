@@ -205,7 +205,7 @@ mla_bool_t mla_http_utils_read_line(const mla_stream_input_t & inputStream, mla_
 }
 
 
-mla_stream_input_t mla_http_content_input_stream(const mla_stream_input_t &input, mla_int32_t timeout_ms, mla_size_t content_size) {
+mla_stream_input_t mla_http_content_fixed_size_input_stream(const mla_stream_input_t &input, mla_int32_t timeout_ms, mla_size_t content_size) {
 
     mla_stream_input_t timeout_stream = mla_stream_input_timeout_wrapper(input, timeout_ms);
     return mla_stream_input_limited_wrapper(timeout_stream, content_size);

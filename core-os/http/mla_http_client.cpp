@@ -216,7 +216,8 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     mla_size_t content_size = 0;
 
     if (mla_parse_uint32(contentLengthStr, content_size)) {
-        response.content = mla_http_content_input_stream(connection.inputStream, timeout_ms, content_size);
+        mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+        response.content = mla_http_content_fixed_size_input_stream(buffered_stream, timeout_ms, content_size);
         return true;
     }
 
@@ -224,7 +225,8 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     mla_string_t transferEncoding = mla_http_headers_get_value(response.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        response.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+        mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+        response.content = mla_http_chunked_stream_input(buffered_stream, timeout_ms);
         return true;
     }
 
@@ -278,17 +280,25 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     /// REQUEST
     ////////////
 
+    mla_stream_output_t bufferedOutputStream = mla_stream_output_buffered_wrapper(connection.outputStream, mla_stream_fast_read_buffer_size);
+
     // Send Header
-    if (!__mla_http_client_send_header(response, url, p_Request, connection.outputStream)) {
+    if (!__mla_http_client_send_header(response, url, p_Request, bufferedOutputStream)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         __mla_http_client_close_connection(connection);
         return response;
     }
 
     // Send Body
-    if (!__mla_http_client_send_body(response, p_Request, connection.outputStream)) {
+    if (!__mla_http_client_send_body(response, p_Request, bufferedOutputStream)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         __mla_http_client_close_connection(connection);
         return response;
     }
+
+    // Close and Flush
+    mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
+    bufferedOutputStream = mla_stream_noop_output();
 
     ///////////
     /// RESPONSE

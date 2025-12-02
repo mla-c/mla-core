@@ -254,9 +254,12 @@ mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server,
 
 mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connection, mla_http_request_t &request,
                                           mla_int32_t timeout_ms) {
+
+    mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+
     // Read request line
     mla_string_t requestLine = mla_string_empty();
-    if (!mla_http_utils_read_line(connection.inputStream, requestLine, timeout_ms)) {
+    if (!mla_http_utils_read_line(buffered_stream, requestLine, timeout_ms)) {
         return false;
     }
 
@@ -279,7 +282,7 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     }
 
     // Read headers
-    if (!mla_http_utils_read_headers(request.headers, connection.inputStream, timeout_ms)) {
+    if (!mla_http_utils_read_headers(request.headers, buffered_stream, timeout_ms)) {
         return false;
     }
 
@@ -295,7 +298,7 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     mla_size_t content_size = 0;
 
     if (mla_parse_uint32(contentLengthStr, content_size)) {
-        request.content = mla_http_content_input_stream(connection.inputStream, timeout_ms, content_size);
+        request.content = mla_http_content_fixed_size_input_stream(buffered_stream, timeout_ms, content_size);
         return true;
     }
 
@@ -303,7 +306,7 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
     mla_string_t transferEncoding = mla_http_headers_get_value(request.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        request.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+        request.content = mla_http_chunked_stream_input(buffered_stream, timeout_ms);
         return true;
     }
 
@@ -313,58 +316,74 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
 
 mla_bool_t __mla_http_server_response_send(const mla_network_connection_t &connection,
                                            const mla_http_response_t &response) {
+
+    mla_stream_output_t bufferedOutputStream = mla_stream_output_buffered_wrapper(connection.outputStream, mla_stream_fast_read_buffer_size);
+
     // Send status line
     mla_string_t httpVersion = (response.version == MLA_HTTP_VERSION_1_1)
                                    ? mla_string_const("HTTP/1.1 ")
                                    : mla_string_const("HTTP/1.0 ");
 
-    if (!mla_stream_output_write_string(connection.outputStream, httpVersion)) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, httpVersion)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
-    if (!mla_stream_output_write_string(connection.outputStream, mla_string_from_uint16(response.statusCode))) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, mla_string_from_uint16(response.statusCode))) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
-    if (!mla_stream_output_write_string(connection.outputStream, mla_string_const(" "))) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, mla_string_const(" "))) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
-    if (!mla_stream_output_write_string(connection.outputStream, response.statusMessage)) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, response.statusMessage)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
-    if (!mla_stream_output_write_string(connection.outputStream, mla_string_const("\r\n"))) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, mla_string_const("\r\n"))) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
     // Send headers
-    if (!mla_http_utils_write_headers(response.headers, connection.outputStream)) {
+    if (!mla_http_utils_write_headers(response.headers, bufferedOutputStream)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
     // Write Content Length if body is present
-    if (!mla_http_utils_write_content_headers(response.headers, response.content, connection.outputStream)) {
+    if (!mla_http_utils_write_content_headers(response.headers, response.content, bufferedOutputStream)) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
-    if (!mla_stream_output_write_string(connection.outputStream, mla_string_const("\r\n"))) {
+    if (!mla_stream_output_write_string(bufferedOutputStream, mla_string_const("\r\n"))) {
+        mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
         return false;
     }
 
     // Send body
     if (mla_http_response_content_writer_is_valid(response.contentWriter)) {
 
-        if (!response.contentWriter.writeTo(response.contentWriter, connection.outputStream)) {
+        if (!response.contentWriter.writeTo(response.contentWriter, bufferedOutputStream)) {
+            mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
             return false;
         }
 
     } else {
         // No content writer, send content stream
-        if (!mla_stream_copy(response.content, connection.outputStream)) {
+        if (!mla_stream_copy(response.content, bufferedOutputStream)) {
+            mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
             return false;
         }
     }
+
+    mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
+    bufferedOutputStream = mla_stream_noop_output();
 
     return true;
 }
