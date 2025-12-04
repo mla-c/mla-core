@@ -16,7 +16,7 @@ mla_test_uint64_t __mla_test_single_thread_create_mutex() {
 // Lock the mutex identified by the pointer value
 mla_test_bool_t __mla_test_single_thread_lock_mutex(mla_test_uint64_t mutex_id) {
 
-    if (mutex_id != 0)
+    if (mutex_id != 100)
         return false;
 
     return true; // Always succeeds in single-threaded environment

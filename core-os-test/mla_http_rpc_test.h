@@ -173,17 +173,22 @@ inline void ExecuteHttpRpcLargeDataProcedureJsonModeTest() {
 
 void RegisterHttpRpcTests(mla_test_executor_t &p_TestExecutor) {
 
-    mla_test_t test = mla_test("ExecuteRpcProcedureBinary", test_category, ExecuteHttpRpcProcedureBinaryModeTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+    // Only run HTTP server tests in native multi-tasking environments
+    // Because it need two threads to run the server and the client simultaneously
+    if (mla_is_native_multi_tasking) {
 
-    test = mla_test("ExecuteRpcProcedureJson", test_category, ExecuteHttpRpcProcedureJsonModeTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+        mla_test_t test = mla_test("ExecuteRpcProcedureBinary", test_category, ExecuteHttpRpcProcedureBinaryModeTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("ExecuteRpcProcedureLargeDataBinary", test_category, ExecuteHttpRpcLargeDataProcedureBinaryModeTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+        test = mla_test("ExecuteRpcProcedureJson", test_category, ExecuteHttpRpcProcedureJsonModeTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("ExecuteRpcProcedureLargeDataJson", test_category, ExecuteHttpRpcLargeDataProcedureJsonModeTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+        test = mla_test("ExecuteRpcProcedureLargeDataBinary", test_category, ExecuteHttpRpcLargeDataProcedureBinaryModeTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("ExecuteRpcProcedureLargeDataJson", test_category, ExecuteHttpRpcLargeDataProcedureJsonModeTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+    }
 
 }
 
