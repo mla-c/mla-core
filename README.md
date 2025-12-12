@@ -85,6 +85,7 @@ The main library providing fundamental operating system abstractions and utiliti
 
 #### **Utilities** (`utils/`, `hash/`)
 - **Character Utils** - `mla_char_utils.h` - Character manipulation functions
+- **Endian Utils** - `mla_endian_utils.h` - Handling byte order
 - **Hash Functions** - `mla_hash.h` - Hashing algorithms
 
 #### **Data Types** (`mla_data_types.h`)
