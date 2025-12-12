@@ -63,10 +63,14 @@ To expose your RPC procedures over HTTP, you need to initialize the RPC HTTP ser
 mla_http_server_t server = mla_http_server(my_host);
 
 // Initialize the RPC HTTP server
-mla_rpc_http_server_initialize(server);
-
-// Start the HTTP server
-mla_http_server_start(server, 4);
+if (mla_rpc_http_server_initialize(server)) {
+    // Start the HTTP server
+    if (!mla_http_server_start(server, 4)) {
+        // Handle server start error
+    }
+} else {
+    // Handle RPC initialization error
+}
 ```
 
 ### Calling a Remote Procedure
@@ -82,14 +86,20 @@ mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(
     mla_http_rpc_content_type_binary
 );
 
-// Prepare the input and output data
-my_input_t input = { 3, 4 };
-my_output_t output = { 0 };
+if (mla_rpc_remote_endpoint_valid(endpoint)) {
+    // Prepare the input and output data
+    my_input_t input = { 3, 4 };
+    my_output_t output = { 0 };
 
-// Execute the remote procedure
-mla_rpc_execute_procedure_remote(
-    mla_string_const("math/sum"),
-    &input,
-    &output
-);
+    // Execute the remote procedure
+    if (!mla_rpc_execute_procedure_remote(
+        mla_string_const("math/sum"),
+        &input,
+        &output
+    )) {
+        // Handle RPC execution error
+    }
+} else {
+    // Handle endpoint registration error
+}
 ```

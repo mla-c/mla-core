@@ -32,7 +32,7 @@ To create an HTTP server, you need to define one or more request handlers and re
 mla_bool_t hello_world_handler(const mla_http_request_t& request, mla_http_response_t& response) {
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
-    response.content = mla_stream_input_from_string(mla_string_const("Hello, world!"));
+    response.content = mla_stream_input_from_buffer((mla_byte_t*)mla_string_const("Hello, world!").data, mla_string_const("Hello, world!").length);
     return true;
 }
 
