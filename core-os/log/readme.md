@@ -10,7 +10,7 @@ The Log module is built around a central logger manager that maintains a list of
 
 - **`mla_logger_t`**: A struct that represents a logger, containing its name, log level, and writer function.
 - **`mla_log_register_logger`**: Registers a new logger with the logger manager.
-- **`mla_log_*` macros**: A set of macros (`mla_verbose`, `mla_debug`, `mla_info`, `mla_warning`, `mla_error`) that provide a simple and convenient way to write log messages.
+- **`mla_log_*` macros**: A set of macros that provide a simple and convenient way to write log messages.
 
 ### Console Logger
 
@@ -32,18 +32,30 @@ mla_log_to_console_activate();
 mla_log_to_console_set_level(MLA_LOG_LEVEL_DEBUG);
 ```
 
-### Writing Log Messages
+### Logging Macros
 
-Once a logger is active, you can use the logging macros to write messages.
+The `mla_logging.h` header provides a set of convenient macros for logging messages at different severity levels. These macros automatically capture the filename and function name where they are called, providing valuable context for your log messages.
 
+- **`mla_verbose(msg)`**: Logs a message with the `MLA_LOG_LEVEL_VERBOSE` level. Useful for detailed, fine-grained logging information.
+- **`mla_debug(msg)`**: Logs a message with the `MLA_LOG_LEVEL_DEBUG` level. Intended for debugging information that is useful during development.
+- **`mla_info(msg)`**: Logs a message with the `MLA_LOG_LEVEL_INFO` level. Used for informational messages that highlight the progress of the application.
+- **`mla_warning(msg)`**: Logs a message with the `MLA_LOG_LEVEL_WARNING` level. Indicates a potential problem or a situation that might require attention.
+- **`mla_error(msg)`**: Logs a message with the `MLA_LOG_LEVEL_ERROR` level. Used for serious errors that prevent the application from performing a specific operation.
+- **`mla_log_msg(level, msg)`**: A generic logging macro that allows you to specify the log level dynamically.
+
+Example:
 ```cpp
 #include "mla_logging.h"
 
-// Write an info message
-mla_info("This is an informational message.");
-
-// Write a debug message
-mla_debug("This is a debug message.");
+void process_data(data_t* data) {
+    if (data == nullptr) {
+        mla_error("Input data is null!");
+        return;
+    }
+    mla_info("Processing data...");
+    // ...
+    mla_debug("Data processing complete.");
+}
 ```
 
 ### Creating a Custom Logger

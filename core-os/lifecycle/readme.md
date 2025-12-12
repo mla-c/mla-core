@@ -10,16 +10,19 @@ The Lifecycle module is based on a priority system. Each registered event is ass
 
 - **`mla_lifecycle_boot_event_register`**: Registers a boot event callback with a specific priority.
 - **`mla_lifecycle_fire_boot_events`**: Executes all registered boot event callbacks in order of priority.
-- **`mla_lifecycle_boot_event_static_register`**: A macro that provides a convenient way to register a boot event callback from anywhere in your code. This is the recommended way to register boot events.
 
 ## Usage
 
-To use the Lifecycle module, you simply need to register your boot event callbacks using the `mla_lifecycle_boot_event_static_register` macro.
+### Registering Boot Events
 
-### Example
+The recommended way to register a boot event is to use the `mla_lifecycle_boot_event_static_register` macro. This macro creates a static object that automatically registers your callback at program startup.
 
-Here's an example of how to register a boot event callback that initializes a custom module:
+### `mla_lifecycle_boot_event_static_register(priority, callback_name)`
 
+- **`priority`**: The priority of the boot event. The module provides a set of predefined priorities (e.g., `mla_lifecycle_boot_event_priority_low_level_setup`, `mla_lifecycle_boot_event_priority_application_setup`) to help you order your events correctly.
+- **`callback_name`**: The name of the function to be called when the boot event is fired.
+
+Example:
 ```cpp
 #include "mla_lifecycle_events.h"
 
