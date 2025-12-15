@@ -22,6 +22,7 @@ typedef void(*mla_log_writer_t)(const mla_log_level level, mla_string_t& message
 struct mla_logger_t {
     mla_string_t name; // The name of the logger
     mla_log_level level; // The log level of the logger
+    mla_bool_t need_full_managed_strings; // Indicates if the logger needs fully managed strings
     mla_log_writer_t write;  // The function to write log messages
     mla_callback_userdata userData; // User data for the log writer function
 
@@ -36,6 +37,7 @@ struct  mla_logger_initializer {
         return  {
             mla_string_empty(),
             MLA_LOG_LEVEL_ERROR,
+            false,
             nullptr,
             0
         };

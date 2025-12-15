@@ -79,6 +79,7 @@ mla_bool_t mla_logger_rpc_activate() {
     const mla_logger_t logger = {
         RPC_CACHE_LOGGER_NAME,
         mla_rpc_logger_level, // Default log level
+        true, // Need full managed strings
         __mla_log_rpc_writer, // Function to write log messages
         0
     };

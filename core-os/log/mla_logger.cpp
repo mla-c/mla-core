@@ -114,25 +114,40 @@ void mla_log_message(const mla_log_level level, const mla_string_t& message, con
 
         if (logger.level <= level && logger.write) {
 
-            // Copy the temp strings into owned data only once
-            if (!data_copied) {
+            if (logger.need_full_managed_strings) {
 
-                if (mla_string_is_data_owner(message)) {
-                    message_copy = message;
-                } else {
-                    message_copy = mla_string_copy(message);
+                // Copy the temp strings into owned data only once
+                if (!data_copied) {
+
+                    if (mla_string_is_data_owner(message)) {
+                        message_copy = message;
+                    } else {
+                        message_copy = mla_string_copy(message);
+                    }
+
+                    if (mla_string_is_data_owner(context1)) {
+                        context1_copy = context1;
+                    } else {
+                        context1_copy = mla_string_copy(context1);
+                    }
+
+                    data_copied = true;
                 }
 
-                if (mla_string_is_data_owner(context1)) {
-                    context1_copy = context1;
-                } else {
-                    context1_copy = mla_string_copy(context1);
+                if (mla_string_is_empty(message_copy) && mla_string_is_empty(context1_copy)) {
+                    // Failed to copy strings, skip this logger
+                    continue;
                 }
 
-                data_copied = true;
+                logger.write(level, message_copy, context1_copy, logger.userData);
+
+            } else {
+                mla_string_t context1_non_const = context1;
+                mla_string_t message_non_const = message;
+
+                logger.write(level, message_non_const, context1_non_const, logger.userData);
             }
 
-            logger.write(level, message_copy, context1_copy, logger.userData);
         }
     }
 }
