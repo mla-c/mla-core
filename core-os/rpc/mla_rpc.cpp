@@ -108,6 +108,8 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
             return false; // Memory allocation failed
         }
 
+        mla_memset(serialized_input, 0, input_definition.data_size);
+
         mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
         if (!mla_serializer_write_data_struct(binarySerializer, input_data, input_definition.write_function)) {
             mla_free(serialized_input);
@@ -137,10 +139,15 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
             }
             return false; // Memory allocation failed
         }
+
+        mla_memset(serialized_output, 0, output_definition.data_size);
     }
 
     mla_bool_t result = procedure.execute(serialized_input, serialized_output);
-    mla_free(serialized_input);
+
+    if (serialized_input != nullptr) {
+        mla_free(serialized_input);
+    }
 
 
     if (result) {

@@ -103,17 +103,35 @@ mla_bool_t mla_log_is_active(const mla_log_level level) {
 
 void mla_log_message(const mla_log_level level, const mla_string_t& message, const mla_string_t& context1) {
 
-    mla_string_t context1_copy = context1;
-    mla_string_t message_copy = message;
+    mla_string_t context1_copy = mla_string_empty();
+    mla_string_t message_copy = mla_string_empty();
+
+    mla_bool_t data_copied = false;
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_logger_manager.loggers); ++i) {
 
         const mla_logger_t logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
         if (logger.level <= level && logger.write) {
-            // Make sure that the message is refcounted
-            mla_string_change_memory_layout(message_copy, MLA_STRING_MEMORY_LAYOUT_BUFFER);
-            mla_string_change_memory_layout(context1_copy, MLA_STRING_MEMORY_LAYOUT_BUFFER);
+
+            // Copy the temp strings into owned data only once
+            if (!data_copied) {
+
+                if (mla_string_is_data_owner(message)) {
+                    message_copy = message;
+                } else {
+                    message_copy = mla_string_copy(message);
+                }
+
+                if (mla_string_is_data_owner(context1)) {
+                    context1_copy = context1;
+                } else {
+                    context1_copy = mla_string_copy(context1);
+                }
+
+                data_copied = true;
+            }
+
             logger.write(level, message_copy, context1_copy, logger.userData);
         }
     }

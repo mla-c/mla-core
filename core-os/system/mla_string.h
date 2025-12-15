@@ -73,11 +73,13 @@ struct mla_string_t {
     }
 };
 
+mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String);
 mla_string_t mla_string_empty();
 mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length);
 mla_string_t mla_string(const mla_char_t *p_Data);
 mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End);
 mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length);
+mla_string_t mla_string_copy(const mla_string_t &p_String);
 
 // This function creates a string from a buffer and takes ownership of the buffer
 // You must not free the buffer after calling this function

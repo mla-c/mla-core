@@ -345,6 +345,17 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     }\
     }
 
+#define mla_deserializer_read_enum(enum_type, instance, setter)\
+    {\
+    mla_uint8_t value = 0;\
+    if (mla_deserializer_convert_to_uint8(instance.current_token, &value)) {\
+        setter = static_cast<enum_type>(value);\
+        return MLA_DESERIALIZER_READ_HANDLED;\
+    } else {\
+        return MLA_DESERIALIZER_READ_ERROR;\
+    }\
+    }
+
 #define mla_deserializer_read_uint16(instance, setter)\
     {\
     mla_uint16_t value = 0;\
@@ -416,6 +427,15 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     mla_bytes_t value = mla_bytes_empty();\
     if (mla_deserializer_convert_to_bytes(instance.current_token, &value)) {\
         setter = value;\
+        return MLA_DESERIALIZER_READ_HANDLED;\
+    } else {\
+        return MLA_DESERIALIZER_READ_ERROR;\
+    }\
+    }
+
+#define mla_deserializer_read_list_struct(struct_data, instance, setter)\
+    {\
+    if (mla_serializer_read_list<struct_data>(instance, setter, struct_data::deserialize)) {\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\

@@ -34,6 +34,14 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
     return { newData, p_Length, MLA_STRING_MEMORY_LAYOUT_BUFFER, mla_buffer_reference(newData)};
 }
 
+mla_string_t mla_string_copy(const mla_string_t &p_String) {
+    return mla_string_copy(p_String.data, p_String.length);
+}
+
+mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String) {
+    return !mla_buffer_reference_is_noOwner(p_String.dataOwner);
+}
+
 mla_string_t mla_string(const mla_char_t *p_Data) {
     return { p_Data, mla_strlen(p_Data), MLA_STRING_MEMORY_LAYOUT_C_STRING, mla_buffer_reference_noOwner()};
 }

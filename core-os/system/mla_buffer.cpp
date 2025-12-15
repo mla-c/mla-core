@@ -138,3 +138,7 @@ void mla_buffer_reference_destroy_without_cleanup_unsafe(mla_buffer_reference_t&
     mla_buffer_destroy_without_cleanup_unsafe(p_Reference.buffer);
     p_Reference.buffer = nullptr;
 }
+
+mla_bool_t mla_buffer_reference_is_noOwner(const mla_buffer_reference_t& p_Reference) {
+    return p_Reference.buffer == nullptr;
+}

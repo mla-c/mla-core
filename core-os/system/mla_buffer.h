@@ -29,6 +29,7 @@ void mla_buffer_destroy_without_cleanup_unsafe(mla_buffer_t* p_Buffer);
 
 void mla_buffer_destroy(mla_buffer_t* p_Buffer);
 
+
 // At this point we are using c++ reference counting to manage the buffer's lifetime.
 // The buffer will be destroyed when the reference count reaches zero.
 
@@ -53,6 +54,7 @@ public:
 mla_buffer_reference_t mla_buffer_reference(const mla_pointer_t data, mla_bool_t mangedExternalResource = false, mla_buffer_cleanup_hook_t cleanupHook = nullptr, mla_callback_userdata cleanupHookUserData = 0);
 
 mla_buffer_reference_t mla_buffer_reference_noOwner();
+mla_bool_t mla_buffer_reference_is_noOwner(const mla_buffer_reference_t& p_Reference);
 
 void mla_buffer_reference_destroy(mla_buffer_reference_t& p_Reference);
 
