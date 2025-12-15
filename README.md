@@ -48,6 +48,13 @@ The main library providing fundamental operating system abstractions and utiliti
 - **Network** - `mla_network.h` - Socket abstractions
 - **URL Parser** - `mla_url.h` - URL parsing and manipulation
 
+#### **Remote Procedure Call (RPC)** (`rpc/`)
+- **RPC Framework** - `mla_rpc.h` - Comprehensive RPC implementation with support for both safe and unsafe procedure handlers, remote endpoint registration, and automated procedure registration using lifecycle events.
+- **HTTP Integration** - `mla_rpc_http_client.h`, `mla_rpc_http_server.h` - Built-in support for RPC over HTTP, enabling seamless client-server communication.
+
+#### **Lifecycle Management** (`lifecycle/`)
+- **Boot Events** - `mla_lifecycle_events.h` - Prioritized boot event management system that allows for flexible and ordered initialization of components. Callbacks can be registered with specific priorities to ensure proper startup sequencing.
+
 #### **Serialization** (`serializer/`)
 - **JSON Serializer** - `mla_json_serializer.h` - JSON encode/decode
 - **Binary Serializer** - `mla_binary_serializer.h` - Binary data serialization
@@ -78,6 +85,7 @@ The main library providing fundamental operating system abstractions and utiliti
 
 #### **Utilities** (`utils/`, `hash/`)
 - **Character Utils** - `mla_char_utils.h` - Character manipulation functions
+- **Endian Utils** - `mla_endian_utils.h` - Handling byte order
 - **Hash Functions** - `mla_hash.h` - Hashing algorithms
 
 #### **Data Types** (`mla_data_types.h`)
