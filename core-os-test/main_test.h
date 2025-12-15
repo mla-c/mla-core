@@ -34,6 +34,7 @@
 #include "mla_rpc_test.h"
 #include "mla_stream_test.h"
 #include "mla_logger_rpc_test.h"
+#include "mla_reflection_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -57,7 +58,7 @@
 
 int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat) {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(250);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(300);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -82,6 +83,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterRpcTests(l_TestExecutor);
     RegisterStreamTests(l_TestExecutor);
     RegisterLoggerRpcTests(l_TestExecutor);
+    RegisterReflectionTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1

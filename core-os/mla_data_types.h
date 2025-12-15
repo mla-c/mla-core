@@ -226,4 +226,7 @@ struct mla_default_initializer {
 
 #define mla_default_init(T) mla_default_initializer<T>
 
+#define mla_offsetof(type, member) ((mla_size_t)((mla_byte_t*)&(((type*)((mla_byte_t*)1))->member) - (mla_byte_t*)1))
+
+
 #endif
