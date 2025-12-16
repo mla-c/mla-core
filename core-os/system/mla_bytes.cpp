@@ -192,9 +192,9 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
         for (mla_size_t i = 0; i < 10; ++i) {
             decode_table['0' + i] = i + 52;
         }
-        decode_table['+'] = 62;
-        decode_table['/'] = 63;
-        decode_table['='] = 0; // Padding
+        decode_table[static_cast<mla_uint8_t>('+')] = 62;
+        decode_table[static_cast<mla_uint8_t>('/')] = 63;
+        decode_table[static_cast<mla_uint8_t>('=')] = 0; // Padding
 
         table_initialized = true;
     }
