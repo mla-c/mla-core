@@ -6,7 +6,7 @@ if (MLA_EMSDK_PATH)
     add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
 
     # Set Option for smallest possible output
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=true -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
     message(STATUS "Configured Emscripten Compiler")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
