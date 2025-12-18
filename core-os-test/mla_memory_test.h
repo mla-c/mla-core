@@ -1,0 +1,49 @@
+//
+// Created by chris on 12/18/2025.
+//
+
+#ifndef COREOS_MLA_MEMORY_TEST_H
+#define COREOS_MLA_MEMORY_TEST_H
+
+#include "../core-os/mla_data_types.h"
+#include "../core-os-test-support/mla_benchmark_executor.h"
+
+void MlaMemset16KbBenchmark() {
+
+    const mla_size_t size = 16 * 1024; // 16 KB
+    mla_byte_t* buffer = (mla_byte_t*)mla_malloc(size);
+
+    mla_memset(buffer, 0, size);
+
+    // Prevent optimization from removing the operation
+    volatile mla_byte_t temp = buffer[0];
+    (void)temp; // Prevent unused variable warning
+
+    mla_free(buffer);
+}
+
+void NativeMemset16KbBenchmark() {
+
+    const mla_size_t size = 16 * 1024; // 16 KB
+    mla_byte_t* buffer = (mla_byte_t*)malloc(size);
+
+    memset(buffer, 0, size);
+
+    // Prevent optimization from removing the operation
+    volatile mla_byte_t temp = buffer[0];
+    (void)temp; // Prevent unused variable warning
+
+    free(buffer);
+}
+
+void RegisterMemoryBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("MlaMemset16Kb", benchmark_category, MlaMemset16KbBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("NativeMemset16Kb", benchmark_category, NativeMemset16KbBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+}
+
+#endif //COREOS_MLA_MEMORY_TEST_H

@@ -35,6 +35,7 @@
 #include "mla_stream_test.h"
 #include "mla_logger_rpc_test.h"
 #include "mla_reflection_test.h"
+#include "mla_memory_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -123,6 +124,8 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
 #endif
 
+    // Native Test for comparison with mla_memory functions
+    RegisterMemoryBenchmarks(l_BenchmarkExecutor);
     // Native Test for comparison with C++ std::string
     RegisterNativeStringBenchmarks(l_BenchmarkExecutor);
     RegisterNativeListBenchmark(l_BenchmarkExecutor);
