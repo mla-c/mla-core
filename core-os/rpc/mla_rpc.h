@@ -9,6 +9,7 @@
 #include "../serializer/mla_serializer.h"
 #include "../system/mla_hash_map.h"
 #include "../lifecycle/mla_lifecycle_events.h"
+#include "../reflection/mla_reflection.h"
 
 typedef mla_bool_t (*mla_rpc_procedure_handler_unsafe_t)(const mla_pointer_t input_data, mla_pointer_t output_data);
 
@@ -192,6 +193,8 @@ mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_pr
 
 #define mla_rpc_auto_register_procedure(procedure_name, input, output, handler) \
 void mla_rpc_auto_register_procedure_##handler() { \
+    mla_reflection_register_struct<input>(); \
+    mla_reflection_register_struct<output>(); \
     auto input_definition = mla_serialize_definition<input>(); \
     auto output_defintion = mla_serialize_definition<output>(); \
     auto procedure = mla_rpc_procedure_safe<input, output>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
@@ -202,6 +205,7 @@ mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_p
 #define mla_rpc_auto_register_procedure_void_output(procedure_name, input, handler) \
 void mla_rpc_auto_register_procedure_##handler() { \
     auto input_definition = mla_serialize_definition<input>(); \
+    mla_reflection_register_struct<input>(); \
     auto output_defintion = mla_serialize_definition_void(); \
     auto procedure = mla_rpc_procedure_safe<input, void>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
     mla_rpc_register_procedure<input, void>(procedure); \
@@ -210,6 +214,7 @@ mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_p
 
 #define mla_rpc_auto_register_procedure_void_input(procedure_name, output, handler) \
 void mla_rpc_auto_register_procedure_##handler() { \
+    mla_reflection_register_struct<output>(); \
     auto input_definition = mla_serialize_definition_void(); \
     auto output_defintion = mla_serialize_definition<output>(); \
     auto procedure = mla_rpc_procedure_safe<void, output>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \

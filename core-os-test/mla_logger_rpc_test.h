@@ -17,10 +17,10 @@ inline void LoggerRpcActivationLifecycleTest() {
 
 inline void LoggerRpcSetLoglevelProcedureRegistrationTest() {
 
-    mla_rpc_procedure_safe_t<mla_logger_rpc_log_level_t, mla_void_t> procedure =
-        mla_rpc_procedure_safe_invalid<mla_logger_rpc_log_level_t, mla_void_t>();
+    mla_rpc_procedure_safe_t<mla_rpc_procedure_set_loglevel_signature> procedure =
+        mla_rpc_procedure_safe_invalid<mla_rpc_procedure_set_loglevel_signature>();
 
-    bool test = mla_rpc_find_procedure<mla_logger_rpc_log_level_t, mla_void_t>(
+    bool test = mla_rpc_find_procedure<mla_rpc_procedure_set_loglevel_signature>(
                 mla_string_const(mla_rpc_procedure_set_loglevel_name),
                 procedure
             );

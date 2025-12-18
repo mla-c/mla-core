@@ -149,7 +149,7 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
 
         // Start reading
         deserializer.read_next(deserializer);
-        if (!mla_deserializer_read_struct(deserializer, input, procedure.inputDefinition.read_function)) {
+        if (!mla_deserializer_read_struct_read_function(deserializer, input, procedure.inputDefinition.read_function)) {
             response.statusCode = mla_http_status_bad_request;
             mla_error(mla_string_concat("Failed to deserialize input for procedure ", procedure_name));
             mla_free(output);

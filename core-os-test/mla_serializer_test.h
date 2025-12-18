@@ -115,7 +115,7 @@ inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_d
         mla_deserializer_read_bytes(deserializer, obj->bytes);
     } else if (mla_string_equals_const(property_name, "innerStruct")) {
 
-        if (mla_deserializer_read_struct(deserializer, &obj->innerStruct, __mla_all_types_inner_struct_read_function)) {
+        if (mla_deserializer_read_struct_read_function(deserializer, &obj->innerStruct, __mla_all_types_inner_struct_read_function)) {
             return MLA_DESERIALIZER_READ_HANDLED;
         } else {
             return MLA_DESERIALIZER_READ_ERROR;
@@ -160,7 +160,7 @@ inline mla_bool_t __mla_all_types_struct_write_function(mla_serializer_t& serial
     mla_serializer_write_bytes(serializer, mla_string_const("bytes"), obj->bytes);
 
     // Inner struct
-    mla_serializer_write_struct(serializer, mla_string_const("innerStruct"), &obj->innerStruct, __mla_all_types_inner_struct_write_function);
+    mla_serializer_write_struct_write_function(serializer, mla_string_const("innerStruct"), &obj->innerStruct, __mla_all_types_inner_struct_write_function);
 
     // Int list
     mla_serializer_write_list(serializer, mla_string_const("intList"), obj->intList);
@@ -236,7 +236,7 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
 
     // Start reading
     assert_true(deserializer.read_next(deserializer), "Failed to read next data from deserializer");
-    assert_true(mla_deserializer_read_struct(deserializer, &deserialized, __mla_all_types_struct_read_function), "Deserialization failed");
+    assert_true(mla_deserializer_read_struct_read_function(deserializer, &deserialized, __mla_all_types_struct_read_function), "Deserialization failed");
 
     // Compare original and deserialized
     assert_equal(original.boolValue, deserialized.boolValue, "Value 'boolValue' does not match");
@@ -489,7 +489,7 @@ inline void AllTypesSerializerBenchmark(mla_serializer_t serializer) {
 inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
 
     deserializer.read_next(deserializer);
-    mla_deserializer_read_struct(deserializer, &g_benchmarkAllTypes, __mla_all_types_struct_read_function);
+    mla_deserializer_read_struct_read_function(deserializer, &g_benchmarkAllTypes, __mla_all_types_struct_read_function);
     (void)g_benchmarkAllTypes;
 }
 

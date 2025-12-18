@@ -32,6 +32,13 @@ struct my_http_rpc_test_large_data_t {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
     }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_http_rpc_test_large_data_t);
+        mla_reflection_struct_field_string(meta, my_http_rpc_test_large_data_t, large_string);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
 };
 
 struct my_http_rpc_test_input_t {
@@ -59,6 +66,14 @@ struct my_http_rpc_test_input_t {
         }
 
     }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_http_rpc_test_input_t);
+        mla_reflection_struct_field_int32(meta, my_http_rpc_test_input_t, a);
+        mla_reflection_struct_field_int32(meta, my_http_rpc_test_input_t, b);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
 };
 
 
@@ -82,6 +97,13 @@ struct my_http_rpc_test_output_t {
         } else {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
+    }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_http_rpc_test_output_t);
+        mla_reflection_struct_field_int32(meta, my_http_rpc_test_output_t, sum);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
     }
 };
 

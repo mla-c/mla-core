@@ -88,7 +88,7 @@ mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, ml
                 }
 
                 // If we are not at the start of a struct, then we did not find the config
-                return mla_deserializer_read_struct(deserializer, config, definition.definition.read_function);
+                return mla_deserializer_read_struct_read_function(deserializer, config, definition.definition.read_function);
             }
         }
     }
@@ -211,7 +211,7 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, m
             }
         }
 
-        mla_serializer_write_struct(serializer, definition.config_name, config, definition.definition.write_function);
+        mla_serializer_write_struct_write_function(serializer, definition.config_name, config, definition.definition.write_function);
 
         if (found) {
             // Stream the rest of the deserializer to the serializer

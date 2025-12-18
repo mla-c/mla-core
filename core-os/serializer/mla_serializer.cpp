@@ -318,7 +318,7 @@ mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer
 }
 
 
-mla_bool_t mla_deserializer_read_struct(mla_deserializer_t &deserializer, mla_pointer_t data,
+mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t &deserializer, mla_pointer_t data,
                                         const mla_serialize_definition_read_function_t &read_function) {
     if (deserializer.current_token.type != MLA_DESERIALIZER_STRUCT_START) {
         // Not a struct start

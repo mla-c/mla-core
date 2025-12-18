@@ -33,6 +33,14 @@ struct my_rpc_test_input_t {
         }
 
     }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_rpc_test_input_t);
+        mla_reflection_struct_field_int32(meta, my_rpc_test_input_t, a);
+        mla_reflection_struct_field_int32(meta, my_rpc_test_input_t, b);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
 };
 
 struct my_rpc_test_output_t {
@@ -55,6 +63,13 @@ struct my_rpc_test_output_t {
         } else {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
+    }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_rpc_test_output_t);
+        mla_reflection_struct_field_int32(meta, my_rpc_test_output_t, sum);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
     }
 };
 
@@ -87,6 +102,13 @@ struct my_rpc_void_in_output_t {
         }
         return MLA_DESERIALIZER_READ_SKIPPED;
     }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_rpc_void_in_output_t);
+        mla_reflection_struct_field_int32(meta, my_rpc_void_in_output_t, value);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
 };
 
 /// normal input, void-like output
@@ -105,6 +127,13 @@ struct my_rpc_input_void_out_t {
             mla_deserializer_read_int32(deserializer, in->inputValue);
         }
         return MLA_DESERIALIZER_READ_SKIPPED;
+    }
+
+    static mla_reflection_struct_metadata_t metadata() {
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(my_rpc_input_void_out_t);
+        mla_reflection_struct_field_int32(meta, my_rpc_input_void_out_t, inputValue);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
     }
 };
 

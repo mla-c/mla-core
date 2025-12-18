@@ -54,7 +54,15 @@ struct mla_reflection_struct_metadata_t {
 };
 
 mla_reflection_struct_metadata_t mla_reflection_struct_metadata_invalid();
-mla_reflection_struct_metadata_t mla_reflection_struct_metadata(const mla_string_t &name, mla_size_t size);
+
+mla_reflection_struct_metadata_t mla_reflection_struct_metadata_for(const mla_string_t &name, mla_size_t size);
+
+#define mla_reflection_struct_name(T) #T
+#define mla_reflection_struct_name_as_string(T) mla_string_const(#T)
+
+#define mla_reflection_struct_metadata(T) \
+mla_reflection_struct_metadata_for(mla_reflection_struct_name_as_string(T), sizeof(T))
+
 void mla_reflection_struct_metadata_add_field(mla_reflection_struct_metadata_t& metadata, const mla_reflection_struct_field_t &field);
 void mla_reflection_struct_metadata_freeze(mla_reflection_struct_metadata_t& metadata);
 mla_reflection_struct_field_t mla_reflection_struct_field(const mla_string_t &name, mla_size_t offset, mla_reflection_type_t type, mla_reflection_type_t element_type, const mla_string_t &struct_name);
@@ -68,6 +76,8 @@ struct mla_reflection_struct_metadata_initializer {
 typedef mla_reflection_struct_metadata_t (*mla_reflection_struct_metadata_provider_t)();
 
 mla_bool_t mla_reflection_register_struct(const mla_string_t &name, mla_reflection_struct_metadata_provider_t provider);
+mla_bool_t mla_reflection_is_struct_registered(const mla_string_t &name);
+mla_bool_t mla_reflection_get_struct_metadata(const mla_string_t &name, mla_reflection_struct_metadata_t& out_metadata);
 
 template<typename T>
 mla_bool_t mla_reflection_register_struct()
@@ -98,6 +108,9 @@ mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_low_l
     mla_reflection_struct_metadata_add_field(metadata, mla_reflection_struct_field(mla_string_const(#field_name), mla_offsetof(struct_type, field_name), MLA_REFLECTION_TYPE_INT64, MLA_REFLECTION_TYPE_INVALID, mla_string_empty()))
 
 #define mla_reflection_struct_field_uint8(metadata, struct_type, field_name) \
+    mla_reflection_struct_metadata_add_field(metadata, mla_reflection_struct_field(mla_string_const(#field_name), mla_offsetof(struct_type, field_name), MLA_REFLECTION_TYPE_UINT8, MLA_REFLECTION_TYPE_INVALID, mla_string_empty()))
+
+#define mla_reflection_struct_field_enum(metadata, struct_type, field_name) \
     mla_reflection_struct_metadata_add_field(metadata, mla_reflection_struct_field(mla_string_const(#field_name), mla_offsetof(struct_type, field_name), MLA_REFLECTION_TYPE_UINT8, MLA_REFLECTION_TYPE_INVALID, mla_string_empty()))
 
 #define mla_reflection_struct_field_uint16(metadata, struct_type, field_name) \

@@ -154,7 +154,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const m
 
         // Start reading
         deserializer.read_next(deserializer);
-        if (!mla_deserializer_read_struct(deserializer, output_data, output_definition.read_function)) {
+        if (!mla_deserializer_read_struct_read_function(deserializer, output_data, output_definition.read_function)) {
             return false; // Serialization failed
         }
 

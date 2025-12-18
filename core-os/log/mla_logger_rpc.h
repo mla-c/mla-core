@@ -35,6 +35,14 @@ struct mla_logger_rpc_log_level_t {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
     }
+
+    static mla_reflection_struct_metadata_t metadata() {
+
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(mla_logger_rpc_log_level_t);
+        mla_reflection_struct_field_enum(meta, mla_logger_rpc_log_level_t, level);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
 };
 
 struct mla_logger_rpc_log_entry_t {
@@ -98,11 +106,19 @@ struct mla_logger_rpc_log_messages_t {
 
         mla_logger_rpc_log_messages_t* logMessages = static_cast<mla_logger_rpc_log_messages_t*>(obj);
         if (mla_string_equals_const(property_name, "entries")) {
-            mla_deserializer_read_list_struct(mla_logger_rpc_log_entry_t, deserializer, logMessages->entries)
+            mla_deserializer_read_list_struct(deserializer, logMessages->entries, mla_logger_rpc_log_entry_t)
         } else {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
 
+    }
+
+    static mla_reflection_struct_metadata_t metadata() {
+
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(mla_logger_rpc_log_messages_t);
+        mla_reflection_struct_field_struct_list(meta, mla_logger_rpc_log_messages_t, entries, mla_reflection_struct_name(mla_logger_rpc_log_entry_t));
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
     }
 };
 
@@ -112,12 +128,15 @@ mla_bool_t mla_logger_rpc_active();
 
 
 #define mla_rpc_procedure_set_loglevel_name "log/setLoglevel"
+#define mla_rpc_procedure_set_loglevel_signature mla_logger_rpc_log_level_t, mla_void_t
 mla_bool_t mla_logger_rpc_set_loglevel_handler(const mla_logger_rpc_log_level_t* input, mla_pointer_t output);
 
 #define mla_rpc_procedure_get_loglevel_name "log/getLoglevel"
+#define mla_rpc_procedure_get_loglevel_signature void, mla_logger_rpc_log_level_t
 mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_pointer_t input, mla_logger_rpc_log_level_t* output);
 
 #define mla_rpc_procedure_log_message_name "log/getMessages"
+#define mla_rpc_procedure_log_message_signature void, mla_logger_rpc_log_messages_t
 mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_pointer_t input, mla_logger_rpc_log_messages_t* output);
 
 
