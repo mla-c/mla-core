@@ -58,4 +58,12 @@ mla_bool_t mla_reflection_metadata_rpc_get_metadata(const mla_reflection_struct_
     return true;
 }
 
+mla_reflection_struct_metadata_response_t mla_reflection_struct_metadata_response_empty() {
+    return { false, mla_reflection_rpc_struct_metadata_invalid() };
+}
+
+mla_reflection_struct_metadata_request_t mla_reflection_struct_metadata_request_empty() {
+    return { mla_string_empty() };
+}
+
 mla_rpc_auto_register_procedure(mla_rpc_procedure_get_meta_data_name, mla_reflection_struct_metadata_request_t, mla_reflection_struct_metadata_response_t, mla_reflection_metadata_rpc_get_metadata)

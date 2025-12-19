@@ -139,6 +139,8 @@ struct mla_reflection_struct_metadata_request_t {
     }
 };
 
+mla_reflection_struct_metadata_request_t mla_reflection_struct_metadata_request_empty();
+
 struct mla_reflection_struct_metadata_response_t {
 
     mla_bool_t found;
@@ -175,6 +177,8 @@ struct mla_reflection_struct_metadata_response_t {
         return meta;
     }
 };
+
+mla_reflection_struct_metadata_response_t mla_reflection_struct_metadata_response_empty();
 
 #define mla_rpc_procedure_get_meta_data_name "metadata/getMetaData"
 #define mla_rpc_procedure_get_meta_data_signature mla_reflection_struct_metadata_request_t, mla_reflection_struct_metadata_response_t
