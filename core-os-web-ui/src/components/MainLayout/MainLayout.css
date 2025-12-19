@@ -1,0 +1,27 @@
+.main-layout {
+    --main-layout-menu-heigt: 45px
+}
+
+.main-layout {
+    width: 100%;
+    display: grid;
+    grid-template-areas:    "menu"
+                            "main";
+    grid-template-rows: var(--main-layout-menu-heigt) auto;
+}
+
+
+.main-layout__menu {
+    grid-area: menu;
+    overflow: hidden;
+    background: var(--green);
+    padding: 2px;
+
+}
+
+.main-layout__content {
+    grid-area: main;
+    height: calc(100vh - var(--main-layout-menu-heigt));
+    padding: 10px;
+}
+

@@ -80,6 +80,21 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
     return result;
 }
 
+mla_bool_t __mla_rpc_http_server_handler_options(const mla_http_request_t &request, mla_http_response_t &response) {
+
+    response.statusCode = mla_http_status_ok;
+    response.statusMessage = mla_string_const("OK");
+    mla_http_headers_add(response.headers, mla_string_const("Allow"), mla_string_const("POST, OPTIONS"));
+
+    // Add CORS headers
+    mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Origin"), mla_string_const("*"));
+    mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Methods"), mla_string_const("POST, OPTIONS"));
+    mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Headers"), mla_string_const("Content-Type"));
+
+    return true;
+
+}
+
 mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {
 
     // Remove "/rpc/" prefix
@@ -185,6 +200,9 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
         response.statusCode = mla_http_status_ok;
         response.statusMessage = mla_string_const("Success");
 
+        // Add CORS header for actual request
+        mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Origin"), mla_string_const("*"));
+
         if (output != nullptr) {
 
             // Set Content-Type header
@@ -226,5 +244,7 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
 mla_bool_t mla_rpc_http_server_initialize(mla_http_server_t &server) {
 
     mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, mla_string_const("/rpc/"), __mla_rpc_http_server_handler);
-    return mla_http_server_register_handler(server, handler);
+    mla_bool_t result1 = mla_http_server_register_handler(server, handler);
+    mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, mla_string_const("/rpc/"), __mla_rpc_http_server_handler_options);
+    return result1 && mla_http_server_register_handler(server, handlerOptions);
 }

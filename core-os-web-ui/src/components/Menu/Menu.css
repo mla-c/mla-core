@@ -1,0 +1,14 @@
+.menu {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.menu .menu__item.pl-button.active {
+    color: black;
+}
+
+.menu .menu__item.pl-button:hover {
+    color: gray;
+}
+

@@ -85,6 +85,7 @@ inline mla_http_request_t mla_http_request(const mla_string_t &p_Url, const mla_
 #define mla_http_method_post mla_string_const("POST")
 #define mla_http_method_put mla_string_const("PUT")
 #define mla_http_method_delete mla_string_const("DELETE")
+#define mla_http_method_options mla_string_const("OPTIONS")
 
 inline mla_http_request_t mla_http_get_request(const mla_string_t &p_Url) {
     return mla_http_request(p_Url, mla_http_method_get);
