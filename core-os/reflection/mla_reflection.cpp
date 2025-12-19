@@ -37,8 +37,8 @@ void mla_reflection_struct_metadata_freeze(mla_reflection_struct_metadata_t& met
     metadata.frozen = true;
 }
 
-mla_reflection_struct_field_t mla_reflection_struct_field(const mla_string_t &name, mla_size_t offset, mla_reflection_type_t type, mla_reflection_type_t element_type, const mla_string_t &struct_name) {
-    return {name, offset, type, element_type, struct_name};
+mla_reflection_struct_field_t mla_reflection_struct_field(const mla_string_t &name, mla_size_t offset, mla_reflection_type_t type, mla_reflection_type_t element_type, const mla_reflection_struct_metadata_provider_t& struct_metadata_provider) {
+    return {name, offset, type, element_type, struct_metadata_provider};
 }
 
 mla_bool_t mla_reflection_register_struct(const mla_string_t &name, mla_reflection_struct_metadata_provider_t provider) {
@@ -70,4 +70,36 @@ mla_bool_t mla_reflection_get_struct_metadata(const mla_string_t &name, mla_refl
 
     out_metadata = provider();
     return true;
+}
+
+void mla_reflection_register_inner_structs(const mla_reflection_struct_metadata_t& metadata) {
+
+    for (mla_size_t i = 0; i < mla_array_list_size(metadata.fields); ++i) {
+
+        const mla_reflection_struct_field_t& field = mla_array_list_get_unsafe(metadata.fields, i);
+
+        if (field.type == MLA_REFLECTION_TYPE_STRUCT) {
+
+            if (field.struct_provider != nullptr) {
+                mla_reflection_struct_metadata_t innerMeta = field.struct_provider();
+
+                if (!mla_reflection_register_struct(innerMeta.name, field.struct_provider)) {
+                    continue;
+                }
+
+                mla_reflection_register_inner_structs(innerMeta);
+            }
+        } else if (field.type == MLA_REFLECTION_TYPE_LIST && field.element_type == MLA_REFLECTION_TYPE_STRUCT) {
+
+            if (field.struct_provider != nullptr) {
+                mla_reflection_struct_metadata_t innerMeta = field.struct_provider();
+
+                if (!mla_reflection_register_struct(innerMeta.name, field.struct_provider)) {
+                    continue;
+                }
+
+                mla_reflection_register_inner_structs(innerMeta);
+            }
+        }
+    }
 }

@@ -42,8 +42,16 @@ mla_bool_t mla_reflection_metadata_rpc_get_metadata(const mla_reflection_struct_
             field.name,
             field.type,
             field.element_type,
-            field.struct_name
+            mla_string_empty()
         };
+
+        if (field.type == MLA_REFLECTION_TYPE_STRUCT || field.element_type == MLA_REFLECTION_TYPE_STRUCT) {
+            if (field.struct_provider != nullptr) {
+                mla_reflection_struct_metadata_t fieldStructMeta = field.struct_provider();
+                responseField.struct_name = fieldStructMeta.name;
+            }
+        }
+
         mla_array_list_add(responseMeta->fields, responseField);
     }
 

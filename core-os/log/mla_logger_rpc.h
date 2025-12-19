@@ -79,6 +79,17 @@ struct mla_logger_rpc_log_entry_t {
 
     }
 
+    static mla_reflection_struct_metadata_t metadata() {
+
+        mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(mla_logger_rpc_log_level_t);
+        mla_reflection_struct_field_uint32(meta, mla_logger_rpc_log_entry_t, logid);
+        mla_reflection_struct_field_enum(meta, mla_logger_rpc_log_entry_t, level);
+        mla_reflection_struct_field_string(meta, mla_logger_rpc_log_entry_t, message);
+        mla_reflection_struct_field_string(meta, mla_logger_rpc_log_entry_t, context1);
+        mla_reflection_struct_metadata_freeze(meta);
+        return meta;
+    }
+
 };
 
 
@@ -116,7 +127,7 @@ struct mla_logger_rpc_log_messages_t {
     static mla_reflection_struct_metadata_t metadata() {
 
         mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(mla_logger_rpc_log_messages_t);
-        mla_reflection_struct_field_struct_list(meta, mla_logger_rpc_log_messages_t, entries, mla_reflection_struct_name(mla_logger_rpc_log_entry_t));
+        mla_reflection_struct_field_struct_list(meta, mla_logger_rpc_log_messages_t, entries, mla_logger_rpc_log_entry_t);
         mla_reflection_struct_metadata_freeze(meta);
         return meta;
     }

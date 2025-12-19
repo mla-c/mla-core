@@ -34,7 +34,7 @@ struct test_nested_struct_t {
     static mla_reflection_struct_metadata_t metadata() {
         mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(test_nested_struct_t);
         mla_reflection_struct_field_uint64(meta, test_nested_struct_t, id);
-        mla_reflection_struct_field_struct(meta, test_nested_struct_t, nested, mla_reflection_struct_name(test_simple_struct_t));
+        mla_reflection_struct_field_struct(meta, test_nested_struct_t, nested, test_simple_struct_t);
         mla_reflection_struct_field_double(meta, test_nested_struct_t, value);
         mla_reflection_struct_metadata_freeze(meta);
         return meta;
@@ -108,7 +108,7 @@ inline void NestedStructMetadataTest() {
     if (mla_array_list_size(metadata.fields) == 3) {
         mla_reflection_struct_field_t nested_field = mla_array_list_get_unsafe(metadata.fields, 1);
         assert_equal(nested_field.type, MLA_REFLECTION_TYPE_STRUCT, "Nested field should be STRUCT type");
-        assert_true(mla_string_equals(nested_field.struct_name, mla_string_const("test_simple_struct_t")), "Nested struct name should match");
+        assert_true(mla_string_equals(nested_field.struct_provider().name, mla_string_const("test_simple_struct_t")), "Nested struct name should match");
     } else {
         assert_fail("Fields list size should be 3 after adding fields");
     }
