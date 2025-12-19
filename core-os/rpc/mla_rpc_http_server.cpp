@@ -103,8 +103,18 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
     mla_http_rpc_content_type contentType = __mla_rpc_http_server_get_content_type(request);
 
     if (contentType == mla_http_rpc_content_type_unknown) {
-        mla_error(mla_string_concat("Unsupported Content-Type for procedure ", procedure_name));
-        return false;
+
+        if (procedure.inputDefinition.data_size > 0) {
+            // We expect input data but content type is unknown
+            response.statusCode = 415; // Unsupported Media Type
+            response.statusMessage = mla_string_const("Unsupported Media Type");
+            mla_error(mla_string_concat("Unsupported Content-Type for procedure ", procedure_name));
+            return false;
+        }
+
+        contentType = mla_http_rpc_content_type_json; // Default to JSON for no input
+
+
     } else if (contentType == mla_http_rpc_content_type_json) {
         deserializer = mla_json_deserializer(request.content);
     } else if (contentType == mla_http_rpc_content_type_binary) {
@@ -143,6 +153,10 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
         }
 
         mla_memset(output, 0, output_size);
+
+        mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+        header->contentType = contentType;
+        header->write_function = procedure.outputDefinition.write_function;
     }
 
     if (input != nullptr && procedure.inputDefinition.read_function != nullptr) {
@@ -158,10 +172,6 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
         }
     }
 
-    mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
-    header->contentType = contentType;
-    header->write_function = procedure.outputDefinition.write_function;
-
     // Store content type and write function at the beginning of output buffer
     mla_pointer_t outputData = nullptr;
 
@@ -173,6 +183,7 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
         mla_free(input);
 
         response.statusCode = mla_http_status_ok;
+        response.statusMessage = mla_string_const("Success");
 
         if (output != nullptr) {
 

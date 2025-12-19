@@ -20,7 +20,7 @@ struct mla_logger_rpc_log_level_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
 
         const mla_logger_rpc_log_level_t* logLevel = static_cast<const mla_logger_rpc_log_level_t*>(obj);
-        mla_serializer_write_uint8(serializer, mla_string_const("level"), logLevel->level);
+        mla_serializer_write_enum(serializer, mla_string_const("level"), logLevel->level);
         return true;
 
     }

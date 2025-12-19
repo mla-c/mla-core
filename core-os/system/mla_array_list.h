@@ -125,6 +125,27 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 }
 
 template <mla_array_list_template>
+void mla_array_list_reverse(mla_array_list_t<T, TInit>& list) {
+
+    if (list.size < 2) {
+        return; // No need to reverse if the list has less than 2 items
+    }
+
+    mla_size_t start = 0;
+    mla_size_t end = list.size - 1;
+
+    while (start < end) {
+        // Swap items at start and end
+        T temp = list.items[start];
+        list.items[start] = list.items[end];
+        list.items[end] = temp;
+
+        ++start;
+        --end;
+    }
+}
+
+template <mla_array_list_template>
 mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t index, T& outItem) {
 
     if (index >= list.size) {

@@ -304,9 +304,15 @@ mla_serializer_t mla_json_serializer(const mla_stream_output_t &output) {
 mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserializer_t &instance, mla_char_t &out_char) {
     // Check if there is something in buffer
     if (instance.userdata != 0) {
-        out_char = (mla_char_t) instance.userdata;
+        mla_char_t temp_char = (mla_char_t) instance.userdata;
         instance.userdata = 0;
-        return true;
+
+        if (temp_char != ' ' && temp_char != '\n' && temp_char != '\r' && temp_char != '\t') {
+            // Skip whitespace
+            out_char = temp_char;
+            return true;
+        }
+
     }
 
 
@@ -828,7 +834,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                 continue;
 
             default:
-                mla_error("Unexpected character in JSON input");
+                mla_error(mla_string_concat(mla_string_const("Unexpected character in JSON input"), &new_char));
                 return false;
         }
     }

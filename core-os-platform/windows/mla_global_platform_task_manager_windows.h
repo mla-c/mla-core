@@ -64,6 +64,9 @@ DWORD WINAPI __mla_task_manager_windows_native_worker(LPVOID lpParam) {
                 break; // Exit the loop after completion
             }
 
+            // Sleep for a short duration to prevent busy-waiting
+            Sleep(10);
+
         }
 
     }

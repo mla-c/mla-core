@@ -33,14 +33,14 @@ mla_rw_lock_t mla_rw_lock(const mla_string_t &name) {
 
 mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line) {
     // check if the is an writer lock active
-    if (!mla_mutex_try_lock(lock.writerLock, timeout, source, line)) {
+    if (!mla_mutex_try_lock(lock.writerLock, timeout, false, source, line)) {
         return false;
     }
 
     mla_bool_t successfull = false;
 
     // Lock the readers
-    if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
+    if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
         if (lock.state == nullptr) {
             mla_mutex_try_unlock(lock.readerLock, source, line);
@@ -62,7 +62,7 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
 
     mla_bool_t successfull = false;
 
-    if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
+    if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
         if (lock.state == nullptr) {
             mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
@@ -85,7 +85,7 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
 
 mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line) {
     // Try to lock the writer lock
-    if (!mla_mutex_try_lock(lock.writerLock, timeout, source, line)) {
+    if (!mla_mutex_try_lock(lock.writerLock, timeout, false, source, line)) {
         return false; // Failed to acquire the write lock
     }
 
@@ -93,7 +93,7 @@ mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const
 
     for (mla_uint8_t i = 0; i < 10; ++i) {
 
-        if (mla_mutex_try_lock(lock.readerLock, timeout, source, line)) {
+        if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
             if (lock.state == nullptr) {
                 mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock

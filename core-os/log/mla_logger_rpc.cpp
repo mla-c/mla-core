@@ -151,8 +151,12 @@ mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_pointer_t input, ml
             index--;
         }
     }
+    g_rpc_log_cache.entry_count = 0;
+    g_rpc_log_cache.current_index = 0;
 
     mla_mutex_unlock(g_rpc_log_cache.lock);
+
+    mla_array_list_reverse(output->entries);
 
     return true;
 }

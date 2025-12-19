@@ -292,7 +292,7 @@ mla_bool_t __mla_http_server_request_read(const mla_network_connection_t &connec
 
     if (mla_string_equals_const(contentLengthStr, "0")) {
         request.content = mla_stream_noop_input();
-        return false;
+        return true;
     }
 
     mla_size_t content_size = 0;
@@ -409,7 +409,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_callback
 
     // Accept a new connection
 
-    if (!mla_mutex_lock_timeout(server.listenerLock, 100)) {
+    if (!mla_mutex_trylock(server.listenerLock, 100)) {
         return TASK_PROCESS_RESULT_CONTINUE; // No connection, yield and try again
     }
 

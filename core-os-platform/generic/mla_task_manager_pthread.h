@@ -62,6 +62,8 @@ mla_pointer_t __mla_task_manager_pthread_worker(mla_pointer_t payload) {
                 break; // Exit the loop after completion
             }
 
+            mla_sleep(10);
+
         }
 
     }
