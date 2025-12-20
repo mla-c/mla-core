@@ -23,6 +23,12 @@ mla_bool_t __mla_ui_http_server_handler(const mla_http_request_t &request, mla_h
         mla_http_headers_add(response.headers, mla_string_const("Content-Type"), mla_string_const("text/html; charset=UTF-8"));
         mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_uint32(mla_ui_web_embedded_index_html_len));
 
+        mla_string_t content_encoding = mla_string(mla_ui_web_embedded_index_html_content_encoding);
+
+        if (!mla_string_is_empty(content_encoding)) {
+            mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), content_encoding);
+        }
+
         // Set content
         response.content = mla_stream_input_from_buffer(mla_ui_web_embedded_index_html, mla_ui_web_embedded_index_html_len);
         return true;

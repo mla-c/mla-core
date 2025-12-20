@@ -1,21 +1,31 @@
 import {defineConfig, PluginOption} from 'vite';
 import preact from '@preact/preset-vite';
 import singleFileCompression from 'vite-plugin-singlefile-compression'
+import { viteSingleFile } from "vite-plugin-singlefile"
 import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-function generateCHeader(): PluginOption {
+function generateCHeader(compress: boolean = false): PluginOption {
 	return {
 		name: 'generate-c-header',
 		writeBundle(options, bundle) {
 			const htmlFile = Object.keys(bundle).find(key => key.endsWith('.html'));
 			if (!htmlFile) return;
 
-			const content = bundle[htmlFile].source;
-			const buffer = Buffer.from(content);
+			const outputAsset = bundle[htmlFile];
+			if (outputAsset.type !== 'asset') return;
+
+			let content = outputAsset.source;
+			let buffer = typeof content === 'string' ? Buffer.from(content) : Buffer.from(content);
+
+			// Apply maximum gzip compression if enabled
+			if (compress) {
+				buffer = gzipSync(buffer, { level: 9 }); // Level 9 = maximum compression
+			}
 
 			const arrayName = 'mla_ui_web_embedded_index_html';
 			let header = `// Auto-generated file - do not edit\n`;
@@ -32,17 +42,25 @@ function generateCHeader(): PluginOption {
 			}
 
 			header += `};\n`;
-			header += `mla_size_t ${arrayName}_len = ${buffer.length};\n\n`;
+			header += `mla_size_t ${arrayName}_len = ${buffer.length};\n`;
+			header += `const char* ${arrayName}_content_encoding = ${compress ? '"gzip"' : '""'};\n\n`;
 			header += `#endif\n`;
 
 			const outputPath = resolve(__dirname, '../core-os/ui/mla_ui_web_embedded.h');
 			writeFileSync(outputPath, header);
-			console.log(`Generated C header: ${outputPath}`);
+			console.log(`Generated C header: ${outputPath}${compress ? ' (gzipped, level 9)' : ''}`);
 		}
 	};
 }
 
+
+const singleFileCompressed = singleFileCompression({
+	compressFormat: "gzip",
+});
+
+const singleFile = viteSingleFile();
+
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [preact(), singleFileCompression(), generateCHeader()],
+	plugins: [preact(), singleFile, generateCHeader(true)],
 });
