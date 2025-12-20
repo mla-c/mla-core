@@ -1,5 +1,6 @@
-import {createContext, JSX, useCallback, useContext, useMemo, useState} from "preact/compat";
+import {useCallback, useContext, useMemo, useState} from "preact/hooks";
 import HomePage from "../pages/HomePage";
+import {createContext, JSX} from "preact";
 
 export interface NavigationPage {
     name: string

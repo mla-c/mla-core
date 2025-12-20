@@ -19,7 +19,7 @@ export function useLogs() {
             stopLoading();
         }
 
-    }, [startLoading]);
+    }, [startLoading, stopLoading]);
 
     const mergeLogs = useCallback((newLogs: LogEntry[]) => {
 
