@@ -81,7 +81,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
 }
 
 mla_bool_t __mla_rpc_http_server_handler_options(const mla_http_request_t &request, mla_http_response_t &response) {
-
+    (void)request;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     mla_http_headers_add(response.headers, mla_string_const("Allow"), mla_string_const("POST, OPTIONS"));
