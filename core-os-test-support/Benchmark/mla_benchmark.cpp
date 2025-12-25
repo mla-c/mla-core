@@ -205,6 +205,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     
     // Allocate array for timing measurements to calculate median
     mla_test_uint64_t* times = new mla_test_uint64_t[benchmarkIterations];
+    
+    mla_test_uint32_t actualIterations = 0;
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
 
@@ -214,6 +216,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         auto elapsed = end - start;
 
         times[i] = elapsed;
+        actualIterations = i + 1;
         
         if (elapsed < minTime) {
             minTime = elapsed;
@@ -227,11 +230,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         }
     }
 
-    auto medianTime = __mla_benchmark_calculate_median(times, benchmarkIterations);
-    auto allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / benchmarkIterations);
+    mla_test_uint64_t medianTime = 0;
+    long long int allocated_memory_per_interation = 0;
     
-    delete[] times;
-
     if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
         // The arena was not big enough to run all iterations
         allocated_memory_per_interation = 0;
@@ -239,7 +240,12 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         minTime = 999999;
         maxTime = 999999;
         medianTime = 999999;
+    } else {
+        medianTime = __mla_benchmark_calculate_median(times, actualIterations);
+        allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / actualIterations);
     }
+    
+    delete[] times;
 
     if (benchmark.tearDown) {
         benchmark.tearDown();
