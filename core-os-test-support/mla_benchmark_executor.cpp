@@ -48,7 +48,7 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
            "Name",
            "Min (ns)",
            "Max (ns)",
-           "Avg (ns)",
+           "Med (ns)",
            "Mem (bytes)",
            "Iterations");
 #else
@@ -59,7 +59,7 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
            "Name",
            "Min (ns)",
            "Max (ns)",
-           "Avg (ns)",
+           "Med (ns)",
            "Iterations");
 #endif
 }
