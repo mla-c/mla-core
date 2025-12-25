@@ -118,6 +118,12 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
     benchmark.tearDown = nullptr;
 }
 
+#if (!defined(mla_benchmark_use_median))
+#define mla_benchmark_use_median 1  // Default to median (1), set to 0 for average
+#endif
+
+#if (mla_benchmark_use_median == 1)
+
 // Simple partition function for median calculation
 static void __mla_benchmark_partition_for_median(mla_test_uint64_t* arr, mla_test_uint32_t left, mla_test_uint32_t right, mla_test_uint32_t k) {
     while (left < right) {
@@ -167,6 +173,8 @@ static mla_test_uint64_t __mla_benchmark_calculate_median(mla_test_uint64_t* tim
     }
 }
 
+#endif
+
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
@@ -199,6 +207,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     mla_benchmark_allocated_memory = 0;
 
+#if (mla_benchmark_use_median == 1)
     // Min, Max, and Median time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;
     mla_test_uint64_t maxTime = 0;
@@ -246,6 +255,44 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
     
     delete[] times;
+#else
+    // Min, Max, and Average time tracking
+    mla_test_uint64_t minTime = 18446744073709551615ULL;
+    mla_test_uint64_t maxTime = 0;
+    mla_test_uint64_t totalTime(0);
+
+    for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
+
+        auto start = g_benchmark_timer.current_nanoseconds();
+        benchmark.run();
+        auto end = g_benchmark_timer.current_nanoseconds();
+        auto elapsed = end - start;
+
+        if (elapsed < minTime) {
+            minTime = elapsed;
+        }
+        if (elapsed > maxTime) {
+            maxTime = elapsed;
+        }
+        totalTime += elapsed;
+
+        if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
+            break;
+        }
+    }
+
+    auto averageTime = totalTime / benchmarkIterations;
+    auto allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / benchmarkIterations);
+
+    if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
+        // The arena was not big enough to run all iterations
+        allocated_memory_per_interation = 0;
+        benchmarkIterations = 0;
+        minTime = 999999;
+        maxTime = 999999;
+        averageTime = 999999;
+    }
+#endif
 
     if (benchmark.tearDown) {
         benchmark.tearDown();
@@ -286,6 +333,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 
     if (output_format == mla_test_output_format_text) {
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
                benchmark.category,
                name_with_arena_sufix,
@@ -294,12 +342,26 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
                medianTime,
                allocated_memory_per_interation,
                benchmarkIterations);
+#else
+        mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+               benchmark.category,
+               name_with_arena_sufix,
+               minTime,
+               maxTime,
+               averageTime,
+               allocated_memory_per_interation,
+               benchmarkIterations);
+#endif
     } else if (output_format == mla_test_output_format_json) {
         mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
         mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+#else
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+#endif
         mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", allocated_memory_per_interation);
         mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
         mla_test_printf("}");
@@ -358,6 +420,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
 
+#if (mla_benchmark_use_median == 1)
     // Min, Max, and Median time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;
     mla_test_uint64_t maxTime = 0;
@@ -384,6 +447,29 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     auto medianTime = __mla_benchmark_calculate_median(times, benchmarkIterations);
     
     delete[] times;
+#else
+    // Min, Max, and Average time tracking
+    mla_test_uint64_t minTime = 18446744073709551615ULL;
+    mla_test_uint64_t maxTime = 0;
+    mla_test_uint64_t totalTime(0);
+
+    for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
+        auto start = g_benchmark_timer.current_nanoseconds();
+        benchmark.run();
+        auto end = g_benchmark_timer.current_nanoseconds();
+        auto elapsed = end - start;
+
+        if (elapsed < minTime) {
+            minTime = elapsed;
+        }
+        if (elapsed > maxTime) {
+            maxTime = elapsed;
+        }
+        totalTime += elapsed;
+    }
+
+    auto averageTime = totalTime / benchmarkIterations;
+#endif
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
@@ -408,6 +494,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 
     if (output_format == mla_test_output_format_text) {
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
            benchmark.category,
            benchmark.name,
@@ -416,13 +503,27 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
            medianTime,
            (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
            benchmarkIterations);
+#else
+        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
+           benchmark.category,
+           benchmark.name,
+           minTime,
+           maxTime,
+           averageTime,
+           (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
+           benchmarkIterations);
+#endif
     } else if (output_format == mla_test_output_format_json) {
         mla_test_printf("  \"WithMemoryArena\": false,\n");
         mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
         mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+#else
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+#endif
         mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", (long long int)(mla_benchmark_allocated_memory / benchmarkIterations));
         mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
         mla_test_printf("}");
@@ -434,6 +535,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 #else
 
     if (output_format == mla_test_output_format_text) {
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
                benchmark.category,
                benchmark.name,
@@ -441,13 +543,26 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
                maxTime,
                medianTime,
                benchmarkIterations);
+#else
+        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
+               benchmark.category,
+               benchmark.name,
+               minTime,
+               maxTime,
+               averageTime,
+               benchmarkIterations);
+#endif
     } else if (output_format == mla_test_output_format_json) {
 
         mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
         mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+#if (mla_benchmark_use_median == 1)
         mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+#else
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+#endif
         mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
         mla_test_printf("}");
     }
