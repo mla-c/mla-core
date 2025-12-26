@@ -358,7 +358,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
 #else
         mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
 #endif
@@ -520,7 +520,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
 #else
         mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
 #endif
@@ -559,7 +559,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
         mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"MedianTimeNs\": %lld,\n", medianTime);
+        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
 #else
         mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
 #endif
