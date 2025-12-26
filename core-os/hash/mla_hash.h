@@ -38,14 +38,20 @@ struct mla_int16_hash_t {
  * Uses FNV-1a algorithm optimized for the platform
  * Provides excellent distribution while being very fast
  * 
- * @param data Pointer to the string data
+ * @param data Pointer to the string data (must not be null if length > 0)
  * @param length Length of the string in bytes
  * @return Hash value
  */
 inline mla_size_t mla_string_hash(const char* data, mla_size_t length) {
-    // FNV-1a 32-bit constants (mla_size_t is always 32-bit)
+    // FNV-1a 32-bit constants
+    // Note: mla_size_t is defined as mla_uint32_t in mla_data_types.h (always 32-bit)
     mla_size_t hash = 2166136261U;
     const mla_size_t prime = 16777619U;
+    
+    // Null pointer check for safety
+    if (data == nullptr && length > 0) {
+        return hash; // Return initial hash value for invalid input
+    }
     
     // Process string byte by byte - compiler will often vectorize this
     const unsigned char* bytes = reinterpret_cast<const unsigned char*>(data);
