@@ -9,6 +9,7 @@
 #include "mla_buffer.h"
 #include "mla_array_list.h"
 #include "../utils/mla_char_utils.h"
+#include "../hash/mla_hash.h"
 
 
 
@@ -163,15 +164,8 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value);
 struct mla_string_hash_t {
 
     static mla_size_t hash(const mla_string_t& value) {
-
-        // Simple hash function for strings
-        mla_size_t hash = 5381;
-        for (mla_size_t i = 0; i < value.length; ++i) {
-            hash = ((hash << 5) + hash) + value.data[i]; // hash = hash * 33 + value.data[i];
-        }
-        return hash;
-
-
+        // Call the optimized hash function from the hash module
+        return mla_string_hash(value.data, value.length);
     }
 
 };
