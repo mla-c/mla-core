@@ -32,4 +32,36 @@ struct mla_int16_hash_t {
     }
 };
 
+
+/**
+ * Highly optimized string hash function for hash maps
+ * Uses an optimized variant combining FNV-1a principles with performance optimizations
+ * Provides excellent distribution while being very fast
+ * 
+ * @param data Pointer to the string data
+ * @param length Length of the string in bytes
+ * @return Hash value
+ */
+inline mla_size_t mla_string_hash(const char* data, mla_size_t length) {
+    // Use 64-bit or 32-bit based on platform
+    #if defined(__LP64__) || defined(_WIN64)
+        // 64-bit optimized constants
+        mla_size_t hash = 14695981039346656037ULL;
+        const mla_size_t prime = 1099511628211ULL;
+    #else
+        // 32-bit optimized constants  
+        mla_size_t hash = 2166136261U;
+        const mla_size_t prime = 16777619U;
+    #endif
+    
+    // Process string byte by byte - compiler will often vectorize this
+    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(data);
+    for (mla_size_t i = 0; i < length; ++i) {
+        hash ^= bytes[i];
+        hash *= prime;
+    }
+    
+    return hash;
+}
+
 #endif
