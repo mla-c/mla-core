@@ -42,6 +42,17 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
 #endif
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (!defined(mla_benchmark_use_median) || (mla_benchmark_use_median == 1))
+    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
+           "No",
+           "Category",
+           "Name",
+           "Min (ns)",
+           "Max (ns)",
+           "Med (ns)",
+           "Mem (bytes)",
+           "Iterations");
+#else
     mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
            "No",
            "Category",
@@ -51,8 +62,19 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
            "Avg (ns)",
            "Mem (bytes)",
            "Iterations");
+#endif
 #else
 
+#if (!defined(mla_benchmark_use_median) || (mla_benchmark_use_median == 1))
+    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
+           "No",
+           "Category",
+           "Name",
+           "Min (ns)",
+           "Max (ns)",
+           "Med (ns)",
+           "Iterations");
+#else
     mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
            "No",
            "Category",
@@ -61,6 +83,7 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
            "Max (ns)",
            "Avg (ns)",
            "Iterations");
+#endif
 #endif
 }
 
