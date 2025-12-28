@@ -161,14 +161,10 @@ static mla_test_uint64_t __mla_benchmark_calculate_median(mla_test_uint64_t* tim
     if (count % 2 == 1) {
         return times[mid];
     } else {
-        // For even count, find the second middle element
+        // For even count, find both middle elements using quickselect
         mla_test_uint64_t mid1 = times[mid];
-        mla_test_uint64_t mid2 = times[0];
-        for (mla_test_uint32_t i = 0; i < mid; ++i) {
-            if (times[i] > mid2) {
-                mid2 = times[i];
-            }
-        }
+        __mla_benchmark_partition_for_median(times, 0, mid - 1, mid - 1);
+        mla_test_uint64_t mid2 = times[mid - 1];
         return (mid1 + mid2) / 2;
     }
 }
