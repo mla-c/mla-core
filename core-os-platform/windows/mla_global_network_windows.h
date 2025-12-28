@@ -221,6 +221,12 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     mode = 0;
     //ioctlsocket(sock, FIONBIO, &mode);
 
+    // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
+    if (type == mla_connection_type_tcp) {
+        BOOL nodelay = TRUE;
+        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay));
+    }
+
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
 
     connection.inputStream = {
@@ -270,6 +276,12 @@ mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, m
     {
         u_long blocking = 0;
         ioctlsocket(clientSock, FIONBIO, &blocking);
+    }
+
+    // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
+    {
+        BOOL nodelay = TRUE;
+        setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay));
     }
 
     // Fill connection.host from peer address
