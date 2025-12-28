@@ -114,7 +114,7 @@ mla_bool_t mla_network_listener_accept_connection(const mla_network_listener_t& 
 }
 
 mla_bool_t mla_network_connection_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
-    
+
     if (!mla_network_connection_is_connected(connection)) {
         return false;
     }

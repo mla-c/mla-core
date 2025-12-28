@@ -414,7 +414,7 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
 }
 
 mla_bool_t __windows_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
-    
+
     SOCKET sock = (SOCKET)(uintptr_t)connection.inputStream.userdata;
     if (sock == INVALID_SOCKET) {
         return false;

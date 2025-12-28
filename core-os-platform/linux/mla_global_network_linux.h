@@ -388,7 +388,7 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
 }
 
 mla_bool_t __linux_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
-    
+
     int sock = (int)(intptr_t)connection.inputStream.userdata;
     if (sock < 0) {
         return false;
