@@ -12,6 +12,27 @@
 #include <esp_task_wdt.h>
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
+#if mla_use_fast_float == 1
+
+// Using fast-float library for optimized float parsing
+// https://github.com/fastfloat/fast_float
+// Is found about 40% faster than standard library
+// the code size is growing by about 15KB
+
+#include "../generic/mla_global_platform_fast_float.h"
+
+#define mla_platform_strtod __fast_float_strtod
+#define mla_platform_strtoll __fast_float_strtoll
+#define mla_platform_strtoull __fast_float_strtoull
+
+#else
+
+#define mla_platform_strtod __generic_strtod
+#define mla_platform_strtoll __generic_strtoll
+#define mla_platform_strtoull __generic_strtoull
+
+#endif
+
 void __esp32_sleep(mla_uint32_t milliseconds) {
 
     vTaskDelay(pdMS_TO_TICKS(milliseconds));
@@ -34,9 +55,9 @@ mla_low_level_operations_t g_low_level_access {
         __generic_on_malloc_failure,
         __generic_printf,
         __generic_std_read,
-        __generic_strtod,
-        __generic_strtoll,
-        __generic_strtoull,
+        mla_platform_strtod,
+        mla_platform_strtoll,
+        mla_platform_strtoull,
         __esp32_sleep,
     };
 
