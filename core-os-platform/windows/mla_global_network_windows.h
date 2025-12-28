@@ -413,33 +413,10 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
     return true;
 }
 
-mla_bool_t __windows_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
-
-    SOCKET sock = (SOCKET)(uintptr_t)connection.inputStream.userdata;
-    if (sock == INVALID_SOCKET) {
-        return false;
-    }
-
-    // Check if this is a TCP socket
-    int sockType = 0;
-    int optLen = sizeof(sockType);
-    if (getsockopt(sock, SOL_SOCKET, SO_TYPE, (char*)&sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
-        return false;
-    }
-
-    BOOL nodelay = enable_nagle ? FALSE : TRUE;  // TCP_NODELAY = !nagle
-    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay)) != 0) {
-        return false;
-    }
-
-    return true;
-}
-
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __windows_resolve_host,
     __windows_connect,
-    __windows_bind_and_listen,
-    __windows_set_nagle
+    __windows_bind_and_listen
 };
 
 

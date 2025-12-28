@@ -387,33 +387,10 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
     return true;
 }
 
-mla_bool_t __linux_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
-
-    int sock = (int)(intptr_t)connection.inputStream.userdata;
-    if (sock < 0) {
-        return false;
-    }
-
-    // Check if this is a TCP socket
-    int sockType = 0;
-    socklen_t optLen = sizeof(sockType);
-    if (getsockopt(sock, SOL_SOCKET, SO_TYPE, &sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
-        return false;
-    }
-
-    int nodelay = enable_nagle ? 0 : 1;  // TCP_NODELAY = !nagle
-    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay)) != 0) {
-        return false;
-    }
-
-    return true;
-}
-
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __linux_resolve_host,
     __linux_connect,
-    __linux_bind_and_listen,
-    __linux_set_nagle
+    __linux_bind_and_listen
 };
 
 
