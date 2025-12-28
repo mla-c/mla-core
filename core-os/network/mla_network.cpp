@@ -112,3 +112,16 @@ mla_bool_t mla_network_listener_accept_connection(const mla_network_listener_t& 
 
     return listener.accept_connection(listener, connection);
 }
+
+mla_bool_t mla_network_connection_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
+    
+    if (!mla_network_connection_is_connected(connection)) {
+        return false;
+    }
+
+    if (g_network_low_level_operations.set_nagle == nullptr) {
+        return false;
+    }
+
+    return g_network_low_level_operations.set_nagle(connection, enable_nagle);
+}

@@ -16,6 +16,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
+#include <netinet/tcp.h>
 
 mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints = {
@@ -207,6 +208,12 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
     // Set socket back to blocking mode
     //fcntl(sock, F_SETFL, flags);
 
+    // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
+    if (type == mla_connection_type_tcp) {
+        int nodelay = 1;
+        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
+    }
+
     mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __linux_socket_cleanup, 0);
 
     connection.inputStream = {
@@ -253,6 +260,10 @@ mla_bool_t __linux_accept_connection(const mla_network_listener_t& listener, mla
     // Set accepted socket to blocking mode for normal I/O
     int flags = fcntl(clientSock, F_GETFL, 0);
     fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
+
+    // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
+    int nodelay = 1;
+    setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
 
     // Fill connection.host from peer address
     mla_network_host_t peer = mla_network_host_invalid();
@@ -376,10 +387,33 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
     return true;
 }
 
+mla_bool_t __linux_set_nagle(mla_network_connection_t &connection, mla_bool_t enable_nagle) {
+    
+    int sock = (int)(intptr_t)connection.inputStream.userdata;
+    if (sock < 0) {
+        return false;
+    }
+
+    // Check if this is a TCP socket
+    int sockType = 0;
+    socklen_t optLen = sizeof(sockType);
+    if (getsockopt(sock, SOL_SOCKET, SO_TYPE, &sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
+        return false;
+    }
+
+    int nodelay = enable_nagle ? 0 : 1;  // TCP_NODELAY = !nagle
+    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay)) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __linux_resolve_host,
     __linux_connect,
-    __linux_bind_and_listen
+    __linux_bind_and_listen,
+    __linux_set_nagle
 };
 
 
