@@ -32,7 +32,9 @@ mla_bytes_t __pico_inmemory_create_config_output_buffer() {
 
 mla_bool_t __pico_inmemory_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
-    if (unused_bytes > mla_max_config_size) {
+    // Note: Despite the parameter name 'unused_bytes', it actually represents
+    // the number of bytes written to the buffer (output.size - available_bytes)
+    if (unused_bytes == 0 || unused_bytes > mla_max_config_size) {
         return false;
     }
 
