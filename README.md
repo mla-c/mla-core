@@ -21,9 +21,9 @@ CoreOS is a modular, lightweight operating system abstraction library that provi
 
 ### Core OS (`core-os/`)
 
-The main library providing fundamental operating system abstractions and utilities.
+The main library providing fundamental operating system abstractions and utilities. [Documentation](core-os/readme.md)
 
-#### **System** (`system/`)
+#### **System** (`system/`) - [Documentation](core-os/system/readme.md)
 - **String Management** - `mla_string.h` - UTF-8/16/32 string handling with conversion utilities
 - **Buffers** - `mla_buffer.h` - Dynamic byte buffer management
 - **Collections**:
@@ -34,7 +34,7 @@ The main library providing fundamental operating system abstractions and utiliti
 - **Streams** - `mla_stream.h` - I/O stream abstractions
 - **Reference Counting** - `mla_reference.h` - Smart pointer utilities
 
-#### **Task Management** (`task/`)
+#### **Task Management** (`task/`) - [Documentation](core-os/task/readme.md)
 - **Task Manager** - `mla_task_manager.h` - Async task execution and scheduling
 - **Mutex** - `mla_mutx.h` - Mutual exclusion primitives
 - **RW Lock** - `mla_rw_lock.h` - Reader-writer synchronization
@@ -42,51 +42,60 @@ The main library providing fundamental operating system abstractions and utiliti
 - **CLI Module** - `mla_task_cli_module.h` - CLI integration for task management
 
 #### **HTTP & Networking** (`http/`, `network/`, `url/`)
-- **HTTP Client** - `mla_http_client.h` - HTTP/HTTPS client implementation
-- **HTTP Server** - `mla_http_server.h` - Lightweight HTTP server
-- **HTTP Headers** - `mla_http_header.h` - Header parsing and management
-- **Network** - `mla_network.h` - Socket abstractions
-- **URL Parser** - `mla_url.h` - URL parsing and manipulation
+- **HTTP Client** - `mla_http_client.h` - HTTP/HTTPS client implementation - [HTTP Documentation](core-os/http/readme.md)
+- **HTTP Server** - `mla_http_server.h` - Lightweight HTTP server - [HTTP Documentation](core-os/http/readme.md)
+- **HTTP Headers** - `mla_http_header.h` - Header parsing and management - [HTTP Documentation](core-os/http/readme.md)
+- **Network** - `mla_network.h` - Socket abstractions - [Network Documentation](core-os/network/readme.md)
+- **URL Parser** - `mla_url.h` - URL parsing and manipulation - [URL Documentation](core-os/url/readme.md)
 
-#### **Remote Procedure Call (RPC)** (`rpc/`)
+#### **Remote Procedure Call (RPC)** (`rpc/`) - [Documentation](core-os/rpc/readme.md)
 - **RPC Framework** - `mla_rpc.h` - Comprehensive RPC implementation with support for both safe and unsafe procedure handlers, remote endpoint registration, and automated procedure registration using lifecycle events.
 - **HTTP Integration** - `mla_rpc_http_client.h`, `mla_rpc_http_server.h` - Built-in support for RPC over HTTP, enabling seamless client-server communication.
 
-#### **Lifecycle Management** (`lifecycle/`)
+#### **Lifecycle Management** (`lifecycle/`) - [Documentation](core-os/lifecycle/readme.md)
 - **Boot Events** - `mla_lifecycle_events.h` - Prioritized boot event management system that allows for flexible and ordered initialization of components. Callbacks can be registered with specific priorities to ensure proper startup sequencing.
 
-#### **Serialization** (`serializer/`)
+#### **Serialization** (`serializer/`) - [Documentation](core-os/serializer/readme.md)
 - **JSON Serializer** - `mla_json_serializer.h` - JSON encode/decode
 - **Binary Serializer** - `mla_binary_serializer.h` - Binary data serialization
 - **Serializer Interface** - `mla_serializer.h` - Common serialization API
 
-#### **Logging** (`log/`)
+#### **Logging** (`log/`) - [Documentation](core-os/log/readme.md)
 - **Logger** - `mla_logger.h` - Flexible logging framework
 - **Console Logger** - `mla_logger_console.h` - Standard output logging
 - **Log Levels** - `mla_logging.h` - Configurable log severity levels
 
-#### **Command Line Interface** (`cli/`)
+#### **Command Line Interface** (`cli/`) - [Documentation](core-os/cli/readme.md)
 - **CLI App** - `mla_cli_app.h` - Command-line application framework
 - **CLI Parser** - `mla_cli_parser.h` - Argument parsing utilities
 - **Commands** - `mla_cli_command.h` - Command definition and execution
 
-#### **Configuration** (`config/`)
+#### **Configuration** (`config/`) - [Documentation](core-os/config/readme.md)
 - **Config Manager** - `mla_config.h` - Configuration file management and parsing
 
 #### **Dependency Injection** (`inject/`)
 - **Service Injector** - `mla_inject.h` - Dependency injection container
 - **Service Registry** - `mla_inject_services.h` - Service registration and lookup
 
-#### **File System** (`filesystem/`)
+#### **File System** (`filesystem/`) - [Documentation](core-os/filesystem/readme.md)
 - **File System** - `mla_file_system.h` - File and directory operations
 
-#### **Memory Management** (`memory/`)
+#### **Memory Management** (`memory/`) - [Documentation](core-os/memory/readme.md)
 - **Memory Hook** - `mla_memory_hook.h` - Custom memory allocator integration
 
 #### **Utilities** (`utils/`, `hash/`)
-- **Character Utils** - `mla_char_utils.h` - Character manipulation functions
-- **Endian Utils** - `mla_endian_utils.h` - Handling byte order
-- **Hash Functions** - `mla_hash.h` - Hashing algorithms
+- **Character Utils** - `mla_char_utils.h` - Character manipulation functions - [Utils Documentation](core-os/utils/readme.md)
+- **Endian Utils** - `mla_endian_utils.h` - Handling byte order - [Utils Documentation](core-os/utils/readme.md)
+- **Hash Functions** - `mla_hash.h` - Hashing algorithms - [Hash Documentation](core-os/hash/readme.md)
+
+#### **User Interface** (`ui/`) - [Documentation](core-os/ui/readme.md)
+- **UI HTTP Server** - `mla_ui_http_server.h` - Web-based user interface framework
+- **UI RPC** - `mla_ui_rpc.h` - RPC integration for UI communication
+- **Embedded Web** - `mla_ui_web_embedded.h` - Embedded web resources for serving UI assets
+
+#### **Reflection** (`reflection/`) - [Documentation](core-os/reflection/readme.md)
+- **Reflection System** - `mla_reflection.h` - Runtime type information and metadata
+- **Reflection RPC** - `mla_reflection_rpc.h` - RPC integration with reflection system
 
 #### **Data Types** (`mla_data_types.h`)
 - Platform-independent type definitions (int8, int16, int32, int64, etc.)
