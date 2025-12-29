@@ -33,13 +33,11 @@ mla_bytes_t __pico_inmemory_create_config_output_buffer() {
 mla_bool_t __pico_inmemory_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
     if (unused_bytes > mla_max_config_size) {
-        mla_bytes_destroy(output);
         return false;
     }
 
     mla_memcpy(g_config_storage, mla_bytes_get_data_for_writing(output), unused_bytes);
     g_used_config_size = unused_bytes;
-    mla_bytes_destroy(output);
     return true;
 }
 
