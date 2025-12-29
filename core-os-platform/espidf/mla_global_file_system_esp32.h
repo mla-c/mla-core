@@ -22,7 +22,7 @@ struct mla_file_system_native_t {
 
 static const mla_string_t mla_esp32_fs_directory_seperator = mla_string_const("/");
 
-mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_native_t* fs, const mla_string_t& path) {
+static inline mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_native_t* fs, const mla_string_t& path) {
     // Replace backslashes with forward slashes for ESP32
     mla_string_t correctedPath = mla_string_replace(path, mla_string_const("\\"), mla_esp32_fs_directory_seperator);
 
@@ -31,19 +31,30 @@ mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_nat
 
     mla_string_t p1 = fs->basePath;
     mla_string_t p2 = correctedPath;
+    mla_bool_t p1_allocated = false;
+    mla_bool_t p2_allocated = false;
 
     if (mla_string_ends_with(p1, mla_esp32_fs_directory_seperator)) {
         p1 = mla_string_substr(p1, 0, p1.length - 1);
+        p1_allocated = true;
     }
 
     if (mla_string_starts_with(p2, mla_esp32_fs_directory_seperator)) {
         p2 = mla_string_substr(p2, 1);
+        p2_allocated = true;
     }
 
-    return mla_string_concat(p1, mla_esp32_fs_directory_seperator, p2);
+    mla_string_t result = mla_string_concat(p1, mla_esp32_fs_directory_seperator, p2);
+    
+    // Clean up intermediate allocations
+    if (p1_allocated) mla_string_destroy(p1);
+    if (p2_allocated) mla_string_destroy(p2);
+    mla_string_destroy(correctedPath);
+    
+    return result;
 }
 
-mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, const mla_string_t& path) {
+static inline mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, const mla_string_t& path) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -55,7 +66,7 @@ mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, 
     return exists;
 }
 
-mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, const mla_string_t& path) {
+static inline mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, const mla_string_t& path) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -65,7 +76,7 @@ mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, 
     return result == 0;
 }
 
-mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
+static inline mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -75,7 +86,7 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
     return result == 0 || errno == EEXIST;
 }
 
-mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
+static inline mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -87,7 +98,7 @@ mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_sys
     return exists;
 }
 
-mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_system, const mla_string_t& path) {
+static inline mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_system, const mla_string_t& path) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -97,7 +108,7 @@ mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_sys
     return result == 0;
 }
 
-mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+static inline mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -123,7 +134,7 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
     return true;
 }
 
-mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+static inline mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -152,7 +163,7 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     return true;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, mla_callback_userdata userData) {
+static inline mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
     int fd = *reinterpret_cast<int*>(data);
 
@@ -162,20 +173,20 @@ mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, 
     return CLEAN_UP_SKIP;
 }
 
-mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
+static inline mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
     int* fd = reinterpret_cast<int*>(stream.user_data);
 
     return lseek(*fd, offset, SEEK_SET) != -1;
 }
 
-mla_size_t __mla_file_system_native_open_file_position(const mla_file_system_stream_t& stream) {
+static inline mla_size_t __mla_file_system_native_open_file_position(const mla_file_system_stream_t& stream) {
     int* fd = reinterpret_cast<int*>(stream.user_data);
 
     off_t pos = lseek(*fd, 0, SEEK_CUR);
     return pos != -1 ? static_cast<mla_size_t>(pos) : 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
+static inline mla_size_t __mla_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
     int* fd = reinterpret_cast<int*>(stream.user_data);
 
     // Save current position
@@ -191,27 +202,27 @@ mla_size_t __mla_file_system_native_open_file_length(const mla_file_system_strea
     return size != -1 ? static_cast<mla_size_t>(size) : 0;
 }
 
-mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
+static inline mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
     int* fd = reinterpret_cast<int*>(stream.user_data);
 
     return ftruncate(*fd, length) == 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+static inline mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
     int* fd = reinterpret_cast<int*>(input.user_data);
 
     ssize_t bytesRead = read(*fd, buffer + offset, length);
     return bytesRead > 0 ? static_cast<mla_size_t>(bytesRead) : 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+static inline mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     int* fd = reinterpret_cast<int*>(output.user_data);
 
     ssize_t bytesWritten = write(*fd, buffer + offset, length);
     return bytesWritten > 0 ? static_cast<mla_size_t>(bytesWritten) : 0;
 }
 
-mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
+static inline mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
     mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
@@ -255,9 +266,12 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
 
     *fdPtr = fd;
 
+    // Make a copy of the path for the stream
+    mla_string_t pathCopy = mla_string_copy(path.data, path.length);
+
     if (canRead && canWrite) {
         out_stream = {
-            path,
+            pathCopy,
             __mla_file_system_native_open_file_seek,
             __mla_file_system_native_open_file_position,
             __mla_file_system_native_open_file_length,
@@ -269,7 +283,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
         };
     } else if (canRead) {
         out_stream = {
-            path,
+            pathCopy,
             __mla_file_system_native_open_file_seek,
             __mla_file_system_native_open_file_position,
             __mla_file_system_native_open_file_length,
@@ -281,7 +295,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
         };
     } else if (canWrite) {
         out_stream = {
-            path,
+            pathCopy,
             __mla_file_system_native_open_file_seek,
             __mla_file_system_native_open_file_position,
             __mla_file_system_native_open_file_length,
@@ -302,7 +316,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
     return true;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
 
     (void)userData;
 
@@ -315,7 +329,7 @@ mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla
     return CLEAN_UP_NEEDED;
 }
 
-mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
+static inline mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
 
     mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_malloc(sizeof(mla_file_system_native_t)));
 

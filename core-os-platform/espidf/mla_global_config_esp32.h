@@ -53,7 +53,8 @@ mla_bytes_t __esp32_read_config_input() {
     mla_bytes_t config_data = mla_bytes(required_size);
     if (config_data.size != required_size) {
         nvs_close(nvs_handle);
-        return config_data;
+        mla_bytes_destroy(config_data);
+        return mla_bytes_empty();
     }
 
     // Read the blob

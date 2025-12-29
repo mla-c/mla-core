@@ -56,6 +56,10 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
         host.address.address = mla_string_copy(ip, mla_strlen(ip));
         host.address.is_ipv6 = true;
         host.port = port;
+    } else {
+        // Unsupported address family
+        freeaddrinfo(result);
+        return false;
     }
 
     freeaddrinfo(result);
@@ -72,7 +76,6 @@ mla_buffer_cleanup_mode __esp32_socket_cleanup(mla_pointer_t data, mla_callback_
 }
 
 mla_size_t __esp32_socket_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
-    (void)offset;
     int sock = (int)(intptr_t)input.userdata;
     if (sock < 0) {
         return 0;
@@ -103,7 +106,6 @@ mla_size_t __esp32_socket_remaining_bytes(const mla_stream_input_t& input) {
 }
 
 mla_size_t __esp32_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
-    (void)offset;
     int sock = (int)(intptr_t)output.userdata;
     if (sock < 0) {
         return 0;
@@ -198,7 +200,7 @@ mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_netwo
     }
 
     // Set socket back to blocking mode
-    // fcntl(sock, F_SETFL, flags);
+    fcntl(sock, F_SETFL, flags);
 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     if (type == mla_connection_type_tcp) {
