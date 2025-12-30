@@ -19,6 +19,7 @@
 struct mla_xml_serializer_state_t {
     mla_bool_t in_open_tag;
     mla_string_t pending_property_name;
+    mla_array_list_t<mla_string_t, mla_string_initializer> tag_stack; // Stack to track tag names
 };
 
 static mla_xml_serializer_state_t* __mla_xml_ser_get_state(mla_serializer_t& inst) {
@@ -62,29 +63,91 @@ mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t& inst) {
     if (!__mla_xml_close_tag_if_open(inst)) return false;
     
     mla_xml_serializer_state_t* state = __mla_xml_ser_get_state(inst);
-    if (!__mla_xml_write_str(inst.output, "<item")) return false;
+    
+    // Determine tag name: use property name if available, otherwise "item"
+    mla_string_t tag_name = mla_string_empty();
+    if (state->pending_property_name.length > 0) {
+        tag_name = state->pending_property_name;
+        state->pending_property_name = mla_string_empty();
+    } else {
+        tag_name = mla_string_const("item");
+    }
+    
+    // Push tag name onto stack for closing
+    mla_array_list_add(state->tag_stack, tag_name);
+    
+    // Write opening tag
+    if (!__mla_xml_write_str(inst.output, "<")) return false;
+    if (!__mla_xml_write_escaped(inst.output, tag_name)) return false;
+    
     state->in_open_tag = true;
     return true;
 }
 
 mla_bool_t mla_xml_serializer_write_end_struct(mla_serializer_t& inst) {
     mla_xml_serializer_state_t* state = __mla_xml_ser_get_state(inst);
+    
+    // Get the tag name from the stack
+    if (mla_array_list_size(state->tag_stack) == 0) {
+        return false; // Error: unmatched end_struct
+    }
+    mla_string_t tag_name = *mla_array_list_get_ref(state->tag_stack, mla_array_list_size(state->tag_stack) - 1);
+    mla_array_list_remove(state->tag_stack, mla_array_list_size(state->tag_stack) - 1);
+    
     if (state->in_open_tag) {
+        // Self-closing tag
         if (!__mla_xml_write_str(inst.output, " />")) return false;
         state->in_open_tag = false;
     } else {
-        if (!__mla_xml_write_str(inst.output, "</item>")) return false;
+        // Closing tag
+        if (!__mla_xml_write_str(inst.output, "</")) return false;
+        if (!__mla_xml_write_escaped(inst.output, tag_name)) return false;
+        if (!__mla_xml_write_str(inst.output, ">")) return false;
     }
     return true;
 }
 
 mla_bool_t mla_xml_serializer_write_start_list(mla_serializer_t& inst) {
     if (!__mla_xml_close_tag_if_open(inst)) return false;
-    return __mla_xml_write_str(inst.output, "<list>");
+    
+    mla_xml_serializer_state_t* state = __mla_xml_ser_get_state(inst);
+    
+    // Determine tag name: use property name if available, otherwise "list"
+    mla_string_t tag_name = mla_string_empty();
+    if (state->pending_property_name.length > 0) {
+        tag_name = state->pending_property_name;
+        state->pending_property_name = mla_string_empty();
+    } else {
+        tag_name = mla_string_const("list");
+    }
+    
+    // Push tag name onto stack for closing
+    mla_array_list_add(state->tag_stack, tag_name);
+    
+    // Write opening tag
+    if (!__mla_xml_write_str(inst.output, "<")) return false;
+    if (!__mla_xml_write_escaped(inst.output, tag_name)) return false;
+    if (!__mla_xml_write_str(inst.output, ">")) return false;
+    
+    return true;
 }
 
 mla_bool_t mla_xml_serializer_write_end_list(mla_serializer_t& inst) {
-    return __mla_xml_write_str(inst.output, "</list>");
+    mla_xml_serializer_state_t* state = __mla_xml_ser_get_state(inst);
+    
+    // Get the tag name from the stack
+    if (mla_array_list_size(state->tag_stack) == 0) {
+        return false; // Error: unmatched end_list
+    }
+    mla_string_t tag_name = *mla_array_list_get_ref(state->tag_stack, mla_array_list_size(state->tag_stack) - 1);
+    mla_array_list_remove(state->tag_stack, mla_array_list_size(state->tag_stack) - 1);
+    
+    // Write closing tag
+    if (!__mla_xml_write_str(inst.output, "</")) return false;
+    if (!__mla_xml_write_escaped(inst.output, tag_name)) return false;
+    if (!__mla_xml_write_str(inst.output, ">")) return false;
+    
+    return true;
 }
 
 mla_bool_t mla_xml_serializer_write_property_name(mla_serializer_t& inst, const mla_string_t& name) {
@@ -167,6 +230,7 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t& output) {
     mla_xml_serializer_state_t* state = static_cast<mla_xml_serializer_state_t*>(mla_malloc(sizeof(mla_xml_serializer_state_t)));
     state->in_open_tag = false;
     state->pending_property_name = mla_string_empty();
+    state->tag_stack = mla_array_list<mla_string_t, mla_string_initializer>();
     
     return {
         output,
@@ -210,6 +274,9 @@ struct mla_xml_deser_state_t {
     mla_bool_t returning_attr_val;
     mla_char_t buffered_char;
     mla_bool_t has_buffered_char;
+    mla_string_t pending_tag_name; // Tag name waiting to be processed as property name
+    mla_bool_t pending_tag_is_struct;
+    mla_bool_t pending_tag_is_list;
 };
 
 static mla_xml_deser_state_t* __mla_xml_deser_get_state(mla_deserializer_t& inst) {
@@ -342,6 +409,20 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
     inst.current_token.complex = {mla_string_empty(), mla_string_empty(), mla_bytes_empty()};
     inst.current_token.simple = {0};
     
+    // If we have a pending property tag, return the struct/list start now
+    if (state->pending_tag_is_struct || state->pending_tag_is_list) {
+        if (state->pending_tag_is_struct) {
+            inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
+            state->attr_idx = 0;
+            state->pending_tag_is_struct = false;
+        } else {
+            inst.current_token.type = MLA_DESERIALIZER_LIST_START;
+            state->pending_tag_is_list = false;
+        }
+        state->pending_tag_name = mla_string_empty();
+        return true;
+    }
+    
     // If we just returned a property name from attribute, return the value
     if (state->returning_attr_val) {
         mla_xml_attr_t* attr = mla_array_list_get_ref(state->attrs, state->attr_idx - 1);
@@ -380,6 +461,10 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
         } else if (mla_string_equals_const(tag_name, "list")) {
             inst.current_token.type = MLA_DESERIALIZER_LIST_END;
+        } else {
+            // Closing tag for a property - treat as struct/list end
+            // We can't easily distinguish, so assume struct
+            inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
         }
         
         return true;
@@ -446,6 +531,12 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
         if (mla_string_equals_const(tag_name, "item")) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
             state->attr_idx = 0;
+        } else {
+            // Property tag for a struct (self-closing means it's a struct with attributes only)
+            inst.current_token.type = MLA_DESERIALIZER_PROPERTY_NAME;
+            inst.current_token.complex.property_name = tag_name;
+            state->pending_tag_is_struct = true;
+            state->pending_tag_name = tag_name;
         }
         
         return true;
@@ -456,6 +547,14 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
             state->attr_idx = 0;
         } else if (mla_string_equals_const(tag_name, "list")) {
             inst.current_token.type = MLA_DESERIALIZER_LIST_START;
+        } else {
+            // Property tag for a struct or list
+            inst.current_token.type = MLA_DESERIALIZER_PROPERTY_NAME;
+            inst.current_token.complex.property_name = tag_name;
+            // We don't know yet if it's a struct or list, will be determined on next parse
+            // For now, assume it's a struct (most common case)
+            state->pending_tag_is_struct = true;
+            state->pending_tag_name = tag_name;
         }
         
         return true;
@@ -474,6 +573,9 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t& input) {
     state->returning_attr_val = false;
     state->buffered_char = 0;
     state->has_buffered_char = false;
+    state->pending_tag_name = mla_string_empty();
+    state->pending_tag_is_struct = false;
+    state->pending_tag_is_list = false;
     
     return {
         input,
