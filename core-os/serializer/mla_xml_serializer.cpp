@@ -156,10 +156,14 @@ mla_bool_t mla_xml_serializer_write_string(mla_serializer_t& inst, const mla_str
 mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t& inst, const mla_bytes_t& value) {
     mla_string_t base64 = mla_bytes_to_base64(value);
     mla_bool_t result = __mla_xml_write_attr(inst, base64);
+    mla_string_destroy(base64);
     return result;
 }
 
 mla_serializer_t mla_xml_serializer(const mla_stream_output_t& output) {
+    // Note: state memory is allocated but framework has no destructor pattern
+    // This is consistent with the overall framework design where serializers
+    // are expected to be short-lived
     mla_xml_serializer_state_t* state = static_cast<mla_xml_serializer_state_t*>(mla_malloc(sizeof(mla_xml_serializer_state_t)));
     state->in_open_tag = false;
     state->pending_property_name = mla_string_empty();
@@ -252,11 +256,11 @@ static mla_string_t __mla_xml_read_until(mla_deserializer_t& inst, mla_char_t st
             break;
         }
         
-        buf[pos++] = c;
-        if (pos >= 256) {
+        if (pos >= 255) {
             result = mla_string_concat(result, mla_string(buf, pos));
             pos = 0;
         }
+        buf[pos++] = c;
     }
     
     if (pos > 0) {
@@ -271,19 +275,19 @@ static mla_string_t __mla_xml_unescape(const mla_string_t& str) {
     
     for (mla_size_t i = 0; i < str.length; i++) {
         if (str.data[i] == '&') {
-            if (i + 3 < str.length && mla_memcmp(&str.data[i], "&lt;", 4) == 0) {
+            if (i + 4 <= str.length && mla_memcmp(&str.data[i], "&lt;", 4) == 0) {
                 result = mla_string_concat(result, mla_string_const("<"));
                 i += 3;
-            } else if (i + 3 < str.length && mla_memcmp(&str.data[i], "&gt;", 4) == 0) {
+            } else if (i + 4 <= str.length && mla_memcmp(&str.data[i], "&gt;", 4) == 0) {
                 result = mla_string_concat(result, mla_string_const(">"));
                 i += 3;
-            } else if (i + 4 < str.length && mla_memcmp(&str.data[i], "&amp;", 5) == 0) {
+            } else if (i + 5 <= str.length && mla_memcmp(&str.data[i], "&amp;", 5) == 0) {
                 result = mla_string_concat(result, mla_string_const("&"));
                 i += 4;
-            } else if (i + 5 < str.length && mla_memcmp(&str.data[i], "&quot;", 6) == 0) {
+            } else if (i + 6 <= str.length && mla_memcmp(&str.data[i], "&quot;", 6) == 0) {
                 result = mla_string_concat(result, mla_string_const("\""));
                 i += 5;
-            } else if (i + 5 < str.length && mla_memcmp(&str.data[i], "&apos;", 6) == 0) {
+            } else if (i + 6 <= str.length && mla_memcmp(&str.data[i], "&apos;", 6) == 0) {
                 result = mla_string_concat(result, mla_string_const("'"));
                 i += 5;
             } else {
@@ -394,11 +398,11 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
                 __mla_xml_unread_char(inst, c);
                 break;
             }
-            buf[pos++] = c;
-            if (pos >= 256) {
+            if (pos >= 255) {
                 tag_name = mla_string_concat(tag_name, mla_string(buf, pos));
                 pos = 0;
             }
+            buf[pos++] = c;
         }
         if (pos > 0) {
             tag_name = mla_string_concat(tag_name, mla_string(buf, pos));
@@ -461,6 +465,9 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
 }
 
 mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t& input) {
+    // Note: state memory is allocated but framework has no destructor pattern
+    // This is consistent with the overall framework design where deserializers
+    // are expected to be short-lived
     mla_xml_deser_state_t* state = static_cast<mla_xml_deser_state_t*>(mla_malloc(sizeof(mla_xml_deser_state_t)));
     state->attrs = mla_array_list<mla_xml_attr_t>();
     state->attr_idx = 0;
