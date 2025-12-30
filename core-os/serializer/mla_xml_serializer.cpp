@@ -195,41 +195,60 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t& output) {
 struct mla_xml_attr_t {
     mla_string_t name;
     mla_string_t value;
+    
+    mla_xml_attr_t() : name(mla_string_empty()), value(mla_string_empty()) {}
+    mla_xml_attr_t(const mla_string_t& n, const mla_string_t& v) : name(n), value(v) {}
 };
 
 struct mla_xml_deser_state_t {
     mla_array_list_t<mla_xml_attr_t> attrs;
     mla_size_t attr_idx;
     mla_bool_t returning_attr_val;
+    mla_char_t buffered_char;
+    mla_bool_t has_buffered_char;
 };
 
 static mla_xml_deser_state_t* __mla_xml_deser_get_state(mla_deserializer_t& inst) {
     return reinterpret_cast<mla_xml_deser_state_t*>(inst.userdata);
 }
 
-static mla_bool_t __mla_xml_read_char(mla_stream_input_t& in, mla_char_t& c) {
-    return in.read(in, 0, 1, reinterpret_cast<mla_byte_t*>(&c)) == 1;
+static mla_bool_t __mla_xml_read_char(mla_deserializer_t& inst, mla_char_t& c) {
+    mla_xml_deser_state_t* state = __mla_xml_deser_get_state(inst);
+    
+    if (state->has_buffered_char) {
+        c = state->buffered_char;
+        state->has_buffered_char = false;
+        return true;
+    }
+    
+    return inst.input.read(inst.input, 0, 1, reinterpret_cast<mla_byte_t*>(&c)) == 1;
 }
 
-static void __mla_xml_skip_ws(mla_stream_input_t& in) {
+static void __mla_xml_unread_char(mla_deserializer_t& inst, mla_char_t c) {
+    mla_xml_deser_state_t* state = __mla_xml_deser_get_state(inst);
+    state->buffered_char = c;
+    state->has_buffered_char = true;
+}
+
+static void __mla_xml_skip_ws(mla_deserializer_t& inst) {
     mla_char_t c;
-    while (__mla_xml_read_char(in, c)) {
+    while (__mla_xml_read_char(inst, c)) {
         if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
-            in.seek(in, -1, 1);
+            __mla_xml_unread_char(inst, c);
             break;
         }
     }
 }
 
-static mla_string_t __mla_xml_read_until(mla_stream_input_t& in, mla_char_t stop) {
+static mla_string_t __mla_xml_read_until(mla_deserializer_t& inst, mla_char_t stop) {
     mla_string_t result = mla_string_empty();
     mla_char_t buf[256];
     mla_size_t pos = 0;
     mla_char_t c;
     
-    while (__mla_xml_read_char(in, c)) {
+    while (__mla_xml_read_char(inst, c)) {
         if (c == stop) {
-            in.seek(in, -1, 1);
+            __mla_xml_unread_char(inst, c);
             break;
         }
         
@@ -339,19 +358,19 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
         return true;
     }
     
-    __mla_xml_skip_ws(inst.input);
+    __mla_xml_skip_ws(inst);
     
     mla_char_t c;
-    if (!__mla_xml_read_char(inst.input, c)) return false;
+    if (!__mla_xml_read_char(inst, c)) return false;
     
     if (c != '<') return false;
     
-    if (!__mla_xml_read_char(inst.input, c)) return false;
+    if (!__mla_xml_read_char(inst, c)) return false;
     
     if (c == '/') {
         // End tag
-        mla_string_t tag_name = __mla_xml_read_until(inst.input, '>');
-        __mla_xml_read_char(inst.input, c); // consume '>'
+        mla_string_t tag_name = __mla_xml_read_until(inst, '>');
+        __mla_xml_read_char(inst, c); // consume '>'
         
         if (mla_string_equals_const(tag_name, "item")) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
@@ -362,7 +381,7 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
         return true;
     }
     
-    inst.input.seek(inst.input, -1, 1);
+    __mla_xml_unread_char(inst, c);
     
     // Read tag name
     mla_string_t tag_name = mla_string_empty();
@@ -370,9 +389,9 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
         mla_char_t buf[256];
         mla_size_t pos = 0;
         
-        while (__mla_xml_read_char(inst.input, c)) {
+        while (__mla_xml_read_char(inst, c)) {
             if (c == ' ' || c == '>' || c == '/') {
-                inst.input.seek(inst.input, -1, 1);
+                __mla_xml_unread_char(inst, c);
                 break;
             }
             buf[pos++] = c;
@@ -390,35 +409,35 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
     mla_array_list_clear(state->attrs);
     
     while (true) {
-        __mla_xml_skip_ws(inst.input);
+        __mla_xml_skip_ws(inst);
         
-        if (!__mla_xml_read_char(inst.input, c)) break;
+        if (!__mla_xml_read_char(inst, c)) break;
         
         if (c == '>' || c == '/') {
-            inst.input.seek(inst.input, -1, 1);
+            __mla_xml_unread_char(inst, c);
             break;
         }
         
-        inst.input.seek(inst.input, -1, 1);
+        __mla_xml_unread_char(inst, c);
         
-        mla_string_t attr_name = __mla_xml_read_until(inst.input, '=');
-        __mla_xml_read_char(inst.input, c); // consume '='
+        mla_string_t attr_name = __mla_xml_read_until(inst, '=');
+        __mla_xml_read_char(inst, c); // consume '='
         
-        __mla_xml_skip_ws(inst.input);
-        __mla_xml_read_char(inst.input, c); // quote
+        __mla_xml_skip_ws(inst);
+        __mla_xml_read_char(inst, c); // quote
         
-        mla_string_t attr_val = __mla_xml_read_until(inst.input, c);
-        __mla_xml_read_char(inst.input, c); // consume quote
+        mla_string_t attr_val = __mla_xml_read_until(inst, c);
+        __mla_xml_read_char(inst, c); // consume quote
         
-        mla_xml_attr_t attr = {attr_name, attr_val};
+        mla_xml_attr_t attr(attr_name, attr_val);
         mla_array_list_add(state->attrs, attr);
     }
     
-    if (!__mla_xml_read_char(inst.input, c)) return false;
+    if (!__mla_xml_read_char(inst, c)) return false;
     
     if (c == '/') {
         // Self-closing tag
-        __mla_xml_read_char(inst.input, c); // consume '>'
+        __mla_xml_read_char(inst, c); // consume '>'
         
         if (mla_string_equals_const(tag_name, "item")) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
@@ -446,6 +465,8 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t& input) {
     state->attrs = mla_array_list<mla_xml_attr_t>();
     state->attr_idx = 0;
     state->returning_attr_val = false;
+    state->buffered_char = 0;
+    state->has_buffered_char = false;
     
     return {
         input,
