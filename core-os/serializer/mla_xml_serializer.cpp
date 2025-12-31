@@ -272,8 +272,8 @@ struct mla_xml_deser_state_t {
     mla_array_list_t<mla_xml_attr_t> attrs;
     mla_size_t attr_idx;
     mla_bool_t returning_attr_val;
-    mla_char_t buffered_char;
-    mla_bool_t has_buffered_char;
+    mla_char_t buffered_chars[16];  // Multi-character lookahead buffer
+    mla_size_t buffered_count;       // Number of buffered characters
     mla_string_t pending_tag_name; // Tag name waiting to be processed as property name
     mla_bool_t pending_tag_is_struct;
     mla_bool_t pending_tag_is_list;
@@ -286,9 +286,8 @@ static mla_xml_deser_state_t* __mla_xml_deser_get_state(mla_deserializer_t& inst
 static mla_bool_t __mla_xml_read_char(mla_deserializer_t& inst, mla_char_t& c) {
     mla_xml_deser_state_t* state = __mla_xml_deser_get_state(inst);
     
-    if (state->has_buffered_char) {
-        c = state->buffered_char;
-        state->has_buffered_char = false;
+    if (state->buffered_count > 0) {
+        c = state->buffered_chars[--state->buffered_count];
         return true;
     }
     
@@ -297,8 +296,9 @@ static mla_bool_t __mla_xml_read_char(mla_deserializer_t& inst, mla_char_t& c) {
 
 static void __mla_xml_unread_char(mla_deserializer_t& inst, mla_char_t c) {
     mla_xml_deser_state_t* state = __mla_xml_deser_get_state(inst);
-    state->buffered_char = c;
-    state->has_buffered_char = true;
+    if (state->buffered_count < 16) {
+        state->buffered_chars[state->buffered_count++] = c;
+    }
 }
 
 static void __mla_xml_skip_ws(mla_deserializer_t& inst) {
@@ -541,19 +541,54 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t& inst) {
         
         return true;
     } else if (c == '>') {
-        // Opening tag
+        // Opening tag - need to determine if next content indicates a list or struct
         if (mla_string_equals_const(tag_name, "item")) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
             state->attr_idx = 0;
         } else if (mla_string_equals_const(tag_name, "list")) {
             inst.current_token.type = MLA_DESERIALIZER_LIST_START;
         } else {
-            // Property tag for a struct or list
+            // Property tag - return the property name now
             inst.current_token.type = MLA_DESERIALIZER_PROPERTY_NAME;
             inst.current_token.complex.property_name = tag_name;
-            // We don't know yet if it's a struct or list, will be determined on next parse
-            // For now, assume it's a struct (most common case)
-            state->pending_tag_is_struct = true;
+            
+            // Peek ahead to determine if it's a list (next tag is <item>) or struct
+            __mla_xml_skip_ws(inst);
+            
+            mla_char_t peek_chars[5];
+            mla_size_t peek_count = 0;
+            mla_bool_t is_list = false;
+            
+            // Try to read "<item"
+            if (__mla_xml_read_char(inst, peek_chars[0])) {
+                peek_count = 1;
+                if (peek_chars[0] == '<' && __mla_xml_read_char(inst, peek_chars[1])) {
+                    peek_count = 2;
+                    if (peek_chars[1] == 'i' && __mla_xml_read_char(inst, peek_chars[2])) {
+                        peek_count = 3;
+                        if (peek_chars[2] == 't' && __mla_xml_read_char(inst, peek_chars[3])) {
+                            peek_count = 4;
+                            if (peek_chars[3] == 'e' && __mla_xml_read_char(inst, peek_chars[4])) {
+                                peek_count = 5;
+                                if (peek_chars[4] == 'm') {
+                                    is_list = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Unread all peeked characters in reverse order
+            for (mla_size_t i = peek_count; i > 0; i--) {
+                __mla_xml_unread_char(inst, peek_chars[i-1]);
+            }
+            
+            if (is_list) {
+                state->pending_tag_is_list = true;
+            } else {
+                state->pending_tag_is_struct = true;
+            }
             state->pending_tag_name = tag_name;
         }
         
@@ -571,8 +606,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t& input) {
     state->attrs = mla_array_list<mla_xml_attr_t>();
     state->attr_idx = 0;
     state->returning_attr_val = false;
-    state->buffered_char = 0;
-    state->has_buffered_char = false;
+    state->buffered_count = 0;
     state->pending_tag_name = mla_string_empty();
     state->pending_tag_is_struct = false;
     state->pending_tag_is_list = false;
