@@ -8,6 +8,7 @@
 
 #include "../core-os/serializer/mla_binary_serializer.h"
 #include "../core-os/serializer/mla_json_serializer.h"
+#include "../core-os/serializer/mla_xml_serializer.h"
 #include "../core-os/system/mla_array_list.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 #include "../core-os-test-support/mla_test_executor.h"
@@ -313,12 +314,26 @@ inline void JsonSerializerAllTypesTest() {
 
 }
 
+inline void XmlSerializerAllTypesTest() {
+
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+
+    mla_serializer_t serializer = mla_xml_serializer(stream_output);
+    mla_deserializer_t deserializer = mla_xml_deserializer(stream_input);
+    AllTypesTest(serializer, deserializer);
+
+}
+
 void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("BinarySerializerAllTypes", test_category, BinarySerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("JsonSerializerAllTypes", test_category, JsonSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("XmlSerializerAllTypes", test_category, XmlSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 
@@ -555,6 +570,33 @@ inline void JsonDeserializerBenchmark() {
 
 }
 
+inline void XmlSerializerBenchmark() {
+
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+
+    mla_serializer_t serializer = mla_xml_serializer(stream_output);
+    AllTypesSerializerBenchmark(serializer);
+
+}
+
+inline void SetupXmlDeserializerBenchmark() {
+
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_serializer_t serializer = mla_xml_serializer(prepare_stream_output);
+    SetupDeserializerBenchmark(serializer);
+
+}
+
+inline void XmlDeserializerBenchmark() {
+
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+
+    mla_deserializer_t deserializer = mla_xml_deserializer(stream_input);
+    AllTypesDeserializerBenchmark(deserializer);
+
+}
+
 void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     mla_benchmark_t benchmark = mla_benchmark("BinarySerializer", benchmark_category, BinarySerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
@@ -568,6 +610,12 @@ void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor)
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("JsonDeserializer", benchmark_category, JsonDeserializerBenchmark, SetupJsonDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark, SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
