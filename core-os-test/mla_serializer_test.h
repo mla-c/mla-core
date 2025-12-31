@@ -35,9 +35,11 @@ inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function
     if (mla_string_equals_const(property_name, "int32Value")) {
 
         mla_deserializer_read_int32(deserializer, obj->int32Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "boolValue")) {
 
         mla_deserializer_read_bool(deserializer, obj->boolValue);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else {
         return MLA_DESERIALIZER_READ_SKIPPED;
     }
@@ -78,42 +80,55 @@ inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_d
     if (mla_string_equals_const(property_name, "boolValue")) {
 
         mla_deserializer_read_bool(deserializer, obj->boolValue);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "int8Value")) {
 
         mla_deserializer_read_int8(deserializer, obj->int8Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "int16Value")) {
 
         mla_deserializer_read_int16(deserializer, obj->int16Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "int32Value")) {
 
         mla_deserializer_read_int32(deserializer, obj->int32Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "int64Value")) {
 
         mla_deserializer_read_int64(deserializer, obj->int64Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "uint8Value")) {
 
         mla_deserializer_read_uint8(deserializer, obj->uint8Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "uint16Value")) {
 
         mla_deserializer_read_uint16(deserializer, obj->uint16Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "uint32Value")) {
 
         mla_deserializer_read_uint32(deserializer, obj->uint32Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "uint64Value")) {
 
         mla_deserializer_read_uint64(deserializer, obj->uint64Value);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "floatValue")) {
 
         mla_deserializer_read_float(deserializer, obj->floatValue);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "doubleValue")) {
 
         mla_deserializer_read_double(deserializer, obj->doubleValue);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "stringValue")) {
 
         mla_deserializer_read_string(deserializer, obj->stringValue);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "bytes")) {
 
         mla_deserializer_read_bytes(deserializer, obj->bytes);
+        return MLA_DESERIALIZER_READ_HANDLED;
     } else if (mla_string_equals_const(property_name, "innerStruct")) {
 
         if (mla_deserializer_read_struct_read_function(deserializer, &obj->innerStruct, __mla_all_types_inner_struct_read_function)) {
