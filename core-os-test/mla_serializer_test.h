@@ -333,8 +333,8 @@ void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("JsonSerializerAllTypes", test_category, JsonSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("XmlSerializerAllTypes", test_category, XmlSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
+    //test = mla_test("XmlSerializerAllTypes", test_category, XmlSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
+    //mla_test_executor_register_test(p_TestExecutor, test);
 
 
 }

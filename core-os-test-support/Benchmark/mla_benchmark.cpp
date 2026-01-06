@@ -127,27 +127,47 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
 // Simple partition function for median calculation
 static void __mla_benchmark_partition_for_median(mla_test_uint64_t* arr, mla_test_uint32_t left, mla_test_uint32_t right, mla_test_uint32_t k) {
     while (left < right) {
-        mla_test_uint64_t pivot = arr[right];
-        mla_test_uint32_t i = left;
-        for (mla_test_uint32_t j = left; j < right; ++j) {
-            if (arr[j] < pivot) {
-                mla_test_uint64_t temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-                i++;
-            }
+        // Median-of-three with branchless min/max
+        mla_test_uint32_t mid = left + ((right - left) >> 1);
+
+        mla_test_uint64_t a = arr[left];
+        mla_test_uint64_t b = arr[mid];
+        mla_test_uint64_t c = arr[right];
+
+        // Branchless sorting network for 3 elements
+        mla_test_uint64_t tmp;
+        tmp = a < b ? a : b; a = a < b ? b : a; b = tmp;
+        tmp = b < c ? b : c; c = b < c ? c : b; b = tmp;
+        tmp = a < b ? a : b; a = a < b ? b : a; b = tmp;
+
+        arr[left] = a;
+        arr[mid] = b;
+        arr[right] = c;
+
+        mla_test_uint64_t pivot = b;
+
+        // Hoare partition with reduced branches
+        mla_test_uint32_t i = left - 1;
+        mla_test_uint32_t j = right + 1;
+
+        while (true) {
+            do { ++i; } while (arr[i] < pivot);
+            do { --j; } while (arr[j] > pivot);
+
+            if (i >= j) break;
+
+            tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
         }
-        mla_test_uint64_t temp = arr[i];
-        arr[i] = arr[right];
-        arr[right] = temp;
-        
-        if (i == k) {
-            return;
-        } else if (i < k) {
-            left = i + 1;
-        } else {
-            right = i - 1;
-        }
+
+        // Early exit if partition point matches k
+        if (j == k) return;
+
+        // Branchless interval selection
+        mla_test_uint32_t use_left = (j > k);
+        right = use_left ? j : right;
+        left = use_left ? left : (j + 1);
     }
 }
 
