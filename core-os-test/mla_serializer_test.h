@@ -612,11 +612,11 @@ void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor)
     benchmark = mla_benchmark("JsonDeserializer", benchmark_category, JsonDeserializerBenchmark, SetupJsonDeserializerBenchmark, TearDownDeserializerBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
-    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    //benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
+    //mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark, SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
-    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    //benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark, SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
+    //mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
 
