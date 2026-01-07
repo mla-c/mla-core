@@ -33,7 +33,6 @@ mla_bool_t __mla_xml_write_str(const mla_stream_output_t &out, const mla_string_
 }
 
 mla_bool_t __mla_xml_write_escaped(const mla_stream_output_t &out, const mla_string_t &str) {
-
     for (mla_size_t i = 0; i < str.length; i++) {
         mla_char_t c = str.data[i];
         switch (c) {
@@ -66,10 +65,8 @@ mla_bool_t __mla_xml_write_escaped(const mla_stream_output_t &out, const mla_str
 }
 
 mla_bool_t __mla_xml_close_tag_if_open(mla_serializer_t &inst) {
-
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
     if (state->in_open_tag) {
-
         if (!__mla_xml_write_str(inst.output, mla_string_const(">")))
             return false;
 
@@ -79,7 +76,6 @@ mla_bool_t __mla_xml_close_tag_if_open(mla_serializer_t &inst) {
 }
 
 mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t &inst) {
-
     if (!__mla_xml_close_tag_if_open(inst))
         return false;
 
@@ -135,6 +131,10 @@ mla_bool_t mla_xml_serializer_write_end_struct(mla_serializer_t &inst) {
         if (!__mla_xml_write_str(inst.output, mla_string_const(">")))
             return false;
     }
+
+    // Clear pending property name to prevent it from being reused
+    state->pending_property_name = mla_string_empty();
+
     return true;
 }
 
@@ -227,13 +227,13 @@ mla_bool_t mla_xml_serializer_write_bool(mla_serializer_t &inst, const mla_bool_
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         if (!__mla_xml_write_str(inst.output, value ? mla_string_const("true") : mla_string_const("false")))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -249,7 +249,7 @@ mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_int8(value);
@@ -259,7 +259,7 @@ mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -275,7 +275,7 @@ mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int1
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_int16(value);
@@ -285,7 +285,7 @@ mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int1
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -301,7 +301,7 @@ mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int3
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_int32(value);
@@ -311,7 +311,7 @@ mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int3
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -327,7 +327,7 @@ mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int6
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_int64(value);
@@ -337,7 +337,7 @@ mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int6
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -353,7 +353,7 @@ mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_uint8(value);
@@ -363,7 +363,7 @@ mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -379,7 +379,7 @@ mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uin
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_uint16(value);
@@ -389,7 +389,7 @@ mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uin
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -405,7 +405,7 @@ mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uin
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_uint32(value);
@@ -415,7 +415,7 @@ mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uin
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -431,7 +431,7 @@ mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uin
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_uint64(value);
@@ -441,7 +441,7 @@ mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uin
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -457,7 +457,7 @@ mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_floa
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_float(value, 6);
@@ -467,7 +467,7 @@ mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_floa
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -483,7 +483,7 @@ mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_dou
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         mla_string_t str = mla_string_from_double(value, 6);
@@ -493,7 +493,7 @@ mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_dou
         if (!result)
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -509,13 +509,13 @@ mla_bool_t mla_xml_serializer_write_string(mla_serializer_t &inst, const mla_str
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         if (!__mla_xml_write_escaped(inst.output, value))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         return true;
@@ -551,7 +551,7 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
         if (!__mla_xml_close_tag_if_open(inst))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<value>")))
             return false;
 
         if (!__mla_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
@@ -560,7 +560,7 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
         if (!__mla_xml_write_escaped(inst.output, base64))
             return false;
 
-        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
         mla_string_destroy(base64);
@@ -625,14 +625,16 @@ struct mla_xml_attr_t {
 };
 
 struct mla_xml_deser_state_t {
+    mla_array_list_t<mla_bool_t> container_is_list_stack; // Track if each open container is a list
     mla_array_list_t<mla_xml_attr_t> attrs;
-    mla_size_t attr_idx;
-    mla_bool_t returning_attr_val;
-    mla_char_t buffered_chars[16]; // Multi-character lookahead buffer
-    mla_size_t buffered_count; // Number of buffered characters
     mla_string_t pending_tag_name; // Tag name waiting to be processed as property name
+    mla_size_t attr_idx;
+    mla_size_t buffered_count; // Number of buffered characters
+    mla_char_t buffered_chars[16]; // Multi-character lookahead buffer
+    mla_bool_t returning_attr_val;
     mla_bool_t pending_tag_is_struct;
     mla_bool_t pending_tag_is_list;
+    mla_bool_t pending_struct_end;
 };
 
 static mla_xml_deser_state_t *__mla_xml_deser_get_state(mla_deserializer_t &inst) {
@@ -806,6 +808,13 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
         return true;
     }
 
+    // NOW check if we need to return a struct end for a self-closing tag (after all attributes are processed)
+    if (state->pending_struct_end) {
+        state->pending_struct_end = false;
+        inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
+        return true;
+    }
+
     __mla_xml_skip_ws(inst);
 
     mla_char_t c;
@@ -819,17 +828,26 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
         return false;
 
     if (c == '/') {
-        // End tag
+        // Closing tag
         mla_string_t tag_name = __mla_xml_read_until(inst, '>');
         __mla_xml_read_char(inst, c); // consume '>'
 
+        if (mla_string_equals_const(tag_name, "value")) {
+            return mla_xml_deserializer_read_next(inst);
+        }
+
         if (mla_string_equals_const(tag_name, "item")) {
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
-        } else if (mla_string_equals_const(tag_name, "list")) {
-            inst.current_token.type = MLA_DESERIALIZER_LIST_END;
+            return true;
+        }
+
+        // Pop from container stack to determine type
+        if (mla_array_list_size(state->container_is_list_stack) > 0) {
+            mla_bool_t was_list = *mla_array_list_get_ref(state->container_is_list_stack, mla_array_list_size(state->container_is_list_stack) - 1);
+            mla_array_list_remove(state->container_is_list_stack, mla_array_list_size(state->container_is_list_stack) - 1);
+
+            inst.current_token.type = was_list ? MLA_DESERIALIZER_LIST_END : MLA_DESERIALIZER_STRUCT_END;
         } else {
-            // Closing tag for a property - treat as struct/list end
-            // We can't easily distinguish, so assume struct
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
         }
 
@@ -892,26 +910,50 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
         return false;
 
     if (c == '/') {
-        // Self-closing tag
+        // Self-closing tag with attributes
         __mla_xml_read_char(inst, c); // consume '>'
 
         if (mla_string_equals_const(tag_name, "item")) {
+            // Self-closing <item/> in a list - return STRUCT_START, attributes will follow
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
             state->attr_idx = 0;
+            state->pending_struct_end = true;
+            return true;
+        } else if (mla_string_equals_const(tag_name, "value")) {
+            // Self-closing value - shouldn't happen but handle it
+            inst.current_token.type = MLA_DESERIALIZER_VALUE_STRING;
+            inst.current_token.complex.string_value = mla_string_empty();
+            return true;
         } else {
-            // Property tag for a struct (self-closing means it's a struct with attributes only)
+            // Self-closing property tag like <innerStruct int32Value="0" boolValue="false" />
+            // First return PROPERTY_NAME for "innerStruct"
             inst.current_token.type = MLA_DESERIALIZER_PROPERTY_NAME;
             inst.current_token.complex.property_name = tag_name;
-            state->pending_tag_is_struct = true;
-            state->pending_tag_name = tag_name;
-        }
 
-        return true;
+            // Mark that next call should return STRUCT_START
+            state->pending_tag_is_struct = true;
+            state->pending_struct_end = true;
+            state->attr_idx = 0; // Reset attribute index for processing
+
+            return true;
+        }
     } else if (c == '>') {
-        // Opening tag - need to determine if next content indicates a list or struct
+        // Opening tag
         if (mla_string_equals_const(tag_name, "item")) {
+            // Always a struct element
             inst.current_token.type = MLA_DESERIALIZER_STRUCT_START;
             state->attr_idx = 0;
+        } else if (mla_string_equals_const(tag_name, "value")) {
+            // Primitive value - read content directly
+            mla_string_t content = __mla_xml_read_until(inst, '<');
+            __mla_xml_read_char(inst, c); // '<'
+            __mla_xml_read_char(inst, c); // '/'
+            mla_string_t closing = __mla_xml_read_until(inst, '>');
+            __mla_xml_read_char(inst, c); // '>'
+
+            mla_string_t unesc = __mla_xml_unescape(content);
+            __mla_xml_parse_val(inst, unesc);
+            return true;
         } else if (mla_string_equals_const(tag_name, "list")) {
             inst.current_token.type = MLA_DESERIALIZER_LIST_START;
         } else {
@@ -919,26 +961,46 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
             inst.current_token.type = MLA_DESERIALIZER_PROPERTY_NAME;
             inst.current_token.complex.property_name = tag_name;
 
-            // Peek ahead to determine if it's a list (next tag is <item>) or struct
+            // Peek ahead to determine if it's a list (next tag is <item> or <value>) or struct
             __mla_xml_skip_ws(inst);
 
-            mla_char_t peek_chars[5];
+            mla_char_t peek_chars[6];
             mla_size_t peek_count = 0;
             mla_bool_t is_list = false;
 
-            // Try to read "<item"
+            // Try to read "<item" or "<value"
             if (__mla_xml_read_char(inst, peek_chars[0])) {
                 peek_count = 1;
                 if (peek_chars[0] == '<' && __mla_xml_read_char(inst, peek_chars[1])) {
                     peek_count = 2;
-                    if (peek_chars[1] == 'i' && __mla_xml_read_char(inst, peek_chars[2])) {
-                        peek_count = 3;
-                        if (peek_chars[2] == 't' && __mla_xml_read_char(inst, peek_chars[3])) {
-                            peek_count = 4;
-                            if (peek_chars[3] == 'e' && __mla_xml_read_char(inst, peek_chars[4])) {
-                                peek_count = 5;
-                                if (peek_chars[4] == 'm') {
-                                    is_list = true;
+                    if (peek_chars[1] == 'i') {
+                        // Check for "<item"
+                        if (__mla_xml_read_char(inst, peek_chars[2])) {
+                            peek_count = 3;
+                            if (peek_chars[2] == 't' && __mla_xml_read_char(inst, peek_chars[3])) {
+                                peek_count = 4;
+                                if (peek_chars[3] == 'e' && __mla_xml_read_char(inst, peek_chars[4])) {
+                                    peek_count = 5;
+                                    if (peek_chars[4] == 'm') {
+                                        is_list = true;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (peek_chars[1] == 'v') {
+                        // Check for "<value"
+                        if (__mla_xml_read_char(inst, peek_chars[2])) {
+                            peek_count = 3;
+                            if (peek_chars[2] == 'a' && __mla_xml_read_char(inst, peek_chars[3])) {
+                                peek_count = 4;
+                                if (peek_chars[3] == 'l' && __mla_xml_read_char(inst, peek_chars[4])) {
+                                    peek_count = 5;
+                                    if (peek_chars[4] == 'u' && __mla_xml_read_char(inst, peek_chars[5])) {
+                                        peek_count = 6;
+                                        if (peek_chars[5] == 'e') {
+                                            is_list = true;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -953,8 +1015,10 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
 
             if (is_list) {
                 state->pending_tag_is_list = true;
+                mla_array_list_add(state->container_is_list_stack, true);
             } else {
                 state->pending_tag_is_struct = true;
+                mla_array_list_add(state->container_is_list_stack, false);
             }
             state->pending_tag_name = tag_name;
         }
@@ -984,6 +1048,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     state->pending_tag_name = mla_string_empty();
     state->pending_tag_is_struct = false;
     state->pending_tag_is_list = false;
+    state->pending_struct_end = false;
 
     return {
         input,
