@@ -82,6 +82,10 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
     return mla_memcmp(p_String1.data, p_String2.data, p_String1.length) == 0; // Compare the actual data
 }
 
+mla_size_t mla_string_length(const mla_string_t &p_String) {
+    return p_String.length;
+}
+
 mla_int32_t mla_string_compare(const mla_string_t &p_String1, const mla_string_t &p_String2) {
 
     mla_size_t minLength = p_String1.length < p_String2.length ? p_String1.length : p_String2.length;

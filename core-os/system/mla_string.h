@@ -97,6 +97,8 @@ struct mla_string_initializer {
     }
 };
 
+mla_size_t mla_string_length(const mla_string_t &p_String);
+
 mla_int32_t mla_string_compare(const mla_string_t &p_String1, const mla_string_t &p_String2);
 mla_int32_t mla_string_compare_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 

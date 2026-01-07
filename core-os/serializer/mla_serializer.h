@@ -110,6 +110,7 @@ struct mla_deserializer_t {
 };
 
 mla_deserializer_t mla_deserializer_invalid();
+mla_bool_t mla_deserializer_is_invalid(const mla_deserializer_t& deserializer);
 
 enum mla_deserializer_read_result_t {
     MLA_DESERIALIZER_READ_HANDLED,

@@ -174,6 +174,16 @@ inline mla_bool_t __mla_all_types_struct_write_function(mla_serializer_t& serial
 
 inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deserializer) {
 
+    if (mla_serializer_is_invalid(serializer)) {
+        assert_fail("Serializer is invalid");
+        return;
+    }
+
+    if (mla_deserializer_is_invalid(deserializer)) {
+        assert_fail("Deserializer is invalid");
+        return;
+    }
+
     mla_all_types_struct original = {
         true,
         -8,
@@ -333,8 +343,8 @@ void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("JsonSerializerAllTypes", test_category, JsonSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    //test = mla_test("XmlSerializerAllTypes", test_category, XmlSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
-    //mla_test_executor_register_test(p_TestExecutor, test);
+    test = mla_test("XmlSerializerAllTypes", test_category, XmlSerializerAllTypesTest, SetupSerializerTest, TearDownSerializerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
 
 
 }
@@ -612,11 +622,11 @@ void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor)
     benchmark = mla_benchmark("JsonDeserializer", benchmark_category, JsonDeserializerBenchmark, SetupJsonDeserializerBenchmark, TearDownDeserializerBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    //benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
-    //mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark, TearDownSerializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    //benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark, SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
-    //mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark, SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
 

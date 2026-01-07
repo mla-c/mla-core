@@ -42,6 +42,10 @@ mla_deserializer_t mla_deserializer_invalid() {
     };
 }
 
+mla_bool_t mla_deserializer_is_invalid(const mla_deserializer_t& deserializer) {
+    return deserializer.read_next == nullptr;
+}
+
 mla_serialize_definition_t mla_serialize_definition_invalid() {
     return {
         0,
