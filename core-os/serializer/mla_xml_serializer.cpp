@@ -568,6 +568,17 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
     }
 }
 
+mla_buffer_cleanup_mode __mla_serializer_reset_state(mla_pointer_t data, mla_callback_userdata userData) {
+
+    (void)userData;
+    mla_xml_serializer_state_t *state = reinterpret_cast<mla_xml_serializer_state_t *>(data);
+    if (state != nullptr) {
+        state->tag_stack = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+        state->pending_property_name = mla_string_empty();
+    }
+    return CLEAN_UP_NEEDED;
+}
+
 
 mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     // Note: state memory is allocated but framework has no destructor pattern
@@ -588,6 +599,7 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     return {
         output,
         reinterpret_cast<mla_callback_userdata>(state),
+        mla_buffer_reference(state, false, __mla_serializer_reset_state),
         mla_xml_serializer_write_start_struct,
         mla_xml_serializer_write_end_struct,
         mla_xml_serializer_write_start_list,
@@ -1029,6 +1041,18 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     return false;
 }
 
+mla_buffer_cleanup_mode __mla_deserializer_reset_state(mla_pointer_t data, mla_callback_userdata userData) {
+
+    (void)userData;
+    mla_xml_deser_state_t *state = reinterpret_cast<mla_xml_deser_state_t *>(data);
+    if (state != nullptr) {
+        state->container_is_list_stack = mla_array_list_empty<mla_bool_t>();
+        state->attrs = mla_array_list_empty<mla_xml_attr_t>();
+        state->pending_tag_name = mla_string_empty();
+    }
+    return CLEAN_UP_NEEDED;
+}
+
 mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where deserializers
@@ -1053,6 +1077,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     return {
         input,
         reinterpret_cast<mla_callback_userdata>(state),
+        mla_buffer_reference(state, false, __mla_deserializer_reset_state),
         {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         mla_xml_deserializer_read_next
     };
