@@ -219,86 +219,355 @@ static mla_bool_t __mla_xml_write_attr(mla_serializer_t &inst, const mla_string_
 }
 
 mla_bool_t mla_xml_serializer_write_bool(mla_serializer_t &inst, const mla_bool_t value) {
-    return __mla_xml_write_attr(inst, value ? mla_string_const("true") : mla_string_const("false"));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, value ? mla_string_const("true") : mla_string_const("false"));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, value ? mla_string_const("true") : mla_string_const("false")))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_int8(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_int8(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_int8(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int16_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_int16(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_int16(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_int16(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int32_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_int32(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_int32(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_int32(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int64_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_int64(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_int64(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_int64(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint8_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_uint8(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_uint8(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_uint8(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uint16_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_uint16(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_uint16(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_uint16(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uint32_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_uint32(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_uint32(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_uint32(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uint64_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_uint64(value));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_uint64(value));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_uint64(value);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_float_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_float(value, 6));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_float(value, 6));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_float(value, 6);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_double_t value) {
-    return __mla_xml_write_attr(inst, mla_string_from_double(value, 6));
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, mla_string_from_double(value, 6));
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        mla_string_t str = mla_string_from_double(value, 6);
+        mla_bool_t result = __mla_xml_write_str(inst.output, str);
+        mla_string_destroy(str);
+
+        if (!result)
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_string(mla_serializer_t &inst, const mla_string_t &value) {
-    return __mla_xml_write_attr(inst, value);
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+
+    if (state->pending_property_name.length > 0) {
+        return __mla_xml_write_attr(inst, value);
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
+
+        if (!__mla_xml_write_escaped(inst.output, value))
+            return false;
+
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
+
+        return true;
+    }
 }
 
 mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_bytes_t &value) {
+    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
     mla_string_t base64 = mla_bytes_to_base64(value);
 
-    mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
+    if (state->pending_property_name.length > 0) {
+        if (!__mla_xml_write_str(inst.output, mla_string_const(" ")))
+            return false;
 
-    if (!__mla_xml_write_str(inst.output, mla_string_const(" ")))
-        return false;
+        if (!__mla_xml_write_escaped(inst.output, state->pending_property_name))
+            return false;
 
-    if (!__mla_xml_write_escaped(inst.output, state->pending_property_name))
-        return false;
+        if (!__mla_xml_write_str(inst.output, mla_string_const("=\"")))
+            return false;
 
-    if (!__mla_xml_write_str(inst.output, mla_string_const("=\"")))
-        return false;
+        if (!__mla_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
+            return false;
 
-    if (!__mla_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
-        return false;
+        if (!__mla_xml_write_escaped(inst.output, base64))
+            return false;
 
-    if (!__mla_xml_write_escaped(inst.output, base64))
-        return false;
+        if (!__mla_xml_write_str(inst.output, mla_string_const("\"")))
+            return false;
 
-    if (!__mla_xml_write_str(inst.output, mla_string_const("\"")))
-        return false;
+        mla_string_destroy(base64);
+        return true;
+    } else {
+        if (!__mla_xml_close_tag_if_open(inst))
+            return false;
 
-    return true;
+        if (!__mla_xml_write_str(inst.output, mla_string_const("<item>")))
+            return false;
 
+        if (!__mla_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
+            return false;
 
-    mla_bool_t result = __mla_xml_write_attr(inst, base64);
-    mla_string_destroy(base64);
+        if (!__mla_xml_write_escaped(inst.output, base64))
+            return false;
 
+        if (!__mla_xml_write_str(inst.output, mla_string_const("</item>")))
+            return false;
 
-
-    return result;
+        mla_string_destroy(base64);
+        return true;
+    }
 }
+
 
 mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     // Note: state memory is allocated but framework has no destructor pattern
