@@ -58,7 +58,7 @@ mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size) {
 
 mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, mla_bool_t silent, const mla_char_t* source, mla_uint32_t line) {
 
-    if (mutex.name.length == 0) {
+    if (mla_string_length(mutex.name) == 0) {
         mla_string_t line_number = mla_string_from_uint32(line);
         mla_string_t message = mla_string_concat("Attempting to lock an invalid mutex: ", source, ":", line_number);
         mla_error(message);

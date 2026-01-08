@@ -115,8 +115,12 @@ mla_bool_t mla_json_serializer_write_property_name(mla_serializer_t &instance, c
         return false;
     }
 
-    if (name.length > 0) {
-        if (instance.output.write(instance.output, 0, name.length, reinterpret_cast<const mla_byte_t *>(name.data)) != name.length) {
+    mla_size_t length = mla_string_length(name);
+
+    if (length > 0) {
+        const mla_char_t* data = mla_string_data(name);
+
+        if (instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) != length) {
             return false;
         }
     }
@@ -147,7 +151,9 @@ mla_bool_t mla_json_serializer_write_int8(mla_serializer_t &instance, const mla_
     }
 
     mla_string_t str = mla_string_from_int8(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_int16(mla_serializer_t &instance, const mla_int16_t value) {
@@ -156,7 +162,9 @@ mla_bool_t mla_json_serializer_write_int16(mla_serializer_t &instance, const mla
     }
     mla_string_t str = mla_string_from_int16(value);
 
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_int32(mla_serializer_t &instance, const mla_int32_t value) {
@@ -164,7 +172,9 @@ mla_bool_t mla_json_serializer_write_int32(mla_serializer_t &instance, const mla
         return false;
     }
     mla_string_t str = mla_string_from_int32(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_int64(mla_serializer_t &instance, const mla_int64_t value) {
@@ -173,7 +183,9 @@ mla_bool_t mla_json_serializer_write_int64(mla_serializer_t &instance, const mla
         return false;
     }
     mla_string_t str = mla_string_from_int64(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_uint8(mla_serializer_t &instance, const mla_uint8_t value) {
@@ -181,7 +193,9 @@ mla_bool_t mla_json_serializer_write_uint8(mla_serializer_t &instance, const mla
         return false;
     }
     mla_string_t str = mla_string_from_uint8(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_uint16(mla_serializer_t &instance, const mla_uint16_t value) {
@@ -189,7 +203,9 @@ mla_bool_t mla_json_serializer_write_uint16(mla_serializer_t &instance, const ml
         return false;
     }
     mla_string_t str = mla_string_from_uint16(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 
 }
 
@@ -198,7 +214,9 @@ mla_bool_t mla_json_serializer_write_uint32(mla_serializer_t &instance, const ml
         return false;
     }
     mla_string_t str = mla_string_from_uint32(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 
 }
 
@@ -207,7 +225,9 @@ mla_bool_t mla_json_serializer_write_uint64(mla_serializer_t &instance, const ml
         return false;
     }
     mla_string_t str = mla_string_from_uint64(value);
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_float(mla_serializer_t &instance, const mla_float_t value) {
@@ -215,7 +235,9 @@ mla_bool_t mla_json_serializer_write_float(mla_serializer_t &instance, const mla
         return false;
     }
     mla_string_t str = mla_string_from_float(value, 6); // Default to 6 decimal places
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 
 }
 
@@ -224,16 +246,22 @@ mla_bool_t mla_json_serializer_write_double(mla_serializer_t &instance, const ml
         return false;
     }
     mla_string_t str = mla_string_from_double(value, 6); // Default to 6 decimal places
-    return instance.output.write(instance.output, 0, str.length, reinterpret_cast<const mla_byte_t *>(str.data)) == str.length;
+    mla_size_t length = mla_string_length(str);
+    const mla_char_t* data = mla_string_data(str);
+    return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t __mla_json_serializer_write_string_plain(mla_serializer_t &instance, const mla_string_t &value) {
 
-    if (value.length == 0)
+    mla_size_t length = mla_string_length(value);
+
+    if (length == 0)
         return true;
 
-    return instance.output.write(instance.output, 0, value.length,
-                              reinterpret_cast<const mla_byte_t *>(value.data)) == value.length;
+    const mla_char_t* data = mla_string_data(value);
+
+    return instance.output.write(instance.output, 0, length,
+                              reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
 mla_bool_t mla_json_serializer_write_string(mla_serializer_t &instance, const mla_string_t &value) {
@@ -770,7 +798,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                         instance.current_token.type = MLA_DESERIALIZER_VALUE_BYTES;
 
                         // This is a bytes value
-                        mla_string_t base64Part = mla_string_substr(str_data, bytes_prefix.length);
+                        mla_string_t base64Part = mla_string_substr(str_data, mla_string_length(bytes_prefix));
                         instance.current_token.complex.bytes_value = mla_bytes_from_base64(base64Part);
                         mla_string_destroy(base64Part);
 

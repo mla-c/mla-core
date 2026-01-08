@@ -19,16 +19,20 @@ mla_bool_t __mla_binary_serializer_write_element_type(const mla_stream_output_t&
 
 mla_bool_t __mla_binary_serializer_write_string_data(const mla_stream_output_t& output, const mla_string_t& name) {
 
+    mla_size_t length = mla_string_length(name);
+
     // Write the length of the string as a 32-bit integer in little endian
-    mla_size_t len_le = mla_host_to_le_uint32(name.length);
+    mla_size_t len_le = mla_host_to_le_uint32(length);
 
     if (output.write(output, 0, sizeof(mla_size_t), reinterpret_cast<const mla_byte_t*>(&len_le)) != sizeof(mla_size_t)) {
         return false;
     }
 
+    if (length > 0) {
 
-    if (name.length > 0) {
-        if (output.write(output, 0, name.length, reinterpret_cast<const mla_byte_t*>(name.data)) != name.length) {
+        const mla_char_t* data = mla_string_data(name);
+
+        if (output.write(output, 0, length, reinterpret_cast<const mla_byte_t*>(data)) != length) {
             return false;
         }
     }

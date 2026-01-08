@@ -5,7 +5,10 @@
 #include "mla_number.h"
 
 mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
-    if (str.length == 0 || str.data == nullptr) {
+
+    mla_size_t length = mla_string_length(str);
+
+    if (length == 0) {
         return false;
     }
 
@@ -15,7 +18,7 @@ mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
         return false;
     }
 
-    mla_bool_t success = mla_strtod(c_str.c_str, str.length, &out_value);
+    mla_bool_t success = mla_strtod(c_str.c_str, length, &out_value);
 
     if (c_str.isOwner) {
         mla_free(const_cast<mla_char_t *>(c_str.c_str));
@@ -36,7 +39,9 @@ mla_bool_t mla_parse_float(const mla_string_t &str, mla_float_t& out_value) {
 
 mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
 
-    if (str.length == 0 || str.data == nullptr) {
+    mla_size_t length = mla_string_length(str);
+
+    if (length == 0) {
         return false;
     }
 
@@ -46,7 +51,7 @@ mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
         return false;
     }
 
-    mla_bool_t success = mla_strtoll(c_str.c_str, str.length, &out_value);
+    mla_bool_t success = mla_strtoll(c_str.c_str, length, &out_value);
 
     if (c_str.isOwner) {
         mla_free(const_cast<mla_char_t *>(c_str.c_str));
@@ -56,11 +61,16 @@ mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
 }
 
 mla_bool_t mla_parse_uint64(const mla_string_t &str, mla_uint64_t& out_value) {
-    if (str.length == 0 || str.data == nullptr) {
+
+    mla_size_t length = mla_string_length(str);
+
+    if (length == 0) {
         return false;
     }
 
-    if (str.data[0] == '-') {
+    const mla_char_t* data = mla_string_data(str);
+
+    if (data[0] == '-') {
         return false; // Negative sign not allowed for unsigned
     }
 
@@ -70,7 +80,7 @@ mla_bool_t mla_parse_uint64(const mla_string_t &str, mla_uint64_t& out_value) {
         return false;
     }
 
-    mla_bool_t success = mla_strtoull(c_str.c_str, str.length, &out_value);
+    mla_bool_t success = mla_strtoull(c_str.c_str, length, &out_value);
 
     if (c_str.isOwner) {
         mla_free(const_cast<mla_char_t *>(c_str.c_str));
@@ -171,7 +181,9 @@ mla_bool_t mla_parse_uint8(const mla_string_t &str, mla_uint8_t& out_value) {
 
 mla_bool_t mla_parse_bool(const mla_string_t &str, mla_bool_t& out_value) {
 
-    if (str.length == 0 || str.data == nullptr) {
+    mla_size_t length = mla_string_length(str);
+
+    if (length == 0) {
         return false;
     }
 
@@ -235,25 +247,30 @@ mla_bool_t mla_parse_uint32_hex(const mla_string_t& str, mla_uint32_t& out_value
 }
 
 mla_bool_t mla_parse_uint64_hex(const mla_string_t& str, mla_uint64_t& out_value) {
-    if (str.length == 0 || str.data == nullptr) {
+
+    mla_size_t length = mla_string_length(str);
+
+    if (length == 0) {
         return false;
     }
+
+    const mla_char_t* data = mla_string_data(str);
 
     mla_size_t start = 0;
 
     // Skip optional "0x" or "0X" prefix
-    if (str.length >= 2 && str.data[0] == '0' && (str.data[1] == 'x' || str.data[1] == 'X')) {
+    if (length >= 2 && data[0] == '0' && (data[1] == 'x' || data[1] == 'X')) {
         start = 2;
     }
 
-    if (start >= str.length) {
+    if (start >= length) {
         return false; // No digits after prefix
     }
 
     mla_uint64_t result = 0;
 
-    for (mla_size_t i = start; i < str.length; ++i) {
-        mla_char_t c = str.data[i];
+    for (mla_size_t i = start; i < length; ++i) {
+        mla_char_t c = data[i];
         mla_uint8_t digit;
 
         if (c >= '0' && c <= '9') {

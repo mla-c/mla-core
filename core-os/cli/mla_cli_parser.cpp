@@ -31,28 +31,33 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
     mla_size_t matchedPositon = 0;
 
+    mla_size_t commandLength = mla_string_length(command);
+    const mla_char_t* commandData = mla_string_data(command);
+
     // We are looking for the command name
     for (mla_size_t j = 0; j < mla_array_list_size(parser.availableCommands); j++) {
         const mla_cli_command_t &cmd = mla_array_list_get_unsafe(parser.availableCommands, j);
 
         if (mla_string_starts_with(command, cmd.name)) {
+
+            mla_size_t cmdNameLength = mla_string_length(cmd.name);
             // Check for Perfect Match
-            if (command.length == cmd.name.length || command.data[cmd.name.length] == ' ') {
+            if (commandLength == cmdNameLength || commandData[cmdNameLength] == ' ') {
                 result.matchingCommand = cmd;
-                matchedPositon = cmd.name.length;
+                matchedPositon = cmdNameLength;
                 break;
             }
         }
     }
 
-    if (result.matchingCommand.name.length == 0) {
+    if (mla_string_length(result.matchingCommand.name) == 0) {
 
         // Autocomplete possible commands
         for (mla_size_t j = 0; j < mla_array_list_size(parser.availableCommands); j++) {
             const mla_cli_command_t &cmd = mla_array_list_get_unsafe(parser.availableCommands, j);
             if (mla_string_starts_with(cmd.name, command)) {
                 mla_array_list_add(result.possibleAutoCompletions,
-                                   mla_string_substr(cmd.name, command.length));
+                                   mla_string_substr(cmd.name, commandLength));
             }
         }
 
@@ -61,15 +66,15 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
     }
 
     // Skip whitespace between command and parameters
-    while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+    while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1] == ' ') {
         matchedPositon++;
     }
 
 
     // Match the parameters
-    while (matchedPositon + 3 < command.length) {
+    while (matchedPositon + 3 < commandLength) {
         // Check if we are at the beginning of a parameter
-        if (command.data[matchedPositon] != ' ' || command.data[matchedPositon + 1] != '-' || command.data[
+        if (commandData[matchedPositon] != ' ' || commandData[matchedPositon + 1] != '-' || commandData[
                 matchedPositon + 2] != '-') {
             break;
         }
@@ -77,7 +82,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         // Find the end of the parameter name
         mla_size_t paramNameStart = matchedPositon + 3;
         mla_size_t paramNameEnd = paramNameStart;
-        while (paramNameEnd < command.length && command.data[paramNameEnd] != ' ') {
+        while (paramNameEnd < commandLength && commandData[paramNameEnd] != ' ') {
             paramNameEnd++;
         }
 
@@ -86,7 +91,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
             break;
         }
 
-        if (command.data[paramNameEnd] != ' ') {
+        if (commandData[paramNameEnd] != ' ') {
             // Not finished
             break;
         }
@@ -95,7 +100,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
 
         // Skip whitespace between parameter name and value
-        while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+        while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1] == ' ') {
             matchedPositon++;
         }
 
@@ -105,16 +110,16 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         // Check if the parameter is quoted
         mla_bool_t isQuoted = false;
 
-        if (paramValueStart < command.length && command.data[paramValueStart] == ' ') {
+        if (paramValueStart < commandLength && commandData[paramValueStart] == ' ') {
             paramValueStart++;
 
-            if (paramValueStart < command.length && command.data[paramValueStart] == '\"') {
+            if (paramValueStart < commandLength && commandData[paramValueStart] == '\"') {
                 isQuoted = true;
                 paramValueStart++;
             }
         }
 
-        if (paramValueStart >= command.length) {
+        if (paramValueStart >= commandLength) {
             // No parameter value found
             break;
         }
@@ -122,15 +127,15 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         // Find the end of the parameter value
         mla_size_t paramValueEnd = paramValueStart;
         if (isQuoted) {
-            while (paramValueEnd < command.length && command.data[paramValueEnd] != '\"') {
+            while (paramValueEnd < commandLength && commandData[paramValueEnd] != '\"') {
                 paramValueEnd++;
             }
-            if (paramValueEnd < command.length && command.data[paramValueEnd] != '\"') {
+            if (paramValueEnd < commandLength && commandData[paramValueEnd] != '\"') {
                 // Not finished
                 break;
             }
         } else {
-            while (paramValueEnd < command.length && command.data[paramValueEnd] != ' ') {
+            while (paramValueEnd < commandLength && commandData[paramValueEnd] != ' ') {
                 paramValueEnd++;
             }
         }
@@ -147,7 +152,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
             paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - paramValueStart);
             paramValueEnd++; // Skip the ending quote
         } else {
-            if (paramNameEnd == command.length - 1) {
+            if (paramNameEnd == commandLength - 1) {
                 paramValue = mla_string_substr(command, paramValueStart, paramValueEnd);
             } else {
                 paramValue = mla_string_substr(command, paramValueStart, paramValueEnd - paramValueStart);
@@ -158,31 +163,31 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         matchedPositon = paramValueEnd;
 
         // Skip whitespace between parameters
-        while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+        while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1] == ' ') {
             matchedPositon++;
         }
     }
 
     // Skip ending whitespace
-    while (matchedPositon + 1 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1] == ' ') {
+    while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1] == ' ') {
         matchedPositon++;
     }
 
     // All Data Parsed or last character is a space
-    if (matchedPositon == command.length || (matchedPositon == command.length - 1 && command.data[matchedPositon] == ' ')) {
+    if (matchedPositon == commandLength || (matchedPositon == commandLength - 1 && commandData[matchedPositon] == ' ')) {
         result.isValid = true;
     }
 
     // Autocomplete possible parameters
 
     // Check if we are at the beginning of a parameter
-    if (matchedPositon + 3 < command.length && command.data[matchedPositon] == ' ' && command.data[matchedPositon + 1]
-        == '-' && command.data[matchedPositon + 2] == '-') {
+    if (matchedPositon + 3 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1]
+        == '-' && commandData[matchedPositon + 2] == '-') {
 
         // We are in the middle of a parameter name
         mla_size_t paramNameStart = matchedPositon + 3;
         mla_size_t paramNameEnd = paramNameStart;
-        while (paramNameEnd < command.length && command.data[paramNameEnd] != ' ') {
+        while (paramNameEnd < commandLength && commandData[paramNameEnd] != ' ') {
             paramNameEnd++;
         }
         mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
@@ -195,7 +200,7 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
             if (mla_string_starts_with(command_parameter->parameterName, paramName)) {
                 mla_array_list_add(result.possibleAutoCompletions,
-                                   mla_string_substr(command_parameter->parameterName, paramName.length));
+                                   mla_string_substr(command_parameter->parameterName, mla_string_length(paramName)));
             }
         }
     } else {

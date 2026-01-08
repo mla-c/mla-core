@@ -8,7 +8,7 @@
 mla_bool_t __mla_ui_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {
 
     // Remove "/ui/" prefix
-    mla_string_t resource_name = mla_string_substr(request.url, 4, request.url.length - 4);
+    mla_string_t resource_name = mla_string_substr(request.url, 4, mla_string_length(request.url) - 4);
 
     if (mla_string_is_empty(resource_name)) {
         resource_name = mla_string_const("index.html");

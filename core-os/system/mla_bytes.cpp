@@ -105,23 +105,47 @@ mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
         return mla_string_empty();
     }
 
-    return { reinterpret_cast<const mla_char_t*>(p_Bytes.data), p_Bytes.size, MLA_STRING_MEMORY_LAYOUT_BUFFER, p_Bytes.dataOwner};
+    mla_string_t result = {p_Bytes.dataOwner, {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    result.heap.data = reinterpret_cast<const mla_char_t*>(p_Bytes.data);
+    result.heap.length = p_Bytes.size;
+    return result;
 
 }
 
 mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String) {
 
-    if (p_String.data == nullptr || p_String.length == 0) {
+    mla_size_t length = mla_string_length(p_String);
+    const mla_char_t* data = mla_string_data(p_String);
+
+    if (data == nullptr || length == 0) {
         return mla_bytes_empty();
     }
 
-    const mla_byte_t* buffer = reinterpret_cast<const mla_byte_t*>(p_String.data);
+    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+        // We need to copy for case because the string is using SSO and we can't guarantee its lifetime
 
-    return {
-        buffer,
-        p_String.length,
-        p_String.dataOwner
-    };
+        mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_malloc(length));
+
+        if (buffer == nullptr) {
+            return mla_bytes_empty();
+        }
+
+        mla_memcpy(buffer, data, length);
+        return {
+            buffer,
+            length,
+            mla_buffer_reference(buffer)
+        };
+
+    } else {
+        const mla_byte_t* buffer = reinterpret_cast<const mla_byte_t*>(data);
+
+        return {
+            buffer,
+            length,
+            p_String.dataOwner
+        };
+    }
 }
 
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
@@ -170,7 +194,10 @@ mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
 
 mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
 
-    if (p_Base64String.data == nullptr || p_Base64String.length == 0) {
+    mla_size_t base64StringLength = mla_string_length(p_Base64String);
+    const mla_char_t* base64StringData = mla_string_data(p_Base64String);
+
+    if (base64StringData == nullptr || base64StringLength == 0) {
         return mla_bytes_empty();
     }
 
@@ -200,12 +227,12 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
     }
 
     // Rest of the function remains the same...
-    mla_size_t input_length = p_Base64String.length;
+    mla_size_t input_length = base64StringLength;
     mla_size_t padding = 0;
 
     if (input_length >= 2) {
-        if (p_Base64String.data[input_length - 1] == '=') padding++;
-        if (p_Base64String.data[input_length - 2] == '=') padding++;
+        if (base64StringData[input_length - 1] == '=') padding++;
+        if (base64StringData[input_length - 2] == '=') padding++;
     }
 
     mla_size_t output_length = (input_length * 3) / 4 - padding;
@@ -226,7 +253,7 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
         mla_size_t valid_chars = 0;
 
         for (mla_size_t j = 0; j < 4 && (i + j) < input_length; ++j) {
-            mla_char_t c = p_Base64String.data[i + j];
+            mla_char_t c = base64StringData[i + j];
             mla_int32_t val = decode_table[static_cast<mla_uint8_t>(c)];
 
             if (val >= 0) {

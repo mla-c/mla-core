@@ -173,10 +173,10 @@ inline void ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type conte
         mla_string_empty()
     };
 
-    assert_true(input.large_string.length > mla_rpc_stream_small_buffer_size, "Test input large string is not large enough for large data test");
+    assert_true(mla_string_length(input.large_string) > mla_rpc_stream_small_buffer_size, "Test input large string is not large enough for large data test");
 
     assert_true(mla_rpc_execute_procedure_remote(mla_string_const(mla_http_rpc_procedure_large_ping_name), &input, &output), "Failed to execute large data RPC procedure");
-    assert_equal(output.large_string.length, input.large_string.length, "RPC large data procedure returned incorrect data length");
+    assert_equal(mla_string_length(output.large_string), mla_string_length(input.large_string), "RPC large data procedure returned incorrect data length");
     assert_struct_equal(mla_string_t, output.large_string, input.large_string, "RPC large data procedure returned incorrect data");
 
     assert_true(mla_rpc_unregister_remote_endpoint(endpoint), "Should unregister HTTP RPC remote endpoint");

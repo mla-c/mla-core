@@ -12,18 +12,27 @@
 
 void SizeOfTest() {
     assert_true(sizeof(mla_string_t) <= 24, "Size of mla_string_t should be less than or equal to 24 bytes");
+    assert_true(sizeof(mla_string_internal_embedded_t) >= sizeof(mla_string_internal_heap_t), "Size of embedded layout should be greater than or equal to heap layout");
 }
 
 void ContainsCLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
 
 void ContainsBufferLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
+    assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
+    assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
+}
+
+void ContainsEmbeddedLayoutTest() {
+    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
@@ -36,9 +45,9 @@ void StartsWithTest() {
 
 void LengthTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_str.length, (mla_uint32_t)13, "MlaString length should be 13");
+    assert_equal(mla_string_length(mla_str), (mla_uint32_t)13, "MlaString length should be 13");
     mla_string_t empty_mla_str = mla_string("");
-    assert_equal(empty_mla_str.length, (mla_uint32_t)0, "Length of empty MlaString should be 0");
+    assert_equal(mla_string_length(empty_mla_str), (mla_uint32_t)0, "Length of empty MlaString should be 0");
 }
 
 void EndsWithTest() {
@@ -67,7 +76,7 @@ void EqualsIgnoreCaseTest() {
 
 void IndexOfCLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
     assert_equal(mla_string_index_of(mla_str, mla_string("world")), (mla_int32_t)-1,
@@ -76,7 +85,17 @@ void IndexOfCLayoutTest() {
 
 void IndexOfBufferLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    assert_equal(mla_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
+    assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
+                 "MlaString index of 'World' should be 7");
+    assert_equal(mla_string_index_of(mla_str, mla_string("world")), (mla_int32_t)-1,
+                 "MlaString index of 'world' should be -1 (not found)");
+}
+
+void IndexOfEmbeddedLayoutTest() {
+    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be embedded layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
     assert_equal(mla_string_index_of(mla_str, mla_string("world")), (mla_int32_t)-1,
@@ -130,21 +149,30 @@ void ToCStringFromBufferTest() {
 void ToCStringFromBuffer_No_Force_CopyTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
     mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
-    assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-    assert_false(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
+
+    if (mla_c_str.c_str != nullptr) {
+        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
+        assert_false(mla_c_str.isOwner, "MlaString C-string should not be owned by the caller");
+    } else {
+        assert_fail("MlaString C-string conversion failed");
+    }
 
     mla_c_string_t mla_c_str2 = mla_string_to_cString(mla_str, false);
-    assert_true(mla_c_str2.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str2.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-    assert_false(mla_c_str2.isOwner, "MlaString C-string should not be owned by the caller");
+
+    if (mla_c_str2.c_str != nullptr) {
+        assert_equal(mla_strlen(mla_c_str2.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
+        assert_false(mla_c_str2.isOwner, "MlaString C-string should not be owned by the caller");
+    } else {
+        assert_fail("MlaString C-string conversion failed");
+    }
 }
 
 void AccessCharTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_str.data[0], 'H', "First character of MlaString should be 'H'");
-    assert_equal(mla_str.data[7], 'W', "Eighth character of MlaString should be 'W'");
-    assert_equal(mla_str.data[12], '!', "Last character of MlaString should be '!'");
+    const mla_char_t* data = mla_string_data(mla_str);
+    assert_equal(data[0], 'H', "First character of MlaString should be 'H'");
+    assert_equal(data[7], 'W', "Eighth character of MlaString should be 'W'");
+    assert_equal(data[12], '!', "Last character of MlaString should be '!'");
 }
 
 void ConcatTest() {
@@ -152,7 +180,7 @@ void ConcatTest() {
     mla_string_t mla_str2 = mla_string("World!");
     mla_string_t mla_result = mla_string_concat(mla_str1, mla_str2);
 
-    assert_equal(mla_result.length, (mla_uint32_t)13, "MlaString concatenated length should be 13");
+    assert_equal(mla_string_length(mla_result), (mla_uint32_t)13, "MlaString concatenated length should be 13");
     assert_true(mla_string_equals(mla_result, mla_string("Hello, World!")),
                 "MlaString concatenated should equal 'Hello, World!'");
 
@@ -179,7 +207,7 @@ void AutoMemoryManagementTest() {
         mla_string_t datacopy = mla_string_empty(); {
             mla_string_t data = mla_string_concat(mla_string("Hello, "), mla_string("World!"),
                                                   mla_string(" This is a test of concatenation."));
-            assert_equal(data.length, (mla_uint32_t)46, "Concatenated string length should be 58");
+            assert_equal(mla_string_length(data), (mla_uint32_t)46, "Concatenated string length should be 58");
 
             if (data.dataOwner.buffer != nullptr) {
                 assert_equal(data.dataOwner.buffer->refCount.value, (mla_int32_t)1,
@@ -202,7 +230,7 @@ void AutoMemoryManagementTest() {
             assert_equal(datacopy.dataOwner.buffer->refCount.value, (mla_int32_t)1,
                          "Reference count should be 1 after clearing the original string");
 
-            assert_equal(datacopy.length, (mla_uint32_t)46, "Copied string length should still be 58");
+            assert_equal(mla_string_length(datacopy), (mla_uint32_t)46, "Copied string length should still be 58");
             assert_true(mla_string_equals(datacopy, mla_string("Hello, World! This is a test of concatenation.")),
                         "Copied string should equal 'Hello, World! This is a test of concatenation.'");
         } else {
@@ -220,8 +248,9 @@ void AutoMemoryManagementTest() {
 }
 
 void SubStringTest() {
-    mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World!"));
-    mla_string_t sub_str = mla_string_substr(mla_str, 7, 5); // "World"
+    mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World, What are you doing today!"));
+    mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_BUFFER);
+    mla_string_t sub_str = mla_string_substr(mla_str, 7, 31); // "World"
 
     // Check memory managemant
     if (sub_str.dataOwner.buffer != nullptr) {
@@ -231,14 +260,24 @@ void SubStringTest() {
         assert_fail("Data buffer should not be null after concatenation");
     }
 
-    assert_equal(sub_str.memoryLayout, MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
-    assert_equal(sub_str.length, (mla_uint32_t)5, "Substring length should be 5");
+    assert_equal(mla_string_get_memory_layout(sub_str), MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
+    assert_equal(mla_string_length(sub_str), (mla_uint32_t)31, "Substring length should be 5");
+    assert_true(mla_string_equals(sub_str, mla_string("World, What are you doing today")), "Substring should equal 'World, What are you doing today'");
+}
+
+void SubStringEmbeddedTest() {
+    mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World!"));
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "Substring should have EMBEDDED layout");
+    mla_string_t sub_str = mla_string_substr(mla_str, 7, 5); // "World"
+
+    assert_equal(mla_string_get_memory_layout(sub_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "Substring should have EMBEDDED layout");
+    assert_equal(mla_string_length(sub_str), (mla_uint32_t)5, "Substring length should be 5");
     assert_true(mla_string_equals(sub_str, mla_string("World")), "Substring should equal 'World'");
 }
 
 void MultiByteCharHandlingTest() {
     mla_string_t mla_str = mla_string("€ 100");
-    assert_equal(mla_str.length, (mla_uint32_t)7, "MlaString length should be 7 bytes");
+    assert_equal(mla_string_length(mla_str), (mla_uint32_t)7, "MlaString length should be 7 bytes");
 
     assert_equal(mla_string_multi_byte_char_count(mla_str), (mla_uint32_t)5,
                  "MlaString should have 4 multi-byte characters");
@@ -331,12 +370,13 @@ void ToUtf32AndFromUtf32Test() {
 }
 
 void ToUtf16AndFromUtf16_EmptyTest() {
+
     mla_string_t baseString = mla_string("");
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)0, "UTF-16 empty: charCount should be 0");
     assert_null(utf16Buffer.data, "UTF-16 empty: data shoud be null");
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
-    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 empty round trip should match");
+    assert_true(mla_string_is_empty(roundTrip), "UTF-16 empty: round trip string should be empty");
     mla_string_utf16_buffer_destroy(utf16Buffer);
 }
 
@@ -385,7 +425,7 @@ void ToUtf32AndFromUtf32_EmptyTest() {
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)0, "UTF-32 empty: charCount should be 0");
     assert_null(utf32Buffer.data, "UTF-32 empty: data should be null");
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
-    assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 empty round trip should match");
+    assert_true(mla_string_is_empty(roundTrip), "UTF-32 empty: round trip string should be empty");
     mla_string_utf32_buffer_destroy(utf32Buffer);
 }
 
@@ -749,7 +789,7 @@ void StringToLowerTest() {
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("hello")),
                 "Already lowercase should remain unchanged");
-    assert_equal(lower.data, str.data,
+    assert_equal(mla_string_data(lower), mla_string_data(str),
                  "Already lowercase should return same pointer (no allocation)");
 
     // Test all uppercase string
@@ -793,7 +833,7 @@ void StringToUpperTest() {
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("HELLO")),
                 "Already uppercase should remain unchanged");
-    assert_equal(upper.data, str.data,
+    assert_equal(mla_string_data(upper), mla_string_data(str),
                  "Already uppercase should return same pointer (no allocation)");
 
     // Test all lowercase string
@@ -831,6 +871,15 @@ void ReplaceTest() {
     mla_string_t result = mla_string_replace(str, mla_string("World"), mla_string("Universe"));
     assert_true(mla_string_equals(result, mla_string("Hello, Universe!")),
                 "Basic replacement should work");
+    mla_string_destroy(result);
+
+
+    // Test basic replacement SSO Strings
+    str = mla_string("Hello");
+    result = mla_string_replace(str, mla_string("ll"), mla_string("uu"));
+    assert_true(mla_string_equals(result, mla_string("Heuuo")),
+                "Basic replacement should work");
+    assert_equal(mla_string_get_memory_layout(result), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "Result should be SSO string");
     mla_string_destroy(result);
 
     // Test multiple occurrences
@@ -1015,6 +1064,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("ContainsBufferLayout", test_category, ContainsBufferLayoutTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("ContainsEmbeddedLayout", test_category, ContainsEmbeddedLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
     test = mla_test("StartsWith", test_category, StartsWithTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -1034,6 +1086,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("IndexOfBufferLayout", test_category, IndexOfBufferLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IndexOfEmbeddedLayout", test_category, IndexOfEmbeddedLayoutTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("LastIndexOf", test_category, LastIndexOfTest);
@@ -1061,6 +1116,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("SubString", test_category, SubStringTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("SubStringEmbedded", test_category, SubStringEmbeddedTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MultiByteCharHandling", test_category, MultiByteCharHandlingTest);
@@ -1152,7 +1210,7 @@ void StringConcatBenchmark() {
 
     mla_string_t result = mla_string_concat(str1, str2, str3);
 
-    mla_test_int32_t length = result.length;
+    mla_test_int32_t length = mla_string_length(result);
     (void) length; // Prevent unused variable warning
 
     mla_string_destroy(result);

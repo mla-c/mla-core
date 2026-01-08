@@ -15,18 +15,21 @@ inline void GenerateUuidTest() {
     mla_string_t uuid2 = mla_generate_uuid();
 
     // Check UUID length (standard UUID format is 36 characters with hyphens)
-    assert_equal(uuid1.length, (mla_uint32_t)36, "UUID should be 36 characters long");
-    assert_equal(uuid2.length, (mla_uint32_t)36, "UUID should be 36 characters long");
+    assert_equal(mla_string_length(uuid1), (mla_uint32_t)36, "UUID should be 36 characters long");
+    assert_equal(mla_string_length(uuid2), (mla_uint32_t)36, "UUID should be 36 characters long");
 
     // Check that two generated UUIDs are different
     assert_false(mla_string_equals(uuid1, uuid2), "Two generated UUIDs should be different");
 
-    if (uuid1.data != nullptr && uuid2.data != nullptr) {
+    const mla_char_t* uuid1_data = mla_string_data(uuid1);
+    const mla_char_t* uuid2_data = mla_string_data(uuid2);
+
+    if (uuid1_data != nullptr && uuid2_data != nullptr) {
         // Check hyphen positions (8-4-4-4-12 format)
-        assert_equal(uuid1.data[8], '-', "UUID should have hyphen at position 8");
-        assert_equal(uuid1.data[13], '-', "UUID should have hyphen at position 13");
-        assert_equal(uuid1.data[18], '-', "UUID should have hyphen at position 18");
-        assert_equal(uuid1.data[23], '-', "UUID should have hyphen at position 23");
+        assert_equal(uuid1_data[8], '-', "UUID should have hyphen at position 8");
+        assert_equal(uuid1_data[13], '-', "UUID should have hyphen at position 13");
+        assert_equal(uuid1_data[18], '-', "UUID should have hyphen at position 18");
+        assert_equal(uuid1_data[23], '-', "UUID should have hyphen at position 23");
     } else {
         assert_fail("UUID data should not be null");
     }
@@ -37,8 +40,8 @@ inline void GenerateRuntimeIdTest() {
     mla_string_t id2 = mla_generate_runtime_id();
 
     // Check that IDs are not empty
-    assert_true(id1.length > 0, "Runtime ID should not be empty");
-    assert_true(id2.length > 0, "Runtime ID should not be empty");
+    assert_true(mla_string_length(id1) > 0, "Runtime ID should not be empty");
+    assert_true(mla_string_length(id2) > 0, "Runtime ID should not be empty");
 
     // Check that two generated runtime IDs are different
     assert_false(mla_string_equals(id1, id2), "Two generated runtime IDs should be different");

@@ -40,8 +40,11 @@ static mla_file_system_manager_t file_system_manager = {
 };
 
 mla_int32_t __mla_file_system_sort_compare(const mla_file_system_mount_t &a, const mla_file_system_mount_t &b) {
-    if (a.mount_path.length != b.mount_path.length) {
-        return (a.mount_path.length > b.mount_path.length) ? -1 : 1;
+    mla_size_t mountPathLengthA = mla_string_length(a.mount_path);
+    mla_size_t mountPathLengthB = mla_string_length(b.mount_path);
+
+    if (mountPathLengthA != mountPathLengthB) {
+        return (mountPathLengthA > mountPathLengthB) ? -1 : 1;
     }
     return mla_string_compare(a.mount_path, b.mount_path);
 }
@@ -86,12 +89,14 @@ mla_bool_t mla_file_system_is_locked() {
 
 mla_bool_t __mla_isvalid_directory_path(const mla_string_t& path) {
 
-    if (path.length == 1 && mla_string_equals(path, mla_fs_directory_seperator)) {
+    mla_size_t path_length = mla_string_length(path);
+
+    if (path_length == 1 && mla_string_equals(path, mla_fs_directory_seperator)) {
         return true;
     }
 
     // A valid directory path must start and end with a slash
-    if (path.length < 2) {
+    if (path_length < 2) {
         return false;
     }
 
@@ -195,7 +200,7 @@ mla_bool_t __mla_find_file_system_for_file(const mla_string_t& file_path, mla_fi
 
 mla_string_t __mla_get_relative_path(const mla_string_t& full_path, const mla_string_t& mount_path) {
 
-    mla_string_t path = mla_string_substr(full_path, mount_path.length);
+    mla_string_t path = mla_string_substr(full_path, mla_string_length(mount_path));
     return mla_string_to_lower(path);
 }
 
@@ -401,14 +406,14 @@ mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_st
     }
 
     mla_string_t new_file_name = mla_string_empty();
-    if (new_extension.length == 0) {
+    if (mla_string_length(new_extension) == 0) {
         new_file_name = base_name; // Remove extension
     } else {
         new_file_name = mla_string_concat(base_name, mla_string_const("."), new_extension);
     }
 
     mla_string_t parent_directory = mla_fs_get_parent_directory(path);
-    if (parent_directory.length == 0) {
+    if (mla_string_length(parent_directory) == 0) {
         return new_file_name; // No parent directory
     }
 
@@ -417,11 +422,14 @@ mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_st
 
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2) {
 
-    if (path1.length == 0 && path2.length == 0) {
+    mla_size_t path1_length = mla_string_length(path1);
+    mla_size_t path2_length = mla_string_length(path2);
+
+    if (path1_length == 0 && path2_length == 0) {
         return mla_fs_directory_seperator;
     }
 
-    if (path1.length == 0) {
+    if (path1_length == 0) {
 
         if (!mla_string_starts_with(path2, mla_fs_directory_seperator)) {
             return mla_string_concat(mla_fs_directory_seperator, path2);
@@ -430,7 +438,7 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
         return path2;
     }
 
-    if (path2.length == 0) {
+    if (path2_length == 0) {
 
         if (!mla_string_starts_with(path1, mla_fs_directory_seperator)) {
             return mla_string_concat(mla_fs_directory_seperator, path1);
@@ -443,7 +451,7 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
     mla_string_t p2 = path2;
 
     if (mla_string_ends_with(p1, mla_fs_directory_seperator)) {
-        p1 = mla_string_substr(p1, 0, p1.length - 1);
+        p1 = mla_string_substr(p1, 0, mla_string_length(p1) - 1);
     }
 
     if (mla_string_starts_with(p2, mla_fs_directory_seperator)) {

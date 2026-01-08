@@ -229,7 +229,7 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
 
 mla_bool_t mla_task_manager_task_exists(const mla_string_t& name) {
 
-    if (name.length == 0) {
+    if (mla_string_length(name) == 0) {
         return false; // Empty name is not valid
     }
 

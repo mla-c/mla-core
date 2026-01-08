@@ -18,9 +18,9 @@ struct TestOutputData {
 
 inline void test_output_write(mla_callback_userdata userdata, const mla_string_t &data) {
     auto* output = reinterpret_cast<TestOutputData*>(userdata);
-    mla_size_t dataLen = data.length;
+    mla_size_t dataLen = mla_string_length(data);
     if (output->position + dataLen < 1024) {
-        mla_memcpy(output->buffer + output->position, data.data, dataLen);
+        mla_memcpy(output->buffer + output->position, mla_string_data(data), dataLen);
         output->position += dataLen;
         output->buffer[output->position] = '\0';
     }

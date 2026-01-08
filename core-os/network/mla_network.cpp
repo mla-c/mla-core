@@ -48,7 +48,7 @@ mla_network_connection_t mla_network_connection_disconnected() {
 
 mla_bool_t mla_network_host_resolve(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
 
-    if (hostname.length == 0) {
+    if (mla_string_length(hostname) == 0) {
         host = mla_network_host_invalid();
         return false;
     }
@@ -59,7 +59,7 @@ mla_bool_t mla_network_host_resolve(mla_network_host_t &host, const mla_string_t
 
 mla_bool_t mla_network_connection_connect(mla_network_connection_t &connection, const mla_network_host_t &host, mla_connection_type_t type, mla_size_t timeout_ms) {
 
-    if (host.port == 0 || host.address.address.length == 0) {
+    if (host.port == 0 || mla_string_length(host.address.address) == 0) {
         return false;
     }
 
@@ -91,7 +91,7 @@ mla_network_listener_t mla_network_listener_invalid() {
 
 mla_bool_t mla_network_listener_bind_and_listen(mla_network_listener_t& listener, const mla_network_host_t &host, mla_connection_type_t type) {
 
-    if (host.port == 0 || host.address.address.length == 0) {
+    if (host.port == 0 || mla_string_length(host.address.address) == 0) {
         return false;
     }
 

@@ -8,7 +8,7 @@
 #include "../system/mla_string_concat.h"
 
 void __mla_cli_write_string(const mla_stream_output_t &outputStream, mla_string_t str) {
-    outputStream.write(outputStream, 0, str.length, (mla_byte_t*)str.data);
+    outputStream.write(outputStream, 0, mla_string_length(str), (mla_byte_t*)mla_string_data(str));
 }
 
 void __mla_cli_command_execute_outstream_to_stream_bridge(mla_callback_userdata userdata, const mla_string_t &data) {
@@ -77,7 +77,7 @@ mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
     }
 
     // Add command description if available
-    if (command.description.length > 0) {
+    if (mla_string_length(command.description) > 0) {
         result = mla_string_concat(result, "\n    ", command.description);
     }
 
@@ -85,7 +85,7 @@ mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
     for (mla_size_t i = 0; i < mla_array_list_size(command.parameters); ++i) {
         mla_cli_command_parameter_t *param = mla_array_list_get_ref(command.parameters, i);
 
-        if (param->description.length > 0) {
+        if (mla_string_length(param->description) > 0) {
             mla_string_t paramDesc = mla_string_concat("\n      --", param->parameterName, ": ",
                                                       param->description);
             if (param->mandatory) {
@@ -151,7 +151,7 @@ mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
             mla_cli_module_t *subModule = mla_array_list_get_ref(activeModule->subModules, i);
             out.write(out.userdata, mla_string_concat("  ", subModule->moduleName, "\n"));
 
-            if (subModule->description.length > 0) {
+            if (mla_string_length(subModule->description) > 0) {
                 out.write(out.userdata, mla_string_concat("    ", subModule->description, "\n"));
             }
         }
@@ -219,7 +219,7 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
 }
 
 void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, const mla_stream_output_t &outputStream) {
-    if (parser_result.isValid && parser_result.matchingCommand.name.length != 0) {
+    if (parser_result.isValid && mla_string_length(parser_result.matchingCommand.name) != 0) {
         // Validate mandatory parameters
         mla_bool_t missingMandatoryParameter = false;
 

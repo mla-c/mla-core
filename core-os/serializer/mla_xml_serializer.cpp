@@ -33,8 +33,11 @@ mla_bool_t __mla_xml_write_str(const mla_stream_output_t &out, const mla_string_
 }
 
 mla_bool_t __mla_xml_write_escaped(const mla_stream_output_t &out, const mla_string_t &str) {
-    for (mla_size_t i = 0; i < str.length; i++) {
-        mla_char_t c = str.data[i];
+
+    const mla_char_t* data = mla_string_data(str);
+
+    for (mla_size_t i = 0; i < mla_string_length(str); i++) {
+        mla_char_t c = data[i];
         switch (c) {
             case '<':
                 if (!__mla_xml_write_str(out, mla_string_const("&lt;")))
@@ -83,7 +86,7 @@ mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t &inst) {
 
     // Determine tag name: use property name if available, otherwise "item"
     mla_string_t tag_name = mla_string_empty();
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         tag_name = state->pending_property_name;
         state->pending_property_name = mla_string_empty();
     } else {
@@ -145,7 +148,7 @@ mla_bool_t mla_xml_serializer_write_start_list(mla_serializer_t &inst) {
 
     // Determine tag name: use property name if available, otherwise "list"
     mla_string_t tag_name = mla_string_empty();
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         tag_name = state->pending_property_name;
         state->pending_property_name = mla_string_empty();
     } else {
@@ -221,7 +224,7 @@ static mla_bool_t __mla_xml_write_attr(mla_serializer_t &inst, const mla_string_
 mla_bool_t mla_xml_serializer_write_bool(mla_serializer_t &inst, const mla_bool_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, value ? mla_string_const("true") : mla_string_const("false"));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -243,7 +246,7 @@ mla_bool_t mla_xml_serializer_write_bool(mla_serializer_t &inst, const mla_bool_
 mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_int8(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -269,7 +272,7 @@ mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_
 mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int16_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_int16(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -295,7 +298,7 @@ mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int1
 mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int32_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_int32(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -321,7 +324,7 @@ mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int3
 mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int64_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_int64(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -347,7 +350,7 @@ mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int6
 mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint8_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_uint8(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -373,7 +376,7 @@ mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint
 mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uint16_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_uint16(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -399,7 +402,7 @@ mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uin
 mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uint32_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_uint32(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -425,7 +428,7 @@ mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uin
 mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uint64_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_uint64(value));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -451,7 +454,7 @@ mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uin
 mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_float_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_float(value, 6));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -477,7 +480,7 @@ mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_floa
 mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_double_t value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, mla_string_from_double(value, 6));
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -503,7 +506,7 @@ mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_dou
 mla_bool_t mla_xml_serializer_write_string(mla_serializer_t &inst, const mla_string_t &value) {
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         return __mla_xml_write_attr(inst, value);
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -526,7 +529,7 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
     mla_xml_serializer_state_t *state = __mla_xml_ser_get_state(inst);
     mla_string_t base64 = mla_bytes_to_base64(value);
 
-    if (state->pending_property_name.length > 0) {
+    if (mla_string_length(state->pending_property_name) > 0) {
         if (!__mla_xml_write_str(inst.output, mla_string_const(" ")))
             return false;
 
@@ -710,28 +713,31 @@ static mla_string_t __mla_xml_read_until(mla_deserializer_t &inst, mla_char_t st
 static mla_string_t __mla_xml_unescape(const mla_string_t &str) {
     mla_string_t result = mla_string_empty();
 
-    for (mla_size_t i = 0; i < str.length; i++) {
-        if (str.data[i] == '&') {
-            if (i + 4 <= str.length && mla_memcmp(&str.data[i], "&lt;", 4) == 0) {
+    mla_size_t str_length = mla_string_length(str);
+    const mla_char_t* str_data = mla_string_data(str);
+
+    for (mla_size_t i = 0; i < str_length; i++) {
+        if (str_data[i] == '&') {
+            if (i + 4 <= str_length && mla_memcmp(&str_data[i], "&lt;", 4) == 0) {
                 result = mla_string_concat(result, mla_string_const("<"));
                 i += 3;
-            } else if (i + 4 <= str.length && mla_memcmp(&str.data[i], "&gt;", 4) == 0) {
+            } else if (i + 4 <= str_length && mla_memcmp(&str_data[i], "&gt;", 4) == 0) {
                 result = mla_string_concat(result, mla_string_const(">"));
                 i += 3;
-            } else if (i + 5 <= str.length && mla_memcmp(&str.data[i], "&amp;", 5) == 0) {
+            } else if (i + 5 <= str_length && mla_memcmp(&str_data[i], "&amp;", 5) == 0) {
                 result = mla_string_concat(result, mla_string_const("&"));
                 i += 4;
-            } else if (i + 6 <= str.length && mla_memcmp(&str.data[i], "&quot;", 6) == 0) {
+            } else if (i + 6 <= str_length && mla_memcmp(&str_data[i], "&quot;", 6) == 0) {
                 result = mla_string_concat(result, mla_string_const("\""));
                 i += 5;
-            } else if (i + 6 <= str.length && mla_memcmp(&str.data[i], "&apos;", 6) == 0) {
+            } else if (i + 6 <= str_length && mla_memcmp(&str_data[i], "&apos;", 6) == 0) {
                 result = mla_string_concat(result, mla_string_const("'"));
                 i += 5;
             } else {
-                result = mla_string_concat(result, mla_string(&str.data[i], 1));
+                result = mla_string_concat(result, mla_string(&str_data[i], 1));
             }
         } else {
-            result = mla_string_concat(result, mla_string(&str.data[i], 1));
+            result = mla_string_concat(result, mla_string(&str_data[i], 1));
         }
     }
 

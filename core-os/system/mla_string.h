@@ -8,10 +8,9 @@
 #include "../mla_data_types.h"
 #include "mla_buffer.h"
 #include "mla_array_list.h"
-#include "../utils/mla_char_utils.h"
 #include "../hash/mla_hash.h"
 
-
+#define mla_string_sso_max_length 14
 
 // Forward declaration
 struct mla_multi_byte_char_t;
@@ -40,6 +39,7 @@ struct mla_string_utf32_buffer_t {
 void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer);
 
 enum mla_string_memory_layout_t: mla_uint8_t {
+    MLA_STRING_MEMORY_LAYOUT_EMBEDDED, // Embedded string (small string optimization)
     MLA_STRING_MEMORY_LAYOUT_C_STRING, // C-style string (with null terminator)
     MLA_STRING_MEMORY_LAYOUT_BUFFER, // Buffer-based string (without null terminator)
     MLA_STRING_MEMORY_LAYOUT_SUB_STRING // Substring (view into another string)
@@ -55,11 +55,25 @@ struct mla_multi_byte_char_t {
 
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
-struct mla_string_t {
-    const mla_char_t *data; // Pointer to the string data
-    mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
+struct mla_string_internal_heap_t {
     mla_string_memory_layout_t memoryLayout;
+    mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
+    const mla_char_t *data; // Pointer to the string data
+};
+
+struct mla_string_internal_embedded_t {
+    mla_string_memory_layout_t memoryLayout;
+    mla_uint8_t length; // Length of the embedded string
+    mla_char_t data[mla_string_sso_max_length];
+};
+
+
+struct mla_string_t {
     mla_buffer_reference_t dataOwner;
+    union {
+        mla_string_internal_embedded_t embedded;
+        mla_string_internal_heap_t heap;
+    };
 
     mla_bool_t operator==(const mla_string_t &other) const {
 
@@ -98,6 +112,7 @@ struct mla_string_initializer {
 };
 
 mla_size_t mla_string_length(const mla_string_t &p_String);
+const mla_char_t *mla_string_data(const mla_string_t &p_String);
 
 mla_int32_t mla_string_compare(const mla_string_t &p_String1, const mla_string_t &p_String2);
 mla_int32_t mla_string_compare_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
@@ -140,6 +155,7 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 // Memory layout conversion
 // Note: Changing memory layout may involve copying data
 
+mla_string_memory_layout_t mla_string_get_memory_layout(const mla_string_t &p_String);
 mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
 mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
@@ -167,7 +183,7 @@ struct mla_string_hash_t {
 
     static mla_size_t hash(const mla_string_t& value) {
         // Call the optimized hash function from the hash module
-        return mla_string_hash(value.data, value.length);
+        return mla_string_hash(mla_string_data(value), mla_string_length(value));
     }
 
 };

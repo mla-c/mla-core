@@ -22,14 +22,14 @@ mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_nat
     // Repleace all slash with backslash
     mla_string_t correctedPath = mla_string_replace(path, mla_fs_directory_seperator, mla_windows_fs_directory_seperator);
 
-    if (fs->basePath.length == 0)
+    if (mla_string_length(fs->basePath) == 0)
         return correctedPath;
 
     mla_string_t p1 = fs->basePath;
     mla_string_t p2 = correctedPath;
 
     if (mla_string_ends_with(p1, mla_windows_fs_directory_seperator)) {
-        p1 = mla_string_substr(p1, 0, p1.length - 1);
+        p1 = mla_string_substr(p1, 0, mla_string_length(p1) - 1);
     }
 
     if (mla_string_starts_with(p2, mla_windows_fs_directory_seperator)) {

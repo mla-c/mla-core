@@ -46,17 +46,20 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     mla_size_t hostStart = pos;
     mla_size_t pathStart = pos;
 
-    while (pathStart < urlString.length &&
-           urlString.data[pathStart] != '/' &&
-           urlString.data[pathStart] != '?' &&
-           urlString.data[pathStart] != '#') {
+    mla_size_t length = mla_string_length(urlString);
+    const mla_char_t* data = mla_string_data(urlString);
+
+    while (pathStart < length &&
+           data[pathStart] != '/' &&
+           data[pathStart] != '?' &&
+           data[pathStart] != '#') {
         pathStart++;
     }
 
     // Check for port
     mla_int32_t portPos = -1;
     for (mla_size_t p = hostStart; p < pathStart; p++) {
-        if (urlString.data[p] == ':') {
+        if (data[p] == ':') {
             portPos = p;
             break;
         }
@@ -93,11 +96,11 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     pos = pathStart;
 
     // Parse path
-    if (pos < urlString.length && urlString.data[pos] == '/') {
+    if (pos < length && data[pos] == '/') {
         mla_size_t pathEnd = pos;
-        while (pathEnd < urlString.length &&
-               urlString.data[pathEnd] != '?' &&
-               urlString.data[pathEnd] != '#') {
+        while (pathEnd < length &&
+               data[pathEnd] != '?' &&
+               data[pathEnd] != '#') {
             pathEnd++;
         }
         outUrl.path = mla_string_substr(urlString, pos, pathEnd - pos);
@@ -107,10 +110,10 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     }
 
     // Parse query parameters
-    if (pos < urlString.length && urlString.data[pos] == '?') {
+    if (pos < length && data[pos] == '?') {
         pos++; // Skip '?'
         mla_size_t queryEnd = pos;
-        while (queryEnd < urlString.length && urlString.data[queryEnd] != '#') {
+        while (queryEnd < length && data[queryEnd] != '#') {
             queryEnd++;
         }
 
@@ -119,18 +122,18 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         while (paramStart < queryEnd) {
             mla_size_t equalSign = paramStart;
             while (equalSign < queryEnd &&
-                   urlString.data[equalSign] != '=' &&
-                   urlString.data[equalSign] != '&') {
+                   data[equalSign] != '=' &&
+                   data[equalSign] != '&') {
                 equalSign++;
             }
 
             mla_url_query_param_t param = mla_url_query_param_empty();
             param.key = mla_string_substr(urlString, paramStart, equalSign - paramStart);
 
-            if (equalSign < queryEnd && urlString.data[equalSign] == '=') {
+            if (equalSign < queryEnd && data[equalSign] == '=') {
                 mla_size_t valueStart = equalSign + 1;
                 mla_size_t valueEnd = valueStart;
-                while (valueEnd < queryEnd && urlString.data[valueEnd] != '&') {
+                while (valueEnd < queryEnd && data[valueEnd] != '&') {
                     valueEnd++;
                 }
                 param.value = mla_string_substr(urlString, valueStart, valueEnd - valueStart);
@@ -139,7 +142,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
                 paramStart = equalSign;
             }
 
-            if (paramStart < queryEnd && urlString.data[paramStart] == '&') {
+            if (paramStart < queryEnd && data[paramStart] == '&') {
                 paramStart++;
             }
 
@@ -150,7 +153,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     }
 
     // Parse fragment
-    if (pos < urlString.length && urlString.data[pos] == '#') {
+    if (pos < length && data[pos] == '#') {
         pos++; // Skip '#'
         outUrl.fragment = mla_string_substr(urlString, pos);
     } else {
@@ -163,20 +166,20 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
 mla_string_t mla_url_to_string(const mla_url_t &url) {
 
     // Calculate required buffer size
-    mla_size_t totalLength = url.scheme.length + 3; // "://"
-    totalLength += url.host.length;
+    mla_size_t totalLength = mla_string_length(url.scheme) + 3; // "://"
+    totalLength += mla_string_length(url.host);
 
     if (url.port > 0) {
         totalLength += 6; // ":" + max 5 digits
     }
 
-    totalLength += mla_max(url.path.length, 1); // Ensure at least 1 for "/"
+    totalLength += mla_max(mla_string_length(url.path), 1); // Ensure at least 1 for "/"
 
     if (mla_array_list_size(url.query) > 0) {
         totalLength += 1; // "?"
         for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
             mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
-            totalLength += param->key.length + 1 + param->value.length; // key=value
+            totalLength += mla_string_length(param->key) + 1 + mla_string_length(param->value); // key=value
 
             if (i < mla_array_list_size(url.query) - 1) {
                 totalLength += 1; // "&"
@@ -185,10 +188,78 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
     }
 
     if (!mla_string_is_empty(url.fragment)) {
-        totalLength += 1 + url.fragment.length; // "#" + fragment
+        totalLength += 1 + mla_string_length(url.fragment); // "#" + fragment
     }
 
-    // Allocate buffer
+    // Use small string optimization if possible
+    if (totalLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+
+        mla_size_t offset = 0;
+
+        // Build URL string in embedded buffer
+        mla_size_t schemeLength = mla_string_length(url.scheme);
+        mla_memcpy(result.embedded.data + offset, mla_string_data(url.scheme), schemeLength);
+        offset += schemeLength;
+
+        mla_memcpy(result.embedded.data + offset, "://", 3);
+        offset += 3;
+
+        mla_size_t hostLength = mla_string_length(url.host);
+        mla_memcpy(result.embedded.data + offset, mla_string_data(url.host), hostLength);
+        offset += hostLength;
+
+        if (url.port > 0) {
+            mla_string_t portStr = mla_string_from_uint16(url.port);
+            result.embedded.data[offset++] = ':';
+            mla_size_t portStrLength = mla_string_length(portStr);
+            mla_memcpy(result.embedded.data + offset, mla_string_data(portStr), portStrLength);
+            offset += portStrLength;
+            mla_string_destroy(portStr);
+        }
+
+        mla_size_t pathLength = mla_string_length(url.path);
+        if (pathLength == 0) {
+            result.embedded.data[offset++] = '/';
+        } else {
+            mla_memcpy(result.embedded.data + offset, mla_string_data(url.path), pathLength);
+            offset += pathLength;
+        }
+
+        if (mla_array_list_size(url.query) > 0) {
+            result.embedded.data[offset++] = '?';
+
+            for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
+                mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
+
+                mla_size_t keyLength = mla_string_length(param->key);
+                mla_memcpy(result.embedded.data + offset, mla_string_data(param->key), keyLength);
+                offset += keyLength;
+
+                result.embedded.data[offset++] = '=';
+
+                mla_size_t valueLength = mla_string_length(param->value);
+                mla_memcpy(result.embedded.data + offset, mla_string_data(param->value), valueLength);
+                offset += valueLength;
+
+                if (i < mla_array_list_size(url.query) - 1) {
+                    result.embedded.data[offset++] = '&';
+                }
+            }
+        }
+
+        if (!mla_string_is_empty(url.fragment)) {
+            result.embedded.data[offset++] = '#';
+            mla_size_t fragmentLength = mla_string_length(url.fragment);
+            mla_memcpy(result.embedded.data + offset, mla_string_data(url.fragment), fragmentLength);
+            offset += fragmentLength;
+        }
+
+        return result;
+    }
+
+    // Fall back to heap allocation for larger strings
     mla_char_t *buffer = mla_create_char_array(totalLength);
 
     if (buffer == nullptr) {
@@ -198,28 +269,32 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
     mla_size_t offset = 0;
 
     // Build URL string
-    mla_memcpy(buffer + offset, url.scheme.data, url.scheme.length);
-    offset += url.scheme.length;
+    mla_size_t schemeLength = mla_string_length(url.scheme);
+    mla_memcpy(buffer + offset, mla_string_data(url.scheme), schemeLength);
+    offset += schemeLength;
 
     mla_memcpy(buffer + offset, "://", 3);
     offset += 3;
 
-    mla_memcpy(buffer + offset, url.host.data, url.host.length);
-    offset += url.host.length;
+    mla_size_t hostLength = mla_string_length(url.host);
+    mla_memcpy(buffer + offset, mla_string_data(url.host), hostLength);
+    offset += hostLength;
 
     if (url.port > 0) {
         mla_string_t portStr = mla_string_from_uint16(url.port);
         buffer[offset++] = ':';
-        mla_memcpy(buffer + offset, portStr.data, portStr.length);
-        offset += portStr.length;
+        mla_size_t portStrLength = mla_string_length(portStr);
+        mla_memcpy(buffer + offset, mla_string_data(portStr), portStrLength);
+        offset += portStrLength;
         mla_string_destroy(portStr);
     }
 
-    if (url.path.length == 0) {
+    mla_size_t pathLength = mla_string_length(url.path);
+    if (pathLength == 0) {
         buffer[offset++] = '/';
     } else {
-        mla_memcpy(buffer + offset, url.path.data, url.path.length);
-        offset += url.path.length;
+        mla_memcpy(buffer + offset, mla_string_data(url.path), pathLength);
+        offset += pathLength;
     }
 
     if (mla_array_list_size(url.query) > 0) {
@@ -227,11 +302,17 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
 
         for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
             mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
-            mla_memcpy(buffer + offset, param->key.data, param->key.length);
-            offset += param->key.length;
+
+            mla_size_t keyLength = mla_string_length(param->key);
+            mla_memcpy(buffer + offset, mla_string_data(param->key), keyLength);
+            offset += keyLength;
+
             buffer[offset++] = '=';
-            mla_memcpy(buffer + offset, param->value.data, param->value.length);
-            offset += param->value.length;
+
+            mla_size_t valueLength = mla_string_length(param->value);
+            mla_memcpy(buffer + offset, mla_string_data(param->value), valueLength);
+            offset += valueLength;
+
             if (i < mla_array_list_size(url.query) - 1) {
                 buffer[offset++] = '&';
             }
@@ -240,8 +321,9 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
 
     if (!mla_string_is_empty(url.fragment)) {
         buffer[offset++] = '#';
-        mla_memcpy(buffer + offset, url.fragment.data, url.fragment.length);
-        offset += url.fragment.length;
+        mla_size_t fragmentLength = mla_string_length(url.fragment);
+        mla_memcpy(buffer + offset, mla_string_data(url.fragment), fragmentLength);
+        offset += fragmentLength;
     }
 
     return mla_string_from_buffer_with_ownership(buffer, offset);
@@ -249,13 +331,13 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
 
 mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
 
-    mla_size_t totalLength = mla_max(url.path.length, 1); // Default to "/" if empty
+    mla_size_t totalLength = mla_max(mla_string_length(url.path), 1); // Default to "/" if empty
 
     if (mla_array_list_size(url.query) > 0) {
         totalLength += 1; // "?"
         for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
             mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
-            totalLength += param->key.length + 1 + param->value.length; // key=value
+            totalLength += mla_string_length(param->key) + 1 + mla_string_length(param->value); // key=value
 
             if (i < mla_array_list_size(url.query) - 1) {
                 totalLength += 1; // "&"
@@ -263,7 +345,49 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
         }
     }
 
-    // Allocate buffer
+    // Use small string optimization if possible
+    if (totalLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+
+        mla_size_t offset = 0;
+
+        // Add path
+        mla_size_t pathLength = mla_string_length(url.path);
+        if (pathLength == 0) {
+            result.embedded.data[offset++] = '/';
+        } else {
+            mla_memcpy(result.embedded.data + offset, mla_string_data(url.path), pathLength);
+            offset += pathLength;
+        }
+
+        // Add query parameters
+        if (mla_array_list_size(url.query) > 0) {
+            result.embedded.data[offset++] = '?';
+
+            for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
+                mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
+
+                mla_size_t keyLength = mla_string_length(param->key);
+                mla_memcpy(result.embedded.data + offset, mla_string_data(param->key), keyLength);
+                offset += keyLength;
+
+                result.embedded.data[offset++] = '=';
+
+                mla_size_t valueLength = mla_string_length(param->value);
+                mla_memcpy(result.embedded.data + offset, mla_string_data(param->value), valueLength);
+                offset += valueLength;
+
+                if (i < mla_array_list_size(url.query) - 1) {
+                    result.embedded.data[offset++] = '&';
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // Fall back to heap allocation for larger strings
     mla_char_t *buffer = mla_create_char_array(totalLength);
 
     if (buffer == nullptr) {
@@ -272,23 +396,32 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
 
     mla_size_t offset = 0;
 
-    if (url.path.length == 0) {
+    // Add path
+    mla_size_t pathLength = mla_string_length(url.path);
+    if (pathLength == 0) {
         buffer[offset++] = '/';
     } else {
-        mla_memcpy(buffer + offset, url.path.data, url.path.length);
-        offset += url.path.length;
+        mla_memcpy(buffer + offset, mla_string_data(url.path), pathLength);
+        offset += pathLength;
     }
 
+    // Add query parameters
     if (mla_array_list_size(url.query) > 0) {
         buffer[offset++] = '?';
 
         for (mla_size_t i = 0; i < mla_array_list_size(url.query); i++) {
             mla_url_query_param_t* param = mla_array_list_get_ref(url.query, i);
-            mla_memcpy(buffer + offset, param->key.data, param->key.length);
-            offset += param->key.length;
+
+            mla_size_t keyLength = mla_string_length(param->key);
+            mla_memcpy(buffer + offset, mla_string_data(param->key), keyLength);
+            offset += keyLength;
+
             buffer[offset++] = '=';
-            mla_memcpy(buffer + offset, param->value.data, param->value.length);
-            offset += param->value.length;
+
+            mla_size_t valueLength = mla_string_length(param->value);
+            mla_memcpy(buffer + offset, mla_string_data(param->value), valueLength);
+            offset += valueLength;
+
             if (i < mla_array_list_size(url.query) - 1) {
                 buffer[offset++] = '&';
             }

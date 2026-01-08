@@ -27,9 +27,13 @@ mla_bool_t mla_stream_copy(const mla_stream_input_t &input, const mla_stream_out
 
 mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, const mla_string_t &string) {
 
-    if (string.length == 0) {
+    mla_size_t length = mla_string_length(string);
+
+    if (length == 0) {
         return true; // Nothing to write
     }
 
-    return output.write(output, 0, string.length, reinterpret_cast<const mla_byte_t*>(string.data)) == string.length;
+    const mla_char_t* data = mla_string_data(string);
+
+    return output.write(output, 0, length, reinterpret_cast<const mla_byte_t*>(data)) == length;
 }

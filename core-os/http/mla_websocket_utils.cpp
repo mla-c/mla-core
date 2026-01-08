@@ -89,7 +89,7 @@ mla_bool_t __mla_websocket_client_write_message_length(mla_stream_output_t &outp
 mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output, mla_uint16_t status_code, const mla_string_t &reason) {
 
     // Calculate response payload length (2 bytes for status code + reason length)
-    mla_size_t reason_length = reason.length;
+    mla_size_t reason_length = mla_string_length(reason);
     mla_size_t response_length = mla_websocket_status_code_size + reason_length;
 
     // Byte 0: FIN + Close opcode
@@ -116,9 +116,11 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
         output.write(output, 0, 1, &masked_byte);
     }
 
+    const mla_char_t* data = mla_string_data(reason);
+
     // Write masked reason string
     for (mla_size_t i = 0; i < reason_length; i++) {
-        mla_uint8_t masked_byte = reason.data[i] ^ masking_key[(i + mla_websocket_status_code_size) % mla_websocket_masking_key_size];
+        mla_uint8_t masked_byte = data[i] ^ masking_key[(i + mla_websocket_status_code_size) % mla_websocket_masking_key_size];
         output.write(output, 0, 1, &masked_byte);
     }
 
@@ -135,7 +137,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
         return false;
 
     // Payload length
-    mla_size_t payload_length = message.length;
+    mla_size_t payload_length = mla_string_length(message);
 
     if (!__mla_websocket_client_write_message_length(output, payload_length))
         return false;
@@ -147,7 +149,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
 
     // Mask and write payload
 
-    const mla_char_t *payload = message.data;
+    const mla_char_t *payload = mla_string_data(message);
     for (mla_size_t i = 0; i < payload_length; i++) {
         mla_uint8_t masked_byte = payload[i] ^ masking_key[i % mla_websocket_masking_key_size];
         if (output.write(output, 0, 1, &masked_byte) != 1)
