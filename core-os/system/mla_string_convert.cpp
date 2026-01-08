@@ -12,7 +12,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
     const mla_size_t maxLength = 4; // Max: "-128"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -74,7 +74,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result =  {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -86,7 +86,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
     const mla_size_t maxLength = 3; // Max: "255"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_uint8_t value = p_Value;
@@ -137,7 +137,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -149,7 +149,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
     const mla_size_t maxLength = 6; // Max: "-32768"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -210,7 +210,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -222,7 +222,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
     const mla_size_t maxLength = 5; // Max: "65535"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_uint16_t value = p_Value;
@@ -273,7 +273,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -285,7 +285,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
     const mla_size_t maxLength = 11; // Max: "-2147483648"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -346,7 +346,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -358,7 +358,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
     const mla_size_t maxLength = 10; // Max: "4294967295"
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_uint32_t value = p_Value;
@@ -409,7 +409,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -422,7 +422,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
     if (maxLength <= mla_string_sso_max_length) {
 
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -483,7 +483,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -495,7 +495,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
 
     if (maxLength <= mla_string_sso_max_length) {
 
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
         mla_uint64_t value = p_Value;
@@ -546,7 +546,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -557,7 +557,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
 
     // Handle special cases
     if (p_Value != p_Value) { // NaN
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = 'N';
         result.embedded.data[1] = 'a';
         result.embedded.data[2] = 'N';
@@ -565,7 +565,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         return result;
     }
     if (p_Value == mla_infinity_pos) { // +Infinity
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = 'i';
         result.embedded.data[1] = 'n';
         result.embedded.data[2] = 'f';
@@ -573,7 +573,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         return result;
     }
     if (p_Value == mla_infinity_neg) { // -Infinity
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = '-';
         result.embedded.data[1] = 'i';
         result.embedded.data[2] = 'n';
@@ -643,7 +643,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     }
 
     buffer[index] = '\0';
-    mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+    mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
     result.heap.data = buffer;
     result.heap.length = index;
     return result;
@@ -654,7 +654,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
 
     // Handle special cases
     if (p_Value != p_Value) { // NaN
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = 'N';
         result.embedded.data[1] = 'a';
         result.embedded.data[2] = 'N';
@@ -663,7 +663,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     }
 
     if (p_Value == mla_infinity_pos) { // +Infinity
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = 'i';
         result.embedded.data[1] = 'n';
         result.embedded.data[2] = 'f';
@@ -672,7 +672,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     }
 
     if (p_Value == mla_infinity_neg) { // -Infinity
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = '-';
         result.embedded.data[1] = 'i';
         result.embedded.data[2] = 'n';
@@ -742,7 +742,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     }
 
     buffer[index] = '\0';
-    mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+    mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
     result.heap.data = buffer;
     result.heap.length = index;
     return result;
@@ -764,7 +764,7 @@ mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
     const mla_size_t maxLength = 4; // "0x" + 2 hex digits
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
         result.embedded.data[1] = 'x';
@@ -787,7 +787,7 @@ mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
         buffer[3] = hexDigits[p_Value & 0x0F];
         buffer[4] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 4;
         return result;
@@ -798,7 +798,7 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
     const mla_size_t maxLength = 6; // "0x" + 4 hex digits
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
         result.embedded.data[1] = 'x';
@@ -825,7 +825,7 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
         buffer[5] = hexDigits[p_Value & 0x0F];
         buffer[6] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 6;
         return result;
@@ -836,7 +836,7 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
     const mla_size_t maxLength = 10; // "0x" + 8 hex digits
 
     if (maxLength <= mla_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
         result.embedded.data[1] = 'x';
@@ -871,7 +871,7 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
         buffer[9] = hexDigits[p_Value & 0x0F];
         buffer[10] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 10;
         return result;
@@ -883,7 +883,7 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
 
     if (maxLength <= mla_string_sso_max_length) {
         // This branch won't be taken with default SSO size, but included for consistency
-        mla_string_t result = {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
         result.embedded.data[1] = 'x';
@@ -934,7 +934,7 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
         buffer[17] = hexDigits[p_Value & 0x0F];
         buffer[18] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 18;
         return result;

@@ -105,7 +105,7 @@ mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
         return mla_string_empty();
     }
 
-    mla_string_t result = {p_Bytes.dataOwner, {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result = {p_Bytes.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = reinterpret_cast<const mla_char_t*>(p_Bytes.data);
     result.heap.length = p_Bytes.size;
     return result;

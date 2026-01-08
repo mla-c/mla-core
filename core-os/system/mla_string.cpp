@@ -12,11 +12,11 @@ mla_char_t * mla_create_char_array(const mla_size_t p_Length) {
 }
 
 mla_string_t mla_string_empty() {
-    return  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+    return  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 }
 
 mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length) {
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = p_Data;
     result.heap.length = p_Length;
     return result;
@@ -30,7 +30,7 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
 
     if (p_Length <= mla_string_sso_max_length) {
         // Use embedded storage for small strings
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, p_Data, p_Length);
         return result;
@@ -44,7 +44,7 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
 
     mla_memcpy(newData, p_Data, p_Length);
 
-    mla_string_t result =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = newData;
     result.heap.length = p_Length;
     return result;
@@ -65,7 +65,7 @@ mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String) {
 
 mla_string_t mla_string(const mla_char_t *p_Data) {
 
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
     result.heap.data = p_Data;
     result.heap.length = mla_strlen(p_Data);
     return result;
@@ -73,7 +73,7 @@ mla_string_t mla_string(const mla_char_t *p_Data) {
 
 mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End) {
 
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = p_Data;
     result.heap.length = static_cast<mla_size_t>(p_End - p_Data);
     return result;
@@ -81,7 +81,7 @@ mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End) {
 
 mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length) {
 
-    mla_string_t result =  {mla_buffer_reference(p_Data), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference(p_Data), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = p_Data;
     result.heap.length = p_Length;
     return  result;
@@ -89,7 +89,7 @@ mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla
 
 mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length) {
 
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = p_Data;
     result.heap.length = p_Length;
     return result;
@@ -239,7 +239,7 @@ mla_string_t mla_string_to_lower(const mla_string_t &p_String) {
 
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = p_String.embedded.length;
         for (mla_uint8_t i = 0; i < p_String.embedded.length; ++i) {
             result.embedded.data[i] = mla_char_toLower(p_String.embedded.data[i]);
@@ -258,7 +258,7 @@ mla_string_t mla_string_to_lower(const mla_string_t &p_String) {
             newData[i] = mla_char_toLower(p_String.heap.data[i]);
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.data = newData;
         result.heap.length = p_String.heap.length;
         return result;
@@ -285,7 +285,7 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
 
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = p_String.embedded.length;
         for (mla_uint8_t i = 0; i < p_String.embedded.length; ++i) {
             result.embedded.data[i] = mla_char_toUpper(p_String.embedded.data[i]);
@@ -304,7 +304,7 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
             newData[i] = mla_char_toUpper(p_String.heap.data[i]);
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.data = newData;
         result.heap.length = p_String.heap.length;
         return result;
@@ -410,7 +410,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
 
     if (resultLength <= mla_string_sso_max_length) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = resultLength;
         mla_size_t sourcePos = 0;
         mla_size_t destPos = 0;
@@ -461,7 +461,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
                 }
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.data = newData;
         result.heap.length = resultLength;
         return result;
@@ -574,7 +574,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, p_String.embedded.data + p_Start, p_Length);
         return result;
@@ -585,13 +585,13 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         // I am not sure if this is a good idea to copy substrings into embedded strings
         // Maybe its faster just to create a substring view
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, p_String.heap.data + p_Start, p_Length);
         return result;
     }
 
-    mla_string_t result =  {p_String.dataOwner, {MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}};
+    mla_string_t result =  {p_String.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
     result.heap.length = p_Length;
     result.heap.data = p_String.heap.data + p_Start;
     return result;
@@ -673,13 +673,13 @@ mla_string_t mla_string_trim(const mla_string_t &p_String) {
 
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(end - start);
         mla_memcpy(result.embedded.data, p_String.embedded.data + start, end - start);
         return result;
     }
 
-    mla_string_t result =  {p_String.dataOwner, {MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}};
+    mla_string_t result =  {p_String.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
     result.heap.data = p_String.heap.data + start;
     result.heap.length = end - start;
     return result;
@@ -716,7 +716,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
 
         mla_memcpy(newData, data, length);
         newData[length] = '\0'; // Null-terminate the string
-        p_String =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}};
+        p_String =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         p_String.heap.data = newData;
         p_String.heap.length = newLength -1;
         return true;
@@ -735,7 +735,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
             }
 
             mla_memcpy(newData, data, length);
-            p_String =  {mla_buffer_reference(newData), {MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}};
+            p_String =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
             p_String.heap.data = newData;
             p_String.heap.length = length;
             return true;
@@ -758,7 +758,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
             return false; // Cannot convert to embedded layout
         }
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}};
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(length);
         mla_memcpy(result.embedded.data, data, length);
         p_String = result;
