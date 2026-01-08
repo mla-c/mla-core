@@ -292,7 +292,7 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
         }
         return result;
 
-    } else if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+    } else {
 
         mla_char_t *newData = mla_create_char_array(p_String.heap.length);
 
