@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Runner - MLA Platform</title>
+    <link rel="stylesheet" href="mla_wasm_runner.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 WASM Runner - MLA Platform</h1>
+            <p>Load and execute WebAssembly modules with MLA runtime support</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Load WASM Module</div>
+
+            <div class="file-input-wrapper">
+                <label for="wasmFile" class="file-input-label" id="dropZone">
+                    <div>
+                        <div style="font-size: 48px; margin-bottom: 12px;">📦</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">
+                            Drop WASM file here or click to browse
+                        </div>
+                        <div style="font-size: 14px; color: var(--fluent-text-secondary);">
+                            Supports .wasm files
+                        </div>
+                    </div>
+                </label>
+                <input type="file" id="wasmFile" accept=".wasm" />
+            </div>
+
+            <div class="file-info" id="fileInfo"></div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="file-input-wrapper" style="margin-top: 16px;">
+                <label for="customJsFile" class="file-input-label" id="jsDropZone" style="padding: 16px;">
+                    <div>
+                        <div style="font-size: 32px; margin-bottom: 8px;">📜</div>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">
+                            Load Custom Functions (Optional)
+                        </div>
+                        <div style="font-size: 12px; color: var(--fluent-text-secondary);">
+                            Drop .js file with additional function implementations
+                        </div>
+                    </div>
+                </label>
+                <input type="file" id="customJsFile" accept=".js" />
+            </div>
+
+            <div class="file-info" id="jsFileInfo"></div>
+
+            <div class="button-group">
+                <button class="button" id="loadBtn" disabled>Load Module</button>
+                <button class="button" id="runBtn" disabled>Execute Main</button>
+                <button class="button" id="stopBtn" disabled>Stop</button>
+            </div>
+
+            <div class="status" id="status"></div>
+
+            <div class="stats-grid" id="statsGrid" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-label">Module Size</div>
+                    <div class="stat-value" id="statSize">0 KB</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Load Time</div>
+                    <div class="stat-value" id="statLoadTime">0 ms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Execution Time</div>
+                    <div class="stat-value" id="statExecTime">0 ms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Status</div>
+                    <div class="stat-value" id="statStatus">Idle</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="console-header">
+                <div class="card-title" style="margin-bottom: 0;">Console Output</div>
+                <div class="console-controls">
+                    <button class="icon-button" id="clearConsole">Clear</button>
+                    <button class="icon-button" id="copyConsole">Copy</button>
+                </div>
+            </div>
+            <div class="console" id="console">
+                <div class="console-line info">Ready to load WASM module...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UI Elements
+        const elements = {
+            wasmFile: document.getElementById('wasmFile'),
+            dropZone: document.getElementById('dropZone'),
+            customJsFile: document.getElementById('customJsFile'),
+            jsDropZone: document.getElementById('jsDropZone'),
+            fileInfo: document.getElementById('fileInfo'),
+            jsFileInfo: document.getElementById('jsFileInfo'),
+            loadBtn: document.getElementById('loadBtn'),
+            runBtn: document.getElementById('runBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            status: document.getElementById('status'),
+            console: document.getElementById('console'),
+            clearConsole: document.getElementById('clearConsole'),
+            copyConsole: document.getElementById('copyConsole'),
+            progressBar: document.getElementById('progressBar'),
+            progressFill: document.getElementById('progressFill'),
+            statsGrid: document.getElementById('statsGrid'),
+            statSize: document.getElementById('statSize'),
+            statLoadTime: document.getElementById('statLoadTime'),
+            statExecTime: document.getElementById('statExecTime'),
+            statStatus: document.getElementById('statStatus')
+        };
+
+        let worker = null;
+        let selectedFile = null;
+        let customJsCode = null;
+        let moduleLoaded = false;
+        let startTime = 0;
+
+        // Console functions
+        function logToConsole(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            elements.console.appendChild(line);
+            elements.console.scrollTop = elements.console.scrollHeight;
+        }
+
+        function clearConsoleLog() {
+            elements.console.innerHTML = '<div class="console-line info">Console cleared.</div>';
+        }
+
+        function copyConsoleContent() {
+            const text = elements.console.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('Console content copied to clipboard', 'success');
+            });
+        }
+
+        // Status functions
+        function showStatus(message, type = 'info') {
+            elements.status.textContent = message;
+            elements.status.className = `status visible ${type}`;
+        }
+
+        function hideStatus() {
+            elements.status.classList.remove('visible');
+        }
+
+        function updateStats(key, value) {
+            if (elements[key]) {
+                elements[key].textContent = value;
+            }
+        }
+
+        function showStats() {
+            elements.statsGrid.style.display = 'grid';
+        }
+
+        // File handling
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            if (!file.name.endsWith('.wasm')) {
+                showStatus('Please select a valid .wasm file', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            elements.fileInfo.innerHTML = `
+                <strong>📄 ${file.name}</strong><br>
+                Size: ${(file.size / 1024).toFixed(2)} KB
+            `;
+            elements.fileInfo.classList.add('visible');
+            elements.loadBtn.disabled = false;
+
+            updateStats('statSize', `${(file.size / 1024).toFixed(2)} KB`);
+            showStats();
+
+            logToConsole(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+        }
+
+        // Drag and drop
+        elements.dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            elements.dropZone.classList.add('dragover');
+        });
+
+        elements.dropZone.addEventListener('dragleave', () => {
+            elements.dropZone.classList.remove('dragover');
+        });
+
+        elements.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            elements.dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFileSelect(file);
+        });
+
+        elements.wasmFile.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Custom JS file handling
+        function handleCustomJsSelect(file) {
+            if (!file) return;
+
+            if (!file.name.endsWith('.js')) {
+                showStatus('Please select a valid .js file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                customJsCode = e.target.result;
+                elements.jsFileInfo.innerHTML = `
+                    <strong>📜 ${file.name}</strong><br>
+                    Size: ${(file.size / 1024).toFixed(2)} KB
+                `;
+                elements.jsFileInfo.classList.add('visible');
+                logToConsole(`Custom JS file loaded: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+                showStatus('Custom functions loaded successfully', 'success');
+
+                // If worker exists, send the custom functions
+                if (worker) {
+                    worker.postMessage({ type: 'loadCustomFunctions', code: customJsCode });
+                }
+            };
+            reader.onerror = () => {
+                showStatus('Failed to read JS file', 'error');
+                logToConsole('Failed to read custom JS file', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        // Custom JS drag and drop
+        elements.jsDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            elements.jsDropZone.classList.add('dragover');
+        });
+
+        elements.jsDropZone.addEventListener('dragleave', () => {
+            elements.jsDropZone.classList.remove('dragover');
+        });
+
+        elements.jsDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            elements.jsDropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleCustomJsSelect(file);
+        });
+
+        elements.customJsFile.addEventListener('change', (e) => {
+            handleCustomJsSelect(e.target.files[0]);
+        });
+
+        // Worker creation
+        function createWorker() {
+            worker = new Worker('mla_wasm_worker.js');
+
+            worker.addEventListener('message', (e) => {
+                const { type, message, returnValue, stack } = e.data;
+
+                switch (type) {
+                    case 'ready':
+                        logToConsole('Worker initialized and ready', 'info');
+                        // Send custom functions if already loaded
+                        if (customJsCode) {
+                            worker.postMessage({ type: 'loadCustomFunctions', code: customJsCode });
+                        }
+                        break;
+
+                    case 'log':
+                        logToConsole(message);
+                        break;
+
+                    case 'warning':
+                        logToConsole(message, 'warning');
+                        break;
+
+                    case 'error':
+                        logToConsole('Error: ' + message, 'error');
+                        if (stack) {
+                            logToConsole(stack, 'error');
+                        }
+                        showStatus('Execution failed: ' + message, 'error');
+                        updateStats('statStatus', 'Error');
+                        elements.runBtn.disabled = false;
+                        elements.stopBtn.disabled = true;
+                        break;
+
+                    case 'loaded':
+                        moduleLoaded = true;
+                        const loadTime = Date.now() - startTime;
+                        logToConsole(message, 'info');
+                        showStatus('Module loaded successfully', 'success');
+                        updateStats('statLoadTime', loadTime + ' ms');
+                        updateStats('statStatus', 'Loaded');
+                        elements.runBtn.disabled = false;
+                        elements.loadBtn.disabled = true;
+                        elements.progressBar.classList.remove('visible');
+                        break;
+
+                    case 'completed':
+                        const execTime = Date.now() - startTime;
+                        logToConsole(message, 'info');
+                        showStatus('Execution completed successfully', 'success');
+                        updateStats('statExecTime', execTime + ' ms');
+                        updateStats('statStatus', 'Completed');
+                        elements.runBtn.disabled = false;
+                        elements.stopBtn.disabled = true;
+                        break;
+
+                    case 'stopped':
+                        logToConsole(message, 'warning');
+                        showStatus('Worker stopped', 'warning');
+                        updateStats('statStatus', 'Stopped');
+                        moduleLoaded = false;
+                        elements.runBtn.disabled = true;
+                        elements.stopBtn.disabled = true;
+                        elements.loadBtn.disabled = false;
+                        break;
+                }
+            });
+
+            worker.addEventListener('error', (e) => {
+                logToConsole('Worker error: ' + e.message, 'error');
+                showStatus('Worker error: ' + e.message, 'error');
+                updateStats('statStatus', 'Error');
+            });
+        }
+
+        // Load module
+        elements.loadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            try {
+                logToConsole('Reading file...', 'info');
+                showStatus('Loading WASM module...', 'info');
+                elements.progressBar.classList.add('visible');
+                elements.progressFill.style.width = '30%';
+
+                const arrayBuffer = await selectedFile.arrayBuffer();
+
+                elements.progressFill.style.width = '60%';
+
+                if (!worker) {
+                    createWorker();
+                }
+
+                elements.progressFill.style.width = '90%';
+                startTime = Date.now();
+
+                worker.postMessage({ type: 'load', data: arrayBuffer });
+
+                elements.loadBtn.disabled = true;
+                updateStats('statStatus', 'Loading...');
+
+            } catch (error) {
+                logToConsole('Load failed: ' + error.message, 'error');
+                showStatus('Failed to load module: ' + error.message, 'error');
+                elements.progressBar.classList.remove('visible');
+                updateStats('statStatus', 'Failed');
+            }
+        });
+
+        // Run main
+        elements.runBtn.addEventListener('click', () => {
+            if (!moduleLoaded || !worker) {
+                showStatus('No module loaded', 'error');
+                return;
+            }
+
+            logToConsole('Starting execution...', 'info');
+            showStatus('Executing main function...', 'info');
+            updateStats('statStatus', 'Running...');
+
+            elements.runBtn.disabled = true;
+            elements.stopBtn.disabled = false;
+
+            startTime = Date.now();
+            worker.postMessage({ type: 'run' });
+        });
+
+        // Stop worker
+        elements.stopBtn.addEventListener('click', () => {
+            if (worker) {
+                worker.postMessage({ type: 'stop' });
+                logToConsole('Stop requested', 'warning');
+            }
+        });
+
+        // Console controls
+        elements.clearConsole.addEventListener('click', clearConsoleLog);
+        elements.copyConsole.addEventListener('click', copyConsoleContent);
+
+        // Initialize
+        logToConsole('WASM Runner initialized', 'info');
+        logToConsole('Supported external functions: memcpy, memset, memcmp, memmove, strcpy, strlen, strstr, malloc, free, printf, std_read, strtod, strtoll, strtoull, sleep', 'info');
+        logToConsole('💡 You can load custom JavaScript functions to extend the runtime!', 'info');
+    </script>
+</body>
+</html>
