@@ -128,6 +128,15 @@
 
         // Console functions
         function logToConsole(message, type = 'info') {
+            if (type === 'inline') {
+                // Append to the last line instead of creating a new one
+                const lastLine = elements.console.lastElementChild;
+                if (lastLine && lastLine.classList.contains('console-line')) {
+                    lastLine.textContent += message;
+                    return;
+                }
+            }
+
             const line = document.createElement('div');
             line.className = `console-line ${type}`;
             line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -281,6 +290,10 @@
 
                     case 'log':
                         logToConsole(message);
+                        break;
+
+                    case 'logWithoutNewline':
+                        logToConsole(message, 'inline');
                         break;
 
                     case 'warning':
