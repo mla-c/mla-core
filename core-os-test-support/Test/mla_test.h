@@ -10,7 +10,7 @@
 
 struct mla_test_result_t {
     mla_test_bool_t success;
-    const mla_test_char_t *message;
+    mla_test_char_t *message;
     mla_test_uint64_t allocated_memory;
     mla_test_bool_t block_memory_allocations;
 };
@@ -78,12 +78,53 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t* l_Result = new mla_test_char_t[4096];
-        if (p_Message) {
-            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal struct, but got different struct. %s", p_Line, p_Message);
-        } else {
-            snprintf(l_Result, 4096, "Assertion failed at line %d: Expected equal struct, but got different struct.", p_Line);
+        mla_test_char_t* l_Result = (mla_test_char_t*)mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_int32_t offset = 0;
+
+        // Copy "Assertion failed at line "
+        const mla_test_char_t* prefix = "Assertion failed at line ";
+        while (*prefix && offset < 4095) {
+            l_Result[offset++] = *prefix++;
         }
+
+        // Convert line number to string
+        mla_test_int16_t line = p_Line;
+        mla_test_char_t line_buffer[10];
+        mla_test_int32_t line_index = 0;
+        if (line == 0) {
+            line_buffer[line_index++] = '0';
+        } else {
+            mla_test_int16_t temp = line;
+            mla_test_int32_t digit_count = 0;
+            while (temp > 0) {
+                temp /= 10;
+                digit_count++;
+            }
+            for (mla_test_int32_t i = digit_count - 1; i >= 0; i--) {
+                line_buffer[i] = '0' + (line % 10);
+                line /= 10;
+            }
+            line_index = digit_count;
+        }
+        for (mla_test_int32_t i = 0; i < line_index && offset < 4095; i++) {
+            l_Result[offset++] = line_buffer[i];
+        }
+
+        // Copy ": Expected equal struct, but got different struct."
+        const mla_test_char_t* middle = ": Expected equal struct, but got different struct.";
+        while (*middle && offset < 4095) {
+            l_Result[offset++] = *middle++;
+        }
+
+        // Append custom message if provided
+        if (p_Message) {
+            l_Result[offset++] = ' ';
+            while (*p_Message && offset < 4095) {
+                l_Result[offset++] = *p_Message++;
+            }
+        }
+
+        l_Result[offset] = '\0';
         current_test_result.message = (mla_test_char_t *)l_Result;
     }
 }

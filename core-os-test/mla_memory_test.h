@@ -25,15 +25,15 @@ void MlaMemset16KbBenchmark() {
 void NativeMemset16KbBenchmark() {
 
     const mla_size_t size = 16 * 1024; // 16 KB
-    mla_byte_t* buffer = (mla_byte_t*)malloc(size);
+    mla_byte_t* buffer = (mla_byte_t*)mla_test_malloc(size);
 
-    memset(buffer, 0, size);
+    mla_test_memset(buffer, 0, size);
 
     // Prevent optimization from removing the operation
     volatile mla_byte_t temp = buffer[0];
     (void)temp; // Prevent unused variable warning
 
-    free(buffer);
+    mla_test_free(buffer);
 }
 
 void RegisterMemoryBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {

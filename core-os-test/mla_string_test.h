@@ -9,6 +9,7 @@
 #include "../core-os/system/mla_string.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
+#include "../core-os-test-support/mla_test_utils.h"
 
 void SizeOfTest() {
     assert_true(sizeof(mla_string_t) <= 24, "Size of mla_string_t should be less than or equal to 24 bytes");
@@ -1299,7 +1300,7 @@ void StringFromUtf32BufferBenchmark() {
 
 void StringContains_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = (mla_test_int32_t) strlen(data); // Length of the string
+    mla_test_int32_t length = (mla_test_int32_t) mla_test_strlen(data); // Length of the string
 
     mla_string_t str = mla_string(data, length);
     mla_string_t subString = mla_string("for");
@@ -1321,7 +1322,7 @@ void StringContains_C_LayoutBenchmark() {
 
 void StringIndexOf_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = (mla_test_int32_t) strlen(data); // Length of the string
+    mla_test_int32_t length = (mla_test_int32_t) mla_test_strlen(data); // Length of the string
 
     mla_string_t str = mla_string(data, length);
     mla_string_t subString = mla_string("for");
@@ -1348,13 +1349,13 @@ void String_to_C_LayoutBenchmark() {
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
     if (cStr.isOwner) {
-        delete cStr.c_str;
+        mla_free(const_cast<mla_char_t *>(cStr.c_str));
     }
 
     mla_c_string_t cStr2 = mla_string_to_cString(str, false);
 
     if (cStr2.isOwner) {
-        delete cStr2.c_str;
+        mla_free(const_cast<mla_char_t *>(cStr2.c_str));
     }
 }
 
@@ -1363,13 +1364,13 @@ void String_to_Buffer_LayoutBenchmark() {
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
     if (cStr.isOwner) {
-        delete cStr.c_str;
+        mla_free(const_cast<mla_char_t *>(cStr.c_str));
     }
 
     mla_c_string_t cStr2 = mla_string_to_cString(str, false);
 
     if (cStr2.isOwner) {
-        delete cStr2.c_str;
+        mla_free(const_cast<mla_char_t *>(cStr2.c_str));
     }
 }
 

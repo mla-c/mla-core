@@ -1,9 +1,6 @@
 #ifndef COREOS_TESTDATATYPES_H
 #define COREOS_TESTDATATYPES_H
 
-#include "stdio.h"
-#include "cstring"
-
 // Platform detection and 32-bit type definitions
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__) || defined(__aarch64__) || (defined(__SIZEOF_LONG__) && __SIZEOF_LONG__ == 8)
     // 64-bit Unix/Linux (LP64 model): long is 8 bytes
@@ -33,9 +30,25 @@
 
 #define mla_test_pointer_t void*
 
+
+inline const mla_test_char_t* ___native_test_strrchr(const mla_test_char_t* str, mla_test_char_t ch) {
+    const mla_test_char_t* last = nullptr;
+    while (*str != '\0') {
+        if (*str == ch) {
+            last = str;
+        }
+        str++;
+    }
+    // Check if the null terminator matches the character
+    if (ch == '\0') {
+        return str;
+    }
+    return last;
+}
+
 #define mla_test__FILENAME_ONLY__ \
-(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
-(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+(___native_test_strrchr(__FILE__, '/') ? ___native_test_strrchr(__FILE__, '/') + 1 : \
+(___native_test_strrchr(__FILE__, '\\') ? ___native_test_strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 
 // Define a print function structure to allow custom print functions
@@ -58,8 +71,19 @@ extern mla_test_mutex_t g_test_mutex;
 
 #define mla_test_printf(...) g_test_print.printf(__VA_ARGS__);
 
+struct mla_test_memory_allocator_t {
+    mla_test_pointer_t (*malloc)(mla_test_uint32_t size);
+    void (*free)(mla_test_pointer_t ptr);
+};
+
+extern mla_test_memory_allocator_t g_test_memory_allocator;
+
+#define mla_test_malloc(size) g_test_memory_allocator.malloc(size)
+#define mla_test_free(ptr) g_test_memory_allocator.free(ptr)
+
 enum mla_test_output_format_t: mla_test_uint8_t {
     mla_test_output_format_text,
     mla_test_output_format_json
 };
+
 #endif

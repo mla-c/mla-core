@@ -1,0 +1,18 @@
+//
+// Created by chris on 1/9/2026.
+//
+
+#ifndef COREOS_MLA_BENCHMARK_TIMER_EXTERNAL_H
+#define COREOS_MLA_BENCHMARK_TIMER_EXTERNAL_H
+
+#include "../Benchmark/mla_benchmark.h"
+
+extern "C" {
+    mla_test_uint64_t external_test_current_nanoseconds();
+}
+
+mla_benchmark_timer_t g_benchmark_timer = {
+    external_test_current_nanoseconds
+};
+
+#endif

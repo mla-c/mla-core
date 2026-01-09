@@ -107,22 +107,34 @@ struct mla_atomic_int32_t {
 #define mla_max(a, b) ((a) > (b) ? (a) : (b))
 
 // Macro for INFINITY
-#include <cmath>
-#define mla_infinity_pos INFINITY
-#define mla_infinity_neg (-INFINITY)
+#define mla_infinity_pos (__builtin_inff())
+#define mla_infinity_neg (-(__builtin_inff()))
 
 
 //////////////////////////////////////////////////////
 // Loging and Debugging Macros
 
 // Macro to get the filename only
-#include <cstring>
+inline const mla_char_t* ___native_strrchr(const mla_char_t* str, mla_int32_t ch) {
+    const mla_char_t* last = nullptr;
+    while (*str != '\0') {
+        if (*str == ch) {
+            last = str;
+        }
+        str++;
+    }
+    // Check if the null terminator matches the character
+    if (ch == '\0') {
+        return str;
+    }
+    return last;
+}
 
 // Extracts the filename from the full path
 // The macro works for both Unix and Windows style paths
 #define __FILENAME_ONLY__ \
-(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
-(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+(___native_strrchr(__FILE__, '/') ? ___native_strrchr(__FILE__, '/') + 1 : \
+(___native_strrchr(__FILE__, '\\') ? ___native_strrchr(__FILE__, '\\') + 1 : __FILE__))
 
 //////////////////////////////////////////////////
 /// Low level memory operations and access to printf and other C functions
@@ -181,10 +193,10 @@ inline mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* fi
     mla_pointer_t ptr = g_low_level_access.malloc(size);
     if (ptr == nullptr) {
 
-        const mla_char_t* foundChar = strrchr(filename, '/');
+        const mla_char_t* foundChar = ___native_strrchr(filename, '/');
 
         if (foundChar == nullptr) {
-            foundChar = strrchr(filename, '\\');
+            foundChar = ___native_strrchr(filename, '\\');
         }
 
         if (foundChar != nullptr) {
@@ -226,7 +238,8 @@ struct mla_default_initializer {
 
 #define mla_default_init(T) mla_default_initializer<T>
 
-#define mla_offsetof(type, member) ((mla_size_t)((mla_byte_t*)&(((type*)((mla_byte_t*)1))->member) - (mla_byte_t*)1))
+//#define mla_offsetof(type, member) ((mla_size_t)((mla_byte_t*)&(((type*)((mla_byte_t*)1))->member) - (mla_byte_t*)1))
+#define mla_offsetof(type, member) ((mla_size_t)__builtin_offsetof(type, member))
 
 
 #endif

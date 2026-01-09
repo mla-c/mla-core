@@ -8,7 +8,7 @@ mla_test_executor_t mla_test_executor(mla_test_int32_t p_MaxTests) {
 
     mla_test_executor_t executor;
     executor.max_tests = p_MaxTests;
-    executor.tests = new mla_test_t[p_MaxTests];
+    executor.tests = (mla_test_t*) mla_test_malloc(sizeof(mla_test_t) * p_MaxTests);
     for (mla_test_int32_t i = 0; i < p_MaxTests; ++i) {
         executor.tests[i] = {nullptr, nullptr, nullptr, nullptr, nullptr};
     }
@@ -21,7 +21,7 @@ void mla_test_executor_destroy(mla_test_executor_t &executor) {
             mla_test_destroy(executor.tests[i]);
         }
     }
-    delete[] executor.tests;
+    mla_test_free(executor.tests);
     executor.tests = nullptr;
     executor.max_tests = 0;
 }

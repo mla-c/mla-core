@@ -1,8 +1,6 @@
 #ifndef COREOS_MLA_HASH_MAP_H
 #define COREOS_MLA_HASH_MAP_H
 
-#include <iterator>
-
 #include "../mla_data_types.h"
 #include "mla_array_list.h"
 

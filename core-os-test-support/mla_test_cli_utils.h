@@ -6,6 +6,7 @@
 #define COREOS_TEST_MLA_TEST_CLI_UTILS_H
 
 #include "mla_test_data_types.h"
+#include "mla_test_utils.h"
 
 void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_test_bool_t& runBenchmark, mla_test_output_format_t& benchmarkOutputFormat) {
 
@@ -14,15 +15,15 @@ void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_tes
     benchmarkOutputFormat = mla_test_output_format_text;
 
     for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "--test") == 0) {
+        if (mla_test_strcmp(argv[i], "--test") == 0) {
             runTest = true;
         }
 
-        if (strcmp(argv[i], "--benchmark") == 0) {
+        if (mla_test_strcmp(argv[i], "--benchmark") == 0) {
             runBenchmark = true;
         }
 
-        if (strcmp(argv[i], "--benchmark-output=json") == 0) {
+        if (mla_test_strcmp(argv[i], "--benchmark-output=json") == 0) {
             benchmarkOutputFormat = mla_test_output_format_json;
         }
     }

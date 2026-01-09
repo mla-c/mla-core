@@ -172,7 +172,7 @@ struct mla_reflection_struct_metadata_response_t {
 
         mla_reflection_struct_metadata_t meta = mla_reflection_struct_metadata(mla_reflection_struct_metadata_response_t);
         mla_reflection_struct_field_bool(meta, mla_reflection_struct_metadata_response_t, found);
-        mla_reflection_struct_field_struct(meta, mla_reflection_struct_metadata_response_t, metadata, mla_reflection_rpc_struct_metadata_t);
+        mla_reflection_struct_field_struct(meta, mla_reflection_struct_metadata_response_t, meta_data, mla_reflection_rpc_struct_metadata_t);
         mla_reflection_struct_metadata_freeze(meta);
         return meta;
     }

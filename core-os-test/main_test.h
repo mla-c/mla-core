@@ -142,25 +142,25 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     mla_test_int32_t l_FailedTest = 0;
 
     if (runTest) {
-        printf("Running Tests...\n");
+        mla_test_printf("Running Tests...\n");
         l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
         //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
         //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
         //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
         //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
         //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
-        printf("Tests completed with %d failed tests\n", l_FailedTest);
+        mla_test_printf("Tests completed with %d failed tests\n", l_FailedTest);
     }
 
     // Running benchmarks
     ////////////////////////////////////////
 
-    printf("\n");
+    mla_test_printf("\n");
 
     if (runBenchmark) {
 
         if (benchmarkOutputFormat == mla_test_output_format_text) {
-            printf("Running Benchmarks...\n\n");
+            mla_test_printf("Running Benchmarks...\n\n");
         }
 
         mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
@@ -169,7 +169,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 61, benchmarkOutputFormat);
 
         if (benchmarkOutputFormat == mla_test_output_format_text) {
-            printf("\nBenchmarks completed\n");
+            mla_test_printf("\nBenchmarks completed\n");
         }
     }
 

@@ -190,7 +190,7 @@ struct mla_string_hash_t {
 
 // Helper to create mla_string_t from string literals
 // Usage: mla_string_const("Hello World")
-template<size_t N>
+template<mla_size_t N>
 mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
     return mla_string(literal, N-1);  // N includes null terminator
 }

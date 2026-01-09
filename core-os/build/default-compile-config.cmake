@@ -1,5 +1,31 @@
+if (MLA_WASM_STANDALONE)
 
-if (MLA_EMSDK_PATH)
+    if (CMAKE_CXX_COMPILER MATCHES "zig")
+
+        # Basic flags for Zig WASM
+        add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions -target wasm32-freestanding)
+
+        # 1. -target wasm32-freestanding: Set linker target
+        # 2. -Wl,--no-entry: Don't look for _start (because main returns int, which is invalid for WASM start)
+        # 3. -Wl,--export=main: Make main available to be called by JavaScript
+        add_link_options(
+                -target wasm32-freestanding
+                -Wl,--no-entry
+                -Wl,--export=main
+        )
+
+        # Fix: Even on Generic systems, CMake might try to link standard C libs if checks fail.
+        # Explicitly empty them for freestanding WASM.
+        set(CMAKE_C_STANDARD_LIBRARIES "" CACHE INTERNAL "")
+        set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE INTERNAL "")
+
+        message(STATUS "Configured Zig Compiler for Standalone WASM Build")
+    else()
+        # Zig compiler does not support standalone wasm builds yet
+        message(FATAL_ERROR "Standalone WASM builds are only supported with the Zig compiler at this time.")
+    endif()
+
+elseif (MLA_EMSDK_PATH)
 
     # Enable all warnings and treat them as errors
     # Disable exceptions to reduce binary size

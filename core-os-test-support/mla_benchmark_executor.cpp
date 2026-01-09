@@ -8,7 +8,7 @@ mla_benchmark_executor_t mla_benchmark_executor(mla_test_uint32_t p_MaxBenchmark
 
     mla_benchmark_executor_t executor;
     executor.max_benchmarks = p_MaxBenchmarks;
-    executor.benchmarks = new mla_benchmark_t[p_MaxBenchmarks];
+    executor.benchmarks = (mla_benchmark_t*)mla_test_malloc(sizeof(mla_benchmark_t) * p_MaxBenchmarks);
     for (mla_test_uint32_t i = 0; i < p_MaxBenchmarks; ++i) {
         executor.benchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
     }
@@ -21,7 +21,7 @@ void mla_benchmark_executor_destroy(mla_benchmark_executor_t &executor) {
             mla_benchmark_destroy(executor.benchmarks[i]);
         }
     }
-    delete[] executor.benchmarks;
+    mla_test_free(executor.benchmarks);
     executor.benchmarks = nullptr;
     executor.max_benchmarks = 0;
 }

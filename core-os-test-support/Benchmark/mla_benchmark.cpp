@@ -3,6 +3,7 @@
 //
 
 #include "mla_benchmark.h"
+#include "../mla_test_utils.h"
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
 #include "../../core-os/mla_data_types.h"
@@ -229,7 +230,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_uint64_t maxTime = 0;
     
     // Allocate array for timing measurements to calculate median
-    mla_test_uint64_t* times = new mla_test_uint64_t[benchmarkIterations];
+    mla_test_uint64_t* times = (mla_test_uint64_t*)mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations);
     
     mla_test_uint32_t actualIterations = 0;
 
@@ -269,8 +270,8 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         medianTime = __mla_benchmark_calculate_median(times, actualIterations);
         allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / actualIterations);
     }
-    
-    delete[] times;
+
+    mla_test_free(times);
 #else
     // Min, Max, and Average time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;
@@ -325,24 +326,45 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
 
     char name_with_arena_sufix[31] = {0};
-    mla_test_uint32_t charCount = snprintf(name_with_arena_sufix, 31, " (%u kb)", (mla_test_uint32_t)(arena_size / 1024));
 
+    // Build " (%u kb)" manually
+    mla_test_uint32_t pos = 0;
+    name_with_arena_sufix[pos++] = ' ';
+    name_with_arena_sufix[pos++] = '(';
+
+    // Convert number to string
+    mla_test_char_t num_buffer[16];
+    mla_test_uint32_t num_len = mla_uint32_to_string(num_buffer, 16, (mla_test_uint32_t)(arena_size / 1024));
+
+    // Copy number
+    for (mla_test_uint32_t i = 0; i < num_len; i++) {
+        name_with_arena_sufix[pos++] = num_buffer[i];
+    }
+
+    // Add " kb)"
+    name_with_arena_sufix[pos++] = ' ';
+    name_with_arena_sufix[pos++] = 'k';
+    name_with_arena_sufix[pos++] = 'b';
+    name_with_arena_sufix[pos++] = ')';
+    name_with_arena_sufix[pos] = '\0';
+
+    mla_test_uint32_t charCount = pos;
 
     mla_test_uint32_t charToCopy = 31 - charCount;
 
     if (charToCopy > 0) {
         // We have space tocopy part of the name in front
         // Copy the beginning to the end
-        memmove(&name_with_arena_sufix[charToCopy - 1], &name_with_arena_sufix[0], charCount);
+        mla_test_memmove(&name_with_arena_sufix[charToCopy - 1], &name_with_arena_sufix[0], charCount);
         // Copy the begining of the name
-        mla_size_t name_size = (mla_size_t)strlen(benchmark.name);
+        mla_size_t name_size = (mla_size_t)mla_test_strlen(benchmark.name);
         if (name_size > charToCopy) {
             name_size = charToCopy;
         }
-        memcpy(&name_with_arena_sufix[0], benchmark.name, name_size);
+        mla_test_memcpy(&name_with_arena_sufix[0], benchmark.name, name_size);
         if (name_size + charCount < 30) {
             // Fillup remaning with spaces
-            memset(&name_with_arena_sufix[name_size], ' ', 31 - (name_size + charCount));
+            mla_test_memset(&name_with_arena_sufix[name_size], ' ', 31 - (name_size + charCount));
         }
 
 
@@ -442,7 +464,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     mla_test_uint64_t maxTime = 0;
     
     // Allocate array for timing measurements to calculate median
-    mla_test_uint64_t* times = new mla_test_uint64_t[benchmarkIterations];
+    mla_test_uint64_t* times = (mla_test_uint64_t*)mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations);
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
         auto start = g_benchmark_timer.current_nanoseconds();
@@ -461,8 +483,8 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     }
 
     auto medianTime = __mla_benchmark_calculate_median(times, benchmarkIterations);
-    
-    delete[] times;
+
+    mla_test_free(times);
 #else
     // Min, Max, and Average time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;

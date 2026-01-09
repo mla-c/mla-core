@@ -2,6 +2,16 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
 
+if (MLA_WASM_STANDALONE)
+    # Fix: Tell CMake we are cross-compiling to a generic system (WASM), not Windows
+    # This prevents CMake from adding flags like -femit-implib or --major-image-version
+    set(CMAKE_SYSTEM_NAME Generic)
+    set(CMAKE_SYSTEM_PROCESSOR wasm32)
+    set(CMAKE_CROSSCOMPILING TRUE)
+    set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
+
+    message(STATUS "Configuring Toolchain for Standalone WASM (Generic System)")
+endif()
 
 if (MLA_EMSDK_PATH)
     message("Found EMSDK PATH: ${MLA_EMSDK_PATH}")
