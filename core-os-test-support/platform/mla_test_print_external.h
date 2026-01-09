@@ -8,6 +8,7 @@
 #include "../mla_test_data_types.h"
 
 extern "C" {
+    __attribute__((import_module("mla_test"), import_name("external_test_printf")))
     void external_test_printf(const mla_test_char_t* format, ...);
 }
 

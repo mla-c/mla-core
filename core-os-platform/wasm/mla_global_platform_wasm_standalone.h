@@ -10,35 +10,49 @@
 #include "../../core-os/mla_data_types.h"
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
-// Declare external JavaScript functions that will be imported
-// These functions are implemented in the accompanying JavaScript file
+// Declare external functions which must be provided by the wasm host
 extern "C" {
 
-    // Memory operations - implemented in JavaScript
+    // Memory operations
+    __attribute__((import_module("mla"), import_name("external_memcpy")))
     void* external_memcpy(void* dest, const void* src, unsigned int size);
+    __attribute__((import_module("mla"), import_name("external_memset")))
     void* external_memset(void* dest, unsigned char value, unsigned int size);
+    __attribute__((import_module("mla"), import_name("external_memcmp")))
     int external_memcmp(const void* dest, const void* src, unsigned int size);
+    __attribute__((import_module("mla"), import_name("external_memmove")))
     void* external_memmove(void* dest, const void* src, unsigned int size);
 
-    // String operations - implemented in JavaScript
+    // String operations
+    __attribute__((import_module("mla"), import_name("external_strcpy")))
     char* external_strcpy(char* dest, const char* src);
+    __attribute__((import_module("mla"), import_name("external_strlen")))
     unsigned int external_strlen(const char* str);
+    __attribute__((import_module("mla"), import_name("external_strstr")))
     const char* external_strstr(const char* str, const char* substr);
 
-    // Memory allocation - implemented in JavaScript
+    // Memory allocation
+    __attribute__((import_module("mla"), import_name("external_malloc")))
     void* external_malloc(unsigned int size);
+    __attribute__((import_module("mla"), import_name("external_free")))
     void external_free(void* ptr);
 
-    // I/O operations - implemented in JavaScript
+    // I/O operations
+    __attribute__((import_module("mla"), import_name("external_printf")))
     int external_printf(const char* format, ...);
+    __attribute__((import_module("mla"), import_name("external_std_read")))
     unsigned int external_std_read(char* buffer, unsigned int size);
 
-    // Parsing functions - implemented in JavaScript
+    // Parsing functions
+    __attribute__((import_module("mla"), import_name("external_strtod")))
     int external_strtod(const char* str, unsigned int length, double* out_value);
+    __attribute__((import_module("mla"), import_name("external_strtoll")))
     int external_strtoll(const char* str, unsigned int length, long long* out_value);
+    __attribute__((import_module("mla"), import_name("external_strtoull")))
     int external_strtoull(const char* str, unsigned int length, unsigned long long* out_value);
 
-    // Timing - implemented in JavaScript
+    // Timing
+    __attribute__((import_module("mla"), import_name("external_sleep")))
     void external_sleep(unsigned int milliseconds);
 }
 

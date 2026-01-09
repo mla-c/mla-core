@@ -8,7 +8,9 @@
 #include "../mla_test_data_types.h"
 
 extern "C" {
+    __attribute__((import_module("mla_test"), import_name("external_test_malloc")))
     void* external_test_malloc(mla_test_uint32_t size);
+    __attribute__((import_module("mla_test"), import_name("external_test_free")))
     void external_test_free(void* ptr);
 }
 
