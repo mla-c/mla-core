@@ -1,3 +1,32 @@
+// Polyfill for Node.js worker_threads compatibility
+const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+
+if (isNode && typeof self === 'undefined') {
+    global.self = global;
+}
+
+// Create unified messaging functions
+let parentPort;
+if (isNode) {
+    parentPort = require('worker_threads').parentPort;
+}
+
+const postMessageToParent = (msg) => {
+    if (isNode) {
+        parentPort.postMessage(msg);
+    } else {
+        self.postMessage(msg);
+    }
+};
+
+const addMessageListener = (handler) => {
+    if (isNode) {
+        parentPort.on('message', handler);
+    } else {
+        self.addEventListener('message', (e) => handler(e.data));
+    }
+};
+
 let wasmInstance = null;
 let wasmMemory = null;
 let memoryBuffer = null;
@@ -13,8 +42,15 @@ const textDecoder = new TextDecoder();
 const allocations = new Map(); // Track allocated blocks: ptr -> size
 const freeList = []; // List of freed blocks: { ptr, size }
 
-const sleepBuffer = new SharedArrayBuffer(4);
-const sleepView = new Int32Array(sleepBuffer);
+let sleepView = null;
+try {
+    const sleepBuffer = new SharedArrayBuffer(4);
+    sleepView = new Int32Array(sleepBuffer);
+} catch (e) {
+    sleepView = undefined;
+    console.error('SharedArrayBuffer not supported, sleep function will be limited.', e);
+}
+
 
 // Helper functions
 function getMemoryView() {
@@ -126,7 +162,7 @@ const mlaImports = {
                 wasmMemory.grow(requiredPages - currentPages);
                 memoryBuffer = null; // Force refresh
             } catch (e) {
-                self.postMessage({ type: 'error', message: 'Memory allocation failed: ' + e.message });
+                postMessageToParent({ type: 'error', message: 'Memory allocation failed: ' + e.message });
                 return 0;
             }
         }
@@ -140,7 +176,7 @@ const mlaImports = {
 
         const size = allocations.get(ptr);
         if (size === undefined) {
-            self.postMessage({
+            postMessageToParent({
                 type: 'warning',
                 message: `Attempted to free unallocated or already freed memory at ${ptr}`
             });
@@ -345,13 +381,13 @@ const mlaImports = {
             for (let i = 0; i < lines.length; i++) {
                 if (i < lines.length - 1) {
                     // This is not the last part, so it ends with a newline
-                    self.postMessage({
+                    postMessageToParent({
                         type: 'log',
                         message: lines[i]
                     });
                 } else if (lines[i].length > 0) {
                     // Last part without newline (if not empty)
-                    self.postMessage({
+                    postMessageToParent({
                         type: 'logWithoutNewline',
                         message: lines[i]
                     });
@@ -361,7 +397,7 @@ const mlaImports = {
 
             return output.length;
         } catch (e) {
-            self.postMessage({ type: 'error', message: 'printf error: ' + e.message });
+            postMessageToParent({ type: 'error', message: 'printf error: ' + e.message });
             return 0;
         }
     },
@@ -369,7 +405,7 @@ const mlaImports = {
 
     external_std_read: (bufferPtr, size) => {
         // Read from stdin - not implemented in web context
-        self.postMessage({ type: 'warning', message: 'std_read not supported in web context' });
+        postMessageToParent({ type: 'warning', message: 'std_read not supported in web context' });
         return 0;
     },
 
@@ -413,19 +449,25 @@ const mlaImports = {
     },
 
     external_sleep: (milliseconds) => {
+
+        if (!sleepView) {
+            postMessageToParent({ type: 'warning', message: 'Sleep not supported in this environment.' });
+            return;
+        }
+
         Atomics.wait(sleepView, 0, 0, milliseconds);
     }
 };
 
-self.addEventListener('message', async (e) => {
-    const { type, data, code } = e.data;
+// Message handler
+addMessageListener(async (data) => {
+    const { type, data: msgData, code } = data;
 
     try {
         if (type === 'loadCustomFunctions') {
-            self.postMessage({ type: 'log', message: 'Loading custom functions...' });
+            postMessageToParent({ type: 'log', message: 'Loading custom functions...' });
 
             try {
-                // Create a context with helper functions available
                 const context = {
                     getMemoryView,
                     readString,
@@ -438,10 +480,9 @@ self.addEventListener('message', async (e) => {
                     textEncoder,
                     textDecoder,
                     self,
-                    postMessage: self.postMessage.bind(self)
+                    postMessage: postMessageToParent
                 };
 
-                // Execute the custom JS code in a function scope
                 const customFn = new Function('context', `
                     const { getMemoryView, readString, writeString, wasmMemory, externalMalloc, externalFree, externalPrintf, wasmInstance, textEncoder, textDecoder, self, postMessage } = context;
                     ${code}
@@ -450,7 +491,6 @@ self.addEventListener('message', async (e) => {
 
                 customFunctions = customFn(context);
 
-                // Count modules and functions
                 const moduleNames = Object.keys(customFunctions);
                 if (moduleNames.length > 0) {
                     const details = moduleNames.map(moduleName => {
@@ -458,18 +498,18 @@ self.addEventListener('message', async (e) => {
                         return `${moduleName} (${funcs.length} functions: ${funcs.join(', ')})`;
                     }).join('; ');
 
-                    self.postMessage({
+                    postMessageToParent({
                         type: 'log',
                         message: `Custom modules loaded: ${details}`
                     });
                 } else {
-                    self.postMessage({
+                    postMessageToParent({
                         type: 'warning',
                         message: 'No custom functions found. Make sure to define customMlaFunctions object.'
                     });
                 }
             } catch (error) {
-                self.postMessage({
+                postMessageToParent({
                     type: 'error',
                     message: 'Failed to load custom functions: ' + error.message,
                     stack: error.stack
@@ -477,12 +517,10 @@ self.addEventListener('message', async (e) => {
             }
 
         } else if (type === 'load') {
-            self.postMessage({ type: 'log', message: 'Loading WASM module...' });
+            postMessageToParent({ type: 'log', message: 'Loading WASM module...' });
 
-            // Compile and instantiate
-            const module = await WebAssembly.compile(data);
+            const module = await WebAssembly.compile(msgData);
 
-            // Build import object with custom functions organized by module
             const importObject = {
                 mla: { ...mlaImports, ...(customFunctions.mla || {}) },
                 env: {
@@ -490,7 +528,6 @@ self.addEventListener('message', async (e) => {
                 }
             };
 
-            // Add any additional custom modules beyond 'mla' and 'env'
             for (const moduleName in customFunctions) {
                 if (moduleName !== 'mla' && moduleName !== 'env') {
                     importObject[moduleName] = customFunctions[moduleName];
@@ -500,13 +537,11 @@ self.addEventListener('message', async (e) => {
             const instance = await WebAssembly.instantiate(module, importObject);
             wasmInstance = instance;
 
-            // Use the WASM instance's memory if it exports one
             if (instance.exports.memory) {
                 wasmMemory = instance.exports.memory;
-                memoryBuffer = null; // Force refresh
+                memoryBuffer = null;
             }
 
-            // Initialize heap base from WASM if available
             if (instance.exports.__heap_base) {
                 heapBase = instance.exports.__heap_base.value;
                 heapPointer = heapBase;
@@ -515,26 +550,25 @@ self.addEventListener('message', async (e) => {
                 heapPointer = 65536;
             }
 
-            self.postMessage({ type: 'loaded', message: 'WASM module loaded successfully' });
+            postMessageToParent({ type: 'loaded', message: 'WASM module loaded successfully' });
 
         } else if (type === 'run') {
             if (!wasmInstance) {
                 throw new Error('No WASM module loaded');
             }
 
-            self.postMessage({ type: 'log', message: 'Executing main function...' });
+            postMessageToParent({ type: 'log', message: 'Executing main function...' });
 
-            // Try to find and execute main
             if (wasmInstance.exports.main) {
                 const result = wasmInstance.exports.main();
-                self.postMessage({
+                postMessageToParent({
                     type: 'completed',
                     message: `Main function executed successfully. Return value: ${result}`,
                     returnValue: result
                 });
             } else if (wasmInstance.exports._start) {
                 wasmInstance.exports._start();
-                self.postMessage({
+                postMessageToParent({
                     type: 'completed',
                     message: 'Start function executed successfully'
                 });
@@ -546,10 +580,10 @@ self.addEventListener('message', async (e) => {
             wasmInstance = null;
             wasmMemory = null;
             memoryBuffer = null;
-            self.postMessage({ type: 'stopped', message: 'Worker stopped' });
+            postMessageToParent({ type: 'stopped', message: 'Worker stopped' });
         }
     } catch (error) {
-        self.postMessage({
+        postMessageToParent({
             type: 'error',
             message: error.message,
             stack: error.stack
@@ -557,5 +591,5 @@ self.addEventListener('message', async (e) => {
     }
 });
 
-self.postMessage({ type: 'ready', message: 'Worker initialized' });
+postMessageToParent({ type: 'ready', message: 'Worker initialized' });
 
