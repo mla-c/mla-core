@@ -41,7 +41,6 @@ let startTime = 0;
  * Log formatted messages to console
  */
 function log(message, type = 'info') {
-    const timestamp = new Date().toLocaleTimeString();
     let prefix = '';
     let color = colors.white;
 
@@ -62,13 +61,31 @@ function log(message, type = 'info') {
             prefix = '✗';
             color = colors.red;
             break;
-        case 'inline':
-            // Just append to current line
-            process.stdout.write(message);
-            return;
     }
 
-    console.log(`${colors.dim}[${timestamp}]${colors.reset} ${color}${prefix} ${message}${colors.reset}`);
+    // Split message by newlines to handle them properly
+    const parts = message.split('\n');
+
+    for (let i = 0; i < parts.length; i++) {
+        if (i === 0) {
+            // First part gets the prefix
+            process.stdout.write(`${color}${prefix} ${parts[i]}`);
+        } else {
+            // Subsequent parts get a newline before them (but no prefix)
+            process.stdout.write(`\n${parts[i]}`);
+        }
+    }
+
+    // Don't add final newline - let the message control that
+    process.stdout.write(colors.reset);
+}
+
+/**
+ * Write raw output to console (from printf)
+ */
+function rawOutput(message) {
+    // Just write the message as-is, no prefix or formatting
+    process.stdout.write(message);
 }
 
 /**
@@ -150,15 +167,15 @@ function createWorker() {
 
         switch (type) {
             case 'ready':
-                log('Worker initialized and ready', 'info');
+                log('Worker initialized and ready\n', 'info');
                 break;
 
             case 'log':
                 log(message, 'info');
                 break;
 
-            case 'logWithoutNewline':
-                log(message, 'inline');
+            case 'output':
+                rawOutput(message);
                 break;
 
             case 'warning':
@@ -239,14 +256,14 @@ function loadCustomFunctions(jsFilePath) {
 
         if (worker) {
             worker.postMessage({type: 'loadCustomFunctions', code: jsCode});
-            log('Custom functions loaded successfully', 'success');
+            log('Custom functions loaded successfully\n', 'success');
             return true;
         } else {
-            log('Worker not initialized', 'error');
+            log('Worker not initialized\n', 'error');
             return false;
         }
     } catch (error) {
-        log(`Failed to load custom functions: ${error.message}`, 'error');
+        log(`Failed to load custom functions: ${error.message}\n`, 'error');
         return false;
     }
 }
@@ -290,11 +307,11 @@ async function loadWasmModule(wasmFilePath) {
  */
 function executeMain() {
     if (!moduleLoaded) {
-        log('No module loaded', 'error');
+        log('No module loaded\n', 'error');
         return false;
     }
 
-    log('Starting execution...', 'info');
+    log('Starting execution...\n', 'info');
     stats.status = 'Running...';
     startTime = Date.now();
 
@@ -328,7 +345,7 @@ function parseArgs() {
             if (i + 1 < args.length) {
                 options.customJs = args[++i];
             } else {
-                log('Missing argument for --custom', 'error');
+                log('Missing argument for --custom\n', 'error');
                 process.exit(1);
             }
         } else if (!arg.startsWith('-')) {
@@ -336,7 +353,7 @@ function parseArgs() {
                 options.wasmFile = arg;
             }
         } else {
-            log(`Unknown option: ${arg}`, 'error');
+            log(`Unknown option: ${arg}\n`, 'error');
             process.exit(1);
         }
     }
@@ -364,7 +381,7 @@ async function main() {
     }
 
     // Create worker
-    log('Initializing worker...', 'info');
+    log('Initializing worker...\n', 'info');
     createWorker();
 
     // Wait a bit for worker to be ready
@@ -386,7 +403,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     if (!moduleLoaded) {
-        log('Module failed to load', 'error');
+        log('Module failed to load\n', 'error');
         process.exit(1);
     }
 
@@ -394,7 +411,7 @@ async function main() {
     if (!options.noRun) {
         executeMain();
     } else {
-        log('Module loaded successfully (not executing due to --no-run)', 'success');
+        log('Module loaded successfully (not executing due to --no-run)\n', 'success');
         showStats();
         process.exit(0);
     }
@@ -403,7 +420,7 @@ async function main() {
 // Handle process termination
 process.on('SIGINT', () => {
     console.log('\n');
-    log('Received interrupt signal, terminating...', 'warning');
+    log('Received interrupt signal, terminating...\n', 'warning');
     if (worker) {
         worker.terminate();
     }
@@ -412,7 +429,7 @@ process.on('SIGINT', () => {
 
 // Run main function
 main().catch(error => {
-    log(`Fatal error: ${error.message}`, 'error');
+    log(`Fatal error: ${error.message}\n`, 'error');
     console.error(error.stack);
     process.exit(1);
 });

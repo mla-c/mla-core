@@ -128,19 +128,56 @@
 
         // Console functions
         function logToConsole(message, type = 'info') {
-            if (type === 'inline') {
-                // Append to the last line instead of creating a new one
-                const lastLine = elements.console.lastElementChild;
-                if (lastLine && lastLine.classList.contains('console-line')) {
-                    lastLine.textContent += message;
-                    return;
+            // Split message by newlines
+            const parts = message.split('\n');
+
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+
+                // Get the last line element, or create a new one if needed
+                let lastLine = elements.console.lastElementChild;
+
+                // If this is the first part and there's an existing last line, append to it
+                if (i === 0 && lastLine && lastLine.classList.contains('console-line')) {
+                    lastLine.textContent += part;
+                } else {
+                    // Create a new line for this part
+                    const line = document.createElement('div');
+                    line.className = `console-line ${type}`;
+                    line.textContent = part;
+                    elements.console.appendChild(line);
+                }
+
+                // If this is not the last part, it means there was a \n after it,
+                // so the next part should go on a new line (handled by the loop)
+            }
+
+            elements.console.scrollTop = elements.console.scrollHeight;
+        }
+
+        function writeRawOutput(message) {
+            // Raw output (from printf) - no formatting, just append as-is
+            const parts = message.split('\n');
+
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+
+                // Get the last line element
+                let lastLine = elements.console.lastElementChild;
+
+                // Always append to existing line if there is one, or create new
+                if (i === 0 && lastLine && lastLine.classList.contains('console-line')) {
+                    // Append to existing line
+                    lastLine.textContent += part;
+                } else {
+                    // Create a new line (even if empty to show blank lines)
+                    const line = document.createElement('div');
+                    line.className = 'console-line info';
+                    line.textContent = part || '\u00A0'; // Use non-breaking space for empty lines
+                    elements.console.appendChild(line);
                 }
             }
 
-            const line = document.createElement('div');
-            line.className = `console-line ${type}`;
-            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            elements.console.appendChild(line);
             elements.console.scrollTop = elements.console.scrollHeight;
         }
 
@@ -195,7 +232,7 @@
             updateStats('statSize', `${(file.size / 1024).toFixed(2)} KB`);
             showStats();
 
-            logToConsole(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+            logToConsole(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)\n`);
         }
 
         // Drag and drop
@@ -236,7 +273,7 @@
                     Size: ${(file.size / 1024).toFixed(2)} KB
                 `;
                 elements.jsFileInfo.classList.add('visible');
-                logToConsole(`Custom JS file loaded: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+                logToConsole(`Custom JS file loaded: ${file.name} (${(file.size / 1024).toFixed(2)} KB)\n`);
                 showStatus('Custom functions loaded successfully', 'success');
 
                 // If worker exists, send the custom functions
@@ -246,7 +283,7 @@
             };
             reader.onerror = () => {
                 showStatus('Failed to read JS file', 'error');
-                logToConsole('Failed to read custom JS file', 'error');
+                logToConsole('Failed to read custom JS file\n', 'error');
             };
             reader.readAsText(file);
         }
@@ -281,7 +318,7 @@
 
                 switch (type) {
                     case 'ready':
-                        logToConsole('Worker initialized and ready', 'info');
+                        logToConsole('Worker initialized and ready\n', 'info');
                         // Send custom functions if already loaded
                         if (customJsCode) {
                             worker.postMessage({ type: 'loadCustomFunctions', code: customJsCode });
@@ -292,8 +329,8 @@
                         logToConsole(message);
                         break;
 
-                    case 'logWithoutNewline':
-                        logToConsole(message, 'inline');
+                    case 'output':
+                        writeRawOutput(message);
                         break;
 
                     case 'warning':
@@ -346,7 +383,7 @@
             });
 
             worker.addEventListener('error', (e) => {
-                logToConsole('Worker error: ' + e.message, 'error');
+                logToConsole('Worker error: ' + e.message + '\n', 'error');
                 showStatus('Worker error: ' + e.message, 'error');
                 updateStats('statStatus', 'Error');
             });
@@ -357,7 +394,7 @@
             if (!selectedFile) return;
 
             try {
-                logToConsole('Reading file...', 'info');
+                logToConsole('Reading file...\n', 'info');
                 showStatus('Loading WASM module...', 'info');
                 elements.progressBar.classList.add('visible');
                 elements.progressFill.style.width = '30%';
@@ -379,7 +416,7 @@
                 updateStats('statStatus', 'Loading...');
 
             } catch (error) {
-                logToConsole('Load failed: ' + error.message, 'error');
+                logToConsole('Load failed: ' + error.message + '\n', 'error');
                 showStatus('Failed to load module: ' + error.message, 'error');
                 elements.progressBar.classList.remove('visible');
                 updateStats('statStatus', 'Failed');
@@ -393,7 +430,7 @@
                 return;
             }
 
-            logToConsole('Starting execution...', 'info');
+            logToConsole('Starting execution...\n', 'info');
             showStatus('Executing main function...', 'info');
             updateStats('statStatus', 'Running...');
 
@@ -408,7 +445,7 @@
         elements.stopBtn.addEventListener('click', () => {
             if (worker) {
                 worker.postMessage({ type: 'stop' });
-                logToConsole('Stop requested', 'warning');
+                logToConsole('Stop requested\n', 'warning');
             }
         });
 
@@ -417,9 +454,9 @@
         elements.copyConsole.addEventListener('click', copyConsoleContent);
 
         // Initialize
-        logToConsole('WASM Runner initialized', 'info');
-        logToConsole('Supported external functions: memcpy, memset, memcmp, memmove, strcpy, strlen, strstr, malloc, free, printf, std_read, strtod, strtoll, strtoull, sleep', 'info');
-        logToConsole('💡 You can load custom JavaScript functions to extend the runtime!', 'info');
+        logToConsole('WASM Runner initialized\n', 'info');
+        logToConsole('Supported external functions: memcpy, memset, memcmp, memmove, strcpy, strlen, strstr, malloc, free, printf, std_read, strtod, strtoll, strtoull, sleep\n', 'info');
+        logToConsole('💡 You can load custom JavaScript functions to extend the runtime!\n', 'info');
     </script>
 </body>
 </html>

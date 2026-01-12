@@ -376,22 +376,12 @@ const mlaImports = {
                 }
             }
 
-            // Split output by newlines and send each part appropriately
-            const lines = output.split('\n');
-            for (let i = 0; i < lines.length; i++) {
-                if (i < lines.length - 1) {
-                    // This is not the last part, so it ends with a newline
-                    postMessageToParent({
-                        type: 'log',
-                        message: lines[i]
-                    });
-                } else if (lines[i].length > 0) {
-                    // Last part without newline (if not empty)
-                    postMessageToParent({
-                        type: 'logWithoutNewline',
-                        message: lines[i]
-                    });
-                }
+            // Send the complete output as-is - caller must include newlines explicitly
+            if (output.length > 0) {
+                postMessageToParent({
+                    type: 'output',
+                    message: output
+                });
             }
 
 
@@ -465,7 +455,7 @@ addMessageListener(async (data) => {
 
     try {
         if (type === 'loadCustomFunctions') {
-            postMessageToParent({ type: 'log', message: 'Loading custom functions...' });
+            postMessageToParent({ type: 'log', message: 'Loading custom functions...\n' });
 
             try {
                 const context = {
@@ -500,24 +490,24 @@ addMessageListener(async (data) => {
 
                     postMessageToParent({
                         type: 'log',
-                        message: `Custom modules loaded: ${details}`
+                        message: `Custom modules loaded: ${details}\n`
                     });
                 } else {
                     postMessageToParent({
                         type: 'warning',
-                        message: 'No custom functions found. Make sure to define customMlaFunctions object.'
+                        message: 'No custom functions found. Make sure to define customMlaFunctions object.\n'
                     });
                 }
             } catch (error) {
                 postMessageToParent({
                     type: 'error',
-                    message: 'Failed to load custom functions: ' + error.message,
+                    message: 'Failed to load custom functions: ' + error.message + '\n',
                     stack: error.stack
                 });
             }
 
         } else if (type === 'load') {
-            postMessageToParent({ type: 'log', message: 'Loading WASM module...' });
+            postMessageToParent({ type: 'log', message: 'Loading WASM module...\n' });
 
             const module = await WebAssembly.compile(msgData);
 
@@ -550,27 +540,27 @@ addMessageListener(async (data) => {
                 heapPointer = 65536;
             }
 
-            postMessageToParent({ type: 'loaded', message: 'WASM module loaded successfully' });
+            postMessageToParent({ type: 'loaded', message: 'WASM module loaded successfully\n' });
 
         } else if (type === 'run') {
             if (!wasmInstance) {
                 throw new Error('No WASM module loaded');
             }
 
-            postMessageToParent({ type: 'log', message: 'Executing main function...' });
+            postMessageToParent({ type: 'log', message: 'Executing main function...\n' });
 
             if (wasmInstance.exports.main) {
                 const result = wasmInstance.exports.main();
                 postMessageToParent({
                     type: 'completed',
-                    message: `Main function executed successfully. Return value: ${result}`,
+                    message: `Main function executed successfully. Return value: ${result}\n`,
                     returnValue: result
                 });
             } else if (wasmInstance.exports._start) {
                 wasmInstance.exports._start();
                 postMessageToParent({
                     type: 'completed',
-                    message: 'Start function executed successfully'
+                    message: 'Start function executed successfully\n'
                 });
             } else {
                 throw new Error('No main or _start function found in WASM module');
@@ -580,12 +570,12 @@ addMessageListener(async (data) => {
             wasmInstance = null;
             wasmMemory = null;
             memoryBuffer = null;
-            postMessageToParent({ type: 'stopped', message: 'Worker stopped' });
+            postMessageToParent({ type: 'stopped', message: 'Worker stopped\n' });
         }
     } catch (error) {
         postMessageToParent({
             type: 'error',
-            message: error.message,
+            message: error.message + '\n',
             stack: error.stack
         });
     }
