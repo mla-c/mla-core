@@ -115,26 +115,11 @@ struct mla_atomic_int32_t {
 // Loging and Debugging Macros
 
 // Macro to get the filename only
-inline const mla_char_t* ___native_strrchr(const mla_char_t* str, mla_int32_t ch) {
-    const mla_char_t* last = nullptr;
-    while (*str != '\0') {
-        if (*str == ch) {
-            last = str;
-        }
-        str++;
-    }
-    // Check if the null terminator matches the character
-    if (ch == '\0') {
-        return str;
-    }
-    return last;
-}
+const mla_char_t* mla_find_filename_from_path(const mla_char_t* path);
 
 // Extracts the filename from the full path
 // The macro works for both Unix and Windows style paths
-#define __FILENAME_ONLY__ \
-(___native_strrchr(__FILE__, '/') ? ___native_strrchr(__FILE__, '/') + 1 : \
-(___native_strrchr(__FILE__, '\\') ? ___native_strrchr(__FILE__, '\\') + 1 : __FILE__))
+#define __FILENAME_ONLY__ mla_find_filename_from_path(__FILE__)
 
 //////////////////////////////////////////////////
 /// Low level memory operations and access to printf and other C functions
@@ -188,29 +173,9 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
-inline mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
-    mla_pointer_t ptr = g_low_level_access.malloc(size);
-    if (ptr == nullptr) {
-
-        const mla_char_t* foundChar = ___native_strrchr(filename, '/');
-
-        if (foundChar == nullptr) {
-            foundChar = ___native_strrchr(filename, '\\');
-        }
-
-        if (foundChar != nullptr) {
-            foundChar = foundChar + 1;
-        } else {
-            foundChar = filename;
-        }
-
-        g_low_level_access.on_malloc_failure(size, foundChar, function_name);
-    }
-    return ptr;
-}
-
-#define mla_malloc(size) mla_malloc_with_check(size, __FILENAME_ONLY__, __func__)
+#define mla_malloc(size) mla_malloc_with_check(size, __FILE__, __func__)
 #define mla_free(ptr) g_low_level_access.free((ptr))
 #define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 

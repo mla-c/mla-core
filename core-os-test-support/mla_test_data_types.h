@@ -30,25 +30,12 @@
 
 #define mla_test_pointer_t void*
 
+// Macro to get the filename only
+const mla_test_char_t* mla_test_find_filename_from_path(const mla_test_char_t* path);
 
-inline const mla_test_char_t* ___native_test_strrchr(const mla_test_char_t* str, mla_test_char_t ch) {
-    const mla_test_char_t* last = nullptr;
-    while (*str != '\0') {
-        if (*str == ch) {
-            last = str;
-        }
-        str++;
-    }
-    // Check if the null terminator matches the character
-    if (ch == '\0') {
-        return str;
-    }
-    return last;
-}
-
-#define mla_test__FILENAME_ONLY__ \
-(___native_test_strrchr(__FILE__, '/') ? ___native_test_strrchr(__FILE__, '/') + 1 : \
-(___native_test_strrchr(__FILE__, '\\') ? ___native_test_strrchr(__FILE__, '\\') + 1 : __FILE__))
+// Extracts the filename from the full path
+// The macro works for both Unix and Windows style paths
+#define mla_test__FILENAME_ONLY__ mla_test_find_filename_from_path(__FILE__)
 
 
 // Define a print function structure to allow custom print functions
