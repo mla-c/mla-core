@@ -129,7 +129,7 @@ mla_test_uint32_t mla_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     // Handle negative numbers
     if (value < 0) {
         buffer[offset++] = '-';
-        if (value == -2147483648) {
+        if (value == (mla_test_int32_t)(-2147483647 - 1)) {
             // Special case for minimum int32_t
             const mla_test_char_t* min_str = "2147483648";
             mla_test_uint32_t len = 0;
@@ -229,7 +229,7 @@ mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     for (mla_test_uint32_t i = 0; i < precision && offset < buffer_size - 1; i++) {
         frac_part *= 10;
         mla_test_int32_t digit = (mla_test_int32_t)frac_part;
-        buffer[offset++] = '0' + digit;
+        buffer[offset++] = (mla_test_char_t)('0' + digit);
         frac_part -= digit;
     }
 
@@ -262,7 +262,7 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
     for (mla_test_uint32_t i = 0; i < precision && offset < buffer_size - 1; i++) {
         frac_part *= 10;
         mla_test_int32_t digit = (mla_test_int32_t)frac_part;
-        buffer[offset++] = '0' + digit;
+        buffer[offset++] = (mla_test_char_t)('0' + digit);
         frac_part -= digit;
     }
 

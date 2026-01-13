@@ -8,12 +8,12 @@
 #include "../mla_test_data_types.h"
 
 extern "C" {
-    __attribute__((import_module("mla_test"), import_name("external_test_printf")))
-    void external_test_printf(const mla_test_char_t* format, ...);
+    __attribute__((import_module("mla_test"), import_name("external_test_print")))
+    void external_test_print(const mla_test_char_t* str, mla_test_uint32_t length);
 }
 
 mla_test_print_t g_test_print = {
-    external_test_printf
+    external_test_print
 };
 
 #endif

@@ -3,6 +3,7 @@
 //
 
 #include "mla_benchmark_executor.h"
+#include "mla_test_utils.h"
 
 mla_benchmark_executor_t mla_benchmark_executor(mla_test_uint32_t p_MaxBenchmarks) {
 
@@ -34,56 +35,17 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
 
 
 #ifdef mla_debug_build
-    mla_test_printf("#########################################################################\n");
-    mla_test_printf("Benchmarking in DEBUG mode is not recommended.\n");
-    mla_test_printf("Please run benchmarks in RELEASE mode for accurate results.\n");
-    mla_test_printf("#########################################################################\n\n");
+    mla_test_print("#########################################################################\n", 74);
+    mla_test_print("Benchmarking in DEBUG mode is not recommended.\n", 47);
+    mla_test_print("Please run benchmarks in RELEASE mode for accurate results.\n", 60);
+    mla_test_print("#########################################################################\n\n", 74);
 
 #endif
 
 #if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
-#if (!defined(mla_benchmark_use_median) || (mla_benchmark_use_median == 1))
-    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
-           "No",
-           "Category",
-           "Name",
-           "Min (ns)",
-           "Max (ns)",
-           "Med (ns)",
-           "Mem (bytes)",
-           "Iterations");
+    mla_test_print("No |Category                |Name                          |Min (ns) |Max (ns)    |Med (ns) |Mem (bytes) |Iterations\n", 117);
 #else
-    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|%12s|\n",
-           "No",
-           "Category",
-           "Name",
-           "Min (ns)",
-           "Max (ns)",
-           "Avg (ns)",
-           "Mem (bytes)",
-           "Iterations");
-#endif
-#else
-
-#if (!defined(mla_benchmark_use_median) || (mla_benchmark_use_median == 1))
-    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
-           "No",
-           "Category",
-           "Name",
-           "Min (ns)",
-           "Max (ns)",
-           "Med (ns)",
-           "Iterations");
-#else
-    mla_test_printf("%-3s|%-24s|%-30s|%9s|%12s|%9s|%12s|\n",
-           "No",
-           "Category",
-           "Name",
-           "Min (ns)",
-           "Max (ns)",
-           "Avg (ns)",
-           "Iterations");
-#endif
+    mla_test_print("No |Category                |Name                          |Min (ns) |Max (ns)    |Avg (ns) |Iterations\n", 105);
 #endif
 }
 
@@ -92,19 +54,26 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
     __mla_benchmark_print_into_text(output_format);
 
     if (output_format == mla_test_output_format_json) {
-        mla_test_printf("[\n");
+        mla_test_print("[\n", 2);
     }
 
     for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
 
             if (output_format == mla_test_output_format_text) {
-                mla_test_printf("%3ld", i + 1);
+                mla_test_char_t buffer[12];
+                mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+
+                if (strLength < 3) {
+                    for (mla_test_uint32_t k = 0; k < 3 - strLength; k++) mla_test_print(" ", 1);
+                }
+
+                mla_test_print(buffer, strLength);
             } else if (output_format == mla_test_output_format_json) {
                 if (i > 0) {
-                    mla_test_printf(",\n");
+                    mla_test_print(",\n", 2);
                 }
-                mla_test_printf("{\n");
+                mla_test_print("{\n", 2);
             }
 
             mla_benchmark_run(executor.benchmarks[i], output_format);
@@ -112,7 +81,7 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
     }
 
     if (output_format == mla_test_output_format_json) {
-        mla_test_printf("\n]\n");
+        mla_test_print("\n]\n", 3);
     }
 }
 
@@ -125,14 +94,20 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
 
 
     if (benchmark_index >= executor.max_benchmarks || executor.benchmarks[benchmark_index].name == nullptr) {
-        mla_test_printf("Invalid benchmark index: %ld\n", benchmark_number);
+        mla_test_print("Invalid benchmark index: ", 25);
+        mla_test_char_t buffer[12];
+        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
+        mla_test_print(buffer, strLength);
+        mla_test_print("\n", 1);
         return; // Invalid benchmark index
     }
 
     if (output_format == mla_test_output_format_text) {
-        mla_test_printf("%3ld", benchmark_number);
+        mla_test_char_t buffer[12];
+        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
+        mla_test_print(buffer, strLength);
     } else if (output_format == mla_test_output_format_json) {
-        mla_test_printf("{\n");
+        mla_test_print("{\n", 2);
     }
 
     mla_benchmark_run(executor.benchmarks[benchmark_index], output_format);

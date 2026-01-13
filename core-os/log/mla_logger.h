@@ -103,6 +103,7 @@ void mla_log_error(const mla_char_t* message, const mla_char_t* context1);
 //////////////////////////////////////////////////////
 
 const mla_char_t* mla_log_level_to_string(const mla_log_level level);
+mla_size_t mla_log_level_to_string_length(const mla_log_level level);
 
 
 

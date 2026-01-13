@@ -38,7 +38,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
     # Enable all warnings and treat them as errors
     # Disable exceptions to reduce binary size
-    add_compile_options(/W4 /wd4996 /EHsc)
+    add_compile_options(/W4 /wd4996 /wd4127 /EHsc)
 
     # Set Options for static linking libc++.dll and libstdc++.dll and libwinpthread-1.dll Even if we dont need it
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")

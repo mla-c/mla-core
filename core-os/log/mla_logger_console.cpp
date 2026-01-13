@@ -13,26 +13,27 @@ void __mla_log_console_writer(const mla_log_level level, mla_string_t &message, 
 
     (void)userData;
 
-    // Simple console output for the log message
-    const mla_c_string_t c_message = mla_string_to_cString(message, false);
-    const mla_c_string_t c_context1 = mla_string_to_cString(context1, false);
+    const mla_char_t* messageData = mla_string_data(message);
+    mla_size_t messageLength = mla_string_length(message);
 
-    mla_printf("[%s] %s - %s\n", mla_log_level_to_string(level), c_context1.c_str, c_message.c_str);
+    const mla_char_t* context1Data = mla_string_data(context1);
+    mla_size_t context1Length = mla_string_length(context1);
 
-    if (c_message.isOwner) {
-        mla_free(const_cast<mla_char_t*>(c_message.c_str));
-    }
+    mla_print("[", 1);
+    mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
+    mla_print("] ", 2);
 
-    if (c_context1.isOwner) {
-        mla_free(const_cast<mla_char_t*>(c_context1.c_str));
-    }
+    mla_print(context1Data, context1Length);
+    mla_print(" - ", 3);
+    mla_print(messageData, messageLength);
+    mla_print("\n", 1);
 
 }
 
 mla_bool_t mla_log_to_console_activate() {
 
     // Check if the low-level access printf function is available
-    if (g_low_level_access.printf == nullptr)
+    if (g_low_level_access.print == nullptr)
         return false;
 
     const mla_logger_t logger = {

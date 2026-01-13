@@ -74,17 +74,30 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 
 inline void __mla_logging_native(const mla_log_level level, const mla_char_t* message) {
     __FILENAME_AND_METHOD__()\
-    mla_printf("[%s] %s - %s\n", mla_log_level_to_string(level), temp, message);\
+    mla_print("[", 1);
+    mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
+    mla_print("] ", 2);
+
+    mla_print(temp, mla_strlen(temp));
+    mla_print(" - ", 3);
+    mla_print(message, mla_strlen(temp));
+    mla_print("\n", 1);
 }
 
 inline void __mla_logging_native(const mla_log_level level, const mla_string_t& message) {
     __FILENAME_AND_METHOD__()\
-    mla_string_t copy = message; \
-    const mla_c_string_t c_message = mla_string_to_cString(copy, false);
-    mla_printf("[%s] %s - %s\n", mla_log_level_to_string(level), temp, c_message);\
-    if (c_message.isOwner) {\
-        mla_free(const_cast<mla_char_t*>(c_message.c_str));\
-    }\
+    mla_print("[", 1);
+    mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
+    mla_print("] ", 2);
+
+    mla_print(temp, mla_strlen(temp));
+    mla_print(" - ", 3);
+
+    const mla_char_t* messageData = mla_string_data(message);
+    mla_size_t messageLength = mla_string_length(message);
+
+    mla_print(messageData, messageLength);
+    mla_print("\n", 1);
 }
 
 #define mla_log_msg(level, msg) __mla_logging_native(level, msg)

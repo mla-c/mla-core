@@ -203,178 +203,12 @@ const mlaImports = {
         }
     },
 
-    external_printf: (formatPtr, ...args) => {
+    external_print: (str, length) => {
         try {
-            const format = readString(formatPtr);
+            // Read the string from memory
             const memory = getMemoryView();
-            const view = new DataView(memory.buffer);
-
-            let argIndex = 0;
-            let output = '';
-            let i = 0;
-
-            while (i < format.length) {
-                if (format[i] === '%' && i + 1 < format.length) {
-                    i++;
-
-                    // Handle %%
-                    if (format[i] === '%') {
-                        output += '%';
-                        i++;
-                        continue;
-                    }
-
-                    // Parse flags
-                    let flags = { leftAlign: false, showSign: false, space: false, altForm: false, zeroPad: false };
-                    while ('-+ #0'.includes(format[i])) {
-                        if (format[i] === '-') flags.leftAlign = true;
-                        else if (format[i] === '+') flags.showSign = true;
-                        else if (format[i] === ' ') flags.space = true;
-                        else if (format[i] === '#') flags.altForm = true;
-                        else if (format[i] === '0') flags.zeroPad = true;
-                        i++;
-                    }
-
-                    // Parse width
-                    let width = 0;
-                    while (format[i] >= '0' && format[i] <= '9') {
-                        width = width * 10 + (format[i].charCodeAt(0) - '0'.charCodeAt(0));
-                        i++;
-                    }
-
-                    // Parse precision
-                    let precision = -1;
-                    if (format[i] === '.') {
-                        i++;
-                        precision = 0;
-                        while (format[i] >= '0' && format[i] <= '9') {
-                            precision = precision * 10 + (format[i].charCodeAt(0) - '0'.charCodeAt(0));
-                            i++;
-                        }
-                    }
-
-                    // Parse length modifier
-                    let length = '';
-                    if ('hlLzjt'.includes(format[i])) {
-                        length = format[i];
-                        i++;
-                        if ((length === 'h' || length === 'l') && format[i] === length) {
-                            length += format[i];
-                            i++;
-                        }
-                    }
-
-                    // Parse conversion specifier
-                    const spec = format[i];
-                    const arg = args[argIndex++];
-
-                    let value = '';
-
-                    switch (spec) {
-                        case 'd':
-                        case 'i': {
-                            let num = length === 'll' ? view.getBigInt64(arg, true) : view.getInt32(arg, true);
-                            num = Number(num);
-                            value = num.toString();
-                            if (flags.showSign && num >= 0) value = '+' + value;
-                            else if (flags.space && num >= 0) value = ' ' + value;
-                            break;
-                        }
-
-                        case 'u': {
-                            let num = length === 'll' ? view.getBigUint64(arg, true) : view.getUint32(arg, true);
-                            value = Number(num).toString();
-                            break;
-                        }
-
-                        case 'o': {
-                            let num = length === 'll' ? view.getBigUint64(arg, true) : view.getUint32(arg, true);
-                            value = Number(num).toString(8);
-                            if (flags.altForm && value !== '0') value = '0' + value;
-                            break;
-                        }
-
-                        case 'x':
-                        case 'X': {
-                            let num = length === 'll' ? view.getBigUint64(arg, true) : view.getUint32(arg, true);
-                            value = Number(num).toString(16);
-                            if (spec === 'X') value = value.toUpperCase();
-                            if (flags.altForm && num !== 0n && num !== 0) value = '0x' + value;
-                            break;
-                        }
-
-                        case 'f':
-                        case 'F': {
-                            const num = view.getFloat64(arg, true);
-                            value = precision >= 0 ? num.toFixed(precision) : num.toString();
-                            if (flags.showSign && num >= 0) value = '+' + value;
-                            else if (flags.space && num >= 0) value = ' ' + value;
-                            break;
-                        }
-
-                        case 'e':
-                        case 'E': {
-                            const num = view.getFloat64(arg, true);
-                            value = precision >= 0 ? num.toExponential(precision) : num.toExponential();
-                            if (spec === 'E') value = value.toUpperCase();
-                            if (flags.showSign && num >= 0) value = '+' + value;
-                            break;
-                        }
-
-                        case 'g':
-                        case 'G': {
-                            const num = view.getFloat64(arg, true);
-                            const expForm = num.toExponential(precision >= 0 ? precision : 6);
-                            const fixedForm = num.toFixed(precision >= 0 ? precision : 6);
-                            value = expForm.length < fixedForm.length ? expForm : fixedForm;
-                            if (spec === 'G') value = value.toUpperCase();
-                            break;
-                        }
-
-                        case 'c': {
-                            const charCode = view.getInt32(arg, true);
-                            value = String.fromCharCode(charCode);
-                            break;
-                        }
-
-                        case 's': {
-                            const strPtr = view.getUint32(arg, true);
-                            value = readString(strPtr);
-                            if (precision >= 0 && value.length > precision) {
-                                value = value.substring(0, precision);
-                            }
-                            break;
-                        }
-
-                        case 'p': {
-                            const ptr = view.getUint32(arg, true);
-                            value = '0x' + ptr.toString(16).padStart(8, '0');
-                            break;
-                        }
-
-                        default:
-                            value = '%' + spec;
-                    }
-
-                    // Apply width and padding
-                    if (width > value.length) {
-                        const padding = width - value.length;
-                        const padChar = (flags.zeroPad && !flags.leftAlign && precision < 0) ? '0' : ' ';
-
-                        if (flags.leftAlign) {
-                            value = value + padChar.repeat(padding);
-                        } else {
-                            value = padChar.repeat(padding) + value;
-                        }
-                    }
-
-                    output += value;
-                    i++;
-                } else {
-                    output += format[i];
-                    i++;
-                }
-            }
+            const bytes = memory.slice(str, str + length);
+            const output = textDecoder.decode(bytes);
 
             // Send the complete output as-is - caller must include newlines explicitly
             if (output.length > 0) {
@@ -465,7 +299,7 @@ addMessageListener(async (data) => {
                     wasmMemory: () => wasmMemory,
                     externalMalloc: mlaImports.external_malloc,
                     externalFree: mlaImports.external_free,
-                    externalPrintf: mlaImports.external_printf,
+                    externalPrint: mlaImports.external_print,
                     wasmInstance: () => wasmInstance,
                     textEncoder,
                     textDecoder,
@@ -474,7 +308,7 @@ addMessageListener(async (data) => {
                 };
 
                 const customFn = new Function('context', `
-                    const { getMemoryView, readString, writeString, wasmMemory, externalMalloc, externalFree, externalPrintf, wasmInstance, textEncoder, textDecoder, self, postMessage } = context;
+                    const { getMemoryView, readString, writeString, wasmMemory, externalMalloc, externalFree, externalPrint, wasmInstance, textEncoder, textDecoder, self, postMessage } = context;
                     ${code}
                     return typeof customMlaFunctions !== 'undefined' ? customMlaFunctions : {};
                 `);

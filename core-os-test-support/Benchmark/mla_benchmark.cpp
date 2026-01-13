@@ -197,11 +197,11 @@ static mla_test_uint64_t __mla_benchmark_calculate_median(mla_test_uint64_t* tim
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
 
     if (output_format == mla_test_output_format_text) {
-        mla_test_printf("AAA|");
+        mla_test_print("AAA|", 4);
     } else if (output_format == mla_test_output_format_json) {
-        mla_test_printf(",\n")
-        mla_test_printf("{\n")
-        mla_test_printf("  \"WithMemoryArena\": true,\n");
+        mla_test_print(",\n", 2);
+        mla_test_print("{\n", 2);
+        mla_test_print("  \"WithMemoryArena\": true,\n", 27);
     }
 
 
@@ -257,7 +257,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 
     mla_test_uint64_t medianTime = 0;
-    long long int allocated_memory_per_interation = 0;
+    mla_test_uint64_t allocated_memory_per_interation = 0;
     
     if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
         // The arena was not big enough to run all iterations
@@ -372,37 +372,167 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     if (output_format == mla_test_output_format_text) {
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
-               benchmark.category,
-               name_with_arena_sufix,
-               minTime,
-               maxTime,
-               medianTime,
-               allocated_memory_per_interation,
-               benchmarkIterations);
+    // Category column (24 chars)
+    mla_test_char_t category_padded[25];
+    mla_test_uint32_t cat_len = (mla_test_uint32_t)mla_test_strlen(benchmark.category);
+    mla_test_memcpy(category_padded, benchmark.category, cat_len);
+    if (cat_len < 24) {
+        mla_test_memset(&category_padded[cat_len], ' ', 24 - cat_len);
+    }
+    category_padded[24] = '\0';
+    mla_test_print(category_padded, 24);
+
+    // Name column (30 chars)
+    mla_test_print("|", 1);
+    mla_test_print(name_with_arena_sufix, 30);
+
+    // MinTime column (9 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_min[20];
+    mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
+    if (len_min < 9) {
+        for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_min, len_min);
+
+    // MaxTime column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_max[20];
+    mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
+    if (len_max < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_max, len_max);
+
+    // MedianTime column (9 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_median[20];
+    mla_test_uint32_t len_median = mla_uint64_to_string(buffer_median, sizeof(buffer_median), medianTime);
+    if (len_median < 9) {
+        for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_median, len_median);
+
+    // AllocatedMemory column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_mem[20];
+    mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
+    if (len_mem < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_mem, len_mem);
+
+    // Iterations column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_iter[20];
+    mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+    if (len_iter < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_iter, len_iter);
+
+    mla_test_print("\n", 1);
 #else
-        mla_test_printf("%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
-               benchmark.category,
-               name_with_arena_sufix,
-               minTime,
-               maxTime,
-               averageTime,
-               allocated_memory_per_interation,
-               benchmarkIterations);
+    // Category column (24 chars)
+    mla_test_char_t category_padded[25];
+    mla_test_uint32_t cat_len = (mla_test_uint32_t)mla_test_strlen(benchmark.category);
+    mla_test_memcpy(category_padded, benchmark.category, cat_len);
+    if (cat_len < 24) {
+        mla_test_memset(&category_padded[cat_len], ' ', 24 - cat_len);
+    }
+    category_padded[24] = '\0';
+    mla_test_print(category_padded, 24);
+
+    // Name column (30 chars)
+    mla_test_print("|", 1);
+    mla_test_print(name_with_arena_sufix, 30);
+
+    // MinTime column (9 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_min[20];
+    mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
+    if (len_min < 9) {
+        for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_min, len_min);
+
+    // MaxTime column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_max[20];
+    mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
+    if (len_max < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_max, len_max);
+
+    // AverageTime column (9 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_avg[20];
+    mla_test_uint32_t len_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
+    if (len_avg < 9) {
+        for (mla_test_uint32_t i = 0; i < 9 - len_avg; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_avg, len_avg);
+
+    // AllocatedMemory column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_mem[20];
+    mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
+    if (len_mem < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_mem, len_mem);
+
+    // Iterations column (12 chars, right-aligned)
+    mla_test_print("|", 1);
+    mla_test_char_t buffer_iter[20];
+    mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+    if (len_iter < 12) {
+        for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+    }
+    mla_test_print(buffer_iter, len_iter);
+
+    mla_test_print("\n", 1);
 #endif
     } else if (output_format == mla_test_output_format_json) {
-        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
-        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
-        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
-        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+
+        mla_test_print("  \"Category\": \"", 15);
+        mla_test_print(benchmark.category, (mla_test_uint32_t)mla_test_strlen(benchmark.category));
+        mla_test_print("\",\n  \"Name\": \"", 14);
+        mla_test_print(benchmark.name, (mla_test_uint32_t)mla_test_strlen(benchmark.name));
+        mla_test_print("\",\n  \"MinTimeNs\": ", 18);
+        mla_test_char_t buffer[20];
+        mla_test_uint32_t strLength = mla_uint64_to_string(buffer, sizeof(buffer), minTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n  \"MaxTimeNs\": ", 17);
+        strLength = mla_uint64_to_string(buffer, sizeof(buffer), maxTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n", 2);
+
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #else
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #endif
-        mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", allocated_memory_per_interation);
-        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
-        mla_test_printf("}");
+
+        mla_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
+        mla_test_char_t buffer_mem[20];
+        mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
+        mla_test_print(buffer_mem, strLength_mem);
+        mla_test_print(",\n  \"Iterations\": ", 19);
+        mla_test_char_t buffer_iter[20];
+        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_print(buffer_iter, strLength_iter);
+        mla_test_print("\n}", 2);
+
     }
 
     mla_free(g_mla_benchmark_memory_arena);
@@ -533,38 +663,183 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 
     if (output_format == mla_test_output_format_text) {
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
-           benchmark.category,
-           benchmark.name,
-           minTime,
-           maxTime,
-           medianTime,
-           (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
-           benchmarkIterations);
+        // Category column (24 chars, left-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t category_padded[25];
+        mla_test_uint32_t cat_len = mla_test_strlen(benchmark.category);
+        mla_test_memcpy(category_padded, benchmark.category, cat_len);
+        if (cat_len < 24) {
+            mla_test_memset(&category_padded[cat_len], ' ', 24 - cat_len);
+        }
+        category_padded[24] = '\0';
+        mla_test_print(category_padded, 24);
+
+        // Name column (30 chars, left-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t name_padded[31];
+        mla_test_uint32_t name_len = mla_test_strlen(benchmark.name);
+        mla_test_memcpy(name_padded, benchmark.name, name_len);
+        if (name_len < 30) {
+            mla_test_memset(&name_padded[name_len], ' ', 30 - name_len);
+        }
+        name_padded[30] = '\0';
+        mla_test_print(name_padded, 30);
+
+        // MinTime column (9 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_min[20];
+        mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
+        if (len_min < 9) {
+            for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_min, len_min);
+
+        // MaxTime column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_max[20];
+        mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
+        if (len_max < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_max, len_max);
+
+        // MedianTime column (9 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_median[20];
+        mla_test_uint32_t len_median = mla_uint64_to_string(buffer_median, sizeof(buffer_median), medianTime);
+        if (len_median < 9) {
+            for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_median, len_median);
+
+        // AllocatedMemory column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_mem[20];
+        mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)(mla_benchmark_allocated_memory / benchmarkIterations));
+        if (len_mem < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_mem, len_mem);
+
+        // Iterations column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_iter[20];
+        mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        if (len_iter < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_iter, len_iter);
+
+        mla_test_print("\n", 1);
 #else
-        mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12lld|%12ld\n",
-           benchmark.category,
-           benchmark.name,
-           minTime,
-           maxTime,
-           averageTime,
-           (long long int)(mla_benchmark_allocated_memory / benchmarkIterations),
-           benchmarkIterations);
+        // Category column (24 chars, left-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t category_padded[25];
+        mla_test_uint32_t cat_len = mla_test_strlen(benchmark.category);
+        mla_test_memcpy(category_padded, benchmark.category, cat_len);
+        if (cat_len < 24) {
+            mla_test_memset(&category_padded[cat_len], ' ', 24 - cat_len);
+        }
+        category_padded[24] = '\0';
+        mla_test_print(category_padded, 24);
+
+        // Name column (30 chars, left-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t name_padded[31];
+        mla_test_uint32_t name_len = mla_test_strlen(benchmark.name);
+        mla_test_memcpy(name_padded, benchmark.name, name_len);
+        if (name_len < 30) {
+            mla_test_memset(&name_padded[name_len], ' ', 30 - name_len);
+        }
+        name_padded[30] = '\0';
+        mla_test_print(name_padded, 30);
+
+        // MinTime column (9 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_min[20];
+        mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
+        if (len_min < 9) {
+            for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_min, len_min);
+
+        // MaxTime column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_max[20];
+        mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
+        if (len_max < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_max, len_max);
+
+        // MedianTime column (9 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t len_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_median), averageTime);
+        if (len_avg < 9) {
+            for (mla_test_uint32_t i = 0; i < 9 - len_avg; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_avg, len_avg);
+
+        // AllocatedMemory column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_mem[20];
+        mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)(mla_benchmark_allocated_memory / benchmarkIterations));
+        if (len_mem < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_mem, len_mem);
+
+        // Iterations column (12 chars, right-aligned)
+        mla_test_print("|", 1);
+        mla_test_char_t buffer_iter[20];
+        mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        if (len_iter < 12) {
+            for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+        }
+        mla_test_print(buffer_iter, len_iter);
+
+        mla_test_print("\n", 1);
 #endif
     } else if (output_format == mla_test_output_format_json) {
-        mla_test_printf("  \"WithMemoryArena\": false,\n");
-        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
-        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
-        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
-        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+
+        mla_test_print("  \"WithMemoryArena\": false,\n", 28);
+        mla_test_print("  \"Category\": \"", 15);
+        mla_test_print(benchmark.category, (mla_test_uint32_t)mla_test_strlen(benchmark.category));
+        mla_test_print("\",\n  \"Name\": \"", 14);
+        mla_test_print(benchmark.name, (mla_test_uint32_t)mla_test_strlen(benchmark.name));
+        mla_test_print("\",\n  \"MinTimeNs\": ", 18);
+        mla_test_char_t buffer[20];
+        mla_test_uint32_t strLength = mla_uint64_to_string(buffer, sizeof(buffer), minTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n  \"MaxTimeNs\": ", 17);
+        strLength = mla_uint64_to_string(buffer, sizeof(buffer), maxTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n", 2);
+
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #else
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #endif
-        mla_test_printf("  \"AllocatedMemoryPerIterationBytes\": %lld,\n", (long long int)(mla_benchmark_allocated_memory / benchmarkIterations));
-        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
-        mla_test_printf("}");
+
+        mla_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
+        mla_test_char_t buffer_mem[20];
+        mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)(mla_benchmark_allocated_memory / benchmarkIterations));
+        mla_test_print(buffer_mem, strLength_mem);
+        mla_test_print(",\n  \"Iterations\": ", 19);
+        mla_test_char_t buffer_iter[20];
+        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_print(buffer_iter, strLength_iter);
+        mla_test_print("\n}", 2);
     }
 
     // Start the benchmark one more time but inside an memory arena
@@ -592,17 +867,38 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 #endif
     } else if (output_format == mla_test_output_format_json) {
 
-        mla_test_printf("  \"Category\": \"%s\",\n", benchmark.category);
-        mla_test_printf("  \"Name\": \"%s\",\n", benchmark.name);
-        mla_test_printf("  \"MinTimeNs\": %lld,\n", minTime);
-        mla_test_printf("  \"MaxTimeNs\": %lld,\n", maxTime);
+        mla_test_print("  \"Category\": \"", 15);
+        mla_test_print(benchmark.category, (mla_test_uint32_t)mla_test_strlen(benchmark.category));
+        mla_test_print("\",\n  \"Name\": \"", 14);
+        mla_test_print(benchmark.name, (mla_test_uint32_t)mla_test_strlen(benchmark.name));
+        mla_test_print("\",\n  \"MinTimeNs\": ", 18);
+        mla_test_char_t buffer[20];
+        mla_test_uint32_t strLength = mla_uint64_to_string(buffer, sizeof(buffer), minTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n  \"MaxTimeNs\": ", 17);
+        strLength = mla_uint64_to_string(buffer, sizeof(buffer), maxTime);
+        mla_test_print(buffer, strLength);
+        mla_test_print(",\n", 2);
+
 #if (mla_benchmark_use_median == 1)
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", medianTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #else
-        mla_test_printf("  \"AverageTimeNs\": %lld,\n", averageTime);
+        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_char_t buffer_avg[20];
+        mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
+        mla_test_print(buffer_avg, strLength_avg);
+        mla_test_print(",\n", 2);
 #endif
-        mla_test_printf("  \"Iterations\": %ld\n", benchmarkIterations);
-        mla_test_printf("}");
+
+        mla_test_print("  \"Iterations\": ", 16);
+        mla_test_char_t buffer_iter[20];
+        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_print(buffer_iter, strLength_iter);
+        mla_test_print("\n}", 2);
     }
 
 

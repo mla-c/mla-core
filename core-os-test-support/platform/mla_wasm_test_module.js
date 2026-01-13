@@ -21,6 +21,6 @@ const customMlaFunctions = {
         },
 
         // Printf-style logging function
-        external_test_printf: externalPrintf
+        external_test_print: externalPrint
     }
 };

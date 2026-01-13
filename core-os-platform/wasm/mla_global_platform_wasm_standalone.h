@@ -38,8 +38,8 @@ extern "C" {
     void external_free(void* ptr);
 
     // I/O operations
-    __attribute__((import_module("mla"), import_name("external_printf")))
-    int external_printf(const char* format, ...);
+    __attribute__((import_module("mla"), import_name("external_print")))
+    unsigned int external_print(const char* str, unsigned int length);
     __attribute__((import_module("mla"), import_name("external_std_read")))
     unsigned int external_std_read(char* buffer, unsigned int size);
 
@@ -106,15 +106,43 @@ mla_bool_t __wasm_standalone_is_gcc_pointer(const mla_pointer_t ptr) {
     return false;
 }
 
-mla_int32_t __wasm_standalone_printf(const mla_char_t* format, ...) {
-    return external_printf(format);
+mla_uint32_t __wasm_standalone_print(const mla_char_t* str, mla_size_t length) {
+
+    return external_print(str, length);
 }
 
 void __wasm_standalone_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
-    external_printf("Memory allocation failed: %u bytes in %s (%s)\n");
-    (void)size;
-    (void)filename;
-    (void)function_name;
+    external_print("Memory allocation failed: ", 26);
+    // Convert the size to string
+    char size_str[10]; // Enough for 32-bit size
+    mla_size_t index = 0;
+    mla_size_t temp_size = size;
+    if (temp_size == 0) {
+        size_str[index++] = '0';
+    } else {
+        mla_size_t start_index = index;
+        while (temp_size > 0) {
+            size_str[index++] = '0' + (temp_size % 10);
+            temp_size /= 10;
+        }
+        // Reverse the string
+        mla_size_t end_index = index - 1;
+        while (start_index < end_index) {
+            char temp = size_str[start_index];
+            size_str[start_index] = size_str[end_index];
+            size_str[end_index] = temp;
+            start_index++;
+            end_index--;
+        }
+    }
+
+    external_print(size_str, index);
+    external_print(" bytes in ", 10);
+    external_print(filename, external_strlen(filename));
+    external_print(" (", 2);
+    external_print(function_name, external_strlen(function_name));
+    external_print(")\n", 2);
+
 }
 
 mla_size_t __wasm_standalone_std_read(mla_char_t* buffer, mla_size_t size) {
@@ -150,7 +178,7 @@ mla_low_level_operations_t g_low_level_access = {
     __wasm_standalone_free,
     __wasm_standalone_is_gcc_pointer,
     __wasm_standalone_on_malloc_failure,
-    __wasm_standalone_printf,
+    __wasm_standalone_print,
     __wasm_standalone_std_read,
     __wasm_standalone_strtod,
     __wasm_standalone_strtoll,

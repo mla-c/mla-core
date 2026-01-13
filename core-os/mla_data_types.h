@@ -107,8 +107,17 @@ struct mla_atomic_int32_t {
 #define mla_max(a, b) ((a) > (b) ? (a) : (b))
 
 // Macro for INFINITY
+// Platform-specific infinity definitions (no std/C library dependencies)
+#if defined(_MSC_VER)
+// MSVC - use IEEE 754 bit pattern for float infinity
+static const union { mla_uint32_t i; mla_float_t f; } __mla_inf_union = { 0x7F800000U };
+#define mla_infinity_pos (__mla_inf_union.f)
+#define mla_infinity_neg (-__mla_inf_union.f)
+#else
+// GCC/Clang - use builtin
 #define mla_infinity_pos (__builtin_inff())
 #define mla_infinity_neg (-(__builtin_inff()))
+#endif
 
 
 //////////////////////////////////////////////////////
@@ -144,7 +153,7 @@ typedef struct mla_low_level_operations_t {
     void (*on_malloc_failure)(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
     // Function pointers for printf and other output functions
-    mla_int32_t (*printf)(const mla_char_t* format, ...);
+    mla_size_t (*print)(const mla_char_t* format, mla_size_t length);
     mla_size_t (*std_read)(mla_char_t* buffer, mla_size_t size);
 
     // Parsing
@@ -180,7 +189,7 @@ mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename,
 #define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function
-#define mla_printf(format, ...) g_low_level_access.printf((format), __VA_ARGS__)
+#define mla_print(str, len) g_low_level_access.print(str , len)
 #define mla_std_read(buffer, size) g_low_level_access.std_read((buffer), (size))
 
 // Parsing functions

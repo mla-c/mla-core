@@ -76,16 +76,33 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
     }
 
     if (current_test_result.success) {
-        mla_test_printf("✓ Test passed: %s->%s", test.category, test.name);
+
+        mla_test_print("✓ Test passed: ", 17);
+        mla_test_print(test.category, mla_test_strlen(test.category));
+        mla_test_print("->", 2);
+        mla_test_print(test.name, mla_test_strlen(test.name));
+
     } else {
-        mla_test_printf("⚠ Test failed: %s->%s - %s", test.category, test.name, current_test_result.message);
+
+        mla_test_print("⚠ Test failed: ", 17);
+        mla_test_print(test.category, mla_test_strlen(test.category));
+        mla_test_print("->", 2);
+        mla_test_print(test.name, mla_test_strlen(test.name));
+        mla_test_print(" - ", 3);
+        mla_test_print(current_test_result.message, mla_test_strlen(current_test_result.message));
     }
 
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
-    mla_test_printf(" (Memory allocated: %llu bytes)", current_test_result.allocated_memory);
+
+    mla_test_print(" (Memory allocated: ", 20);
+    mla_test_char_t buffer[32];
+    mla_test_uint32_t len = mla_uint64_to_string(buffer, sizeof(buffer), current_test_result.allocated_memory);
+    mla_test_print(buffer, len);
+    mla_test_print(" bytes)", 7);
+
 #endif
 
-    mla_test_printf("\n");
+    mla_test_print("\n", 1);
 
     mla_test_bool_t result = current_test_result.success;
 

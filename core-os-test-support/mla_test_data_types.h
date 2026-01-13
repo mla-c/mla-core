@@ -42,7 +42,7 @@ const mla_test_char_t* mla_test_find_filename_from_path(const mla_test_char_t* p
 // This is useful for embedded systems where printf may not be available
 
 struct mla_test_print_t {
-    void (*printf)(const char* format, ...);
+    void (*print)(const mla_test_char_t* str, mla_test_uint32_t length);
 };
 
 extern mla_test_print_t g_test_print;
@@ -56,7 +56,7 @@ struct mla_test_mutex_t {
 
 extern mla_test_mutex_t g_test_mutex;
 
-#define mla_test_printf(...) g_test_print.printf(__VA_ARGS__);
+#define mla_test_print(str, len) g_test_print.print(str, len);
 
 struct mla_test_memory_allocator_t {
     mla_test_pointer_t (*malloc)(mla_test_uint32_t size);

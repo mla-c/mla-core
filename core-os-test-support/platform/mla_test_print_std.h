@@ -12,13 +12,8 @@
 // Simple printf implementation for standard output
 // Note: This implementation directly uses vprintf.
 
-inline void std_printf(const mla_test_char_t* format, ...) {
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-    // Flush the output to ensure it appears immediately
-    fflush(stdout);
+inline void std_printf(const mla_test_char_t* str, mla_test_uint32_t length) {
+    fwrite(str, 1, length, stdout);
 }
 
 mla_test_print_t g_test_print = {

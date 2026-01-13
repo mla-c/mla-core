@@ -54,12 +54,8 @@ mla_bool_t __generic_is_gcc_pointer(const mla_pointer_t ptr) {
     return false;
 }
 
-mla_int32_t __generic_printf(const mla_char_t* format, ...) {
-    va_list args;
-    va_start(args, format);
-    mla_int32_t result = vprintf(format, args);
-    va_end(args);
-    return result;
+mla_size_t __generic_print(const mla_char_t* format, mla_size_t length) {
+    return (mla_size_t)fwrite(format, 1, length, stdout);
 }
 
 void __generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {

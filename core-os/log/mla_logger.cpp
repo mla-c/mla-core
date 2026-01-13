@@ -257,3 +257,21 @@ const mla_char_t* mla_log_level_to_string(const mla_log_level level) {
             return "UNKNOWN";
     }
 }
+
+mla_size_t mla_log_level_to_string_length(const mla_log_level level) {
+
+    switch (level) {
+        case MLA_LOG_LEVEL_VERBOSE:
+            return 7;
+        case MLA_LOG_LEVEL_DEBUG:
+            return 5;
+        case MLA_LOG_LEVEL_INFO:
+            return 4;
+        case MLA_LOG_LEVEL_WARNING:
+            return 7;
+        case MLA_LOG_LEVEL_ERROR:
+            return 5;
+        default:
+            return 7; // "UNKNOWN"
+    }
+}

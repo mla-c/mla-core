@@ -205,19 +205,9 @@ mla_stream_input_t mla_stream_input_stdin() {
 mla_size_t __mla_stream_std_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     (void)output;
-    mla_char_t* tempBuffer = reinterpret_cast<mla_char_t*>(mla_malloc(sizeof(mla_char_t) * (length + 1)));
 
-    if (tempBuffer == nullptr) {
-        return 0; // Memory allocation failed
-    }
-
-    mla_memcpy(tempBuffer, buffer + offset, length);
-    tempBuffer[length] = '\0'; // Null-terminate the string
-    mla_printf("%s", tempBuffer);
-
-    mla_free(tempBuffer);
-    return length;
-
+    const mla_char_t* tempBuffer = reinterpret_cast<const mla_char_t*>(buffer);
+    return mla_print(tempBuffer + offset, length);
 }
 
 mla_stream_output_t mla_stream_output_stdout() {

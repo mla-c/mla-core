@@ -411,7 +411,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
     if (resultLength <= mla_string_sso_max_length) {
 
         mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = resultLength;
+        result.embedded.length = (mla_uint8_t)resultLength;
         mla_size_t sourcePos = 0;
         mla_size_t destPos = 0;
         while (sourcePos < length) {
