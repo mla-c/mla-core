@@ -233,42 +233,51 @@ const mlaImports = {
         return 0;
     },
 
-    external_strtod: (strPtr, endPtrPtr, result) => {
+    external_strtod: (strPtr, length, result) => {
+        const memory = getMemoryView();
+        const bytes = memory.slice(strPtr, strPtr + length);
+        const str = textDecoder.decode(bytes);
+        const value = parseFloat(str);
+
+        if (value === null || isNaN(value)) {
+            return false;
+        }
+
+        const view = new DataView(memory.buffer);
+        view.setFloat64(result, value, true);
+        return true;
+    },
+
+    external_strtoll: (strPtr, length, result) => {
+        const memory = getMemoryView();
+        const bytes = memory.slice(strPtr, strPtr + length);
+        const str = textDecoder.decode(bytes).trim();
+
         try {
-            const str = readString(strPtr);
-            const value = parseFloat(str);
-            const memory = getMemoryView();
+            const value = BigInt(str);
             const view = new DataView(memory.buffer);
-            view.setFloat64(result, value, true);
-            return result;
+            view.setBigInt64(result, value, true);
+            return true;
         } catch (e) {
-            return 0;
+            return false;
         }
     },
 
-    external_strtoll: (strPtr, endPtrPtr, result) => {
-        try {
-            const str = readString(strPtr);
-            const value = parseInt(str, 10);
-            const memory = getMemoryView();
-            const view = new DataView(memory.buffer);
-            view.setBigInt64(result, BigInt(value), true);
-            return result;
-        } catch (e) {
-            return 0;
-        }
-    },
+    external_strtoull: (strPtr, length, result) => {
+        const memory = getMemoryView();
+        const bytes = memory.slice(strPtr, strPtr + length);
+        const str = textDecoder.decode(bytes).trim();
 
-    external_strtoull: (strPtr, endPtrPtr, result) => {
         try {
-            const str = readString(strPtr);
-            const value = parseInt(str, 10);
-            const memory = getMemoryView();
+            const value = BigInt(str);
+            if (value < 0n) {
+                return false;
+            }
             const view = new DataView(memory.buffer);
-            view.setBigUint64(result, BigInt(value), true);
-            return result;
+            view.setBigUint64(result, value, true);
+            return true;
         } catch (e) {
-            return 0;
+            return false;
         }
     },
 
