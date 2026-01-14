@@ -2,6 +2,8 @@ if (MLA_WASM_STANDALONE)
 
     if (CMAKE_CXX_COMPILER MATCHES "zig")
 
+        set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
+
         # Basic flags for Zig WASM
         add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions -target wasm32-freestanding)
 
@@ -27,13 +29,34 @@ if (MLA_WASM_STANDALONE)
 
 elseif (MLA_EMSDK_PATH)
 
-    # Enable all warnings and treat them as errors
-    # Disable exceptions to reduce binary size
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
-
     # Set Option for smallest possible output
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=1 -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
-    message(STATUS "Configured Emscripten Compiler")
+
+    if (MLA_WASM_STANDALONE)
+
+        set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
+
+        # Enable all warnings and treat them as errors
+        # Disable exceptions to reduce binary size
+        add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions -ffreestanding)
+
+        add_link_options(
+                -nostdlib
+                -ffreestanding
+                -Wl,--no-entry
+                -Wl,--export=main
+        )
+
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=none -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
+        message(STATUS "Configured Emscripten Compiler for Standalone WASM")
+    else()
+        # Enable all warnings and treat them as errors
+        # Disable exceptions to reduce binary size
+        add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
+
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=1 -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
+        message(STATUS "Configured Emscripten Compiler")
+    endif()
+
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
     # Enable all warnings and treat them as errors
