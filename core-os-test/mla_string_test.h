@@ -1217,6 +1217,19 @@ void StringConcatBenchmark() {
     mla_string_destroy(result);
 }
 
+void StringConcatEmbeddedBenchmark() {
+    mla_string_t str1 = mla_string("H ");
+    mla_string_t str2 = mla_string("W ");
+    mla_string_t str3 = mla_string("!");
+
+    mla_string_t result = mla_string_concat(str1, str2, str3);
+
+    mla_test_int32_t length = mla_string_length(result);
+    (void) length; // Prevent unused variable warning
+
+    mla_string_destroy(result);
+}
+
 void StringFromInt8Benchmark() {
     mla_int8_t value = 42;
     mla_string_t str = mla_string_from_int8(value);
@@ -1443,7 +1456,11 @@ void RefCountBenchmark() {
 void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     // Concat Benchmarks
     ////////////////////////////////////////////
-    mla_benchmark_t benchmark = mla_benchmark("Concat", benchmark_category, StringConcatBenchmark);
+
+    mla_benchmark_t benchmark = mla_benchmark("ConcatEmbedded", benchmark_category, StringConcatEmbeddedBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("Concat", benchmark_category, StringConcatBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // From Benchmarks

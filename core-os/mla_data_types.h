@@ -215,5 +215,12 @@ struct mla_default_initializer {
 //#define mla_offsetof(type, member) ((mla_size_t)((mla_byte_t*)&(((type*)((mla_byte_t*)1))->member) - (mla_byte_t*)1))
 #define mla_offsetof(type, member) ((mla_size_t)__builtin_offsetof(type, member))
 
+// Helper to create print a const value
+// Usage: mla_print_const("Hello World")
+template<mla_size_t N>
+mla_size_t mla_print_const(const mla_char_t (&literal)[N]) {
+    return mla_print(literal, N-1);  // N includes null terminator
+}
+
 
 #endif
