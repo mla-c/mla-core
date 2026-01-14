@@ -33,6 +33,8 @@ elseif (MLA_EMSDK_PATH)
 
     if (MLA_WASM_STANDALONE)
 
+        # Create standalone WASM binary
+
         set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
 
         # Enable all warnings and treat them as errors
@@ -48,7 +50,22 @@ elseif (MLA_EMSDK_PATH)
 
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=none -sSTANDALONE_WASM=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
         message(STATUS "Configured Emscripten Compiler for Standalone WASM")
+    elseif (MLA_JS_STANDALONE)
+
+        # Create standalone JS
+
+        set(CMAKE_EXECUTABLE_SUFFIX ".js")
+
+        # Enable all warnings and treat them as errors
+        # Disable exceptions to reduce binary size
+        add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
+
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=1 -sWASM=0 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
+        message(STATUS "Configured Emscripten Compiler for Standalone JS")
     else()
+
+        # Create WASM binary that depends on Emscripten runtime
+
         # Enable all warnings and treat them as errors
         # Disable exceptions to reduce binary size
         add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
