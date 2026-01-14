@@ -527,7 +527,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         mla_test_char_t buffer_mem[20];
         mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
         mla_test_print(buffer_mem, strLength_mem);
-        mla_test_print(",\n  \"Iterations\": ", 19);
+        mla_test_print(",\n  \"Iterations\": ", 18);
         mla_test_char_t buffer_iter[20];
         mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
         mla_test_print(buffer_iter, strLength_iter);
