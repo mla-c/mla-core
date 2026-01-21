@@ -88,7 +88,7 @@ The main library providing fundamental operating system abstractions and utiliti
 - **Endian Utils** - `mla_endian_utils.h` - Handling byte order - [Utils Documentation](core-os/utils/readme.md)
 - **Hash Functions** - `mla_hash.h` - Hashing algorithms - [Hash Documentation](core-os/hash/readme.md)
 
-#### **User Interface** (`ui/`) - [Documentation](core-os/ui/readme.md)
+#### **User Interface** (`ui/`) - [Documentation](core-os/ui/web/readme.md)
 - **UI HTTP Server** - `mla_ui_http_server.h` - Web-based user interface framework
 - **UI RPC** - `mla_ui_rpc.h` - RPC integration for UI communication
 - **Embedded Web** - `mla_ui_web_embedded.h` - Embedded web resources for serving UI assets

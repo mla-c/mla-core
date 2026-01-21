@@ -51,7 +51,6 @@ mla_bool_t mla_stream_copy(const mla_stream_input_t &input, const mla_stream_out
 
 mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, const mla_string_t &string);
 
-
 ///////////////////////////////////////////////////////////////////
 /// Wrapper and Helpers
 ///////////////////////////////////////////////////////////////////
