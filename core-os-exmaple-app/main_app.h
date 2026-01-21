@@ -10,7 +10,7 @@
 #include "../core-os/log/mla_logging.h"
 #include "main_app_cli.h"
 #include "main_app_web_ui.h"
-
+#include "main_app_window_ui.h"
 
 int run() {
 
@@ -21,7 +21,7 @@ int run() {
     mla_info("Test Application started successfully!");
     main_app_cli_init();
     main_app_web_ui_init();
-
+    main_app_window_ui_init();
 
     mla_task_manager_process_all_tasks();
 
