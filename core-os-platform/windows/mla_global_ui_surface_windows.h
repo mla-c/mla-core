@@ -39,6 +39,12 @@ struct mla_windows_window_surface_t {
     HWND hwnd;
     mla_bool_t is_initialized;
     mla_ui_surface_size_t default_size;
+
+#ifdef mla_debug
+    DWORD last_fps_time;
+    int frames_accumulated;
+    int current_fps;
+#endif
 };
 
 // Stub implementations for the surface function pointers
@@ -185,15 +191,27 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
         return false;
     }
 
-    Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-
-    // Clear background
     RECT clientRect;
     GetClientRect(window_surface->hwnd, &clientRect);
+    int width = clientRect.right - clientRect.left;
+    int height = clientRect.bottom - clientRect.top;
+
+    // Create memory DC for double buffering
+    HDC memDC = CreateCompatibleDC(hdc);
+    HBITMAP memBitmap = CreateCompatibleBitmap(hdc, width, height);
+    HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
+
+    // Create Graphics object from memory DC instead of screen DC
+    Graphics graphics(memDC);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+    graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    graphics.SetPixelOffsetMode(PixelOffsetModeHighQuality);
+    graphics.SetCompositingQuality(CompositingQualityHighQuality);
+
+    // Clear background to memory DC
     SolidBrush bgBrush(Color(255, 255, 255));
-    graphics.FillRectangle(&bgBrush, 0, 0, clientRect.right, clientRect.bottom);
+    graphics.FillRectangle(&bgBrush, 0, 0, width, height);
 
     // Track gradient state
     LinearGradientBrush* currentLinearGradient = nullptr;
@@ -420,95 +438,59 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
         }
     }
 
+    // Cleanup gradients
     if (currentLinearGradient != nullptr)
         delete currentLinearGradient;
-
     if (currentRadialGradient != nullptr)
         delete currentRadialGradient;
 
+    // FPS Counter (debug only)
+#ifdef mla_debug
+    DWORD current_time = GetTickCount();
+    if (window_surface->last_fps_time == 0) {
+        window_surface->last_fps_time = current_time;
+    }
+
+    window_surface->frames_accumulated++;
+
+    if (current_time - window_surface->last_fps_time >= 1000) {
+        window_surface->current_fps = window_surface->frames_accumulated;
+        window_surface->frames_accumulated = 0;
+        window_surface->last_fps_time = current_time;
+    }
+
+    // Draw FPS counter to memory DC before blitting
+    HFONT hFont = CreateFontA(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+                              OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                              DEFAULT_PITCH | FF_SWISS, "Arial");
+    HFONT hOldFont = (HFONT)SelectObject(memDC, hFont);
+    SetBkMode(memDC, TRANSPARENT);
+    SetTextColor(memDC, RGB(255, 0, 0));
+
+    char buffer[64];
+    wsprintfA(buffer, "FPS: %d", window_surface->current_fps);
+
+    SIZE textSize;
+    GetTextExtentPoint32A(memDC, buffer, lstrlenA(buffer), &textSize);
+
+    int padding = 10;
+    int x = width - textSize.cx - padding;
+    int y = height - textSize.cy - padding;
+
+    TextOutA(memDC, x, y, buffer, lstrlenA(buffer));
+
+    SelectObject(memDC, hOldFont);
+    DeleteObject(hFont);
+#endif
+
+    // Single blit from memory to screen - fast and flicker-free
+    BitBlt(hdc, 0, 0, width, height, memDC, 0, 0, SRCCOPY);
+
+    // Cleanup
+    SelectObject(memDC, oldBitmap);
+    DeleteObject(memBitmap);
+    DeleteDC(memDC);
     ReleaseDC(window_surface->hwnd, hdc);
-    return true;
-}
-
-
-mla_bool_t __windows_surface_render_svg(mla_ui_surface_t& surface, mla_string_t svgContent) {
-
-    mla_windows_window_surface_t* window_surface = static_cast<mla_windows_window_surface_t*>(surface.resource);
-    if (window_surface == nullptr) {
-        return false;
-    }
-
-    if (!window_surface->is_initialized) {
-
-        if (!__windows_create_windows_surface(window_surface)) {
-            mla_warning("Failed to initialize Windows UI surface for SVG rendering.");
-            return false;
-        }
-    }
-
-
-    MSG msg;
-    // PeekMessage loop handles input but returns immediately if empty
-    while (PeekMessage(&msg, window_surface->hwnd, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    (void)svgContent;
-
-    // Basic GDI Implementation to replace the "Not implemented yet" stub
-    // This allows visual verification that the window loop is working.
-    HDC hdc = GetDC(window_surface->hwnd);
-    if (hdc) {
-        // --- FPS Calculation Start ---
-        static DWORD last_time = 0;
-        static int frames_accumulated = 0;
-        static int current_fps = 0;
-
-        DWORD current_time = GetTickCount();
-        if (last_time == 0) {
-            last_time = current_time;
-        }
-
-        frames_accumulated++;
-
-        // If 1 second (1000ms) has passed, update FPS and reset
-        if (current_time - last_time >= 1000) {
-            current_fps = frames_accumulated;
-            frames_accumulated = 0;
-            last_time = current_time;
-        }
-        // --- FPS Calculation End ---
-
-        RECT rect;
-        GetClientRect(window_surface->hwnd, &rect);
-
-        // Fill background (Matching #282c34 from your SVG)
-        HBRUSH bgBrush = CreateSolidBrush(RGB(40, 44, 52));
-        FillRect(hdc, &rect, bgBrush);
-        DeleteObject(bgBrush);
-
-        // Draw Text (Matching #61dafb)
-        SetBkMode(hdc, TRANSPARENT);
-        SetTextColor(hdc, RGB(97, 218, 251));
-
-        // Use a larger font for visibility
-        HFONT hFont = CreateFontA(48, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET,
-                                  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-                                  DEFAULT_PITCH | FF_SWISS, "Arial");
-        HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
-
-        // Format the string to include the FPS
-        char buffer[256];
-        wsprintfA(buffer, "Main Application Window - FPS: %d", current_fps);
-
-        DrawTextA(hdc, buffer, -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-        SelectObject(hdc, hOldFont);
-        DeleteObject(hFont);
-        ReleaseDC(window_surface->hwnd, hdc);
-    }
-
     return true;
 }
 
@@ -538,12 +520,17 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t& outSurface) {
     window_surface->is_initialized = false;
     window_surface->default_size = {0, 0};
 
+#ifdef mla_debug
+    window_surface->last_fps_time = 0;
+    window_surface->frames_accumulated = 0;
+    window_surface->current_fps = 0;
+#endif
+
     // Populate the surface structure
     outSurface.resource = window_surface;
     outSurface.resourceOwner = mla_buffer_reference(window_surface, true, __windows_surface_buffer_cleanup);
     outSurface.get_size = __windows_surface_get_size;
     outSurface.set_size = __windows_surface_set_size;
-    outSurface.render_svg = __windows_surface_render_svg;
     outSurface.render_draw_commands = __windows_surface_render_draw_commands;
 
     return true; // True
