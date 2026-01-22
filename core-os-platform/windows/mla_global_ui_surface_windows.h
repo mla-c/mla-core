@@ -17,6 +17,9 @@ static IDWriteFactory* g_pDWriteFactory = nullptr;
 
 // Initialize Direct2D (call once at startup)
 void __windows_d2d_init() {
+
+    SetProcessDPIAware();
+
     if (g_pD2DFactory == nullptr) {
         D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
     }
@@ -322,8 +325,23 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
 
         D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
 
+        // Quality Improvement: Use explicit 32-bit color format
+        D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat(
+            DXGI_FORMAT_B8G8R8A8_UNORM,
+            D2D1_ALPHA_MODE_PREMULTIPLIED
+        );
+
+        // Quality Improvement: Allow D2D to auto-detect DPI (0,0) based on factory settings
+        D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+            D2D1_RENDER_TARGET_TYPE_DEFAULT,
+            pixelFormat,
+            0, 0,
+            D2D1_RENDER_TARGET_USAGE_NONE,
+            D2D1_FEATURE_LEVEL_DEFAULT
+        );
+
         g_pD2DFactory->CreateHwndRenderTarget(
-            D2D1::RenderTargetProperties(),
+            props,
             D2D1::HwndRenderTargetProperties(window_surface->hwnd, size),
             &window_surface->renderTarget
         );
