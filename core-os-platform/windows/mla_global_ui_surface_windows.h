@@ -7,125 +7,157 @@
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include <windows.h>
-#include <gdiplus.h>
+#include <d2d1.h>
+#include <dwrite.h>
+#include <wincodec.h>
 
+// Global Direct2D factories
+static ID2D1Factory* g_pD2DFactory = nullptr;
+static IDWriteFactory* g_pDWriteFactory = nullptr;
 
-using namespace Gdiplus;
-
-// Global GDI+ token
-static ULONG_PTR g_gdiplusToken = 0;
-
-// Initialize GDI+ (call once at startup)
-void __windows_gdiplus_init() {
-    GdiplusStartupInput gdiplusStartupInput;
-    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, nullptr);
+// Initialize Direct2D (call once at startup)
+void __windows_d2d_init() {
+    if (g_pD2DFactory == nullptr) {
+        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+    }
+    if (g_pDWriteFactory == nullptr) {
+        DWriteCreateFactory(
+            DWRITE_FACTORY_TYPE_SHARED,
+            __uuidof(IDWriteFactory),
+            reinterpret_cast<IUnknown**>(&g_pDWriteFactory)
+        );
+    }
 }
 
-// Cleanup GDI+ (call at shutdown)
-void __windows_gdiplus_shutdown() {
-    Gdiplus::GdiplusShutdown(g_gdiplusToken);
+// Cleanup Direct2D (call at shutdown)
+void __windows_d2d_shutdown() {
+    if (g_pDWriteFactory) {
+        g_pDWriteFactory->Release();
+        g_pDWriteFactory = nullptr;
+    }
+    if (g_pD2DFactory) {
+        g_pD2DFactory->Release();
+        g_pD2DFactory = nullptr;
+    }
 }
 
-struct MlaGDIPlusAutoInit {
-    MlaGDIPlusAutoInit() { __windows_gdiplus_init(); }
-    ~MlaGDIPlusAutoInit() { __windows_gdiplus_shutdown(); }
+struct MlaD2DAutoInit {
+    MlaD2DAutoInit() { __windows_d2d_init(); }
+    ~MlaD2DAutoInit() { __windows_d2d_shutdown(); }
 };
 
 // Single global instance
-static MlaGDIPlusAutoInit g_mlaGDIAutoInit;
+static MlaD2DAutoInit g_mlaD2DAutoInit;
 
 // Render cache structure for performance optimization
 // Render cache structure for performance optimization
 struct WindowsRenderCache {
-    // Reusable objects
-    SolidBrush* solidBrush;
-    Pen* pen;
-    GraphicsPath* path;
+    // Reusable brushes
+    ID2D1SolidColorBrush* solidBrush;
 
     // Font cache
     struct FontCacheEntry {
         WCHAR family[256];
-        REAL size;
-        Font* font;
+        FLOAT size;
+        IDWriteTextFormat* textFormat;
         bool used;
     };
     FontCacheEntry fontCache[16];  // Fixed size cache
     int fontCacheSize;
 
     // Current state to avoid redundant updates
-    Color currentFillColor;
-    Color currentStrokeColor;
-    REAL currentStrokeWidth;
+    D2D1_COLOR_F currentFillColor;
+    D2D1_COLOR_F currentStrokeColor;
+    FLOAT currentStrokeWidth;
 
     WindowsRenderCache() {
-        solidBrush = new SolidBrush(Color(255, 255, 255, 255));
-        pen = new Pen(Color(255, 0, 0, 0), 1.0f);
-        path = new GraphicsPath();
-        currentFillColor = Color(255, 255, 255, 255);
-        currentStrokeColor = Color(255, 0, 0, 0);
+        solidBrush = nullptr;
+
+        currentFillColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
+        currentStrokeColor = D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f);
         currentStrokeWidth = 1.0f;
         fontCacheSize = 0;
+
         for (int i = 0; i < 16; i++) {
             fontCache[i].used = false;
-            fontCache[i].font = nullptr;
+            fontCache[i].textFormat = nullptr;
         }
     }
 
     ~WindowsRenderCache() {
-        delete solidBrush;
-        delete pen;
-        delete path;
-        for (int i = 0; i < fontCacheSize; i++) {
-            if (fontCache[i].font) {
-                delete fontCache[i].font;
+        ResetDeviceResources();
+
+        for (int i = 0; i < 16; i++) { // Check all slots, as eviction might leave holes or used flags set
+            if (fontCache[i].used && fontCache[i].textFormat) {
+                fontCache[i].textFormat->Release();
+                fontCache[i].textFormat = nullptr;
             }
         }
     }
 
-    Font* GetOrCreateFont(const WCHAR* familyName, REAL size) {
+    void ResetDeviceResources() {
+        if (solidBrush) {
+            solidBrush->Release();
+            solidBrush = nullptr;
+        }
+        // Force color update next time
+        currentFillColor = D2D1::ColorF(0, 0, 0, 0);
+    }
+
+    IDWriteTextFormat* GetOrCreateTextFormat(const WCHAR* familyName, FLOAT size) {
         // Check if font already exists in cache
         for (int i = 0; i < fontCacheSize; i++) {
             if (fontCache[i].used &&
                 wcscmp(fontCache[i].family, familyName) == 0 &&
                 fontCache[i].size == size) {
-                return fontCache[i].font;
+                return fontCache[i].textFormat;
             }
         }
 
-        // Create new font
-        FontFamily fontFamily(familyName);
-        Font* font = new Font(&fontFamily, size, FontStyleRegular, UnitPixel);
+        // Create new text format
+        IDWriteTextFormat* textFormat = nullptr;
+        g_pDWriteFactory->CreateTextFormat(
+            familyName,
+            nullptr,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            size,
+            L"en-us",
+            &textFormat
+        );
 
-        // Add to cache if there's room
-        if (fontCacheSize < 16) {
-            wcscpy_s(fontCache[fontCacheSize].family, 256, familyName);
-            fontCache[fontCacheSize].size = size;
-            fontCache[fontCacheSize].font = font;
-            fontCache[fontCacheSize].used = true;
-            fontCacheSize++;
+        if (textFormat) {
+             // Logic Fix: Ensure we track this pointer even if cache is full
+             int index;
+             if (fontCacheSize < 16) {
+                 index = fontCacheSize++;
+             } else {
+                 // Cache full: Evict the first slot (simple FIFO) to stop the memory leak
+                 index = 0;
+                 if (fontCache[index].used && fontCache[index].textFormat) {
+                     fontCache[index].textFormat->Release();
+                 }
+             }
+
+            wcscpy_s(fontCache[index].family, 256, familyName);
+            fontCache[index].size = size;
+            fontCache[index].textFormat = textFormat;
+            fontCache[index].used = true;
+
+            return textFormat;
         }
 
-        return font;
+        return nullptr;
     }
 
-    void UpdateFillBrush(const Color& color) {
-        if (currentFillColor.GetValue() != color.GetValue()) {
+    void UpdateSolidBrush(ID2D1RenderTarget* renderTarget, const D2D1_COLOR_F& color) {
+        if (!solidBrush) {
+            renderTarget->CreateSolidColorBrush(color, &solidBrush);
+            currentFillColor = color;
+        } else if (memcmp(&currentFillColor, &color, sizeof(D2D1_COLOR_F)) != 0) {
             solidBrush->SetColor(color);
             currentFillColor = color;
-        }
-    }
-
-    void UpdateStrokePen(const Color& color, REAL width) {
-        bool colorChanged = currentStrokeColor.GetValue() != color.GetValue();
-        bool widthChanged = currentStrokeWidth != width;
-
-        if (colorChanged) {
-            pen->SetColor(color);
-            currentStrokeColor = color;
-        }
-        if (widthChanged) {
-            pen->SetWidth(width);
-            currentStrokeWidth = width;
         }
     }
 };
@@ -135,13 +167,8 @@ struct mla_windows_window_surface_t {
     mla_bool_t is_initialized;
     mla_ui_surface_size_t default_size;
 
-    // Cached rendering resources
-    HDC memDC;
-    HBITMAP memBitmap;
-    Graphics *graphics;
-    int cached_width;
-    int cached_height;
-
+    // Direct2D rendering resources
+    ID2D1HwndRenderTarget* renderTarget;
     WindowsRenderCache* renderCache;
 
 #ifdef mla_debug
@@ -250,6 +277,7 @@ mla_bool_t __windows_create_windows_surface(mla_windows_window_surface_t *surfac
         return false;
     }
 
+    surface->renderCache = new WindowsRenderCache();
     surface->is_initialized = true;
     surface->hwnd = hwnd;
     ShowWindow(hwnd, SW_SHOWDEFAULT);
@@ -257,8 +285,13 @@ mla_bool_t __windows_create_windows_surface(mla_windows_window_surface_t *surfac
     return true;
 }
 
-Color __convert_color(const mla_ui_surface_draw_command_color_t &color) {
-    return Color(color.a, color.r, color.g, color.b);
+D2D1_COLOR_F __convert_color(const mla_ui_surface_draw_command_color_t &color) {
+    return D2D1::ColorF(
+        (FLOAT)color.r / 255.0f,
+        (FLOAT)color.g / 255.0f,
+        (FLOAT)color.b / 255.0f,
+        (FLOAT)color.a / 255.0f
+    );
 }
 
 mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
@@ -274,7 +307,6 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
             mla_warning("Failed to initialize Windows UI surface for drawing.");
             return false;
         }
-        window_surface->renderCache = new WindowsRenderCache();
     }
 
     MSG msg;
@@ -283,48 +315,54 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
         DispatchMessage(&msg);
     }
 
-    HDC hdc = GetDC(window_surface->hwnd);
-    if (!hdc) {
-        return false;
+    // Create render target if needed
+    if (!window_surface->renderTarget) {
+        RECT rc;
+        GetClientRect(window_surface->hwnd, &rc);
+
+        D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+
+        g_pD2DFactory->CreateHwndRenderTarget(
+            D2D1::RenderTargetProperties(),
+            D2D1::HwndRenderTargetProperties(window_surface->hwnd, size),
+            &window_surface->renderTarget
+        );
+
+        if (!window_surface->renderTarget) {
+            return false;
+        }
+
+        window_surface->renderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        window_surface->renderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+    } else {
+        // Fix: Ensure RenderTarget matches Window Client Size
+        // If we don't do this, D2D scales the output, making it look blurry.
+        RECT rc;
+        GetClientRect(window_surface->hwnd, &rc);
+        D2D1_SIZE_U windowSize = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+        D2D1_SIZE_U targetSize = window_surface->renderTarget->GetPixelSize();
+
+        if (windowSize.width != targetSize.width || windowSize.height != targetSize.height) {
+            window_surface->renderTarget->Resize(windowSize);
+        }
     }
 
-    RECT clientRect;
-    GetClientRect(window_surface->hwnd, &clientRect);
-    int width = clientRect.right - clientRect.left;
-    int height = clientRect.bottom - clientRect.top;
-
-    if (window_surface->memBitmap == nullptr || window_surface->cached_width != width || window_surface->cached_height != height) {
-
-        if (window_surface->graphics)
-            delete window_surface->graphics;
-        if (window_surface->memBitmap)
-            DeleteObject(window_surface->memBitmap);
-        if (window_surface->memDC)
-            DeleteDC(window_surface->memDC);
-
-        window_surface->memDC = CreateCompatibleDC(hdc);
-        window_surface->memBitmap = CreateCompatibleBitmap(hdc, width, height);
-        SelectObject(window_surface->memDC, window_surface->memBitmap);
-
-        window_surface->graphics = new Graphics(window_surface->memDC);
-        window_surface->graphics->SetSmoothingMode(SmoothingModeAntiAlias);
-        window_surface->graphics->SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
-        window_surface->graphics->SetInterpolationMode(InterpolationModeHighQualityBicubic);
-        window_surface->graphics->SetPixelOffsetMode(PixelOffsetModeHighQuality);
-        window_surface->graphics->SetCompositingQuality(CompositingQualityHighQuality);
-
-        window_surface->cached_width = width;
-        window_surface->cached_height = height;
-    }
-
-    Graphics *graphics = window_surface->graphics;
+    ID2D1HwndRenderTarget* renderTarget = window_surface->renderTarget;
     WindowsRenderCache* cache = window_surface->renderCache;
 
-    cache->UpdateFillBrush(Color(255, 255, 255, 255));
-    graphics->FillRectangle(cache->solidBrush, 0, 0, width, height);
+    // Begin drawing
+    renderTarget->BeginDraw();
 
-    LinearGradientBrush *currentLinearGradient = nullptr;
-    PathGradientBrush *currentRadialGradient = nullptr;
+    // Clear background
+    renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+    // Temporary brushes for gradients
+    ID2D1LinearGradientBrush* currentLinearGradient = nullptr;
+    ID2D1RadialGradientBrush* currentRadialGradient = nullptr;
+    ID2D1SolidColorBrush* strokeBrush = nullptr;
+
+    // Track current path being built
+    D2D1_POINT_2F currentPathPoint = {0, 0};
 
     for (mla_size_t i = 0; i < mla_array_list_size(drawCommands); i++) {
         const mla_ui_surface_draw_command_t &cmd = mla_array_list_get_unsafe(drawCommands, i);
@@ -332,57 +370,94 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
         switch (cmd.kind) {
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT: {
                 const auto &rect = cmd.rect;
-                cache->UpdateFillBrush(__convert_color(rect.color));
-                cache->UpdateStrokePen(__convert_color(rect.stroke), (REAL)rect.stroke_width);
+                D2D1_RECT_F d2dRect = D2D1::RectF(
+                    (FLOAT)rect.x, (FLOAT)rect.y,
+                    (FLOAT)(rect.x + rect.width), (FLOAT)(rect.y + rect.height)
+                );
 
+                // Fill
+                cache->UpdateSolidBrush(renderTarget, __convert_color(rect.color));
                 if (rect.rx > 0 || rect.ry > 0) {
-                    cache->path->Reset();
-                    REAL x = (REAL)rect.x, y = (REAL)rect.y;
-                    REAL w = (REAL)rect.width, h = (REAL)rect.height;
-                    REAL rx = (REAL)rect.rx, ry = (REAL)rect.ry;
-
-                    cache->path->AddArc(x, y, rx * 2, ry * 2, 180, 90);
-                    cache->path->AddArc(x + w - rx * 2, y, rx * 2, ry * 2, 270, 90);
-                    cache->path->AddArc(x + w - rx * 2, y + h - ry * 2, rx * 2, ry * 2, 0, 90);
-                    cache->path->AddArc(x, y + h - ry * 2, rx * 2, ry * 2, 90, 90);
-                    cache->path->CloseFigure();
-
-                    graphics->FillPath(cache->solidBrush, cache->path);
-                    graphics->DrawPath(cache->pen, cache->path);
+                    D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect(d2dRect, (FLOAT)rect.rx, (FLOAT)rect.ry);
+                    renderTarget->FillRoundedRectangle(roundedRect, cache->solidBrush);
                 } else {
-                    graphics->FillRectangle(cache->solidBrush, (REAL)rect.x, (REAL)rect.y, (REAL)rect.width, (REAL)rect.height);
-                    graphics->DrawRectangle(cache->pen, (REAL)rect.x, (REAL)rect.y, (REAL)rect.width, (REAL)rect.height);
+                    renderTarget->FillRectangle(d2dRect, cache->solidBrush);
+                }
+
+                // Stroke
+                if (rect.stroke_width > 0) {
+                    if (!strokeBrush) {
+                        renderTarget->CreateSolidColorBrush(__convert_color(rect.stroke), &strokeBrush);
+                    } else {
+                        strokeBrush->SetColor(__convert_color(rect.stroke));
+                    }
+
+                    if (rect.rx > 0 || rect.ry > 0) {
+                        D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect(d2dRect, (FLOAT)rect.rx, (FLOAT)rect.ry);
+                        renderTarget->DrawRoundedRectangle(roundedRect, strokeBrush, (FLOAT)rect.stroke_width);
+                    } else {
+                        renderTarget->DrawRectangle(d2dRect, strokeBrush, (FLOAT)rect.stroke_width);
+                    }
                 }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_CIRCLE: {
                 const auto &circle = cmd.circle;
-                cache->UpdateFillBrush(__convert_color(circle.fill));
-                cache->UpdateStrokePen(__convert_color(circle.stroke), (REAL)circle.stroke_width);
+                D2D1_ELLIPSE ellipse = D2D1::Ellipse(
+                    D2D1::Point2F((FLOAT)circle.cx, (FLOAT)circle.cy),
+                    (FLOAT)circle.r, (FLOAT)circle.r
+                );
 
-                REAL diameter = (REAL)(circle.r * 2);
-                graphics->FillEllipse(cache->solidBrush, (REAL)(circle.cx - circle.r), (REAL)(circle.cy - circle.r), diameter, diameter);
-                graphics->DrawEllipse(cache->pen, (REAL)(circle.cx - circle.r), (REAL)(circle.cy - circle.r), diameter, diameter);
+                cache->UpdateSolidBrush(renderTarget, __convert_color(circle.fill));
+                renderTarget->FillEllipse(ellipse, cache->solidBrush);
+
+                if (circle.stroke_width > 0) {
+                    if (!strokeBrush) {
+                        renderTarget->CreateSolidColorBrush(__convert_color(circle.stroke), &strokeBrush);
+                    } else {
+                        strokeBrush->SetColor(__convert_color(circle.stroke));
+                    }
+                    renderTarget->DrawEllipse(ellipse, strokeBrush, (FLOAT)circle.stroke_width);
+                }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_ELLIPSE: {
-                const auto &ellipse = cmd.ellipse;
-                cache->UpdateFillBrush(__convert_color(ellipse.fill));
-                cache->UpdateStrokePen(__convert_color(ellipse.stroke), (REAL)ellipse.stroke_width);
+                const auto &ellipseCmd = cmd.ellipse;
+                D2D1_ELLIPSE ellipse = D2D1::Ellipse(
+                    D2D1::Point2F((FLOAT)ellipseCmd.cx, (FLOAT)ellipseCmd.cy),
+                    (FLOAT)ellipseCmd.rx, (FLOAT)ellipseCmd.ry
+                );
 
-                graphics->FillEllipse(cache->solidBrush, (REAL)(ellipse.cx - ellipse.rx), (REAL)(ellipse.cy - ellipse.ry),
-                                     (REAL)(ellipse.rx * 2), (REAL)(ellipse.ry * 2));
-                graphics->DrawEllipse(cache->pen, (REAL)(ellipse.cx - ellipse.rx), (REAL)(ellipse.cy - ellipse.ry),
-                                     (REAL)(ellipse.rx * 2), (REAL)(ellipse.ry * 2));
+                cache->UpdateSolidBrush(renderTarget, __convert_color(ellipseCmd.fill));
+                renderTarget->FillEllipse(ellipse, cache->solidBrush);
+
+                if (ellipseCmd.stroke_width > 0) {
+                    if (!strokeBrush) {
+                        renderTarget->CreateSolidColorBrush(__convert_color(ellipseCmd.stroke), &strokeBrush);
+                    } else {
+                        strokeBrush->SetColor(__convert_color(ellipseCmd.stroke));
+                    }
+                    renderTarget->DrawEllipse(ellipse, strokeBrush, (FLOAT)ellipseCmd.stroke_width);
+                }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE: {
                 const auto &line = cmd.line;
-                cache->UpdateStrokePen(__convert_color(line.stroke), (REAL)line.stroke_width);
-                graphics->DrawLine(cache->pen, (REAL)line.x1, (REAL)line.y1, (REAL)line.x2, (REAL)line.y2);
+                if (!strokeBrush) {
+                    renderTarget->CreateSolidColorBrush(__convert_color(line.stroke), &strokeBrush);
+                } else {
+                    strokeBrush->SetColor(__convert_color(line.stroke));
+                }
+
+                renderTarget->DrawLine(
+                    D2D1::Point2F((FLOAT)line.x1, (FLOAT)line.y1),
+                    D2D1::Point2F((FLOAT)line.x2, (FLOAT)line.y2),
+                    strokeBrush,
+                    (FLOAT)line.stroke_width
+                );
                 break;
             }
 
@@ -390,14 +465,32 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
                 const auto &polyline = cmd.polyline;
                 if (mla_array_list_size(polyline.points) < 2) break;
 
-                PointF *points = new PointF[mla_array_list_size(polyline.points)];
-                for (mla_size_t j = 0; j < mla_array_list_size(polyline.points); j++) {
+                ID2D1PathGeometry* geometry = nullptr;
+                ID2D1GeometrySink* sink = nullptr;
+
+                g_pD2DFactory->CreatePathGeometry(&geometry);
+                geometry->Open(&sink);
+
+                const mla_ui_surface_draw_point_t &firstPoint = mla_array_list_get_unsafe(polyline.points, 0);
+                sink->BeginFigure(D2D1::Point2F((FLOAT)firstPoint.x, (FLOAT)firstPoint.y), D2D1_FIGURE_BEGIN_HOLLOW);
+
+                for (mla_size_t j = 1; j < mla_array_list_size(polyline.points); j++) {
                     const mla_ui_surface_draw_point_t &point = mla_array_list_get_unsafe(polyline.points, j);
-                    points[j] = PointF((REAL)point.x, (REAL)point.y);
+                    sink->AddLine(D2D1::Point2F((FLOAT)point.x, (FLOAT)point.y));
                 }
-                cache->UpdateStrokePen(__convert_color(polyline.stroke), (REAL)polyline.stroke_width);
-                graphics->DrawLines(cache->pen, points, (INT)mla_array_list_size(polyline.points));
-                delete[] points;
+
+                sink->EndFigure(D2D1_FIGURE_END_OPEN);
+                sink->Close();
+
+                if (!strokeBrush) {
+                    renderTarget->CreateSolidColorBrush(__convert_color(polyline.stroke), &strokeBrush);
+                } else {
+                    strokeBrush->SetColor(__convert_color(polyline.stroke));
+                }
+                renderTarget->DrawGeometry(geometry, strokeBrush, (FLOAT)polyline.stroke_width);
+
+                sink->Release();
+                geometry->Release();
                 break;
             }
 
@@ -405,16 +498,37 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
                 const auto &polygon = cmd.polygon;
                 if (mla_array_list_size(polygon.points) < 3) break;
 
-                PointF *points = new PointF[mla_array_list_size(polygon.points)];
-                for (mla_size_t j = 0; j < mla_array_list_size(polygon.points); j++) {
+                ID2D1PathGeometry* geometry = nullptr;
+                ID2D1GeometrySink* sink = nullptr;
+
+                g_pD2DFactory->CreatePathGeometry(&geometry);
+                geometry->Open(&sink);
+
+                const mla_ui_surface_draw_point_t &firstPoint = mla_array_list_get_unsafe(polygon.points, 0);
+                sink->BeginFigure(D2D1::Point2F((FLOAT)firstPoint.x, (FLOAT)firstPoint.y), D2D1_FIGURE_BEGIN_FILLED);
+
+                for (mla_size_t j = 1; j < mla_array_list_size(polygon.points); j++) {
                     const mla_ui_surface_draw_point_t &point = mla_array_list_get_unsafe(polygon.points, j);
-                    points[j] = PointF((REAL)point.x, (REAL)point.y);
+                    sink->AddLine(D2D1::Point2F((FLOAT)point.x, (FLOAT)point.y));
                 }
-                cache->UpdateFillBrush(__convert_color(polygon.fill));
-                cache->UpdateStrokePen(__convert_color(polygon.stroke), (REAL)polygon.stroke_width);
-                graphics->FillPolygon(cache->solidBrush, points, (INT)mla_array_list_size(polygon.points));
-                graphics->DrawPolygon(cache->pen, points, (INT)mla_array_list_size(polygon.points));
-                delete[] points;
+
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+
+                cache->UpdateSolidBrush(renderTarget, __convert_color(polygon.fill));
+                renderTarget->FillGeometry(geometry, cache->solidBrush);
+
+                if (polygon.stroke_width > 0) {
+                    if (!strokeBrush) {
+                        renderTarget->CreateSolidColorBrush(__convert_color(polygon.stroke), &strokeBrush);
+                    } else {
+                        strokeBrush->SetColor(__convert_color(polygon.stroke));
+                    }
+                    renderTarget->DrawGeometry(geometry, strokeBrush, (FLOAT)polygon.stroke_width);
+                }
+
+                sink->Release();
+                geometry->Release();
                 break;
             }
 
@@ -422,45 +536,97 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
                 const auto &path = cmd.path;
                 if (mla_array_list_size(path.commands) == 0) break;
 
-                cache->path->Reset();
+                ID2D1PathGeometry* geometry = nullptr;
+                ID2D1GeometrySink* sink = nullptr;
+
+                g_pD2DFactory->CreatePathGeometry(&geometry);
+                geometry->Open(&sink);
+
+                bool figureStarted = false;
+
                 for (mla_size_t j = 0; j < mla_array_list_size(path.commands); j++) {
                     const auto &pathCmd = mla_array_list_get_unsafe(path.commands, j);
+
                     switch (pathCmd.kind) {
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_MOVE_TO:
-                            cache->path->StartFigure();
+                            if (figureStarted) {
+                                sink->EndFigure(D2D1_FIGURE_END_OPEN);
+                            }
+                            currentPathPoint = D2D1::Point2F((FLOAT)pathCmd.move_to.x, (FLOAT)pathCmd.move_to.y);
+                            sink->BeginFigure(currentPathPoint, D2D1_FIGURE_BEGIN_FILLED);
+                            figureStarted = true;
                             break;
+
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_LINE_TO:
-                            cache->path->AddLine((REAL)pathCmd.line_to.x, (REAL)pathCmd.line_to.y,
-                                                (REAL)pathCmd.line_to.x, (REAL)pathCmd.line_to.y);
+                            if (figureStarted) {
+                                currentPathPoint = D2D1::Point2F((FLOAT)pathCmd.line_to.x, (FLOAT)pathCmd.line_to.y);
+                                sink->AddLine(currentPathPoint);
+                            }
                             break;
-                        case MLA_UI_SURFACE_DRAW_PATH_COMMAND_QUADRATIC_CURVE_TO: {
-                            PointF ctrlPt((REAL)pathCmd.quadratic_curve_to.cpx, (REAL)pathCmd.quadratic_curve_to.cpy);
-                            PointF endPt((REAL)pathCmd.quadratic_curve_to.x, (REAL)pathCmd.quadratic_curve_to.y);
-                            PointF lastPt;
-                            cache->path->GetLastPoint(&lastPt);
-                            cache->path->AddBezier(lastPt, ctrlPt, ctrlPt, endPt);
+
+                        case MLA_UI_SURFACE_DRAW_PATH_COMMAND_QUADRATIC_CURVE_TO:
+                            if (figureStarted) {
+                                D2D1_QUADRATIC_BEZIER_SEGMENT segment;
+                                segment.point1 = D2D1::Point2F((FLOAT)pathCmd.quadratic_curve_to.cpx, (FLOAT)pathCmd.quadratic_curve_to.cpy);
+                                segment.point2 = D2D1::Point2F((FLOAT)pathCmd.quadratic_curve_to.x, (FLOAT)pathCmd.quadratic_curve_to.y);
+                                sink->AddQuadraticBezier(segment);
+                                currentPathPoint = segment.point2;
+                            }
                             break;
-                        }
-                        case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CUBIC_CURVE_TO: {
-                            PointF startPt;
-                            cache->path->GetLastPoint(&startPt);
-                            cache->path->AddBezier(startPt,
-                                                  PointF((REAL)pathCmd.cubic_curve_to.cp1x, (REAL)pathCmd.cubic_curve_to.cp1y),
-                                                  PointF((REAL)pathCmd.cubic_curve_to.cp2x, (REAL)pathCmd.cubic_curve_to.cp2y),
-                                                  PointF((REAL)pathCmd.cubic_curve_to.x, (REAL)pathCmd.cubic_curve_to.y));
+
+                        case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CUBIC_CURVE_TO:
+                            if (figureStarted) {
+                                D2D1_BEZIER_SEGMENT segment;
+                                segment.point1 = D2D1::Point2F((FLOAT)pathCmd.cubic_curve_to.cp1x, (FLOAT)pathCmd.cubic_curve_to.cp1y);
+                                segment.point2 = D2D1::Point2F((FLOAT)pathCmd.cubic_curve_to.cp2x, (FLOAT)pathCmd.cubic_curve_to.cp2y);
+                                segment.point3 = D2D1::Point2F((FLOAT)pathCmd.cubic_curve_to.x, (FLOAT)pathCmd.cubic_curve_to.y);
+                                sink->AddBezier(segment);
+                                currentPathPoint = segment.point3;
+                            }
                             break;
-                        }
+
+                        case  MLA_UI_SURFACE_DRAW_PATH_COMMAND_ARC_TO:
+                            if (figureStarted) {
+                                D2D1_ARC_SEGMENT segment;
+                                segment.point = D2D1::Point2F((FLOAT)pathCmd.arc_to.x, (FLOAT)pathCmd.arc_to.y);
+                                segment.size = D2D1::SizeF((FLOAT)pathCmd.arc_to.rx, (FLOAT)pathCmd.arc_to.ry);
+                                segment.rotationAngle = (FLOAT)pathCmd.arc_to.x_axis_rotation;
+                                segment.sweepDirection = pathCmd.arc_to.sweep_flag ? D2D1_SWEEP_DIRECTION_CLOCKWISE : D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+                                segment.arcSize = pathCmd.arc_to.large_arc_flag ? D2D1_ARC_SIZE_LARGE : D2D1_ARC_SIZE_SMALL;
+                                sink->AddArc(segment);
+                                currentPathPoint = segment.point;
+                            }
+                            break;
+
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH:
-                            cache->path->CloseFigure();
-                            break;
-                        default:
+                            if (figureStarted) {
+                                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                                figureStarted = false;
+                            }
                             break;
                     }
                 }
-                cache->UpdateFillBrush(__convert_color(path.fill));
-                cache->UpdateStrokePen(__convert_color(path.stroke), (REAL)path.stroke_width);
-                graphics->FillPath(cache->solidBrush, cache->path);
-                graphics->DrawPath(cache->pen, cache->path);
+
+                if (figureStarted) {
+                    sink->EndFigure(D2D1_FIGURE_END_OPEN);
+                }
+
+                sink->Close();
+
+                cache->UpdateSolidBrush(renderTarget, __convert_color(path.fill));
+                renderTarget->FillGeometry(geometry, cache->solidBrush);
+
+                if (path.stroke_width > 0) {
+                    if (!strokeBrush) {
+                        renderTarget->CreateSolidColorBrush(__convert_color(path.stroke), &strokeBrush);
+                    } else {
+                        strokeBrush->SetColor(__convert_color(path.stroke));
+                    }
+                    renderTarget->DrawGeometry(geometry, strokeBrush, (FLOAT)path.stroke_width);
+                }
+
+                sink->Release();
+                geometry->Release();
                 break;
             }
 
@@ -471,57 +637,99 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
                     break;
 
                 mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(cmd.text.font_family);
-                Font* font = cache->GetOrCreateFont((const WCHAR*)fontFamilyWide.data, (REAL)cmd.text.font_size);
-                cache->UpdateFillBrush(__convert_color(cmd.text.fill));
-                PointF origin((REAL)cmd.text.x, (REAL)cmd.text.y);
+                IDWriteTextFormat* textFormat = cache->GetOrCreateTextFormat((const WCHAR*)fontFamilyWide.data, (FLOAT)cmd.text.font_size);
 
-                mla_string_utf16_buffer_t contentWide = mla_string_to_utf16_buffer(cmd.text.content);
-                graphics->DrawString((const WCHAR*)contentWide.data, -1, font, origin, cache->solidBrush);
+                if (textFormat) {
+                    cache->UpdateSolidBrush(renderTarget, __convert_color(cmd.text.fill));
+
+                    mla_string_utf16_buffer_t contentWide = mla_string_to_utf16_buffer(cmd.text.content);
+
+                    // Calculate text length
+                    int textLength = 0;
+                    while (((const WCHAR*)contentWide.data)[textLength] != 0) textLength++;
+
+                    renderTarget->DrawText(
+                        (const WCHAR*)contentWide.data,
+                        textLength,
+                        textFormat,
+                        D2D1::RectF((FLOAT)cmd.text.x, (FLOAT)cmd.text.y, 10000.0f, 10000.0f),
+                        cache->solidBrush
+                    );
+
+                    mla_string_utf16_buffer_destroy(contentWide);
+                }
 
                 mla_string_utf16_buffer_destroy(fontFamilyWide);
-                mla_string_utf16_buffer_destroy(contentWide);
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINEAR_GRADIENT: {
                 const auto &gradient = cmd.linear_gradient;
-                if (currentLinearGradient) delete currentLinearGradient;
 
-                PointF pt1((REAL)gradient.x1, (REAL)gradient.y1);
-                PointF pt2((REAL)gradient.x2, (REAL)gradient.y2);
+                if (currentLinearGradient) {
+                    currentLinearGradient->Release();
+                    currentLinearGradient = nullptr;
+                }
 
-                currentLinearGradient = new LinearGradientBrush(pt1, pt2,
-                                                                Color(255, 0, 0, 0), Color(255, 255, 255, 255));
+                D2D1_GRADIENT_STOP stops[2];
+                stops[0].color = D2D1::ColorF(0, 0, 0, 1);
+                stops[0].position = 0.0f;
+                stops[1].color = D2D1::ColorF(1, 1, 1, 1);
+                stops[1].position = 1.0f;
+
+                ID2D1GradientStopCollection* stopCollection = nullptr;
+                renderTarget->CreateGradientStopCollection(stops, 2, &stopCollection);
+
+                if (stopCollection) {
+                    renderTarget->CreateLinearGradientBrush(
+                        D2D1::LinearGradientBrushProperties(
+                            D2D1::Point2F((FLOAT)gradient.x1, (FLOAT)gradient.y1),
+                            D2D1::Point2F((FLOAT)gradient.x2, (FLOAT)gradient.y2)
+                        ),
+                        stopCollection,
+                        &currentLinearGradient
+                    );
+                    stopCollection->Release();
+                }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RADIAL_GRADIENT: {
                 const auto &gradient = cmd.radial_gradient;
-                if (currentRadialGradient) delete currentRadialGradient;
 
-                GraphicsPath gradPath;
-                REAL diameter = (REAL)(gradient.r * 2);
-                gradPath.AddEllipse((REAL)(gradient.cx - gradient.r),
-                                   (REAL)(gradient.cy - gradient.r),
-                                   diameter, diameter);
+                if (currentRadialGradient) {
+                    currentRadialGradient->Release();
+                    currentRadialGradient = nullptr;
+                }
 
-                currentRadialGradient = new PathGradientBrush(&gradPath);
-                currentRadialGradient->SetCenterPoint(PointF((REAL)gradient.cx, (REAL)gradient.cy));
-                currentRadialGradient->SetCenterColor(Color(255, 255, 255, 255));
+                D2D1_GRADIENT_STOP stops[2];
+                stops[0].color = D2D1::ColorF(1, 1, 1, 1);
+                stops[0].position = 0.0f;
+                stops[1].color = D2D1::ColorF(0, 0, 0, 1);
+                stops[1].position = 1.0f;
 
-                Color surroundColors[] = {Color(255, 0, 0, 0)};
-                INT count = 1;
-                currentRadialGradient->SetSurroundColors(surroundColors, &count);
+                ID2D1GradientStopCollection* stopCollection = nullptr;
+                renderTarget->CreateGradientStopCollection(stops, 2, &stopCollection);
+
+                if (stopCollection) {
+                    renderTarget->CreateRadialGradientBrush(
+                        D2D1::RadialGradientBrushProperties(
+                            D2D1::Point2F((FLOAT)gradient.cx, (FLOAT)gradient.cy),
+                            D2D1::Point2F(0, 0),
+                            (FLOAT)gradient.r,
+                            (FLOAT)gradient.r
+                        ),
+                        stopCollection,
+                        &currentRadialGradient
+                    );
+                    stopCollection->Release();
+                }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_STOP: {
-                const auto &stop = cmd.stop;
-                if (currentLinearGradient) {
-                    Color colors[] = {__convert_color(stop.stop_color)};
-                    REAL positions[] = {(REAL)stop.offset};
-                    currentLinearGradient->SetInterpolationColors(colors, positions, 1);
-                }
+                // Note: Direct2D gradient stops need to be set during gradient creation
+                // This simplified implementation doesn't support dynamic stop updates
                 break;
             }
 
@@ -530,10 +738,14 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
         }
     }
 
-    if (currentLinearGradient != nullptr)
-        delete currentLinearGradient;
-    if (currentRadialGradient != nullptr)
-        delete currentRadialGradient;
+    // Cleanup temporary brushes
+    if (currentLinearGradient)
+        currentLinearGradient->Release();
+    if (currentRadialGradient)
+        currentRadialGradient->Release();
+
+    if (strokeBrush)
+        strokeBrush->Release();
 
 #ifdef mla_debug
     DWORD current_time = GetTickCount();
@@ -549,33 +761,46 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
         window_surface->last_fps_time = current_time;
     }
 
-    // Use cached font and brush
-    Font* font = cache->GetOrCreateFont(L"Arial", 20.0f);
-    cache->UpdateFillBrush(Color(255, 255, 0, 0));
+    // Draw FPS counter
+    IDWriteTextFormat* debugFont = cache->GetOrCreateTextFormat(L"Arial", 15.0f);
+    if (debugFont) {
+        ID2D1SolidColorBrush* debugBrush = nullptr;
+        renderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &debugBrush);
 
-    char buffer[64];
-    wsprintfA(buffer, "FPS: %d", window_surface->current_fps);
+        char buffer[64];
+        wsprintfA(buffer, "FPS: %d", window_surface->current_fps);
 
-    // Convert to wide string
-    WCHAR wBuffer[64];
-    MultiByteToWideChar(CP_ACP, 0, buffer, -1, wBuffer, 64);
+        WCHAR wBuffer[64];
+        MultiByteToWideChar(CP_ACP, 0, buffer, -1, wBuffer, 64);
 
-    // Measure text
-    RectF layoutRect;
-    RectF boundingBox;
-    graphics->MeasureString(wBuffer, -1, font, layoutRect, &boundingBox);
+        D2D1_SIZE_F rtSize = renderTarget->GetSize();
 
-    int padding = 10;
-    REAL x = (REAL)(width - boundingBox.Width - padding);
-    REAL y = (REAL)(height - boundingBox.Height - padding);
-
-    graphics->DrawString(wBuffer, -1, font, PointF(x, y), cache->solidBrush);
+        renderTarget->DrawText(
+            wBuffer,
+            wcslen(wBuffer),
+            debugFont,
+            D2D1::RectF(rtSize.width - 75, rtSize.height - 25, rtSize.width, rtSize.height),
+            debugBrush
+        );
+    }
 #endif
 
-    BitBlt(hdc, 0, 0, width, height, window_surface->memDC, 0, 0, SRCCOPY);
+    HRESULT hr = renderTarget->EndDraw();
 
-    ReleaseDC(window_surface->hwnd, hdc);
-    return true;
+    // Handle device lost
+    if (hr == D2DERR_RECREATE_TARGET) {
+
+        if (window_surface->renderCache) {
+            window_surface->renderCache->ResetDeviceResources();
+        }
+
+        renderTarget->Release();
+        window_surface->renderTarget = nullptr;
+
+        return true;  // Will recreate on next frame
+    }
+
+    return SUCCEEDED(hr);
 }
 
 mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
@@ -584,22 +809,17 @@ mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, mla
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(data);
 
     if (window_surface != nullptr) {
-
         if (window_surface->renderCache)
             delete window_surface->renderCache;
+
+        if (window_surface->renderTarget) {
+            window_surface->renderTarget->Release();
+            window_surface->renderTarget = nullptr;
+        }
 
         if (IsWindow(window_surface->hwnd)) {
             DestroyWindow(window_surface->hwnd);
         }
-
-        if (window_surface->graphics)
-            delete window_surface->graphics;
-
-        if (window_surface->memBitmap)
-            DeleteObject(window_surface->memBitmap);
-
-        if (window_surface->memDC)
-            DeleteDC(window_surface->memDC);
     }
 
     return CLEAN_UP_NEEDED;
