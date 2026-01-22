@@ -8,14 +8,20 @@
 #include "../../system/mla_string.h"
 #include "../../system/mla_stream.h"
 #include "../../system/mla_array_list.h"
+#include "../surfaces/mla_ui_surface_draw.h"
 
 struct mla_ui_control_t;
 
 struct mla_ui_control_context_t {
-    mla_int32_t width;
-    mla_int32_t height;
-    mla_int32_t timeSinceLastFrameMs;
+    mla_size_t offsetX;
+    mla_size_t offsetY;
+    mla_size_t width;
+    mla_size_t height;
+    mla_size_t timeSinceLastFrameMs;
 };
+
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height);
+mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
 
 struct mla_ui_control_value_t {
     mla_string_t name;
@@ -37,7 +43,7 @@ struct mla_ui_control_value_initializer_t {
     }
 };
 
-typedef mla_bool_t (*mla_ui_control_render_to_svg_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, const mla_stream_output_t& output);
+typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
 struct mla_ui_control_initializer_t;
 
@@ -52,7 +58,7 @@ struct mla_ui_control_t {
     mla_string_t id;
     mla_ui_control_layout_t layout;
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> children;
-    mla_ui_control_render_to_svg_t renderToSvg;
+    mla_ui_control_render_to_draw_commands_t renderToDrawCommands;
     mla_array_list_t<mla_ui_control_value_t, mla_ui_control_value_initializer_t> values;
 };
 
@@ -92,35 +98,16 @@ mla_bool_t mla_ui_control_set_value_as_string(mla_ui_control_t &control, const m
 mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla_string_t &name, mla_bool_t value);
 
 mla_bool_t mla_ui_control_add_child(mla_ui_control_t &parent, const mla_ui_control_t &child);
-mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
+mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_ui_control_t &control, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
-mla_bool_t mla_ui_control_render_to_svg(const mla_ui_control_context_t &context, const mla_ui_control_t &control, const mla_stream_output_t& output);
-
-mla_bool_t mla_ui_control_svg_write_raw_string(const mla_stream_output_t& output, const mla_string_t& text);
-mla_bool_t mla_ui_control_svg_write_uint8(const mla_stream_output_t& output, mla_uint8_t value);
-mla_bool_t mla_ui_control_svg_write_int8(const mla_stream_output_t& output, mla_int8_t value);
-mla_bool_t mla_ui_control_svg_write_uint16(const mla_stream_output_t& output, mla_uint16_t value);
-mla_bool_t mla_ui_control_svg_write_int16(const mla_stream_output_t& output, mla_int16_t value);
-mla_bool_t mla_ui_control_svg_write_uint32(const mla_stream_output_t& output, mla_uint32_t value);
-mla_bool_t mla_ui_control_svg_write_int32(const mla_stream_output_t& output, mla_int32_t value);
-mla_bool_t mla_ui_control_svg_write_uint64(const mla_stream_output_t& output, mla_uint64_t value);
-mla_bool_t mla_ui_control_svg_write_int64(const mla_stream_output_t& output, mla_int64_t value);
-mla_bool_t mla_ui_control_svg_write_float(const mla_stream_output_t& output, mla_float_t value);
-mla_bool_t mla_ui_control_svg_write_double(const mla_stream_output_t& output, mla_double_t value);
-mla_bool_t mla_ui_control_svg_write_escaped_text(const mla_stream_output_t& output, const mla_string_t& text);
-mla_bool_t mla_ui_control_svg_write_bool(const mla_stream_output_t& output, mla_bool_t value);
-
-
-
-#define mla_ui_control_render_children_to_svg(context, control, output) \
+#define mla_ui_control_render_children_draw_commands(context, control, output) \
 mla_size_t childrenCount = mla_array_list_size((control).children); \
 if (childrenCount > 0) { \
     mla_ui_control_context_t __childContext = mla_ui_control_create_context_for_children(context, control); \
     for (mla_size_t __i = 0; __i < childrenCount; __i++) { \
         mla_ui_control_t& __child = mla_array_list_get_unsafe((control).children, __i); \
-        if (__child.renderToSvg) { \
-            if (!__child.renderToSvg(__childContext, __child, output)) \
-                return false; \
+        if (mla_ui_control_render_to_draw_commands(__childContext, __child, output)) {\
+            return false; \
         } \
     } \
 } \

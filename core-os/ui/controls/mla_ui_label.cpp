@@ -5,24 +5,7 @@
 #include "mla_ui_label.h"
 #include "mla_ui_style.h"
 
-mla_string_t __mla_ui_label_resolve_fill(mla_ui_text_kind_t kind) {
-    switch (kind) {
-        case MLA_UI_TEXT_KIND_PRIMARY:
-            return mla_string_const(MLA_UI_COLOR_TEXT_PRIMARY);
-        case MLA_UI_TEXT_KIND_SECONDARY:
-            return mla_string_const(MLA_UI_COLOR_TEXT_SECONDARY);
-        case MLA_UI_TEXT_KIND_DISABLED:
-            return mla_string_const(MLA_UI_COLOR_TEXT_DISABLED);
-        case MLA_UI_TEXT_KIND_LINK:
-            return mla_string_const(MLA_UI_COLOR_TEXT_LINK);
-        default:
-            return mla_string_const(MLA_UI_COLOR_TEXT_PRIMARY);
-    }
-}
-
-mla_bool_t __mla_ui_label_render_to_svg(const mla_ui_control_context_t &context,
-                                       const mla_ui_control_t &element,
-                                       const mla_stream_output_t& output) {
+mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
 
     // Resolve position and size (same approach as window: 0 means "use remaining context")
     mla_size_t x = element.layout.x;
@@ -46,79 +29,87 @@ mla_bool_t __mla_ui_label_render_to_svg(const mla_ui_control_context_t &context,
 
     const mla_uint16_t fontSize = mla_ui_label_get_font_size(element);
     const mla_ui_text_kind_t kind = mla_ui_label_get_text_kind(element);
-    const mla_string_t fill = __mla_ui_label_resolve_fill(kind);
 
     // Baseline inside the label box (simple single-line baseline)
     const mla_size_t baselineY = y + static_cast<mla_size_t>(fontSize);
 
-    mla_bool_t ok = true;
+    mla_ui_surface_draw_command_color_t color;
 
-    // <defs> with clipPath to ensure text does not overflow the label box
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("<defs>"));
+    switch (kind) {
+        case MLA_UI_TEXT_KIND_SECONDARY:
+            color = MLA_UI_COLOR_TEXT_SECONDARY;
+            break;
+        case MLA_UI_TEXT_KIND_DISABLED:
+            color = MLA_UI_COLOR_TEXT_DISABLED;
+            break;
+        case MLA_UI_TEXT_KIND_LINK:
+            color = MLA_UI_COLOR_TEXT_LINK;
+            break;
+        case MLA_UI_TEXT_KIND_LINK_DISABLED:
+            color = MLA_UI_COLOR_TEXT_LINK_DISABLED;
+            break;
+        case MLA_UI_TEXT_KIND_ERROR:
+            color = MLA_UI_COLOR_TEXT_ERROR;
+            break;
+        case MLA_UI_TEXT_KIND_WARNING:
+            color = MLA_UI_COLOR_TEXT_WARNING;
+            break;
+        case MLA_UI_TEXT_KIND_SUCCESS:
+            color = MLA_UI_COLOR_TEXT_SUCCESS;
+            break;
+        case MLA_UI_TEXT_KIND_INFO:
+            color = MLA_UI_COLOR_TEXT_INFO;
+            break;
+        case MLA_UI_TEXT_KIND_CUSTOM:
+        {
+            const mla_string_t customColorStr = mla_ui_label_get_custom_color(element);
+            if (!mla_string_is_empty(customColorStr)) {
+                mla_ui_surface_draw_command_color_t customColor = {0, 0, 0, 255};
+                if (mla_ui_surface_parse_color_from_hex_string(customColorStr, customColor)) {
+                    color = customColor;
+                    break;
+                }
+            }
+            // Fallback to primary if custom color is invalid
+            color = MLA_UI_COLOR_TEXT_PRIMARY;
+            break;
+        }
+        case MLA_UI_TEXT_KIND_PRIMARY:
+        default:
+            color = MLA_UI_COLOR_TEXT_PRIMARY;
+            break;
+    }
 
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("<clipPath id=\"mla_lbl_clip_"));
-    ok &= mla_ui_control_svg_write_raw_string(output, element.id);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\">"));
+    mla_ui_surface_draw_command_t command = mla_ui_surface_draw_command_empty();
+    command.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
 
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("<rect x=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, x);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" y=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, y);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" width=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, w);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" height=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, h);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\"/>"));
+    // SVG x="2" -> 2px offset
+    command.text.x = static_cast<mla_double_t>(context.offsetX + x) + 2.0;
+    // Use calculated baseline
+    command.text.y = static_cast<mla_double_t>(context.offsetY + baselineY);
 
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("</clipPath>"));
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("</defs>"));
+    command.text.content = text;
+    command.text.font_family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
+    command.text.font_size = static_cast<mla_double_t>(fontSize);
+    command.text.fill = color;
 
-    // Group wrapper applying clip
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("<g clip-path=\"url(#mla_lbl_clip_"));
-    ok &= mla_ui_control_svg_write_raw_string(output, element.id);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const(")\">"));
+    mla_array_list_add(drawCommands, command);
 
-    // Text
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("<text x=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, x);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" y=\""));
-    ok &= mla_ui_control_svg_write_uint32(output, baselineY);
+    return true;
 
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" fill=\""));
-    ok &= mla_ui_control_svg_write_raw_string(output, fill);
-
-    ok &= mla_ui_control_svg_write_raw_string(
-        output,
-        mla_string_const("\" font-family=\"" MLA_UI_FONT_FAMILY_DEFAULT "\" font-size=\"")
-    );
-    ok &= mla_ui_control_svg_write_uint16(output, fontSize);
-
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" font-weight=\""));
-    ok &= mla_ui_control_svg_write_uint16(output, MLA_UI_FONT_WEIGHT_SEMIBOLD);
-
-    // Keep it single-line; overflow is handled via clipPath
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("\" xml:space=\"preserve\">"));
-
-    ok &= mla_ui_control_svg_write_escaped_text(output, text);
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("</text>"));
-
-    ok &= mla_ui_control_svg_write_raw_string(output, mla_string_const("</g>"));
-
-    // No children for a label
-    return ok;
 }
 
 mla_ui_control_t mla_ui_label() {
 
     mla_ui_control_t label = mla_ui_control();
-    label.renderToSvg = __mla_ui_label_render_to_svg;
+    label.renderToDrawCommands = __mla_ui_label_render_to_drawCommands;
     return label;
 }
 
 mla_string_t mla_ui_label_get_text(const mla_ui_control_t &label) {
     return mla_ui_control_get_value_as_string(label, mla_string_const("text"), mla_string_empty());
 }
-mla_bool_t mla_ui_label_set_text(mla_ui_control_t &label, const mla_string& text) {
+mla_bool_t mla_ui_label_set_text(mla_ui_control_t &label, const mla_string_t& text) {
     return mla_ui_control_set_value_as_string(label, mla_string_const("text"), text);
 }
 
@@ -136,4 +127,12 @@ mla_ui_text_kind_t mla_ui_label_get_text_kind(const mla_ui_control_t &label) {
 
 mla_bool_t mla_ui_label_set_text_kind(mla_ui_control_t &label, mla_ui_text_kind_t kind) {
     return mla_ui_control_set_value_as_uint8(label, mla_string_const("text_kind"), static_cast<mla_uint8_t>(kind));
+}
+
+mla_string_t mla_ui_label_get_custom_color(const mla_ui_control_t &label) {
+    return mla_ui_control_get_value_as_string(label, mla_string_const("custom_color"), mla_string_empty());
+}
+
+mla_bool_t mla_ui_label_set_custom_color(mla_ui_control_t &label, const mla_string_t& color) {
+    return mla_ui_control_set_value_as_string(label, mla_string_const("custom_color"), color);
 }

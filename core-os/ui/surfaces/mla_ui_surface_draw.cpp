@@ -1,4 +1,5 @@
 #include "mla_ui_surface_draw.h"
+#include "../../system/mla_number.h"
 
 mla_ui_surface_draw_command_polyline_t mla_ui_surface_draw_command_polyline_empty() {
     return { mla_array_list_empty<mla_ui_surface_draw_point_t>(), {0,0,0,0}, {0,0,0,0}, 0.0 };
@@ -137,4 +138,45 @@ void mla_ui_surface_draw_command_scale(mla_ui_surface_draw_command_t& command, m
         default:
             break;
     }
+}
+
+
+mla_bool_t mla_ui_surface_parse_color_from_hex_string(const mla_string_t& colorStr, mla_ui_surface_draw_command_color_t& outColor) {
+    mla_size_t length = mla_string_length(colorStr);
+
+    // Expecting #RRGGBB (7) or #RRGGBBAA (9)
+    if (length != 7 && length != 9) {
+        return false;
+    }
+
+    if (!mla_string_starts_with(colorStr, mla_string_const("#"))) {
+        return false;
+    }
+
+    mla_string_t rStr = mla_string_substr(colorStr, 1, 2);
+    mla_string_t gStr = mla_string_substr(colorStr, 3, 2);
+    mla_string_t bStr = mla_string_substr(colorStr, 5, 2);
+
+    if (!mla_parse_uint8_hex(rStr, outColor.r))
+        return false;
+
+    if (!mla_parse_uint8_hex(gStr, outColor.g))
+        return false;
+
+
+    if (!mla_parse_uint8_hex(bStr, outColor.b))
+        return false;
+
+    if (length == 9) {
+        mla_string_t aStr = mla_string_substr(colorStr, 7, 2);
+
+        if (!mla_parse_uint8_hex(aStr, outColor.a))
+            return false;
+
+        mla_string_destroy(aStr);
+    } else {
+        outColor.a = 255;
+    }
+
+    return true;
 }

@@ -23,8 +23,6 @@ struct mla_ui_surface_t {
     mla_ui_surface_size_t (*get_size)(const mla_ui_surface_t& surface);
     mla_bool_t (*set_size)(mla_ui_surface_t& surface, mla_ui_surface_size_t size);
 
-    mla_bool_t (*render_svg)(mla_ui_surface_t& surface, mla_string_t svgContent);
-
     mla_bool_t (*render_draw_commands)(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 };
 
@@ -34,7 +32,6 @@ mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface);
 
 mla_ui_surface_size_t mla_ui_surface_get_size(const mla_ui_surface_t& surface);
 mla_bool_t mla_ui_surface_set_size(mla_ui_surface_t& surface, mla_ui_surface_size_t size);
-mla_bool_t mla_ui_surface_render_svg(mla_ui_surface_t& surface, mla_string_t svgContent);
 mla_bool_t mla_ui_surface_render_draw_commands(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
 

@@ -363,6 +363,24 @@ mla_bool_t mla_ui_control_add_child(mla_ui_control_t &parent, const mla_ui_contr
     return mla_array_list_add(parent.children, child);
 }
 
+mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_ui_control_t &control, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
+
+    if (control.renderToDrawCommands != nullptr) {
+        return control.renderToDrawCommands(context, control, drawCommands);
+    }
+    return false;
+}
+
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height) {
+    return {
+        0,
+        0,
+        width,
+        height,
+        0
+    };
+}
+
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control) {
 
     mla_ui_control_context_t context = parentContext;
