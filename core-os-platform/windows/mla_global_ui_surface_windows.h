@@ -313,7 +313,7 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
     }
 
     MSG msg;
-    while (PeekMessage(&msg, window_surface->hwnd, 0, 0, PM_REMOVE)) {
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -800,6 +800,10 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
             D2D1::RectF(rtSize.width - 75, rtSize.height - 25, rtSize.width, rtSize.height),
             debugBrush
         );
+
+        if (debugBrush) {
+            debugBrush->Release();
+        }
     }
 #endif
 

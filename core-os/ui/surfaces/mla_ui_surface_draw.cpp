@@ -1,15 +1,15 @@
 #include "mla_ui_surface_draw.h"
 
 mla_ui_surface_draw_command_polyline_t mla_ui_surface_draw_command_polyline_empty() {
-    return { mla_array_list<mla_ui_surface_draw_point_t>(), {0,0,0,0}, {0,0,0,0}, 0.0 };
+    return { mla_array_list_empty<mla_ui_surface_draw_point_t>(), {0,0,0,0}, {0,0,0,0}, 0.0 };
 }
 
 mla_ui_surface_draw_command_polygon_t mla_ui_surface_draw_command_polygon_empty() {
-    return { mla_array_list<mla_ui_surface_draw_point_t>(), {0,0,0,0}, {0,0,0,0}, 0.0 };
+    return { mla_array_list_empty<mla_ui_surface_draw_point_t>(), {0,0,0,0}, {0,0,0,0}, 0.0 };
 }
 
 mla_ui_surface_draw_command_path_t mla_ui_surface_draw_command_path_empty() {
-    return { mla_array_list<mla_ui_surface_draw_path_command_t>(), {0,0,0,0}, {0,0,0,0}, 0 };
+    return { mla_array_list_empty<mla_ui_surface_draw_path_command_t>(), {0,0,0,0}, {0,0,0,0}, 0 };
 }
 
 mla_ui_surface_draw_command_text_t mla_ui_surface_draw_command_text_empty() {
