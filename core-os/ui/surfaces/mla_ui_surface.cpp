@@ -6,7 +6,7 @@
 
 mla_ui_surface_t mla_ui_surface_invalid() {
     return {
-        nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr
+        nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr
     };
 }
 
@@ -54,4 +54,13 @@ mla_bool_t mla_ui_surface_render_svg(mla_ui_surface_t& surface, mla_string_t svg
     }
 
     return surface.render_svg(surface, svgContent);
+}
+
+mla_bool_t mla_ui_surface_render_draw_commands(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
+
+    if (surface.render_draw_commands == nullptr) {
+        return false;
+    }
+
+    return surface.render_draw_commands(surface, drawCommands);
 }

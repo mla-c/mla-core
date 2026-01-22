@@ -159,6 +159,7 @@ mla_string_memory_layout_t mla_string_get_memory_layout(const mla_string_t &p_St
 mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
 mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
+mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString);
 
 // String creation from basic types
 mla_string_t mla_string_from_int8(mla_int8_t p_Value);
