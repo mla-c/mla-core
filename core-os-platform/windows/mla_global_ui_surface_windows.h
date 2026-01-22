@@ -7,6 +7,33 @@
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include <windows.h>
+#include <gdiplus.h>
+
+
+using namespace Gdiplus;
+
+// Global GDI+ token
+static ULONG_PTR g_gdiplusToken = 0;
+
+// Initialize GDI+ (call once at startup)
+void __windows_gdiplus_init() {
+    GdiplusStartupInput gdiplusStartupInput;
+    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, nullptr);
+}
+
+// Cleanup GDI+ (call at shutdown)
+void __windows_gdiplus_shutdown() {
+    Gdiplus::GdiplusShutdown(g_gdiplusToken);
+}
+
+struct MlaGDIPlusAutoInit {
+    MlaGDIPlusAutoInit()  { __windows_gdiplus_init(); }
+    ~MlaGDIPlusAutoInit() { __windows_gdiplus_shutdown(); }
+};
+
+// Single global instance
+static MlaGDIPlusAutoInit g_mlaGDIAutoInit;
+
 
 struct mla_windows_window_surface_t {
     HWND hwnd;
@@ -128,6 +155,10 @@ mla_bool_t __windows_create_windows_surface(mla_windows_window_surface_t* surfac
 
 }
 
+// Helper to convert color struct to GDI+ Color
+Color __convert_color(const mla_ui_surface_draw_command_color_t& color) {
+    return Color(color.a, color.r, color.g, color.b);
+}
 
 mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
 
@@ -138,7 +169,7 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
 
     if (!window_surface->is_initialized) {
         if (!__windows_create_windows_surface(window_surface)) {
-            mla_warning("Failed to initialize Windows UI surface for SVG rendering.");
+            mla_warning("Failed to initialize Windows UI surface for drawing.");
             return false;
         }
     }
@@ -154,89 +185,81 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
         return false;
     }
 
+    Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+
     // Clear background
     RECT clientRect;
     GetClientRect(window_surface->hwnd, &clientRect);
-    HBRUSH bgBrush = CreateSolidBrush(RGB(255, 255, 255));
-    FillRect(hdc, &clientRect, bgBrush);
-    DeleteObject(bgBrush);
+    SolidBrush bgBrush(Color(255, 255, 255));
+    graphics.FillRectangle(&bgBrush, 0, 0, clientRect.right, clientRect.bottom);
 
-    // Sc
+    // Track gradient state
+    LinearGradientBrush* currentLinearGradient = nullptr;
+    PathGradientBrush* currentRadialGradient = nullptr;
 
-    // Process each draw command
     for (mla_size_t i = 0; i < mla_array_list_size(drawCommands); i++) {
 
         const mla_ui_surface_draw_command_t& cmd = mla_array_list_get_unsafe(drawCommands, i);
 
         switch (cmd.kind) {
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT: {
-
                 const auto& rect = cmd.rect;
-                HBRUSH fillBrush = CreateSolidBrush(RGB(rect.color.r, rect.color.g, rect.color.b));
-                HPEN strokePen = CreatePen(PS_SOLID, (int)rect.stroke_width, RGB(rect.stroke.r, rect.stroke.g, rect.stroke.b));
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
+                SolidBrush fillBrush(__convert_color(rect.color));
+                Pen strokePen(__convert_color(rect.stroke), (REAL)rect.stroke_width);
 
                 if (rect.rx > 0 || rect.ry > 0) {
-                    RoundRect(hdc, (int)rect.x, (int)rect.y,
-                              (int)(rect.x + rect.width), (int)(rect.y + rect.height),
-                              (int)(rect.rx * 2), (int)(rect.ry * 2));
-                } else {
-                    Rectangle(hdc, (int)rect.x, (int)rect.y,
-                              (int)(rect.x + rect.width), (int)(rect.y + rect.height));
-                }
+                    GraphicsPath path;
+                    REAL x = (REAL)rect.x;
+                    REAL y = (REAL)rect.y;
+                    REAL w = (REAL)rect.width;
+                    REAL h = (REAL)rect.height;
+                    REAL rx = (REAL)rect.rx;
+                    REAL ry = (REAL)rect.ry;
 
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(fillBrush);
-                DeleteObject(strokePen);
+                    path.AddArc(x, y, rx * 2, ry * 2, 180, 90);
+                    path.AddArc(x + w - rx * 2, y, rx * 2, ry * 2, 270, 90);
+                    path.AddArc(x + w - rx * 2, y + h - ry * 2, rx * 2, ry * 2, 0, 90);
+                    path.AddArc(x, y + h - ry * 2, rx * 2, ry * 2, 90, 90);
+                    path.CloseFigure();
+
+                    graphics.FillPath(&fillBrush, &path);
+                    graphics.DrawPath(&strokePen, &path);
+                } else {
+                    graphics.FillRectangle(&fillBrush, (REAL)rect.x, (REAL)rect.y, (REAL)rect.width, (REAL)rect.height);
+                    graphics.DrawRectangle(&strokePen, (REAL)rect.x, (REAL)rect.y, (REAL)rect.width, (REAL)rect.height);
+                }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_CIRCLE: {
                 const auto& circle = cmd.circle;
-                HBRUSH fillBrush = CreateSolidBrush(RGB(circle.fill.r, circle.fill.g, circle.fill.b));
-                HPEN strokePen = CreatePen(PS_SOLID, (int)circle.stroke_width, RGB(circle.stroke.r, circle.stroke.g, circle.stroke.b));
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
+                SolidBrush fillBrush(__convert_color(circle.fill));
+                Pen strokePen(__convert_color(circle.stroke), (REAL)circle.stroke_width);
 
-                Ellipse(hdc, (int)(circle.cx - circle.r), (int)(circle.cy - circle.r),
-                        (int)(circle.cx + circle.r), (int)(circle.cy + circle.r));
-
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(fillBrush);
-                DeleteObject(strokePen);
+                REAL diameter = (REAL)(circle.r * 2);
+                graphics.FillEllipse(&fillBrush, (REAL)(circle.cx - circle.r), (REAL)(circle.cy - circle.r), diameter, diameter);
+                graphics.DrawEllipse(&strokePen, (REAL)(circle.cx - circle.r), (REAL)(circle.cy - circle.r), diameter, diameter);
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_ELLIPSE: {
                 const auto& ellipse = cmd.ellipse;
-                HBRUSH fillBrush = CreateSolidBrush(RGB(ellipse.fill.r, ellipse.fill.g, ellipse.fill.b));
-                HPEN strokePen = CreatePen(PS_SOLID, (int)ellipse.stroke_width, RGB(ellipse.stroke.r, ellipse.stroke.g, ellipse.stroke.b));
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
+                SolidBrush fillBrush(__convert_color(ellipse.fill));
+                Pen strokePen(__convert_color(ellipse.stroke), (REAL)ellipse.stroke_width);
 
-                Ellipse(hdc, (int)(ellipse.cx - ellipse.rx), (int)(ellipse.cy - ellipse.ry),
-                        (int)(ellipse.cx + ellipse.rx), (int)(ellipse.cy + ellipse.ry));
-
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(fillBrush);
-                DeleteObject(strokePen);
+                graphics.FillEllipse(&fillBrush, (REAL)(ellipse.cx - ellipse.rx), (REAL)(ellipse.cy - ellipse.ry),
+                                     (REAL)(ellipse.rx * 2), (REAL)(ellipse.ry * 2));
+                graphics.DrawEllipse(&strokePen, (REAL)(ellipse.cx - ellipse.rx), (REAL)(ellipse.cy - ellipse.ry),
+                                     (REAL)(ellipse.rx * 2), (REAL)(ellipse.ry * 2));
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE: {
                 const auto& line = cmd.line;
-                HPEN strokePen = CreatePen(PS_SOLID, (int)line.stroke_width, RGB(line.stroke.r, line.stroke.g, line.stroke.b));
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
-
-                MoveToEx(hdc, (int)line.x1, (int)line.y1, nullptr);
-                LineTo(hdc, (int)line.x2, (int)line.y2);
-
-                SelectObject(hdc, oldPen);
-                DeleteObject(strokePen);
+                Pen strokePen(__convert_color(line.stroke), (REAL)line.stroke_width);
+                graphics.DrawLine(&strokePen, (REAL)line.x1, (REAL)line.y1, (REAL)line.x2, (REAL)line.y2);
                 break;
             }
 
@@ -244,22 +267,14 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
                 const auto& polyline = cmd.polyline;
                 if (mla_array_list_size(polyline.points) < 2) break;
 
-                HPEN strokePen = CreatePen(PS_SOLID, (int)polyline.stroke_width, RGB(polyline.stroke.r, polyline.stroke.g, polyline.stroke.b));
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
-
-                POINT* points = (POINT*)mla_malloc(sizeof(POINT) * mla_array_list_size(polyline.points));
+                PointF* points = new PointF[mla_array_list_size(polyline.points)];
                 for (mla_size_t j = 0; j < mla_array_list_size(polyline.points); j++) {
                     const mla_ui_surface_draw_point_t& point = mla_array_list_get_unsafe(polyline.points, j);
-                    points[j].x = (LONG)point.x;
-                    points[j].y = (LONG)point.y;
+                    points[j] = PointF((REAL)point.x, (REAL)point.y);
                 }
-                Polyline(hdc, points, (int)mla_array_list_size(polyline.points));
-                mla_free(points);
-
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(strokePen);
+                Pen strokePen(__convert_color(polyline.stroke), (REAL)polyline.stroke_width);
+                graphics.DrawLines(&strokePen, points, (INT)mla_array_list_size(polyline.points));
+                delete[] points;
                 break;
             }
 
@@ -267,24 +282,16 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
                 const auto& polygon = cmd.polygon;
                 if (mla_array_list_size(polygon.points) < 3) break;
 
-                HBRUSH fillBrush = CreateSolidBrush(RGB(polygon.fill.r, polygon.fill.g, polygon.fill.b));
-                HPEN strokePen = CreatePen(PS_SOLID, (int)polygon.stroke_width, RGB(polygon.stroke.r, polygon.stroke.g, polygon.stroke.b));
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
-
-                POINT* points = (POINT*)mla_malloc(sizeof(POINT) * mla_array_list_size(polygon.points));
+                PointF* points = new PointF[mla_array_list_size(polygon.points)];
                 for (mla_size_t j = 0; j < mla_array_list_size(polygon.points); j++) {
                     const mla_ui_surface_draw_point_t& point = mla_array_list_get_unsafe(polygon.points, j);
-                    points[j].x = (LONG)point.x;
-                    points[j].y = (LONG)point.y;
+                    points[j] = PointF((REAL)point.x, (REAL)point.y);
                 }
-                Polygon(hdc, points, (int)mla_array_list_size(polygon.points));
-                mla_free(points);
-
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(fillBrush);
-                DeleteObject(strokePen);
+                SolidBrush fillBrush(__convert_color(polygon.fill));
+                Pen strokePen(__convert_color(polygon.stroke), (REAL)polygon.stroke_width);
+                graphics.FillPolygon(&fillBrush, points, (INT)mla_array_list_size(polygon.points));
+                graphics.DrawPolygon(&strokePen, points, (INT)mla_array_list_size(polygon.points));
+                delete[] points;
                 break;
             }
 
@@ -292,96 +299,132 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t& surface, con
                 const auto& path = cmd.path;
                 if (mla_array_list_size(path.commands) == 0) break;
 
-                HBRUSH fillBrush = CreateSolidBrush(RGB(path.fill.r, path.fill.g, path.fill.b));
-                HPEN strokePen = CreatePen(PS_SOLID, (int)path.stroke_width, RGB(path.stroke.r, path.stroke.g, path.stroke.b));
-                HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
-                HPEN oldPen = (HPEN)SelectObject(hdc, strokePen);
-
-                BeginPath(hdc);
+                GraphicsPath gdiPath;
                 for (mla_size_t j = 0; j < mla_array_list_size(path.commands); j++) {
                     const auto& pathCmd = mla_array_list_get_unsafe(path.commands, j);
                     switch (pathCmd.kind) {
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_MOVE_TO:
-                            MoveToEx(hdc, (int)pathCmd.move_to.x, (int)pathCmd.move_to.y, nullptr);
+                            gdiPath.StartFigure();
                             break;
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_LINE_TO:
-                            LineTo(hdc, (int)pathCmd.line_to.x, (int)pathCmd.line_to.y);
+                            gdiPath.AddLine((REAL)pathCmd.line_to.x, (REAL)pathCmd.line_to.y,
+                                           (REAL)pathCmd.line_to.x, (REAL)pathCmd.line_to.y);
                             break;
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_QUADRATIC_CURVE_TO: {
-                            POINT pts[3];
-                            POINT currentPos;
-                            GetCurrentPositionEx(hdc, &currentPos);
-                            // Approximate quadratic with cubic (GDI only has cubic bezier)
-                            pts[0].x = (LONG)(currentPos.x + 2.0/3.0 * (pathCmd.quadratic_curve_to.cpx - currentPos.x));
-                            pts[0].y = (LONG)(currentPos.y + 2.0/3.0 * (pathCmd.quadratic_curve_to.cpy - currentPos.y));
-                            pts[1].x = (LONG)(pathCmd.quadratic_curve_to.x + 2.0/3.0 * (pathCmd.quadratic_curve_to.cpx - pathCmd.quadratic_curve_to.x));
-                            pts[1].y = (LONG)(pathCmd.quadratic_curve_to.y + 2.0/3.0 * (pathCmd.quadratic_curve_to.cpy - pathCmd.quadratic_curve_to.y));
-                            pts[2].x = (LONG)pathCmd.quadratic_curve_to.x;
-                            pts[2].y = (LONG)pathCmd.quadratic_curve_to.y;
-                            PolyBezierTo(hdc, pts, 3);
+                            PointF ctrlPt((REAL)pathCmd.quadratic_curve_to.cpx, (REAL)pathCmd.quadratic_curve_to.cpy);
+                            PointF endPt((REAL)pathCmd.quadratic_curve_to.x, (REAL)pathCmd.quadratic_curve_to.y);
+                            PointF lastPt;
+                            gdiPath.GetLastPoint(&lastPt);
+                            gdiPath.AddBezier(lastPt, ctrlPt, ctrlPt, endPt);
                             break;
                         }
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CUBIC_CURVE_TO: {
-                            POINT pts[3];
-                            pts[0].x = (LONG)pathCmd.cubic_curve_to.cp1x;
-                            pts[0].y = (LONG)pathCmd.cubic_curve_to.cp1y;
-                            pts[1].x = (LONG)pathCmd.cubic_curve_to.cp2x;
-                            pts[1].y = (LONG)pathCmd.cubic_curve_to.cp2y;
-                            pts[2].x = (LONG)pathCmd.cubic_curve_to.x;
-                            pts[2].y = (LONG)pathCmd.cubic_curve_to.y;
-                            PolyBezierTo(hdc, pts, 3);
+                            PointF startPt;
+                            gdiPath.GetLastPoint(&startPt);
+                            gdiPath.AddBezier(startPt,
+                                             PointF((REAL)pathCmd.cubic_curve_to.cp1x, (REAL)pathCmd.cubic_curve_to.cp1y),
+                                             PointF((REAL)pathCmd.cubic_curve_to.cp2x, (REAL)pathCmd.cubic_curve_to.cp2y),
+                                             PointF((REAL)pathCmd.cubic_curve_to.x, (REAL)pathCmd.cubic_curve_to.y));
                             break;
                         }
-                        case MLA_UI_SURFACE_DRAW_PATH_COMMAND_ARC_TO:
-                            // GDI arc approximation - simplified
-                            LineTo(hdc, (int)pathCmd.arc_to.x, (int)pathCmd.arc_to.y);
-                            break;
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH:
-                            CloseFigure(hdc);
+                            gdiPath.CloseFigure();
+                            break;
+                        default:
                             break;
                     }
                 }
-                EndPath(hdc);
-                StrokeAndFillPath(hdc);
-
-                SelectObject(hdc, oldBrush);
-                SelectObject(hdc, oldPen);
-                DeleteObject(fillBrush);
-                DeleteObject(strokePen);
+                SolidBrush fillBrush(__convert_color(path.fill));
+                Pen strokePen(__convert_color(path.stroke), (REAL)path.stroke_width);
+                graphics.FillPath(&fillBrush, &gdiPath);
+                graphics.DrawPath(&strokePen, &gdiPath);
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
-                const auto& text = cmd.text;
-                SetBkMode(hdc, TRANSPARENT);
-                SetTextColor(hdc, RGB(text.fill.r, text.fill.g, text.fill.b));
 
-                mla_c_string_t c_font_family = mla_string_to_cString(text.font_family);
-
-                if (c_font_family.c_str == nullptr) {
+                if (mla_string_is_empty(cmd.text.content))
                     break;
+
+                if (mla_string_is_empty(cmd.text.font_family))
+                    break;
+
+                // Convert font family to UTF-16
+                mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(cmd.text.font_family);
+                FontFamily fontFamily((const WCHAR*)fontFamilyWide.data);
+                Font font(&fontFamily, (REAL)cmd.text.font_size, FontStyleRegular, UnitPixel);
+                SolidBrush textBrush(__convert_color(cmd.text.fill));
+                PointF origin((REAL)cmd.text.x, (REAL)cmd.text.y);
+
+                // Convert content to UTF-16
+                mla_string_utf16_buffer_t contentWide = mla_string_to_utf16_buffer(cmd.text.content);
+                graphics.DrawString((const WCHAR*)contentWide.data, -1, &font, origin, &textBrush);
+
+                // Cleanup
+                mla_string_utf16_buffer_destroy(fontFamilyWide);
+                mla_string_utf16_buffer_destroy(contentWide);
+                break;
+            }
+
+            case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINEAR_GRADIENT: {
+                const auto& gradient = cmd.linear_gradient;
+                if (currentLinearGradient) delete currentLinearGradient;
+
+                PointF pt1((REAL)gradient.x1, (REAL)gradient.y1);
+                PointF pt2((REAL)gradient.x2, (REAL)gradient.y2);
+
+                // Create gradient with default colors (will be updated by stop commands)
+                currentLinearGradient = new LinearGradientBrush(pt1, pt2,
+                    Color(255, 0, 0, 0), Color(255, 255, 255, 255));
+                break;
+            }
+
+            case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RADIAL_GRADIENT: {
+                const auto& gradient = cmd.radial_gradient;
+                if (currentRadialGradient) delete currentRadialGradient;
+
+                // Create a circular path for the radial gradient
+                GraphicsPath path;
+                REAL diameter = (REAL)(gradient.r * 2);
+                path.AddEllipse((REAL)(gradient.cx - gradient.r),
+                                (REAL)(gradient.cy - gradient.r),
+                                diameter, diameter);
+
+                currentRadialGradient = new PathGradientBrush(&path);
+                currentRadialGradient->SetCenterPoint(PointF((REAL)gradient.cx, (REAL)gradient.cy));
+                currentRadialGradient->SetCenterColor(Color(255, 255, 255, 255));
+
+                // Set default surrounding colors
+                Color surroundColors[] = { Color(255, 0, 0, 0) };
+                INT count = 1;
+                currentRadialGradient->SetSurroundColors(surroundColors, &count);
+                break;
+            }
+
+            case MLA_UI_SURFACE_DRAW_COMMAND_KIND_STOP: {
+                const auto& stop = cmd.stop;
+                if (currentLinearGradient) {
+                    Color* colors = new Color[1];
+                    colors[0] = __convert_color(stop.stop_color);
+                    REAL* positions = new REAL[1];
+                    positions[0] = (REAL)stop.offset;
+                    currentLinearGradient->SetInterpolationColors(colors, positions, 1);
+                    delete[] colors;
+                    delete[] positions;
                 }
-
-                HFONT hFont = CreateFontA((int)text.font_size, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                                          ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                                          DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS,
-                                          c_font_family.c_str);
-                HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
-
-                TextOutA(hdc, (int)text.x, (int)text.y, mla_string_data(text.content), (int)mla_string_length(text.content));
-
-                SelectObject(hdc, oldFont);
-                DeleteObject(hFont);
-
-                mla_destroy_c_string(c_font_family);
                 break;
             }
 
             default:
-                // Gradients and stops would require more complex GDI+ implementation
                 break;
         }
     }
+
+    if (currentLinearGradient != nullptr)
+        delete currentLinearGradient;
+
+    if (currentRadialGradient != nullptr)
+        delete currentRadialGradient;
 
     ReleaseDC(window_surface->hwnd, hdc);
     return true;

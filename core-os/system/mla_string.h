@@ -146,10 +146,10 @@ mla_string_t mla_string_trim(const mla_string_t &p_String);
 mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String, mla_size_t p_Index);
 mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String);
 
-mla_string_utf16_buffer_t mla_string_to_utf16_buffer(mla_string_t &p_String);
+mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_String);
 mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf16Buffer);
 
-mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String);
+mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_String);
 mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer);
 
 // Memory layout conversion

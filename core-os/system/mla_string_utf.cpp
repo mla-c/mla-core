@@ -84,7 +84,7 @@ mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String) {
 }
 
 
-mla_string_utf16_buffer_t mla_string_to_utf16_buffer(mla_string_t &p_String) {
+mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_String) {
 
     mla_size_t length = mla_string_length(p_String);
     const mla_char_t* data = mla_string_data(p_String);
@@ -291,7 +291,7 @@ void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer) {
     p_Buffer.charCount = 0;
 }
 
-mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String) {
+mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_String) {
 
     mla_size_t length = mla_string_length(p_String);
 
