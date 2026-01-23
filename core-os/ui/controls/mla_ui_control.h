@@ -52,10 +52,10 @@ typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_cont
 struct mla_ui_control_initializer_t;
 
 struct mla_ui_control_layout_t {
-    mla_size_t x;
-    mla_size_t y;
-    mla_size_t width;
-    mla_size_t height;
+    mla_double_t x;
+    mla_double_t y;
+    mla_double_t width;
+    mla_double_t height;
 };
 
 struct mla_ui_control_t {
