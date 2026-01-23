@@ -26,6 +26,20 @@ struct mla_ui_surface_draw_size_t {
     mla_double_t height;
 };
 
+struct mla_ui_surface_input_states_t {
+    mla_ui_surface_draw_point_t cursorPosition;
+    mla_bool_t leftMouseButtonDown;
+    mla_bool_t rightMouseButtonDown;
+    mla_bool_t middleMouseButtonDown;
+    mla_bool_t shiftKeyDown;
+    mla_bool_t ctrlKeyDown;
+    mla_bool_t altKeyDown;
+    mla_bool_t metaKeyDown;
+    mla_uint32_t keyCodeDown;
+};
+
+mla_ui_surface_input_states_t mla_ui_surface_input_states_empty();
+
 enum mla_ui_surface_draw_command_kind: mla_uint8_t {
     MLA_UI_SURFACE_DRAW_COMMAND_KIND_NONE,
     MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT,

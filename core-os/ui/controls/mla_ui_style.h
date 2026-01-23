@@ -49,6 +49,7 @@ enum mla_ui_text_kind_t: mla_uint8_t {
 #define MLA_UI_COLOR_TEXT_SECONDARY       {110, 110, 110, 255}
 #define MLA_UI_COLOR_TEXT_DISABLED        {158, 158, 158, 255}
 #define MLA_UI_COLOR_TEXT_LINK            {39, 174, 96, 255}
+#define MLA_UI_COLOR_TEXT_LINK_HOVER      {30, 143, 79, 255}
 #define MLA_UI_COLOR_TEXT_LINK_DISABLED   {158, 158, 158, 255}
 #define MLA_UI_COLOR_TEXT_ERROR           {209, 52, 56, 255}
 #define MLA_UI_COLOR_TEXT_WARNING         {255, 170, 68, 255}

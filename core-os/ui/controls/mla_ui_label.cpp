@@ -30,9 +30,6 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     const mla_uint16_t fontSize = mla_ui_label_get_font_size(element);
     const mla_ui_text_kind_t kind = mla_ui_label_get_text_kind(element);
 
-    // Baseline inside the label box (simple single-line baseline)
-    const mla_size_t baselineY = y + static_cast<mla_size_t>(fontSize);
-
     mla_ui_surface_draw_command_color_t color;
 
     switch (kind) {
@@ -80,26 +77,10 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
             break;
     }
 
-    mla_ui_surface_draw_command_t command = mla_ui_surface_draw_command_empty();
-    command.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+    mla_double_t textWidth = 0.0;
+    mla_double_t textHeight = 0.0;
 
-    // SVG x="2" -> 2px offset
-    command.text.x = static_cast<mla_double_t>(context.offsetX + x) + 2.0;
-    // Use calculated baseline
-    command.text.y = static_cast<mla_double_t>(context.offsetY + baselineY);
-
-    command.text.content = text;
-    command.text.font_family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
-    command.text.font_size = static_cast<mla_double_t>(fontSize);
-    command.text.fill = color;
-
-    mla_array_list_add(drawCommands, command);
-
-    // Add Underline for Links
     if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
-        mla_double_t textWidth;
-        mla_double_t textHeight;
-
         // Use exact calculation if available in context
         if (context.calcTextSize != nullptr) {
             mla_ui_surface_draw_size_t size = context.calcTextSize(
@@ -114,6 +95,33 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
             textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontSize) * 0.5);
             textHeight = static_cast<mla_double_t>(fontSize);
         }
+    }
+
+    if (kind == MLA_UI_TEXT_KIND_LINK) {
+        // Check if the text is hovered if yes change color to hover color
+        const mla_ui_control_layout_t textLayout = {x + 2, y, (mla_size_t)textWidth, (mla_size_t)textHeight};
+        if (mla_ui_control_is_hovered(context, textLayout)) {
+            color = MLA_UI_COLOR_TEXT_LINK_HOVER;
+        }
+    }
+
+    mla_ui_surface_draw_command_t command = mla_ui_surface_draw_command_empty();
+    command.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+
+    // SVG x="2" -> 2px offset
+    command.text.x = static_cast<mla_double_t>(context.offsetX + x) + 2.0;
+    // Use calculated baseline
+    command.text.y = static_cast<mla_double_t>(context.offsetY + y);
+
+    command.text.content = text;
+    command.text.font_family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
+    command.text.font_size = static_cast<mla_double_t>(fontSize);
+    command.text.fill = color;
+
+    mla_array_list_add(drawCommands, command);
+
+    // Add Underline for Links
+    if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
 
         mla_ui_surface_draw_command_t underscore = mla_ui_surface_draw_command_empty();
         underscore.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE;

@@ -371,13 +371,14 @@ mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t
     return false;
 }
 
-mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, mla_ui_control_context_calcTextSize_t *calcTextSize) {
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize) {
     return {
         0,
         0,
         width,
         height,
         0,
+        input_states,
         calcTextSize,
     };
 }
@@ -393,4 +394,36 @@ mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui
         context.height = control.layout.height;
 
     return context;
+}
+
+mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_layout_t &layout) {
+
+    // If cursor position is negative, it's outside the surface
+    if (context.input_states.cursorPosition.x < 0 || context.input_states.cursorPosition.y < 0) {
+        return false;
+    }
+
+    mla_size_t mouseX = context.input_states.cursorPosition.x;
+    mla_size_t mouseY = context.input_states.cursorPosition.y;
+
+    mla_size_t controlX = layout.x + context.offsetX;
+    mla_size_t controlY = layout.y + context.offsetY;
+    mla_size_t controlW = layout.width;
+    mla_size_t controlH = layout.height;
+
+    if (controlW == 0) {
+        controlW = context.width - layout.x;
+    }
+
+    if (controlH == 0) {
+        controlH = context.height - layout.y;
+    }
+
+    return (mouseX >= controlX && mouseX <= (controlX + controlW) &&
+            mouseY >= controlY && mouseY <= (controlY + controlH));
+
+}
+
+mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_t &control) {
+    return mla_ui_control_is_hovered(context, control.layout);
 }

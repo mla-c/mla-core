@@ -70,6 +70,9 @@
 #define mla_float_min (-3.40282347e+38F)
 #define mla_float_max (3.40282347e+38F)
 
+#define mla_double_min (-1.79769313486231570e+308)
+#define mla_double_max (1.79769313486231570e+308)
+
 
 // Shortcut for common types
 #define mla_callback_userdata mla_uint64_t

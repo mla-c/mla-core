@@ -27,8 +27,9 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
 
     // Scale to current surface size
     mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(g_main_app_window_ui_surface);
+    mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(g_main_app_window_ui_surface);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, __main_app_window_render_task_calc_text_size);
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __main_app_window_render_task_calc_text_size);
 
     // Create example labels
     mla_ui_control_t titleLabel = mla_ui_label();

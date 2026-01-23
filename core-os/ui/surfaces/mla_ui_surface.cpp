@@ -6,7 +6,7 @@
 
 mla_ui_surface_t mla_ui_surface_invalid() {
     return {
-        nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr
+        nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr, nullptr
     };
 }
 
@@ -45,6 +45,15 @@ mla_bool_t mla_ui_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surfa
     }
 
     return surface.set_size(surface, size);
+}
+
+mla_ui_surface_input_states_t mla_ui_surface_get_input_states(const mla_ui_surface_t &surface) {
+
+    if (surface.get_input_states == nullptr) {
+        return mla_ui_surface_input_states_empty();
+    }
+
+    return surface.get_input_states(surface);
 }
 
 mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {

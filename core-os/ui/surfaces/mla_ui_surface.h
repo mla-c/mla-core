@@ -30,6 +30,9 @@ struct mla_ui_surface_t {
     // Text size calculation
     mla_ui_surface_draw_size_t (*calc_text_size)(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text);
 
+    // Input states retrieval
+    mla_ui_surface_input_states_t (*get_input_states)(const mla_ui_surface_t &surface);
+
 };
 
 mla_ui_surface_t mla_ui_surface_invalid();
@@ -38,6 +41,9 @@ mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface);
 
 mla_ui_surface_size_t mla_ui_surface_get_size(const mla_ui_surface_t& surface);
 mla_bool_t mla_ui_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surface_size_t size);
+
+mla_ui_surface_input_states_t mla_ui_surface_get_input_states(const mla_ui_surface_t &surface);
+
 mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
 

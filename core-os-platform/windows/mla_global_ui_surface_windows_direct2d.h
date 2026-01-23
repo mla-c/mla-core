@@ -293,6 +293,62 @@ D2D1_COLOR_F __convert_color(const mla_ui_surface_draw_command_color_t &color) {
     );
 }
 
+mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surface_t &surface) {
+
+    mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
+
+    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+
+    // Validate surface state
+    if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
+        return inputStates;
+    }
+
+    // 1. Mouse Position
+    POINT cursorPos;
+    RECT clientRect;
+    if (GetCursorPos(&cursorPos) && ScreenToClient(window_surface->hwnd, &cursorPos) && GetClientRect(window_surface->hwnd, &clientRect)) {
+        if (PtInRect(&clientRect, cursorPos)) {
+            // Retrieve system DPI to convert physical pixels to logical DIPs (Device Independent Pixels)
+            // This ensures input coordinates match the content drawn by Direct2D at High DPI.
+            FLOAT dpiX = 96.0f;
+            FLOAT dpiY = 96.0f;
+            if (g_pD2DFactory) {
+                g_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
+            }
+
+            inputStates.cursorPosition.x = (mla_double_t)cursorPos.x * (96.0f / dpiX);
+            inputStates.cursorPosition.y = (mla_double_t)cursorPos.y * (96.0f / dpiY);
+        }
+    }
+
+    // 2. Mouse Buttons
+    // specific bits: 0x8000 means the key is currently down
+    inputStates.leftMouseButtonDown   = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
+    inputStates.rightMouseButtonDown  = (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
+    inputStates.middleMouseButtonDown = (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
+
+    // 3. Modifier Keys
+    inputStates.shiftKeyDown = (GetKeyState(VK_SHIFT)   & 0x8000) != 0;
+    inputStates.ctrlKeyDown  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    inputStates.altKeyDown   = (GetKeyState(VK_MENU)    & 0x8000) != 0;
+    inputStates.metaKeyDown  = ((GetKeyState(VK_LWIN)   & 0x8000) != 0) ||
+                               ((GetKeyState(VK_RWIN)   & 0x8000) != 0);
+
+    // 4. Key Code Down (basic polling)
+    // Scan common virtual key range for the first pressed key (skipping mouse buttons)
+    inputStates.keyCodeDown = 0;
+    for (int key = 0x08; key <= 0xFE; ++key) {
+        if ((key == VK_SHIFT) || (key == VK_CONTROL) || (key == VK_MENU)) continue;
+
+        if ((GetKeyState(key) & 0x8000) != 0) {
+            inputStates.keyCodeDown = (mla_uint32_t)key;
+            break; // Valid limitation: only reports the first detected key
+        }
+    }
+
+    return inputStates;
+}
 
 
 mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
@@ -925,6 +981,7 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
     outSurface.set_size = __windows_surface_set_size;
     outSurface.render_draw_commands = __windows_surface_render_draw_commands;
     outSurface.calc_text_size = __windows_surface_calc_text_size;
+    outSurface.get_input_states = __windows_surface_input_states;
 
     return true;
 }

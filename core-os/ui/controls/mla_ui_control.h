@@ -20,10 +20,11 @@ struct mla_ui_control_context_t {
     mla_size_t width;
     mla_size_t height;
     mla_size_t timeSinceLastFrameMs;
+    mla_ui_surface_input_states_t input_states;
     mla_ui_control_context_calcTextSize_t *calcTextSize;
 };
 
-mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, mla_ui_control_context_calcTextSize_t *calcTextSize);
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize);
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
 
 struct mla_ui_control_value_t {
@@ -102,6 +103,9 @@ mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla
 
 mla_bool_t mla_ui_control_add_child(mla_ui_control_t &parent, const mla_ui_control_t &child);
 mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_ui_control_t &control, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
+
+mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_t &control);
+mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_layout_t &layout);
 
 #define mla_ui_control_render_children_draw_commands(context, control, output) \
 mla_size_t childrenCount = mla_array_list_size((control).children); \

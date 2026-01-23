@@ -180,3 +180,17 @@ mla_bool_t mla_ui_surface_parse_color_from_hex_string(const mla_string_t& colorS
 
     return true;
 }
+
+mla_ui_surface_input_states_t mla_ui_surface_input_states_empty() {
+    return {
+        {mla_double_min, mla_double_min},
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        0
+    };
+}
