@@ -14,7 +14,7 @@ mla_ui_surface_draw_command_path_t mla_ui_surface_draw_command_path_empty() {
 }
 
 mla_ui_surface_draw_command_text_t mla_ui_surface_draw_command_text_empty() {
-    return { 0.0, 0.0, mla_string_empty(), mla_string_empty(), 0, {0,0,0,0} };
+    return { 0.0, 0.0, mla_string_empty(), mla_ui_surface_font_type_empty(), {0,0,0,0} };
 }
 
 mla_ui_surface_draw_command_t mla_ui_surface_draw_command_empty() {
@@ -120,7 +120,7 @@ void mla_ui_surface_draw_command_scale(mla_ui_surface_draw_command_t& command, m
         case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT:
             command.text.x *= scaleX;
             command.text.y *= scaleY;
-            command.text.font_size *= scaleY;
+            command.text.font_type.size *= scaleY;
             break;
         case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINEAR_GRADIENT:
             command.linear_gradient.x1 *= scaleX;
@@ -193,4 +193,25 @@ mla_ui_surface_input_states_t mla_ui_surface_input_states_empty() {
         false,
         0
     };
+}
+
+mla_ui_surface_font_type_t mla_ui_surface_font_type_empty() {
+    return { mla_string_empty(), 0.0, false, false };
+}
+
+mla_bool_t mla_ui_surface_font_type_equals(const mla_ui_surface_font_type_t& a, const mla_ui_surface_font_type_t& b) {
+
+    if (a.bold != b.bold) {
+        return false;
+    }
+
+    if (a.italic != b.italic) {
+        return false;
+    }
+
+    if (a.size != b.size) {
+        return false;
+    }
+
+    return mla_string_equals(a.family, b.family);
 }

@@ -11,13 +11,13 @@
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 
-inline mla_ui_surface_draw_size_t __main_app_window_render_task_calc_text_size(const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
+inline mla_ui_surface_draw_size_t __main_app_window_render_task_calc_text_size(const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
     if (g_main_app_window_ui_surface.calc_text_size == nullptr) {
         return {0, 0};
     }
 
-    return g_main_app_window_ui_surface.calc_text_size(g_main_app_window_ui_surface, fontFamily, fontSize, text);
+    return g_main_app_window_ui_surface.calc_text_size(g_main_app_window_ui_surface, font_type, text);
 }
 
 inline mla_task_process_result_state __main_app_window_render_task(mla_callback_userdata userData) {
@@ -25,10 +25,9 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
 
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
 
-    // Scale to current surface size
+    // Get surface size and input states
     mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(g_main_app_window_ui_surface);
     mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(g_main_app_window_ui_surface);
-
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __main_app_window_render_task_calc_text_size);
 
     // Create example labels

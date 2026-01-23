@@ -5,6 +5,20 @@
 #include "mla_ui_label.h"
 #include "mla_ui_style.h"
 
+void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
+
+    if (context.calcTextSize != nullptr) {
+        mla_ui_surface_draw_size_t size = context.calcTextSize(fontType,text);
+        textWidth = size.width;
+        textHeight = size.height;
+    } else {
+        // Approximate text width calculation based on font size and character count (fallback)
+        textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontType.size) * 0.5);
+        textHeight = static_cast<mla_double_t>(fontType.size);
+    }
+
+}
+
 mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
 
     // Resolve position and size (same approach as window: 0 means "use remaining context")
@@ -80,29 +94,12 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     mla_double_t textWidth = 0.0;
     mla_double_t textHeight = 0.0;
 
-    if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
-        // Use exact calculation if available in context
-        if (context.calcTextSize != nullptr) {
-            mla_ui_surface_draw_size_t size = context.calcTextSize(
-                mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT),
-                static_cast<mla_double_t>(fontSize),
-                text
-            );
-            textWidth = size.width;
-            textHeight = size.height;
-        } else {
-            // Approximate text width calculation based on font size and character count (fallback)
-            textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontSize) * 0.5);
-            textHeight = static_cast<mla_double_t>(fontSize);
-        }
-    }
+    mla_ui_surface_font_type_t fontType = mla_ui_surface_font_type_empty();
+    fontType.family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
+    fontType.size = static_cast<mla_double_t>(fontSize);
 
-    if (kind == MLA_UI_TEXT_KIND_LINK) {
-        // Check if the text is hovered if yes change color to hover color
-        const mla_ui_control_layout_t textLayout = {x + 2, y, (mla_size_t)textWidth, (mla_size_t)textHeight};
-        if (mla_ui_control_is_hovered(context, textLayout)) {
-            color = MLA_UI_COLOR_TEXT_LINK_HOVER;
-        }
+    if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
+        __mla_ui_label_calc_text_size(context, fontType, text, textWidth, textHeight);
     }
 
     mla_ui_surface_draw_command_t command = mla_ui_surface_draw_command_empty();
@@ -114,9 +111,20 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     command.text.y = static_cast<mla_double_t>(context.offsetY + y);
 
     command.text.content = text;
-    command.text.font_family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
-    command.text.font_size = static_cast<mla_double_t>(fontSize);
+    command.text.font_type = fontType;
     command.text.fill = color;
+
+    if (kind == MLA_UI_TEXT_KIND_LINK) {
+        // Check if the text is hovered if yes change color to hover color
+        const mla_ui_control_layout_t textLayout = {x + 2, y, (mla_size_t)textWidth, (mla_size_t)textHeight};
+        if (mla_ui_control_is_hovered(context, textLayout)) {
+            color = MLA_UI_COLOR_TEXT_LINK_HOVER;
+            command.text.font_type.bold = true;
+
+            // Recalculate text size for bold font
+            __mla_ui_label_calc_text_size(context, command.text.font_type, text, textWidth, textHeight);
+        }
+    }
 
     mla_array_list_add(drawCommands, command);
 

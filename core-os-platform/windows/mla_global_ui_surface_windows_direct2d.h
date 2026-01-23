@@ -18,19 +18,17 @@ static ID2D1Factory* g_pD2DFactory = nullptr;
 static IDWriteFactory* g_pDWriteFactory = nullptr;
 
 struct mla_global_ui_surface_windows_direct2d_font_cache_item {
-    mla_string_t family;
+    mla_ui_surface_font_type_t font_type;
     mla_buffer_reference_t textFormatOwner;
     IDWriteTextFormat* textFormat;
-    FLOAT size;
 };
 
 struct mla_global_ui_surface_windows_direct2d_font_cache_item_initializer {
     static mla_global_ui_surface_windows_direct2d_font_cache_item init() {
         return {
-            mla_string_empty(),
+            mla_ui_surface_font_type_empty(),
             mla_buffer_reference_noOwner(),
-            nullptr,
-            0.0f
+            nullptr
         };
     }
 };
@@ -98,24 +96,24 @@ mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_Writ
 
 }
 
-IDWriteTextFormat* __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(la_global_ui_surface_windows_direct2d_Cache& cache, const mla_string_t& familyName, FLOAT size) {
+IDWriteTextFormat* __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(la_global_ui_surface_windows_direct2d_Cache& cache, const mla_ui_surface_font_type_t& fontType) {
+
+    if (mla_string_is_empty(fontType.family))
+        return nullptr;
 
     // Check if font already exists in cache
     for (mla_size_t i = 0; i < mla_array_list_size(cache.fontCache); i++) {
 
         const mla_global_ui_surface_windows_direct2d_font_cache_item& item = mla_array_list_get_unsafe(cache.fontCache, i);
 
-        if (item.size != size)
-            continue;
-
-        if (!mla_string_equals(item.family, familyName))
+        if (!mla_ui_surface_font_type_equals(item.font_type, fontType))
             continue;
 
         return item.textFormat;
 
     }
 
-    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(familyName);
+    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontType.family);
 
     if (fontFamilyWide.data == nullptr) {
         return nullptr;
@@ -124,13 +122,25 @@ IDWriteTextFormat* __mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
     // Create new text format
     IDWriteTextFormat* textFormat = nullptr;
 
+    DWRITE_FONT_STYLE fontStyle = DWRITE_FONT_STYLE_NORMAL;
+
+    if (fontType.italic) {
+        fontStyle = DWRITE_FONT_STYLE_ITALIC;
+    }
+
+    DWRITE_FONT_WEIGHT fontWeight = DWRITE_FONT_WEIGHT_NORMAL;
+
+    if (fontType.bold) {
+        fontWeight = DWRITE_FONT_WEIGHT_BOLD;
+    }
+
     g_pDWriteFactory->CreateTextFormat(
         (const WCHAR*)fontFamilyWide.data,
         nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
+        fontWeight,
+        fontStyle,
         DWRITE_FONT_STRETCH_NORMAL,
-        size,
+        (FLOAT)fontType.size,
         L"en-us",
         &textFormat
     );
@@ -142,10 +152,9 @@ IDWriteTextFormat* __mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
     }
 
     mla_global_ui_surface_windows_direct2d_font_cache_item newItem = {
-        familyName,
+        fontType,
         mla_buffer_reference(textFormat,true, __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup),
-        textFormat,
-        size
+        textFormat
     };
 
     if (mla_array_list_size(cache.fontCache) < mla_global_ui_surface_windows_direct2d_font_cache_size) {
@@ -351,10 +360,10 @@ mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surfac
 }
 
 
-mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
+mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
     mla_ui_surface_draw_size_t size = {0, 0};
 
-    if (mla_string_is_empty(text) || mla_string_is_empty(fontFamily) || g_pDWriteFactory == nullptr) {
+    if (mla_string_is_empty(text) || g_pDWriteFactory == nullptr) {
         return size;
     }
 
@@ -365,7 +374,7 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
         return size;
     }
 
-    IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(window_surface->renderCache, fontFamily, (FLOAT)fontSize);
+    IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(window_surface->renderCache, font_type);
 
     if (textFormat) {
         mla_string_utf16_buffer_t textWide = mla_string_to_utf16_buffer(text);
@@ -763,10 +772,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
                 if (mla_string_is_empty(cmd.text.content))
                     break;
-                if (mla_string_is_empty(cmd.text.font_family))
-                    break;
 
-                IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, cmd.text.font_family, (FLOAT)cmd.text.font_size);
+                IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, cmd.text.font_type);
 
                 if (textFormat) {
                     ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(cmd.text.fill));
@@ -889,8 +896,12 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
         window_surface->DEBUG_last_fps_time = current_time;
     }
 
+    mla_ui_surface_font_type_t debugFontType = mla_ui_surface_font_type_empty();
+    debugFontType.family = mla_string_const("Arial");
+    debugFontType.size = 15.0f;
+
     // Draw FPS counter
-    IDWriteTextFormat* debugFont = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, mla_string_const("Arial"), 15.0f);
+    IDWriteTextFormat* debugFont = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, debugFontType);
 
     if (debugFont) {
         ID2D1SolidColorBrush* debugBrush = nullptr;

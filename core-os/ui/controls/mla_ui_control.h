@@ -12,7 +12,7 @@
 
 struct mla_ui_control_t;
 
-typedef mla_ui_surface_draw_size_t (mla_ui_control_context_calcTextSize_t)(const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text);
+typedef mla_ui_surface_draw_size_t (mla_ui_control_context_calcTextSize_t)(const mla_ui_surface_font_type_t &font_type, const mla_string_t &text);
 
 struct mla_ui_control_context_t {
     mla_size_t offsetX;

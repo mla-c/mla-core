@@ -28,7 +28,7 @@ struct mla_ui_surface_t {
     mla_bool_t (*render_draw_commands)(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
     // Text size calculation
-    mla_ui_surface_draw_size_t (*calc_text_size)(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text);
+    mla_ui_surface_draw_size_t (*calc_text_size)(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text);
 
     // Input states retrieval
     mla_ui_surface_input_states_t (*get_input_states)(const mla_ui_surface_t &surface);

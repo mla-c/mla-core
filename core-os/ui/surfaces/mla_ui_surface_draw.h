@@ -26,6 +26,16 @@ struct mla_ui_surface_draw_size_t {
     mla_double_t height;
 };
 
+struct mla_ui_surface_font_type_t {
+    mla_string_t family;
+    mla_double_t size;
+    mla_bool_t bold;
+    mla_bool_t italic;
+};
+
+mla_ui_surface_font_type_t mla_ui_surface_font_type_empty();
+mla_bool_t mla_ui_surface_font_type_equals(const mla_ui_surface_font_type_t& a, const mla_ui_surface_font_type_t& b);
+
 struct mla_ui_surface_input_states_t {
     mla_ui_surface_draw_point_t cursorPosition;
     mla_bool_t leftMouseButtonDown;
@@ -204,8 +214,7 @@ struct mla_ui_surface_draw_command_text_t {
     mla_double_t x;
     mla_double_t y;
     mla_string_t content;
-    mla_string_t font_family;
-    mla_double_t font_size;
+    mla_ui_surface_font_type_t font_type;
     mla_ui_surface_draw_command_color_t fill;
 };
 
