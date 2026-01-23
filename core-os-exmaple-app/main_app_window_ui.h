@@ -8,6 +8,7 @@
 #include "../core-os/ui/controls/mla_ui_control.h"
 #include "../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../core-os/ui/controls/mla_ui_label.h"
+#include "../core-os/ui/controls/mla_ui_button.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 
@@ -30,7 +31,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(g_main_app_window_ui_surface);
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __main_app_window_render_task_calc_text_size);
 
-    // Create example labels
+    // Create example labels (Left Column)
     mla_ui_control_t titleLabel = mla_ui_label();
     mla_ui_label_set_text(titleLabel, mla_string_const("Main Header Label"));
     mla_ui_label_set_font_size(titleLabel, MLA_UI_FONT_SIZE_PAGE_TITLE);
@@ -132,6 +133,88 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     customLabel.layout.width = 400;
     customLabel.layout.height = 20;
     mla_ui_control_render_to_draw_commands(context, customLabel, drawCommands);
+
+    // Create example buttons (Right Columns)
+
+    // --- Primary ---
+    mla_ui_control_t primaryBtn = mla_ui_button();
+    mla_ui_button_set_text(primaryBtn, mla_string_const("Primary"));
+    mla_ui_button_set_style(primaryBtn, MLA_UI_BUTTON_STYLE_PRIMARY);
+    primaryBtn.layout.x = 440;
+    primaryBtn.layout.y = 20;
+    primaryBtn.layout.width = 120;
+    primaryBtn.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, primaryBtn, drawCommands);
+
+    mla_ui_control_t primaryBtnDis = mla_ui_button();
+    mla_ui_button_set_text(primaryBtnDis, mla_string_const("Primary Dis"));
+    mla_ui_button_set_style(primaryBtnDis, MLA_UI_BUTTON_STYLE_PRIMARY);
+    mla_ui_button_set_disable(primaryBtnDis, true);
+    primaryBtnDis.layout.x = 580;
+    primaryBtnDis.layout.y = 20;
+    primaryBtnDis.layout.width = 120;
+    primaryBtnDis.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, primaryBtnDis, drawCommands);
+
+    // --- Secondary ---
+    mla_ui_control_t secondaryBtn = mla_ui_button();
+    mla_ui_button_set_text(secondaryBtn, mla_string_const("Secondary"));
+    mla_ui_button_set_style(secondaryBtn, MLA_UI_BUTTON_STYLE_SECONDARY);
+    secondaryBtn.layout.x = 440;
+    secondaryBtn.layout.y = 70;
+    secondaryBtn.layout.width = 120;
+    secondaryBtn.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, secondaryBtn, drawCommands);
+
+    mla_ui_control_t secondaryBtnDis = mla_ui_button();
+    mla_ui_button_set_text(secondaryBtnDis, mla_string_const("Secondary Dis"));
+    mla_ui_button_set_style(secondaryBtnDis, MLA_UI_BUTTON_STYLE_SECONDARY);
+    mla_ui_button_set_disable(secondaryBtnDis, true);
+    secondaryBtnDis.layout.x = 580;
+    secondaryBtnDis.layout.y = 70;
+    secondaryBtnDis.layout.width = 120;
+    secondaryBtnDis.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, secondaryBtnDis, drawCommands);
+
+    // --- Tertiary ---
+    mla_ui_control_t tertiaryBtn = mla_ui_button();
+    mla_ui_button_set_text(tertiaryBtn, mla_string_const("Tertiary"));
+    mla_ui_button_set_style(tertiaryBtn, MLA_UI_BUTTON_STYLE_TERTIARY);
+    tertiaryBtn.layout.x = 440;
+    tertiaryBtn.layout.y = 120;
+    tertiaryBtn.layout.width = 120;
+    tertiaryBtn.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, tertiaryBtn, drawCommands);
+
+    mla_ui_control_t tertiaryBtnDis = mla_ui_button();
+    mla_ui_button_set_text(tertiaryBtnDis, mla_string_const("Tertiary Dis"));
+    mla_ui_button_set_style(tertiaryBtnDis, MLA_UI_BUTTON_STYLE_TERTIARY);
+    mla_ui_button_set_disable(tertiaryBtnDis, true);
+    tertiaryBtnDis.layout.x = 580;
+    tertiaryBtnDis.layout.y = 120;
+    tertiaryBtnDis.layout.width = 120;
+    tertiaryBtnDis.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, tertiaryBtnDis, drawCommands);
+
+    // --- Link ---
+    mla_ui_control_t linkBtn = mla_ui_button();
+    mla_ui_button_set_text(linkBtn, mla_string_const("Link Style"));
+    mla_ui_button_set_style(linkBtn, MLA_UI_BUTTON_STYLE_LINK);
+    linkBtn.layout.x = 440;
+    linkBtn.layout.y = 170;
+    linkBtn.layout.width = 120;
+    linkBtn.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, linkBtn, drawCommands);
+
+    mla_ui_control_t linkBtnDis = mla_ui_button();
+    mla_ui_button_set_text(linkBtnDis, mla_string_const("Link Style Dis"));
+    mla_ui_button_set_style(linkBtnDis, MLA_UI_BUTTON_STYLE_LINK);
+    mla_ui_button_set_disable(linkBtnDis, true);
+    linkBtnDis.layout.x = 580;
+    linkBtnDis.layout.y = 170;
+    linkBtnDis.layout.width = 120;
+    linkBtnDis.layout.height = 32;
+    mla_ui_control_render_to_draw_commands(context, linkBtnDis, drawCommands);
 
 
     mla_ui_surface_render_draw_commands(g_main_app_window_ui_surface, drawCommands);

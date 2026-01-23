@@ -22,16 +22,16 @@ void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, cons
 mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
 
     // Resolve position and size (same approach as window: 0 means "use remaining context")
-    mla_size_t x = element.layout.x;
-    mla_size_t y = element.layout.y;
+    mla_double_t x = element.layout.x;
+    mla_double_t y = element.layout.y;
 
-    mla_size_t w = element.layout.width;
+    mla_double_t w = element.layout.width;
     if (w == 0) {
         // If x is absolute, this mirrors the window behavior.
         w = context.width - x;
     }
 
-    mla_size_t h = element.layout.height;
+    mla_double_t h = element.layout.height;
     if (h == 0) {
         h = context.height - y;
     }
@@ -106,9 +106,9 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     command.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
 
     // SVG x="2" -> 2px offset
-    command.text.x = static_cast<mla_double_t>(context.offsetX + x) + 2.0;
+    command.text.x = context.offsetX + x + 2.0;
     // Use calculated baseline
-    command.text.y = static_cast<mla_double_t>(context.offsetY + y);
+    command.text.y = context.offsetY + y;
 
     command.text.content = text;
     command.text.font_type = fontType;
