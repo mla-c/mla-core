@@ -1,13 +1,6 @@
-//
-// Created by chris on 1/23/2026.
-//
-
 #include "mla_ui_button.h"
 #include "mla_ui_style.h"
 
-//
-// Extracted Colors (Candidates for mla_ui_style.h)
-//
 
 static void __mla_ui_button_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
     if (context.calcTextSize != nullptr) {
@@ -41,9 +34,12 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
     const mla_string_t text = mla_ui_button_get_text(element);
     const mla_bool_t disabled = mla_ui_button_get_disable(element);
 
-    // Calculate hover state
+    // Calculate hover and pressed state
     const mla_ui_control_layout_t bounds = { x, y, w, h };
     const mla_bool_t hovered = !disabled && mla_ui_control_is_hovered(context, bounds);
+
+    // Pressed if hovered and any mouse button is down
+    const mla_bool_t pressed = hovered && (context.input_states.leftMouseButtonDown || context.input_states.rightMouseButtonDown || context.input_states.middleMouseButtonDown);
 
     // Style variables
     mla_ui_surface_draw_command_color_t bgFill = {0, 0, 0, 0};
@@ -77,6 +73,9 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
             if (disabled) {
                 bgFill = MLA_UI_COLOR_BUTTON_PRIMARY_BG_DISABLED;
                 textColor = MLA_UI_COLOR_BUTTON_PRIMARY_TEXT_DISABLED;
+            } else if (pressed) {
+                bgFill = MLA_UI_COLOR_BUTTON_PRIMARY_BG_PRESSED;
+                textColor = MLA_UI_COLOR_BUTTON_PRIMARY_TEXT_ENABLED;
             } else if (hovered) {
                 bgFill = MLA_UI_COLOR_BUTTON_PRIMARY_BG_HOVERED;
                 textColor = MLA_UI_COLOR_BUTTON_PRIMARY_TEXT_HOVERED;
@@ -95,6 +94,10 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
                 bgFill = MLA_UI_COLOR_BUTTON_SECONDARY_BG_DISABLED;
                 bgStroke = MLA_UI_COLOR_BUTTON_SECONDARY_BORDER_DISABLED;
                 textColor = MLA_UI_COLOR_BUTTON_SECONDARY_TEXT_DISABLED;
+            } else if (pressed) {
+                bgFill = MLA_UI_COLOR_BUTTON_SECONDARY_BG_PRESSED;
+                bgStroke = MLA_UI_COLOR_BUTTON_SECONDARY_BORDER_PRESSED;
+                textColor = MLA_UI_COLOR_BUTTON_SECONDARY_TEXT_ENABLED;
             } else if (hovered) {
                 bgFill = MLA_UI_COLOR_BUTTON_SECONDARY_BG_HOVERED;
                 bgStroke = MLA_UI_COLOR_BUTTON_SECONDARY_BORDER_HOVERED;
@@ -109,6 +112,13 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
         case MLA_UI_BUTTON_STYLE_TERTIARY:
              if (disabled) {
                 textColor = MLA_UI_COLOR_BUTTON_TERTIARY_TEXT_DISABLED;
+            } else if (pressed) {
+                 drawBackground = true;
+                 bgFill = MLA_UI_COLOR_BUTTON_TERTIARY_BG_PRESSED;
+                 textColor = MLA_UI_COLOR_BUTTON_TERTIARY_TEXT_ENABLED;
+                 rx = 4.0; ry = 4.0;
+                 // Specific geometry for Tertiary Pressed: x=8, y=4, w=104(-16), h=24(-8)
+                 rX += 8.0; rY += 4.0; rW -= 16.0; rH -= 8.0;
             } else if (hovered) {
                 drawBackground = true;
                 bgFill = MLA_UI_COLOR_BUTTON_TERTIARY_BG_HOVERED;
@@ -125,6 +135,7 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
              if (disabled) {
                  textColor = MLA_UI_COLOR_TEXT_DISABLED;
              } else if (hovered) {
+                 // Link has no distinct pressed style requested, treating as hovered
                  textColor = MLA_UI_COLOR_TEXT_LINK_HOVER;
                  fontType.bold = true;
              } else {
