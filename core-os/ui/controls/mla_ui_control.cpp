@@ -371,13 +371,14 @@ mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t
     return false;
 }
 
-mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height) {
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, mla_ui_control_context_calcTextSize_t *calcTextSize) {
     return {
         0,
         0,
         width,
         height,
-        0
+        0,
+        calcTextSize,
     };
 }
 

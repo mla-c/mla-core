@@ -95,6 +95,39 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
 
     mla_array_list_add(drawCommands, command);
 
+    // Add Underline for Links
+    if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
+        mla_double_t textWidth;
+        mla_double_t textHeight;
+
+        // Use exact calculation if available in context
+        if (context.calcTextSize != nullptr) {
+            mla_ui_surface_draw_size_t size = context.calcTextSize(
+                mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT),
+                static_cast<mla_double_t>(fontSize),
+                text
+            );
+            textWidth = size.width;
+            textHeight = size.height;
+        } else {
+            // Approximate text width calculation based on font size and character count (fallback)
+            textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontSize) * 0.5);
+            textHeight = static_cast<mla_double_t>(fontSize);
+        }
+
+        mla_ui_surface_draw_command_t underscore = mla_ui_surface_draw_command_empty();
+        underscore.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE;
+        underscore.line.x1 = command.text.x;
+        // Position slightly below text baseline
+        underscore.line.y1 = command.text.y + textHeight;
+        underscore.line.x2 = command.text.x + textWidth;
+        underscore.line.y2 = underscore.line.y1;
+        underscore.line.stroke = color;
+        underscore.line.stroke_width = 1.0;
+
+        mla_array_list_add(drawCommands, underscore);
+    }
+
     return true;
 
 }

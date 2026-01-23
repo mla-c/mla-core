@@ -11,6 +11,15 @@
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 
+inline mla_ui_surface_draw_size_t __main_app_window_render_task_calc_text_size(const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
+
+    if (g_main_app_window_ui_surface.calc_text_size == nullptr) {
+        return {0, 0};
+    }
+
+    return g_main_app_window_ui_surface.calc_text_size(g_main_app_window_ui_surface, fontFamily, fontSize, text);
+}
+
 inline mla_task_process_result_state __main_app_window_render_task(mla_callback_userdata userData) {
     (void) userData;
 
@@ -19,7 +28,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     // Scale to current surface size
     mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(g_main_app_window_ui_surface);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height);
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, __main_app_window_render_task_calc_text_size);
 
     // Create example labels
     mla_ui_control_t titleLabel = mla_ui_label();

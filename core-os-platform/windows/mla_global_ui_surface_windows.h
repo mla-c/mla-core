@@ -209,7 +209,7 @@ mla_ui_surface_size_t __windows_surface_get_size(const mla_ui_surface_t &surface
     return size;
 }
 
-mla_bool_t __windows_surface_set_size(mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
+mla_bool_t __windows_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
 
     if (window_surface == nullptr) {
@@ -297,7 +297,68 @@ D2D1_COLOR_F __convert_color(const mla_ui_surface_draw_command_color_t &color) {
     );
 }
 
-mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
+
+
+mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
+    mla_ui_surface_draw_size_t size = {0, 0};
+
+    if (mla_string_is_empty(text) || mla_string_is_empty(fontFamily) || g_pDWriteFactory == nullptr) {
+        return size;
+    }
+
+    // Try to get the cache from the surface to reuse text formats for performance
+    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+
+    if (window_surface == nullptr) {
+        return size;
+    }
+
+    if (window_surface->renderCache == nullptr) {
+        window_surface->renderCache = new WindowsRenderCache();
+    }
+
+    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontFamily);
+    IDWriteTextFormat* textFormat = window_surface->renderCache->GetOrCreateTextFormat((const WCHAR*)fontFamilyWide.data, (FLOAT)fontSize);
+
+    if (textFormat) {
+        mla_string_utf16_buffer_t textWide = mla_string_to_utf16_buffer(text);
+
+        // Calculate text length
+        UINT32 textLength = 0;
+        const WCHAR* textPtr = (const WCHAR*)textWide.data;
+        while (textPtr[textLength] != 0) textLength++;
+
+        IDWriteTextLayout* textLayout = nullptr;
+
+        // Create a layout with large constraints to measure natural size
+        HRESULT hr = g_pDWriteFactory->CreateTextLayout(
+            textPtr,
+            textLength,
+            textFormat,
+            10000.0f, // Max width
+            10000.0f, // Max height
+            &textLayout
+        );
+
+        if (SUCCEEDED(hr) && textLayout) {
+            DWRITE_TEXT_METRICS metrics;
+            if (SUCCEEDED(textLayout->GetMetrics(&metrics))) {
+                size.width = (mla_double_t)metrics.widthIncludingTrailingWhitespace;
+                size.height = (mla_double_t)metrics.height;
+            }
+            textLayout->Release();
+        }
+
+        mla_string_utf16_buffer_destroy(textWide);
+    }
+
+    mla_string_utf16_buffer_destroy(fontFamilyWide);
+
+    return size;
+}
+
+
+mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surface,
                                                   const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                       mla_ui_surface_draw_command_initializer_t> &drawCommands) {
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
@@ -342,9 +403,16 @@ mla_bool_t __windows_surface_render_draw_commands(mla_ui_surface_t &surface,
 
         g_pD2DFactory->CreateHwndRenderTarget(
             props,
+#ifdef mla_debug
+            // In debug builds, use immediate presentation for lower latency and max fps
+            D2D1::HwndRenderTargetProperties(window_surface->hwnd, size , D2D1_PRESENT_OPTIONS_IMMEDIATELY),
+#else
             D2D1::HwndRenderTargetProperties(window_surface->hwnd, size),
+#endif
+
             &window_surface->renderTarget
         );
+
 
         if (!window_surface->renderTarget) {
             return false;
@@ -871,6 +939,7 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
     outSurface.get_size = __windows_surface_get_size;
     outSurface.set_size = __windows_surface_set_size;
     outSurface.render_draw_commands = __windows_surface_render_draw_commands;
+    outSurface.calc_text_size = __windows_surface_calc_text_size;
 
     return true;
 }

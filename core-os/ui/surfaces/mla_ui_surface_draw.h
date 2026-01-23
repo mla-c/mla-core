@@ -21,6 +21,11 @@ struct mla_ui_surface_draw_point_t {
     mla_double_t y;
 };
 
+struct mla_ui_surface_draw_size_t {
+    mla_double_t width;
+    mla_double_t height;
+};
+
 enum mla_ui_surface_draw_command_kind: mla_uint8_t {
     MLA_UI_SURFACE_DRAW_COMMAND_KIND_NONE,
     MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT,

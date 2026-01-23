@@ -20,10 +20,16 @@ struct mla_ui_surface_t {
     mla_pointer_t resource; // Pointer to the surface resource
     mla_buffer_reference_t resourceOwner; // Resource owner for the surface
 
+    // Size management
     mla_ui_surface_size_t (*get_size)(const mla_ui_surface_t& surface);
-    mla_bool_t (*set_size)(mla_ui_surface_t& surface, mla_ui_surface_size_t size);
+    mla_bool_t (*set_size)(const mla_ui_surface_t& surface, mla_ui_surface_size_t size);
 
-    mla_bool_t (*render_draw_commands)(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
+    // Render draw commands
+    mla_bool_t (*render_draw_commands)(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
+
+    // Text size calculation
+    mla_ui_surface_draw_size_t (*calc_text_size)(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text);
+
 };
 
 mla_ui_surface_t mla_ui_surface_invalid();
@@ -31,8 +37,8 @@ mla_ui_surface_t mla_ui_surface_create();
 mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface);
 
 mla_ui_surface_size_t mla_ui_surface_get_size(const mla_ui_surface_t& surface);
-mla_bool_t mla_ui_surface_set_size(mla_ui_surface_t& surface, mla_ui_surface_size_t size);
-mla_bool_t mla_ui_surface_render_draw_commands(mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
+mla_bool_t mla_ui_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surface_size_t size);
+mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands);
 
 
 // Low level access to UI surface creation

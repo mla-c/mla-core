@@ -12,15 +12,18 @@
 
 struct mla_ui_control_t;
 
+typedef mla_ui_surface_draw_size_t (mla_ui_control_context_calcTextSize_t)(const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text);
+
 struct mla_ui_control_context_t {
     mla_size_t offsetX;
     mla_size_t offsetY;
     mla_size_t width;
     mla_size_t height;
     mla_size_t timeSinceLastFrameMs;
+    mla_ui_control_context_calcTextSize_t *calcTextSize;
 };
 
-mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height);
+mla_ui_control_context_t mla_ui_control_context(mla_size_t width, mla_size_t height, mla_ui_control_context_calcTextSize_t *calcTextSize);
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
 
 struct mla_ui_control_value_t {
