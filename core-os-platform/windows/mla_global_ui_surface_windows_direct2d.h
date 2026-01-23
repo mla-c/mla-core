@@ -11,159 +11,155 @@
 #include <dwrite.h>
 #include <wincodec.h>
 
+#define mla_global_ui_surface_windows_direct2d_font_cache_size 16
+
 // Global Direct2D factories
 static ID2D1Factory* g_pD2DFactory = nullptr;
 static IDWriteFactory* g_pDWriteFactory = nullptr;
 
-// Initialize Direct2D (call once at startup)
-void __windows_d2d_init() {
-
-    SetProcessDPIAware();
-
-    if (g_pD2DFactory == nullptr) {
-        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
-    }
-    if (g_pDWriteFactory == nullptr) {
-        DWriteCreateFactory(
-            DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory),
-            reinterpret_cast<IUnknown**>(&g_pDWriteFactory)
-        );
-    }
-}
-
-// Cleanup Direct2D (call at shutdown)
-void __windows_d2d_shutdown() {
-    if (g_pDWriteFactory) {
-        g_pDWriteFactory->Release();
-        g_pDWriteFactory = nullptr;
-    }
-    if (g_pD2DFactory) {
-        g_pD2DFactory->Release();
-        g_pD2DFactory = nullptr;
-    }
-}
-
-struct MlaD2DAutoInit {
-    MlaD2DAutoInit() { __windows_d2d_init(); }
-    ~MlaD2DAutoInit() { __windows_d2d_shutdown(); }
+struct mla_global_ui_surface_windows_direct2d_font_cache_item {
+    mla_string_t family;
+    mla_buffer_reference_t textFormatOwner;
+    IDWriteTextFormat* textFormat;
+    FLOAT size;
 };
 
-// Single global instance
-static MlaD2DAutoInit g_mlaD2DAutoInit;
+struct mla_global_ui_surface_windows_direct2d_font_cache_item_initializer {
+    static mla_global_ui_surface_windows_direct2d_font_cache_item init() {
+        return {
+            mla_string_empty(),
+            mla_buffer_reference_noOwner(),
+            nullptr,
+            0.0f
+        };
+    }
+};
 
 // Render cache structure for performance optimization
-// Render cache structure for performance optimization
-struct WindowsRenderCache {
+struct la_global_ui_surface_windows_direct2d_Cache {
+
     // Reusable brushes
     ID2D1SolidColorBrush* solidBrush;
+    mla_buffer_reference_t solidBrushOwner;
+    D2D1_COLOR_F currentFillColor;
 
     // Font cache
-    struct FontCacheEntry {
-        WCHAR family[256];
-        FLOAT size;
-        IDWriteTextFormat* textFormat;
-        bool used;
+    mla_array_list_t<mla_global_ui_surface_windows_direct2d_font_cache_item, mla_global_ui_surface_windows_direct2d_font_cache_item_initializer> fontCache;
+};
+
+la_global_ui_surface_windows_direct2d_Cache __mla_global_ui_surface_windows_direct2d_cache_empty() {
+    return {
+        nullptr,
+        mla_buffer_reference_noOwner(),
+        {0,0,0,0},
+        mla_array_list_empty<mla_global_ui_surface_windows_direct2d_font_cache_item, mla_global_ui_surface_windows_direct2d_font_cache_item_initializer>()
     };
-    FontCacheEntry fontCache[16];  // Fixed size cache
-    int fontCacheSize;
+}
 
-    // Current state to avoid redundant updates
-    D2D1_COLOR_F currentFillColor;
-    D2D1_COLOR_F currentStrokeColor;
-    FLOAT currentStrokeWidth;
+mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
 
-    WindowsRenderCache() {
-        solidBrush = nullptr;
+    (void)userData;
 
-        currentFillColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
-        currentStrokeColor = D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f);
-        currentStrokeWidth = 1.0f;
-        fontCacheSize = 0;
-
-        for (int i = 0; i < 16; i++) {
-            fontCache[i].used = false;
-            fontCache[i].textFormat = nullptr;
-        }
+    ID2D1SolidColorBrush* solid_brush = static_cast<ID2D1SolidColorBrush*>(data);
+    if (solid_brush) {
+        solid_brush->Release();
     }
 
-    ~WindowsRenderCache() {
-        ResetDeviceResources();
+    // No need to free the data pointer as it is managed by Direct2D
+    return CLEAN_UP_SKIP;
 
-        for (int i = 0; i < 16; i++) { // Check all slots, as eviction might leave holes or used flags set
-            if (fontCache[i].used && fontCache[i].textFormat) {
-                fontCache[i].textFormat->Release();
-                fontCache[i].textFormat = nullptr;
-            }
-        }
+}
+
+ID2D1SolidColorBrush* __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(la_global_ui_surface_windows_direct2d_Cache& cache, ID2D1RenderTarget* renderTarget, const D2D1_COLOR_F& color) {
+
+    if (!cache.solidBrush) {
+        renderTarget->CreateSolidColorBrush(color, &cache.solidBrush);
+        cache.solidBrushOwner = mla_buffer_reference(cache.solidBrush, true, __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup);
+        cache.currentFillColor = color;
+    } else if (mla_memcmp(&cache.currentFillColor, &color, sizeof(D2D1_COLOR_F)) != 0) {
+        cache.solidBrush->SetColor(color);
+        cache.currentFillColor = color;
     }
 
-    void ResetDeviceResources() {
-        if (solidBrush) {
-            solidBrush->Release();
-            solidBrush = nullptr;
-        }
-        // Force color update next time
-        currentFillColor = D2D1::ColorF(0, 0, 0, 0);
+    return cache.solidBrush;
+}
+
+mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+
+    (void)userData;
+
+    IDWriteTextFormat* textFormat = static_cast<IDWriteTextFormat*>(data);
+    if (textFormat) {
+        textFormat->Release();
     }
 
-    IDWriteTextFormat* GetOrCreateTextFormat(const WCHAR* familyName, FLOAT size) {
-        // Check if font already exists in cache
-        for (int i = 0; i < fontCacheSize; i++) {
-            if (fontCache[i].used &&
-                wcscmp(fontCache[i].family, familyName) == 0 &&
-                fontCache[i].size == size) {
-                return fontCache[i].textFormat;
-            }
-        }
+    // No need to free the data pointer as it is managed by Direct2D
+    return CLEAN_UP_SKIP;
 
-        // Create new text format
-        IDWriteTextFormat* textFormat = nullptr;
-        g_pDWriteFactory->CreateTextFormat(
-            familyName,
-            nullptr,
-            DWRITE_FONT_WEIGHT_NORMAL,
-            DWRITE_FONT_STYLE_NORMAL,
-            DWRITE_FONT_STRETCH_NORMAL,
-            size,
-            L"en-us",
-            &textFormat
-        );
+}
 
-        if (textFormat) {
-             // Logic Fix: Ensure we track this pointer even if cache is full
-             int index;
-             if (fontCacheSize < 16) {
-                 index = fontCacheSize++;
-             } else {
-                 // Cache full: Evict the first slot (simple FIFO) to stop the memory leak
-                 index = 0;
-                 if (fontCache[index].used && fontCache[index].textFormat) {
-                     fontCache[index].textFormat->Release();
-                 }
-             }
+IDWriteTextFormat* __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(la_global_ui_surface_windows_direct2d_Cache& cache, const mla_string_t& familyName, FLOAT size) {
 
-            wcscpy_s(fontCache[index].family, 256, familyName);
-            fontCache[index].size = size;
-            fontCache[index].textFormat = textFormat;
-            fontCache[index].used = true;
+    // Check if font already exists in cache
+    for (mla_size_t i = 0; i < mla_array_list_size(cache.fontCache); i++) {
 
-            return textFormat;
-        }
+        const mla_global_ui_surface_windows_direct2d_font_cache_item& item = mla_array_list_get_unsafe(cache.fontCache, i);
 
+        if (item.size != size)
+            continue;
+
+        if (!mla_string_equals(item.family, familyName))
+            continue;
+
+        return item.textFormat;
+
+    }
+
+    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(familyName);
+
+    if (fontFamilyWide.data == nullptr) {
         return nullptr;
     }
 
-    void UpdateSolidBrush(ID2D1RenderTarget* renderTarget, const D2D1_COLOR_F& color) {
-        if (!solidBrush) {
-            renderTarget->CreateSolidColorBrush(color, &solidBrush);
-            currentFillColor = color;
-        } else if (memcmp(&currentFillColor, &color, sizeof(D2D1_COLOR_F)) != 0) {
-            solidBrush->SetColor(color);
-            currentFillColor = color;
-        }
+    // Create new text format
+    IDWriteTextFormat* textFormat = nullptr;
+
+    g_pDWriteFactory->CreateTextFormat(
+        (const WCHAR*)fontFamilyWide.data,
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        size,
+        L"en-us",
+        &textFormat
+    );
+
+    mla_string_utf16_buffer_destroy(fontFamilyWide);
+
+    if (textFormat == nullptr) {
+        return nullptr;
     }
-};
+
+    mla_global_ui_surface_windows_direct2d_font_cache_item newItem = {
+        familyName,
+        mla_buffer_reference(textFormat,true, __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup),
+        textFormat,
+        size
+    };
+
+    if (mla_array_list_size(cache.fontCache) < mla_global_ui_surface_windows_direct2d_font_cache_size) {
+        // Add new item to cache
+        mla_array_list_add(cache.fontCache, newItem);
+    } else {
+        mla_global_ui_surface_windows_direct2d_font_cache_item& oldItem = mla_array_list_get_unsafe(cache.fontCache, 0);
+        // Overwrite which also trigger the cleanup of the old item
+        oldItem = newItem;
+    }
+
+    return textFormat;
+
+}
 
 struct mla_windows_window_surface_t {
     HWND hwnd;
@@ -172,12 +168,12 @@ struct mla_windows_window_surface_t {
 
     // Direct2D rendering resources
     ID2D1HwndRenderTarget* renderTarget;
-    WindowsRenderCache* renderCache;
+    la_global_ui_surface_windows_direct2d_Cache renderCache;
 
-#ifdef mla_debug
-    DWORD last_fps_time;
-    int frames_accumulated;
-    int current_fps;
+#ifdef mla_debug_build
+    DWORD DEBUG_last_fps_time;
+    int DEBUG_frames_accumulated;
+    int DEBUG_current_fps;
 #endif
 };
 
@@ -280,7 +276,7 @@ mla_bool_t __windows_create_windows_surface(mla_windows_window_surface_t *surfac
         return false;
     }
 
-    surface->renderCache = new WindowsRenderCache();
+    surface->renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
     surface->is_initialized = true;
     surface->hwnd = hwnd;
     ShowWindow(hwnd, SW_SHOWDEFAULT);
@@ -313,20 +309,14 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
         return size;
     }
 
-    if (window_surface->renderCache == nullptr) {
-        window_surface->renderCache = new WindowsRenderCache();
-    }
-
-    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontFamily);
-    IDWriteTextFormat* textFormat = window_surface->renderCache->GetOrCreateTextFormat((const WCHAR*)fontFamilyWide.data, (FLOAT)fontSize);
+    IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(window_surface->renderCache, fontFamily, (FLOAT)fontSize);
 
     if (textFormat) {
         mla_string_utf16_buffer_t textWide = mla_string_to_utf16_buffer(text);
 
         // Calculate text length
-        UINT32 textLength = 0;
         const WCHAR* textPtr = (const WCHAR*)textWide.data;
-        while (textPtr[textLength] != 0) textLength++;
+        UINT32 textLength = (UINT32)wcslen(textPtr);
 
         IDWriteTextLayout* textLayout = nullptr;
 
@@ -351,8 +341,6 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
 
         mla_string_utf16_buffer_destroy(textWide);
     }
-
-    mla_string_utf16_buffer_destroy(fontFamilyWide);
 
     return size;
 }
@@ -434,7 +422,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     }
 
     ID2D1HwndRenderTarget* renderTarget = window_surface->renderTarget;
-    WindowsRenderCache* cache = window_surface->renderCache;
+    la_global_ui_surface_windows_direct2d_Cache cache = window_surface->renderCache;
 
     // Begin drawing
     renderTarget->BeginDraw();
@@ -462,12 +450,12 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                 );
 
                 // Fill
-                cache->UpdateSolidBrush(renderTarget, __convert_color(rect.color));
+                ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(rect.color));
                 if (rect.rx > 0 || rect.ry > 0) {
                     D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect(d2dRect, (FLOAT)rect.rx, (FLOAT)rect.ry);
-                    renderTarget->FillRoundedRectangle(roundedRect, cache->solidBrush);
+                    renderTarget->FillRoundedRectangle(roundedRect, solidBrush);
                 } else {
-                    renderTarget->FillRectangle(d2dRect, cache->solidBrush);
+                    renderTarget->FillRectangle(d2dRect, solidBrush);
                 }
 
                 // Stroke
@@ -495,8 +483,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                     (FLOAT)circle.r, (FLOAT)circle.r
                 );
 
-                cache->UpdateSolidBrush(renderTarget, __convert_color(circle.fill));
-                renderTarget->FillEllipse(ellipse, cache->solidBrush);
+                ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(circle.fill));
+                renderTarget->FillEllipse(ellipse, solidBrush);
 
                 if (circle.stroke_width > 0) {
                     if (!strokeBrush) {
@@ -516,8 +504,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                     (FLOAT)ellipseCmd.rx, (FLOAT)ellipseCmd.ry
                 );
 
-                cache->UpdateSolidBrush(renderTarget, __convert_color(ellipseCmd.fill));
-                renderTarget->FillEllipse(ellipse, cache->solidBrush);
+                ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(ellipseCmd.fill));
+                renderTarget->FillEllipse(ellipse, solidBrush);
 
                 if (ellipseCmd.stroke_width > 0) {
                     if (!strokeBrush) {
@@ -601,8 +589,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                 sink->EndFigure(D2D1_FIGURE_END_CLOSED);
                 sink->Close();
 
-                cache->UpdateSolidBrush(renderTarget, __convert_color(polygon.fill));
-                renderTarget->FillGeometry(geometry, cache->solidBrush);
+                ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(polygon.fill));
+                renderTarget->FillGeometry(geometry, solidBrush);
 
                 if (polygon.stroke_width > 0) {
                     if (!strokeBrush) {
@@ -699,8 +687,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
 
                 sink->Close();
 
-                cache->UpdateSolidBrush(renderTarget, __convert_color(path.fill));
-                renderTarget->FillGeometry(geometry, cache->solidBrush);
+                ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(path.fill));
+                renderTarget->FillGeometry(geometry, solidBrush);
 
                 if (path.stroke_width > 0) {
                     if (!strokeBrush) {
@@ -722,30 +710,28 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                 if (mla_string_is_empty(cmd.text.font_family))
                     break;
 
-                mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(cmd.text.font_family);
-                IDWriteTextFormat* textFormat = cache->GetOrCreateTextFormat((const WCHAR*)fontFamilyWide.data, (FLOAT)cmd.text.font_size);
+                IDWriteTextFormat* textFormat = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, cmd.text.font_family, (FLOAT)cmd.text.font_size);
 
                 if (textFormat) {
-                    cache->UpdateSolidBrush(renderTarget, __convert_color(cmd.text.fill));
+                    ID2D1SolidColorBrush* solidBrush = __mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(cache, renderTarget, __convert_color(cmd.text.fill));
 
                     mla_string_utf16_buffer_t contentWide = mla_string_to_utf16_buffer(cmd.text.content);
 
                     // Calculate text length
-                    int textLength = 0;
-                    while (((const WCHAR*)contentWide.data)[textLength] != 0) textLength++;
+                    const WCHAR* textPtr = (const WCHAR*)contentWide.data;
+                    UINT32 textLength = (UINT32)wcslen(textPtr);
 
                     renderTarget->DrawText(
-                        (const WCHAR*)contentWide.data,
+                        textPtr,
                         textLength,
                         textFormat,
                         D2D1::RectF((FLOAT)cmd.text.x, (FLOAT)cmd.text.y, 10000.0f, 10000.0f),
-                        cache->solidBrush
+                        solidBrush
                     );
 
                     mla_string_utf16_buffer_destroy(contentWide);
                 }
 
-                mla_string_utf16_buffer_destroy(fontFamilyWide);
                 break;
             }
 
@@ -833,28 +819,29 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     if (strokeBrush)
         strokeBrush->Release();
 
-#ifdef mla_debug
+#ifdef mla_debug_build
     DWORD current_time = GetTickCount();
-    if (window_surface->last_fps_time == 0) {
-        window_surface->last_fps_time = current_time;
+    if (window_surface->DEBUG_last_fps_time == 0) {
+        window_surface->DEBUG_last_fps_time = current_time;
     }
 
-    window_surface->frames_accumulated++;
+    window_surface->DEBUG_frames_accumulated++;
 
-    if (current_time - window_surface->last_fps_time >= 1000) {
-        window_surface->current_fps = window_surface->frames_accumulated;
-        window_surface->frames_accumulated = 0;
-        window_surface->last_fps_time = current_time;
+    if (current_time - window_surface->DEBUG_last_fps_time >= 1000) {
+        window_surface->DEBUG_current_fps = window_surface->DEBUG_frames_accumulated;
+        window_surface->DEBUG_frames_accumulated = 0;
+        window_surface->DEBUG_last_fps_time = current_time;
     }
 
     // Draw FPS counter
-    IDWriteTextFormat* debugFont = cache->GetOrCreateTextFormat(L"Arial", 15.0f);
+    IDWriteTextFormat* debugFont = __mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(cache, mla_string_const("Arial"), 15.0f);
+
     if (debugFont) {
         ID2D1SolidColorBrush* debugBrush = nullptr;
         renderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &debugBrush);
 
         char buffer[64];
-        wsprintfA(buffer, "FPS: %d", window_surface->current_fps);
+        wsprintfA(buffer, "FPS: %d", window_surface->DEBUG_current_fps);
 
         WCHAR wBuffer[64];
         MultiByteToWideChar(CP_ACP, 0, buffer, -1, wBuffer, 64);
@@ -880,10 +867,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     // Handle device lost
     if (hr == D2DERR_RECREATE_TARGET) {
 
-        if (window_surface->renderCache) {
-            window_surface->renderCache->ResetDeviceResources();
-        }
-
+        // Release resources because they are no longer valid
+        window_surface->renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
         renderTarget->Release();
         window_surface->renderTarget = nullptr;
 
@@ -899,8 +884,9 @@ mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, mla
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(data);
 
     if (window_surface != nullptr) {
-        if (window_surface->renderCache)
-            delete window_surface->renderCache;
+
+        // Cleanup Direct2D resources
+        window_surface->renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
 
         if (window_surface->renderTarget) {
             window_surface->renderTarget->Release();
@@ -917,8 +903,7 @@ mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, mla
 
 mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
 
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(mla_malloc(
-        sizeof(mla_windows_window_surface_t)));
+    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(mla_malloc(sizeof(mla_windows_window_surface_t)));
 
     if (window_surface == nullptr) {
         return false;
@@ -928,10 +913,10 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
     window_surface->is_initialized = false;
     window_surface->default_size = {0, 0};
 
-#ifdef mla_debug
-    window_surface->last_fps_time = 0;
-    window_surface->frames_accumulated = 0;
-    window_surface->current_fps = 0;
+#ifdef mla_debug_build
+    window_surface->DEBUG_last_fps_time = 0;
+    window_surface->DEBUG_frames_accumulated = 0;
+    window_surface->DEBUG_current_fps = 0;
 #endif
 
     outSurface.resource = window_surface;
@@ -947,5 +932,52 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
 mla_ui_surface_low_level_access_t g_ui_surface_low_level_access = {
     __windows_create_surface
 };
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Startup and Shutdown functions
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///
+
+// Initialize Direct2D (call once at startup)
+void __windows_d2d_init() {
+
+    SetProcessDPIAware();
+
+    if (g_pD2DFactory == nullptr) {
+        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+    }
+    if (g_pDWriteFactory == nullptr) {
+        DWriteCreateFactory(
+            DWRITE_FACTORY_TYPE_SHARED,
+            __uuidof(IDWriteFactory),
+            reinterpret_cast<IUnknown**>(&g_pDWriteFactory)
+        );
+    }
+}
+
+// Cleanup Direct2D (call at shutdown)
+void __windows_d2d_shutdown() {
+    if (g_pDWriteFactory) {
+        g_pDWriteFactory->Release();
+        g_pDWriteFactory = nullptr;
+    }
+    if (g_pD2DFactory) {
+        g_pD2DFactory->Release();
+        g_pD2DFactory = nullptr;
+    }
+}
+
+struct MlaD2DAutoInit {
+    MlaD2DAutoInit() { __windows_d2d_init(); }
+    ~MlaD2DAutoInit() { __windows_d2d_shutdown(); }
+};
+
+// Single global instance
+static MlaD2DAutoInit g_mlaD2DAutoInit;
+
+
+
 
 #endif
