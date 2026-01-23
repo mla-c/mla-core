@@ -61,19 +61,17 @@ struct mla_opengl_font_resources {
 };
 
 struct mla_global_ui_surface_windows_opengl_font_cache_item {
-    mla_string_t family;
+    mla_ui_surface_font_type_t font_type;
     mla_buffer_reference_t fontOwner;
     mla_opengl_font_resources* resources;
-    FLOAT size;
 };
 
 struct mla_global_ui_surface_windows_opengl_font_cache_item_initializer {
     static mla_global_ui_surface_windows_opengl_font_cache_item init() {
         return {
-            mla_string_empty(),
+            mla_ui_surface_font_type_empty(),
             mla_buffer_reference_noOwner(),
-            nullptr,
-            0.0f
+            nullptr
         };
     }
 };
@@ -115,35 +113,43 @@ mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(mla_
 }
 
 mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
-    mla_global_ui_surface_windows_opengl_Cache& cache, HDC hdc, const mla_string_t& familyName, FLOAT size) {
+    mla_global_ui_surface_windows_opengl_Cache& cache, HDC hdc, const mla_ui_surface_font_type_t& fontType) {
+    
+    if (mla_string_is_empty(fontType.family))
+        return nullptr;
     
     // Check if font already exists in cache
     for (mla_size_t i = 0; i < mla_array_list_size(cache.fontCache); i++) {
         mla_global_ui_surface_windows_opengl_font_cache_item& item = mla_array_list_get_unsafe(cache.fontCache, i);
         
-        if (item.size != size)
-            continue;
-        
-        if (!mla_string_equals(item.family, familyName))
+        if (!mla_ui_surface_font_type_equals(item.font_type, fontType))
             continue;
         
         return &item;
     }
     
-    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(familyName);
+    mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontType.family);
     
     if (fontFamilyWide.data == nullptr) {
         return nullptr;
     }
     
+    // Determine font weight and style
+    int fontWeight = FW_NORMAL;
+    if (fontType.bold) {
+        fontWeight = FW_BOLD;
+    }
+    
+    BOOL italic = fontType.italic ? TRUE : FALSE;
+    
     // Create new font - use exact requested size
     HFONT hFont = CreateFontW(
-        -(int)size,
+        -(int)fontType.size,
         0,
         0,
         0,
-        FW_NORMAL,
-        FALSE,
+        fontWeight,
+        italic,
         FALSE,
         FALSE,
         DEFAULT_CHARSET,
@@ -196,10 +202,9 @@ mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_wi
     SelectObject(hdc, oldFont);
     
     mla_global_ui_surface_windows_opengl_font_cache_item newItem = {
-        familyName,
+        fontType,
         mla_buffer_reference(resources, true, __mla_global_ui_surface_windows_opengl_font_cleanup),
-        resources,
-        size
+        resources
     };
     
     if (mla_array_list_size(cache.fontCache) < mla_global_ui_surface_windows_opengl_font_cache_size) {
@@ -597,6 +602,54 @@ LRESULT CALLBACK __windows_surface_opengl_proc(HWND hwnd, UINT uMsg, WPARAM wPar
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
+mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui_surface_t &surface) {
+    
+    mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
+    
+    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    
+    // Validate surface state
+    if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
+        return inputStates;
+    }
+    
+    // 1. Mouse Position
+    POINT cursorPos;
+    RECT clientRect;
+    if (GetCursorPos(&cursorPos) && ScreenToClient(window_surface->hwnd, &cursorPos) && GetClientRect(window_surface->hwnd, &clientRect)) {
+        if (PtInRect(&clientRect, cursorPos)) {
+            inputStates.cursorPosition.x = (mla_double_t)cursorPos.x;
+            inputStates.cursorPosition.y = (mla_double_t)cursorPos.y;
+        }
+    }
+    
+    // 2. Mouse Buttons
+    inputStates.leftMouseButtonDown   = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
+    inputStates.rightMouseButtonDown  = (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
+    inputStates.middleMouseButtonDown = (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
+    
+    // 3. Modifier Keys
+    inputStates.shiftKeyDown = (GetKeyState(VK_SHIFT)   & 0x8000) != 0;
+    inputStates.ctrlKeyDown  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    inputStates.altKeyDown   = (GetKeyState(VK_MENU)    & 0x8000) != 0;
+    inputStates.metaKeyDown  = ((GetKeyState(VK_LWIN)   & 0x8000) != 0) ||
+                               ((GetKeyState(VK_RWIN)   & 0x8000) != 0);
+    
+    // 4. Key Code Down (basic polling)
+    inputStates.keyCodeDown = 0;
+    for (int key = 0x08; key <= 0xFE; ++key) {
+        if ((key >= VK_LBUTTON && key <= VK_XBUTTON2)) {
+            continue; // skip mouse buttons
+        }
+        if (GetKeyState(key) & 0x8000) {
+            inputStates.keyCodeDown = key;
+            break;
+        }
+    }
+    
+    return inputStates;
+}
+
 mla_bool_t __windows_create_windows_opengl_surface(mla_windows_window_surface_opengl_t *surface) {
     const char CLASS_NAME[] = "MLA_Window_OpenGL_Class";
     
@@ -684,10 +737,10 @@ mla_bool_t __windows_create_windows_opengl_surface(mla_windows_window_surface_op
     return true;
 }
 
-mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_surface_t &surface, const mla_string_t &fontFamily, mla_double_t fontSize, const mla_string_t &text) {
+mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
     mla_ui_surface_draw_size_t size = {0, 0};
     
-    if (mla_string_is_empty(text) || mla_string_is_empty(fontFamily)) {
+    if (mla_string_is_empty(text)) {
         return size;
     }
     
@@ -699,7 +752,7 @@ mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_
     
     mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
         __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
-            window_surface->renderCache, window_surface->hdc, fontFamily, (FLOAT)fontSize);
+            window_surface->renderCache, window_surface->hdc, font_type);
     
     if (fontItem && fontItem->resources && fontItem->resources->hFont) {
         HDC hdc = window_surface->hdc;
@@ -1243,12 +1296,10 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
                 if (mla_string_is_empty(cmd.text.content))
                     break;
-                if (mla_string_is_empty(cmd.text.font_family))
-                    break;
                 
                 mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
                     __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
-                        window_surface->renderCache, window_surface->hdc, cmd.text.font_family, (FLOAT)cmd.text.font_size);
+                        window_surface->renderCache, window_surface->hdc, cmd.text.font_type);
                 
                 if (fontItem && fontItem->resources && fontItem->resources->displayListBase != 0) {
                     // Set text color
@@ -1262,7 +1313,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     
                     // Scale for proper font size - wglUseFontOutlines creates very small glyphs
                     // Need to scale up significantly (empirically determined multiplier)
-                    GLfloat scale = (GLfloat)cmd.text.font_size * 1.5f;
+                    GLfloat scale = (GLfloat)cmd.text.font_type.size * 1.5f;
                     glScalef(scale, -scale, 1.0f);  // Negative Y to flip text right-side up
                     
                     // Convert text to UTF-16 for Windows
@@ -1378,9 +1429,10 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     }
     
     // Draw FPS counter using OpenGL
+    mla_ui_surface_font_type_t debugFontType = { mla_string_const("Arial"), 15.0, false, false };
     mla_global_ui_surface_windows_opengl_font_cache_item* debugFont = 
         __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
-            window_surface->renderCache, window_surface->hdc, mla_string_const("Arial"), 15.0f);
+            window_surface->renderCache, window_surface->hdc, debugFontType);
     
     if (debugFont && debugFont->resources && debugFont->resources->displayListBase != 0) {
         glColor3f(1.0f, 0.0f, 0.0f); // Red color
@@ -1458,6 +1510,7 @@ mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
     outSurface.set_size = __windows_surface_opengl_set_size;
     outSurface.render_draw_commands = __windows_surface_opengl_render_draw_commands;
     outSurface.calc_text_size = __windows_surface_opengl_calc_text_size;
+    outSurface.get_input_states = __windows_surface_opengl_input_states;
     
     return true;
 }
