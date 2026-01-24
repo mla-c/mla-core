@@ -307,7 +307,9 @@ mla_bool_t __windows_ScreenPosition_to_client_position(const HWND& hwnd, POINT &
     // 1. Mouse Position
     RECT clientRect;
     if (ScreenToClient(hwnd, &cursorPos) && GetClientRect(hwnd, &clientRect)) {
+
         if (PtInRect(&clientRect, cursorPos)) {
+
             // Retrieve system DPI to convert physical pixels to logical DIPs (Device Independent Pixels)
             // This ensures input coordinates match the content drawn by Direct2D at High DPI.
             FLOAT dpiX = 96.0f;
