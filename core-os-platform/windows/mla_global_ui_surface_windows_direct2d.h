@@ -302,6 +302,29 @@ D2D1_COLOR_F __convert_color(const mla_ui_surface_draw_command_color_t &color) {
     );
 }
 
+mla_bool_t __windows_ScreenPosition_to_client_position(const HWND& hwnd, POINT &cursorPos, mla_ui_surface_draw_point_t &out_clientPosition) {
+
+    // 1. Mouse Position
+    RECT clientRect;
+    if (ScreenToClient(hwnd, &cursorPos) && GetClientRect(hwnd, &clientRect)) {
+        if (PtInRect(&clientRect, cursorPos)) {
+            // Retrieve system DPI to convert physical pixels to logical DIPs (Device Independent Pixels)
+            // This ensures input coordinates match the content drawn by Direct2D at High DPI.
+            FLOAT dpiX = 96.0f;
+            FLOAT dpiY = 96.0f;
+            if (g_pD2DFactory) {
+                g_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
+            }
+
+            out_clientPosition.x = (mla_double_t)cursorPos.x * (96.0f / dpiX);
+            out_clientPosition.y = (mla_double_t)cursorPos.y * (96.0f / dpiY);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surface_t &surface) {
 
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
@@ -315,22 +338,9 @@ mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surfac
 
     // 1. Mouse Position
     POINT cursorPos;
-    RECT clientRect;
-    if (GetCursorPos(&cursorPos) && ScreenToClient(window_surface->hwnd, &cursorPos) && GetClientRect(window_surface->hwnd, &clientRect)) {
-        if (PtInRect(&clientRect, cursorPos)) {
-            // Retrieve system DPI to convert physical pixels to logical DIPs (Device Independent Pixels)
-            // This ensures input coordinates match the content drawn by Direct2D at High DPI.
-            FLOAT dpiX = 96.0f;
-            FLOAT dpiY = 96.0f;
-            if (g_pD2DFactory) {
-                g_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
-            }
-
-            inputStates.cursorPosition.x = (mla_double_t)cursorPos.x * (96.0f / dpiX);
-            inputStates.cursorPosition.y = (mla_double_t)cursorPos.y * (96.0f / dpiY);
-        }
+    if (GetCursorPos(&cursorPos)) {
+        __windows_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
     }
-
     // 2. Mouse Buttons
     // specific bits: 0x8000 means the key is currently down
     inputStates.leftMouseButtonDown   = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
@@ -413,7 +423,8 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
 
 mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surface,
                                                   const mla_array_list_t<mla_ui_surface_draw_command_t,
-                                                      mla_ui_surface_draw_command_initializer_t> &drawCommands) {
+                                                      mla_ui_surface_draw_command_initializer_t> &drawCommands,
+                                                      mla_array_list_t<mla_ui_surface_input_event_t>& eventsSinceLastFame) {
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
@@ -428,6 +439,71 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
 
     MSG msg;
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+
+        if (msg.hwnd == window_surface->hwnd) {
+
+            // Handle Mouse Release Events (Clicks)
+            if (msg.message == WM_LBUTTONUP || msg.message == WM_RBUTTONUP || msg.message == WM_MBUTTONUP) {
+
+                // 1. Extract physical client coordinates
+                // (short) cast ensures negative coordinates are handled correctly
+                int physicalX = (short)LOWORD(msg.lParam);
+                int physicalY = (short)HIWORD(msg.lParam);
+                POINT cursorPos = { physicalX, physicalY };
+                mla_ui_surface_input_event_t clickEvent = mla_ui_surface_input_event_empty();
+                clickEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK;
+                __windows_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, clickEvent.click.position);
+
+                if (msg.message == WM_LBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT;
+                }
+                else if (msg.message == WM_RBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_RIGHT;
+                }
+                else if (msg.message == WM_MBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_MIDDLE;
+                }
+
+                mla_array_list_add(eventsSinceLastFame, clickEvent);
+            }
+            else if (msg.message == WM_KEYDOWN) {
+
+                // Check if the Enter key was pressed
+                if (msg.wParam == VK_RETURN) {
+                    mla_ui_surface_input_event_t enterEvent = mla_ui_surface_input_event_empty();
+                    enterEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER;
+                    mla_array_list_add(eventsSinceLastFame, enterEvent);
+                } else if (msg.wParam == VK_BACK) {
+                    mla_ui_surface_input_event_t backspaceEvent = mla_ui_surface_input_event_empty();
+                    backspaceEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE;
+                    mla_array_list_add(eventsSinceLastFame, backspaceEvent);
+                } else if (msg.wParam == VK_DELETE) {
+                    mla_ui_surface_input_event_t deleteEvent = mla_ui_surface_input_event_empty();
+                    deleteEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE;
+                    mla_array_list_add(eventsSinceLastFame, deleteEvent);
+                } else {
+                    // For other keys, we can generate a char input event if it's a printable character
+                    BYTE keyboardState[256];
+                    GetKeyboardState(keyboardState);
+
+                    WCHAR unicodeChar[4];
+                    int result = ToUnicode((UINT)msg.wParam, (UINT)((msg.lParam >> 16) & 0xFF), keyboardState, unicodeChar, 4, 0);
+                    if (result > 0) {
+                        mla_ui_surface_input_event_t charInputEvent = mla_ui_surface_input_event_empty();
+                        charInputEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT;
+
+                        // Convert WCHAR to UTF-8
+                        int utf8Length = WideCharToMultiByte(CP_UTF8, 0, unicodeChar, result, nullptr, 0, nullptr, nullptr);
+                        if (utf8Length > 0 && utf8Length < 4) {
+                            WideCharToMultiByte(CP_UTF8, 0, unicodeChar, result, charInputEvent.char_input.character, utf8Length, nullptr, nullptr);
+                            charInputEvent.char_input.character[utf8Length] = '\0'; // Null-terminate
+                            mla_array_list_add(eventsSinceLastFame, charInputEvent);
+                        }
+                    }
+                }
+            }
+        }
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }

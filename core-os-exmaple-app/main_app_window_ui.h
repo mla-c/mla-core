@@ -217,7 +217,13 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     mla_ui_control_render_to_draw_commands(context, linkBtnDis, drawCommands);
 
 
-    mla_ui_surface_render_draw_commands(g_main_app_window_ui_surface, drawCommands);
+    mla_array_list_t<mla_ui_surface_input_event_t> inputEvents = mla_array_list_empty<mla_ui_surface_input_event_t>();
+    mla_ui_surface_render_draw_commands(g_main_app_window_ui_surface, drawCommands, inputEvents);
+
+    if (mla_array_list_size(inputEvents) > 0) {
+        mla_string_t log = mla_string_concat("Main App Window UI Surface Input Events Received: ", mla_string_from_uint32(mla_array_list_size(inputEvents)));
+        mla_info(log);
+    }
 
     mla_array_list_destroy(drawCommands);
 
