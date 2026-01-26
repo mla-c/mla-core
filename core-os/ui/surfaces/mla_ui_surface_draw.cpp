@@ -215,3 +215,10 @@ mla_bool_t mla_ui_surface_font_type_equals(const mla_ui_surface_font_type_t& a, 
 
     return mla_string_equals(a.family, b.family);
 }
+
+mla_ui_surface_input_event_t mla_ui_surface_input_event_empty() {
+    return {
+        MLA_UI_SURFACE_INPUT_EVENT_KIND_NONE,
+        {}
+    };
+}

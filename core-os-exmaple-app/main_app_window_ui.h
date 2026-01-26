@@ -9,27 +9,15 @@
 #include "../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../core-os/ui/controls/mla_ui_label.h"
 #include "../core-os/ui/controls/mla_ui_button.h"
+#include "../core-os/ui/controls/mla_ui_control_surface_connector.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
+static mla_ui_control_surface_connector_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_connector_empty();
 
-inline mla_ui_surface_draw_size_t __main_app_window_render_task_calc_text_size(const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
-    if (g_main_app_window_ui_surface.calc_text_size == nullptr) {
-        return {0, 0};
-    }
+inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_app_build_ui() {
 
-    return g_main_app_window_ui_surface.calc_text_size(g_main_app_window_ui_surface, font_type, text);
-}
-
-inline mla_task_process_result_state __main_app_window_render_task(mla_callback_userdata userData) {
-    (void) userData;
-
-    mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
-
-    // Get surface size and input states
-    mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(g_main_app_window_ui_surface);
-    mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(g_main_app_window_ui_surface);
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __main_app_window_render_task_calc_text_size);
+    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls = mla_array_list<mla_ui_control_t, mla_ui_control_initializer_t>();
 
     // Create example labels (Left Column)
     mla_ui_control_t titleLabel = mla_ui_label();
@@ -40,7 +28,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     titleLabel.layout.y = 20;
     titleLabel.layout.width = 400;
     titleLabel.layout.height = 40;
-    mla_ui_control_render_to_draw_commands(context, titleLabel, drawCommands);
+    mla_array_list_add(uiControls, titleLabel);
 
     mla_ui_control_t subTitleLabel = mla_ui_label();
     mla_ui_label_set_text(subTitleLabel, mla_string_const("Secondary Subtitle Style"));
@@ -50,7 +38,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     subTitleLabel.layout.y = 70;
     subTitleLabel.layout.width = 400;
     subTitleLabel.layout.height = 30;
-    mla_ui_control_render_to_draw_commands(context, subTitleLabel, drawCommands);
+    mla_array_list_add(uiControls, subTitleLabel);
 
     mla_ui_control_t standardLabel = mla_ui_label();
     mla_ui_label_set_text(standardLabel, mla_string_const("Standard body text example at size 14."));
@@ -59,7 +47,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     standardLabel.layout.y = 110;
     standardLabel.layout.width = 400;
     standardLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, standardLabel, drawCommands);
+    mla_array_list_add(uiControls, standardLabel);
 
     mla_ui_control_t errorLabel = mla_ui_label();
     mla_ui_label_set_text(errorLabel, mla_string_const("Error: Connection timeout occurred"));
@@ -68,7 +56,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     errorLabel.layout.y = 140;
     errorLabel.layout.width = 400;
     errorLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, errorLabel, drawCommands);
+    mla_array_list_add(uiControls, errorLabel);
 
     mla_ui_control_t successLabel = mla_ui_label();
     mla_ui_label_set_text(successLabel, mla_string_const("Success: File saved successfully"));
@@ -77,7 +65,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     successLabel.layout.y = 170;
     successLabel.layout.width = 400;
     successLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, successLabel, drawCommands);
+    mla_array_list_add(uiControls, successLabel);
 
     mla_ui_control_t linkLabel = mla_ui_label();
     mla_ui_label_set_text(linkLabel, mla_string_const("Click here for more details"));
@@ -86,7 +74,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     linkLabel.layout.y = 200;
     linkLabel.layout.width = 400;
     linkLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, linkLabel, drawCommands);
+    mla_array_list_add(uiControls, linkLabel);
 
     mla_ui_control_t disabledLabel = mla_ui_label();
     mla_ui_label_set_text(disabledLabel, mla_string_const("Disabled Text Example"));
@@ -95,7 +83,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     disabledLabel.layout.y = 230;
     disabledLabel.layout.width = 400;
     disabledLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, disabledLabel, drawCommands);
+    mla_array_list_add(uiControls, disabledLabel);
 
     mla_ui_control_t linkDisabledLabel = mla_ui_label();
     mla_ui_label_set_text(linkDisabledLabel, mla_string_const("Disabled Link Example"));
@@ -104,7 +92,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     linkDisabledLabel.layout.y = 260;
     linkDisabledLabel.layout.width = 400;
     linkDisabledLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, linkDisabledLabel, drawCommands);
+    mla_array_list_add(uiControls, linkDisabledLabel);
 
     mla_ui_control_t warningLabel = mla_ui_label();
     mla_ui_label_set_text(warningLabel, mla_string_const("Warning: Battery low"));
@@ -113,7 +101,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     warningLabel.layout.y = 290;
     warningLabel.layout.width = 400;
     warningLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, warningLabel, drawCommands);
+    mla_array_list_add(uiControls, warningLabel);
 
     mla_ui_control_t infoLabel = mla_ui_label();
     mla_ui_label_set_text(infoLabel, mla_string_const("Info: System normal"));
@@ -122,7 +110,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     infoLabel.layout.y = 320;
     infoLabel.layout.width = 400;
     infoLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, infoLabel, drawCommands);
+    mla_array_list_add(uiControls, infoLabel);
 
     mla_ui_control_t customLabel = mla_ui_label();
     mla_ui_label_set_text(customLabel, mla_string_const("Custom: Specific Hex Color"));
@@ -132,7 +120,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     customLabel.layout.y = 350;
     customLabel.layout.width = 400;
     customLabel.layout.height = 20;
-    mla_ui_control_render_to_draw_commands(context, customLabel, drawCommands);
+    mla_array_list_add(uiControls, customLabel);
 
     // Create example buttons (Right Columns)
 
@@ -144,7 +132,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     primaryBtn.layout.y = 20;
     primaryBtn.layout.width = 120;
     primaryBtn.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, primaryBtn, drawCommands);
+    mla_array_list_add(uiControls, primaryBtn);
 
     mla_ui_control_t primaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(primaryBtnDis, mla_string_const("Primary Dis"));
@@ -154,7 +142,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     primaryBtnDis.layout.y = 20;
     primaryBtnDis.layout.width = 120;
     primaryBtnDis.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, primaryBtnDis, drawCommands);
+    mla_array_list_add(uiControls, primaryBtnDis);
 
     // --- Secondary ---
     mla_ui_control_t secondaryBtn = mla_ui_button();
@@ -164,7 +152,6 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     secondaryBtn.layout.y = 70;
     secondaryBtn.layout.width = 120;
     secondaryBtn.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, secondaryBtn, drawCommands);
 
     mla_ui_control_t secondaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(secondaryBtnDis, mla_string_const("Secondary Dis"));
@@ -174,7 +161,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     secondaryBtnDis.layout.y = 70;
     secondaryBtnDis.layout.width = 120;
     secondaryBtnDis.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, secondaryBtnDis, drawCommands);
+    mla_array_list_add(uiControls, secondaryBtnDis);
 
     // --- Tertiary ---
     mla_ui_control_t tertiaryBtn = mla_ui_button();
@@ -184,7 +171,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     tertiaryBtn.layout.y = 120;
     tertiaryBtn.layout.width = 120;
     tertiaryBtn.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, tertiaryBtn, drawCommands);
+    mla_array_list_add(uiControls, tertiaryBtn);
 
     mla_ui_control_t tertiaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(tertiaryBtnDis, mla_string_const("Tertiary Dis"));
@@ -194,7 +181,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     tertiaryBtnDis.layout.y = 120;
     tertiaryBtnDis.layout.width = 120;
     tertiaryBtnDis.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, tertiaryBtnDis, drawCommands);
+    mla_array_list_add(uiControls, tertiaryBtnDis);
 
     // --- Link ---
     mla_ui_control_t linkBtn = mla_ui_button();
@@ -204,7 +191,7 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     linkBtn.layout.y = 170;
     linkBtn.layout.width = 120;
     linkBtn.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, linkBtn, drawCommands);
+    mla_array_list_add(uiControls, linkBtn);
 
     mla_ui_control_t linkBtnDis = mla_ui_button();
     mla_ui_button_set_text(linkBtnDis, mla_string_const("Link Style Dis"));
@@ -214,23 +201,17 @@ inline mla_task_process_result_state __main_app_window_render_task(mla_callback_
     linkBtnDis.layout.y = 170;
     linkBtnDis.layout.width = 120;
     linkBtnDis.layout.height = 32;
-    mla_ui_control_render_to_draw_commands(context, linkBtnDis, drawCommands);
+    mla_array_list_add(uiControls, linkBtnDis);
 
-
-    mla_array_list_t<mla_ui_surface_input_event_t> inputEvents = mla_array_list_empty<mla_ui_surface_input_event_t>();
-    mla_ui_surface_render_draw_commands(g_main_app_window_ui_surface, drawCommands, inputEvents);
-
-    if (mla_array_list_size(inputEvents) > 0) {
-        mla_string_t log = mla_string_concat("Main App Window UI Surface Input Events Received: ", mla_string_from_uint32(mla_array_list_size(inputEvents)));
-        mla_info(log);
-    }
-
-    mla_array_list_destroy(drawCommands);
-
-    return TASK_PROCESS_RESULT_CONTINUE;
+    return uiControls;
 }
 
-
+mla_bool_t main_app_window_ui_rendering(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
+    (void)root;
+    (void)surfaceSize;
+    (void)input_states;
+    return true;
+}
 
 inline void main_app_window_ui_init() {
 
@@ -242,21 +223,14 @@ inline void main_app_window_ui_init() {
         return;
     }
 
-    mla_ui_surface_set_size(g_main_app_window_ui_surface, {800, 600});
+    // Build the UI controls
+    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls = __main_app_build_ui();
+    g_main_app_window_ui_surface_connector = mla_ui_control_surface_connector_create(g_main_app_window_ui_surface);
 
-    mla_task_t render_task = mla_task_repeating(
-            mla_string_const("MainWindowRender"),
-            __main_app_window_render_task,
-            0
-        );
+    // Start the ui threads
+    mla_ui_control_surface_connector_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
 
-    // Create rendering thread
-    if (!mla_task_manager_register_task(render_task)) {
-        mla_error("Failed to register main application window rendering task!");
-        return;
-    }
 
-    mla_info("Main application window UI surface created successfully.");
 
 }
 

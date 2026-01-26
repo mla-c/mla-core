@@ -4,7 +4,7 @@
 
 static void __mla_ui_button_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
     if (context.calcTextSize != nullptr) {
-        mla_ui_surface_draw_size_t size = context.calcTextSize(fontType,text);
+        mla_ui_surface_draw_size_t size = context.calcTextSize(context, fontType,text);
         textWidth = size.width;
         textHeight = size.height;
     } else {
@@ -13,7 +13,7 @@ static void __mla_ui_button_calc_text_size(const mla_ui_control_context_t &conte
     }
 }
 
-mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
+mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
 
     mla_double_t x = element.layout.x;
     mla_double_t y = element.layout.y;
@@ -199,6 +199,12 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
 
             mla_array_list_add(drawCommands, underscore);
         }
+    }
+
+    if (!disabled) {
+        // Add Input Area for button if not disabled
+        mla_ui_control_input_area_t inputArea = mla_ui_control_input_area(element.id, element.layout, mla_string_const("click"), MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK);
+        mla_array_list_add(inputAreas, inputArea);
     }
 
     return true;

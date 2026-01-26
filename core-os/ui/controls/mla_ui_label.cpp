@@ -8,7 +8,7 @@
 void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
 
     if (context.calcTextSize != nullptr) {
-        mla_ui_surface_draw_size_t size = context.calcTextSize(fontType,text);
+        mla_ui_surface_draw_size_t size = context.calcTextSize(context, fontType,text);
         textWidth = size.width;
         textHeight = size.height;
     } else {
@@ -19,7 +19,9 @@ void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, cons
 
 }
 
-mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands) {
+mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+
+    (void)inputAreas;
 
     // Resolve position and size (same approach as window: 0 means "use remaining context")
     mla_double_t x = element.layout.x;

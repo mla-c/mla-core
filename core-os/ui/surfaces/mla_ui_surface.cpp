@@ -56,18 +56,11 @@ mla_ui_surface_input_states_t mla_ui_surface_get_input_states(const mla_ui_surfa
     return surface.get_input_states(surface);
 }
 
-mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t>& eventsSinceLastFame) {
+mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
 
     if (surface.render_draw_commands == nullptr) {
         return false;
     }
 
     return surface.render_draw_commands(surface, drawCommands, eventsSinceLastFame);
-}
-
-mla_ui_surface_input_event_t mla_ui_surface_input_event_empty() {
-    return {
-        MLA_UI_SURFACE_INPUT_EVENT_KIND_NONE,
-        {}
-    };
 }

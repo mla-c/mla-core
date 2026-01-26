@@ -426,7 +426,7 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
 mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surface,
                                                   const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                       mla_ui_surface_draw_command_initializer_t> &drawCommands,
-                                                      mla_array_list_t<mla_ui_surface_input_event_t>& eventsSinceLastFame) {
+                                                      mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
