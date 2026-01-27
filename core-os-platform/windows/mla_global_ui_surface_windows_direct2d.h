@@ -473,15 +473,18 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                 // Check if the Enter key was pressed
                 if (msg.wParam == VK_RETURN) {
                     mla_ui_surface_input_event_t enterEvent = mla_ui_surface_input_event_empty();
-                    enterEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER;
+                    enterEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                    enterEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER;
                     mla_array_list_add(eventsSinceLastFame, enterEvent);
                 } else if (msg.wParam == VK_BACK) {
                     mla_ui_surface_input_event_t backspaceEvent = mla_ui_surface_input_event_empty();
-                    backspaceEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE;
+                    backspaceEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                    backspaceEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE;
                     mla_array_list_add(eventsSinceLastFame, backspaceEvent);
                 } else if (msg.wParam == VK_DELETE) {
                     mla_ui_surface_input_event_t deleteEvent = mla_ui_surface_input_event_empty();
-                    deleteEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE;
+                    deleteEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                    deleteEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE;
                     mla_array_list_add(eventsSinceLastFame, deleteEvent);
                 } else {
                     // For other keys, we can generate a char input event if it's a printable character
@@ -492,7 +495,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                     int result = ToUnicode((UINT)msg.wParam, (UINT)((msg.lParam >> 16) & 0xFF), keyboardState, unicodeChar, 4, 0);
                     if (result > 0) {
                         mla_ui_surface_input_event_t charInputEvent = mla_ui_surface_input_event_empty();
-                        charInputEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT;
+                        charInputEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                        charInputEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT;
 
                         // Convert WCHAR to UTF-8
                         int utf8Length = WideCharToMultiByte(CP_UTF8, 0, unicodeChar, result, nullptr, 0, nullptr, nullptr);

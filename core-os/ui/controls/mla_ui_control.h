@@ -54,6 +54,8 @@ struct mla_ui_control_input_area_t;
 struct mla_ui_control_input_area_initializer_t;
 
 typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas);
+typedef mla_bool_t (*mla_ui_control_process_click_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea);
+typedef mla_bool_t (*mla_ui_control_process_char_input_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent);
 
 struct mla_ui_control_initializer_t;
 
@@ -71,6 +73,8 @@ struct mla_ui_control_t {
     mla_ui_control_layout_t layout;
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> children;
     mla_ui_control_render_to_draw_commands_t renderToDrawCommands;
+    mla_ui_control_process_click_event_t processClickEvent;
+    mla_ui_control_process_char_input_event_t processCharInputEvent;
     mla_array_list_t<mla_ui_control_value_t, mla_ui_control_value_initializer_t> values;
 };
 

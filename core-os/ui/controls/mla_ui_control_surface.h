@@ -35,6 +35,7 @@ struct mla_ui_control_surface_t {
     mla_mutex_t lock;
     mla_ui_control_surface_rendering_t rendering;
     mla_ui_control_surface_drawing_t drawing;
+    mla_callback_userdata userData;
 };
 
 mla_ui_control_surface_t mla_ui_control_surface_empty();

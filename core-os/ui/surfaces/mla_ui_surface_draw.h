@@ -292,7 +292,15 @@ struct mla_ui_surface_input_event_click_t {
     mla_ui_surface_input_event_click_button button;
 };
 
+enum mla_ui_surface_input_event_char_input_kind : mla_uint8_t {
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE
+};
+
 struct mla_ui_surface_input_event_char_input_t {
+    mla_ui_surface_input_event_char_input_kind kind;
     mla_char_t character[4]; // UTF-8 character (up to 4 bytes)
 
 };
@@ -300,10 +308,7 @@ struct mla_ui_surface_input_event_char_input_t {
 enum mla_ui_surface_input_event_kind : mla_uint8_t {
     MLA_UI_SURFACE_INPUT_EVENT_KIND_NONE,
     MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK,
-    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT,
-    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER,
-    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE,
-    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR,
 };
 
 struct mla_ui_surface_input_event_t {

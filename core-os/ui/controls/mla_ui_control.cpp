@@ -28,6 +28,8 @@ mla_ui_control_t mla_ui_control() {
         {0, 0, 0, 0},
         mla_array_list_empty<mla_ui_control_t, mla_ui_control_initializer_t>(),
         nullptr,
+        nullptr,
+        nullptr,
         mla_array_list_empty<mla_ui_control_value_t, mla_ui_control_value_initializer_t>(),
     };
 }
@@ -37,6 +39,8 @@ mla_ui_control_t mla_ui_control_empty() {
         mla_string_empty(),
         {0, 0, 0, 0},
         mla_array_list_empty<mla_ui_control_t, mla_ui_control_initializer_t>(),
+        nullptr,
+        nullptr,
         nullptr,
         mla_array_list_empty<mla_ui_control_value_t, mla_ui_control_value_initializer_t>(),
     };
@@ -499,6 +503,23 @@ mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, ml
     return false;
 }
 
+mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t &outControl) {
+    for (mla_size_t i = 0; i < mla_array_list_size(uiControls); i++) {
+        const mla_ui_control_t &control = mla_array_list_get_unsafe(uiControls, i);
+
+        if (mla_ui_control_has_focus(control)) {
+            outControl = control;
+            return true;
+        }
+
+        // Search in children
+        if (mla_ui_control_find_focused_control(control.children, outControl)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void mla_ui_control_process_input_events(
     const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls,
     const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents,
@@ -554,13 +575,25 @@ void mla_ui_control_process_input_events(
                                                          true);
                     }
 
-                    // Here you can handle the event for the control, e.g., call a callback or set a value
+                    if (control.processClickEvent != nullptr) {
+                        control.processClickEvent(control, event.click, bestMatchInputArea);
+                    }
 
                 }
             } else {
                 // No matching input area, reset focus on all controls
                 mla_ui_control_reset_values(uiControls, mla_string_const(mla_ui_control_has_focus_attribute));
             }
+        } else if ((event.kind & MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR) != 0) {
+
+            mla_ui_control_t control = mla_ui_control_empty();
+            // Find control with focus
+            if (mla_ui_control_find_focused_control(uiControls, control)) {
+                if (control.processCharInputEvent != nullptr) {
+                    control.processCharInputEvent(control, event.char_input);
+                }
+            }
+
         } else {
             mla_warning(
                 mla_string_concat("mla_ui_control_process_input_events: Unsupported input event kind ",
