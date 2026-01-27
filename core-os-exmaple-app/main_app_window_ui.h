@@ -9,10 +9,10 @@
 #include "../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../core-os/ui/controls/mla_ui_label.h"
 #include "../core-os/ui/controls/mla_ui_button.h"
-#include "../core-os/ui/controls/mla_ui_control_surface_connector.h"
+#include "../core-os/ui/controls/mla_ui_control_surface.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
-static mla_ui_control_surface_connector_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_connector_empty();
+static mla_ui_control_surface_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_empty();
 
 
 inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_app_build_ui() {
@@ -225,10 +225,10 @@ inline void main_app_window_ui_init() {
 
     // Build the UI controls
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls = __main_app_build_ui();
-    g_main_app_window_ui_surface_connector = mla_ui_control_surface_connector_create(g_main_app_window_ui_surface);
+    g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface);
 
     // Start the ui threads
-    mla_ui_control_surface_connector_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
+    mla_ui_control_surface_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
 
 
 
@@ -236,3 +236,4 @@ inline void main_app_window_ui_init() {
 
 
 #endif
+
