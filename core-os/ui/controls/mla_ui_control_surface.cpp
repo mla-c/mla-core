@@ -32,18 +32,24 @@ mla_ui_control_surface_t mla_ui_control_surface_empty() {
         mla_ui_surface_invalid(),
         mla_mutex_invalid(),
         mla_ui_control_surface_rendering_empty(),
-        mla_ui_control_surface_drawing_empty()
+        mla_ui_control_surface_drawing_empty(),
+        0
     };
 }
 
 mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface) {
+    return mla_ui_control_surface_create(surface, 0);
+}
+
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, mla_callback_userdata userData) {
     return {
         mla_string_empty(),
         mla_buffer_reference_noOwner(),
         surface,
         mla_mutex_create("mla_ui_control_surface_lock"),
         mla_ui_control_surface_rendering_empty(),
-        mla_ui_control_surface_drawing_empty()
+        mla_ui_control_surface_drawing_empty(),
+        userData
     };
 }
 
@@ -104,7 +110,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
     mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(connector->surface);
 
     // Process input events
-    mla_ui_control_process_input_events(connector->rendering.root, unprocessedInputEvents, connector->rendering.inputAreas);
+    mla_ui_control_process_input_events(connector->rendering.root, unprocessedInputEvents, connector->rendering.inputAreas, connector->userData);
 
     if (connector->rendering.renderingTask) {
 

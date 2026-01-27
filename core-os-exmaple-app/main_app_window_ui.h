@@ -14,6 +14,20 @@
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 static mla_ui_control_surface_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_empty();
 
+inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
+    (void)control;
+    (void)clickEvent;
+    (void)uiControls;
+    (void)userData;
+
+    mla_ui_control_t disabledButton = mla_ui_control_empty();
+
+    if (!mla_ui_control_find_by_id(uiControls, mla_string_const("primary_disabled_button"), disabledButton)) {
+        return;
+    }
+
+    mla_ui_button_set_disable(disabledButton, !mla_ui_button_get_disable(disabledButton));
+}
 
 inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_app_build_ui() {
 
@@ -128,6 +142,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     mla_ui_control_t primaryBtn = mla_ui_button();
     mla_ui_button_set_text(primaryBtn, mla_string_const("Primary"));
     mla_ui_button_set_style(primaryBtn, MLA_UI_BUTTON_STYLE_PRIMARY);
+    mla_ui_button_set_click_event(primaryBtn, __main_app_primary_button_clicked);
     primaryBtn.layout.x = 440;
     primaryBtn.layout.y = 20;
     primaryBtn.layout.width = 120;
@@ -135,6 +150,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     mla_array_list_add(uiControls, primaryBtn);
 
     mla_ui_control_t primaryBtnDis = mla_ui_button();
+    primaryBtnDis.id = mla_string_const("primary_disabled_button");
     mla_ui_button_set_text(primaryBtnDis, mla_string_const("Primary Dis"));
     mla_ui_button_set_style(primaryBtnDis, MLA_UI_BUTTON_STYLE_PRIMARY);
     mla_ui_button_set_disable(primaryBtnDis, true);

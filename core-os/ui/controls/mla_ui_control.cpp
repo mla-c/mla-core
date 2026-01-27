@@ -166,6 +166,14 @@ mla_bool_t mla_ui_control_get_value_as_bool(const mla_ui_control_t &control, con
     return defaultValue;
 }
 
+mla_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t defaultValue) {
+    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    if (__mla_ui_control_find_value_by_name(control, name, value)) {
+        return value.pointerValue;
+    }
+    return defaultValue;
+}
+
 mla_bool_t mla_ui_control_set_value_as_uint8(mla_ui_control_t &control, const mla_string_t &name, mla_uint8_t value) {
     mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
@@ -332,6 +340,20 @@ mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
     newValue.boolValue = value;
+    return mla_array_list_add(control.values, newValue);
+}
+
+mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t value) {
+    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
+        internalValue.pointerValue = value;
+        return true;
+    }
+
+    // Not found, create new
+    mla_ui_control_value_t newValue = mla_ui_control_value_empty();
+    newValue.name = name;
+    newValue.pointerValue = value;
     return mla_array_list_add(control.values, newValue);
 }
 
@@ -521,9 +543,10 @@ mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_con
 }
 
 void mla_ui_control_process_input_events(
-    const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls,
+    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls,
     const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents,
-    const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+    const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas,
+    mla_callback_userdata userData) {
 
     mla_size_t inputAreaCount = mla_array_list_size(inputAreas);
     mla_size_t inputEventCount = mla_array_list_size(inputEvents);
@@ -542,7 +565,7 @@ void mla_ui_control_process_input_events(
                 const mla_ui_control_input_area_t &inputArea = mla_array_list_get_unsafe(inputAreas, j);
 
                 // Check if event kind is accepted by this input area
-                if ((inputArea.acceptedEvents & MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK) != 0) {
+                if ((inputArea.acceptedEvents & MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK) == 0) {
                     continue;
                 }
 
@@ -576,7 +599,7 @@ void mla_ui_control_process_input_events(
                     }
 
                     if (control.processClickEvent != nullptr) {
-                        control.processClickEvent(control, event.click, bestMatchInputArea);
+                        control.processClickEvent(control, event.click, bestMatchInputArea, uiControls, userData);
                     }
 
                 }
@@ -590,7 +613,7 @@ void mla_ui_control_process_input_events(
             // Find control with focus
             if (mla_ui_control_find_focused_control(uiControls, control)) {
                 if (control.processCharInputEvent != nullptr) {
-                    control.processCharInputEvent(control, event.char_input);
+                    control.processCharInputEvent(control, event.char_input, uiControls, userData);
                 }
             }
 

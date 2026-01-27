@@ -13,6 +13,29 @@ static void __mla_ui_button_calc_text_size(const mla_ui_control_context_t &conte
     }
 }
 
+mla_bool_t mla_ui_button_process_click_event(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
+
+    if (clickEvent.button != MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT) {
+        return false;
+    }
+
+    const mla_bool_t disabled = mla_ui_button_get_disable(control);
+    if (disabled) {
+        return false;
+    }
+
+    // check if it is the correct input area
+    if (mla_string_equals(inputArea.event_name, mla_string_const("click"))) {
+
+        mla_ui_button_click_event_t onClickEvent = mla_ui_button_get_click_event(control);
+        if (onClickEvent != nullptr) {
+            onClickEvent(control, clickEvent, uiControls, userData);
+        }
+    }
+
+    return true;
+}
+
 mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
 
     mla_double_t x = element.layout.x;
@@ -214,6 +237,7 @@ mla_ui_control_t mla_ui_button() {
 
     mla_ui_control_t button = mla_ui_control();
     button.renderToDrawCommands = __mla_ui_button_render_to_drawCommands;
+    button.processClickEvent = mla_ui_button_process_click_event;
     return button;
 }
 
@@ -239,4 +263,12 @@ mla_string_t mla_ui_button_get_text(const mla_ui_control_t &button) {
 
 mla_bool_t mla_ui_button_set_text(mla_ui_control_t &button, const mla_string_t& text) {
     return mla_ui_control_set_value_as_string(button, mla_string_const("text"), text);
+}
+
+mla_ui_button_click_event_t mla_ui_button_get_click_event(const mla_ui_control_t &button) {
+    return reinterpret_cast<mla_ui_button_click_event_t>(mla_ui_control_get_value_as_pointer(button, mla_string_const("click"), nullptr));
+}
+
+mla_bool_t mla_ui_button_set_click_event(mla_ui_control_t &button, mla_ui_button_click_event_t processClickEvent) {
+    return mla_ui_control_set_value_as_pointer(button, mla_string_const("click"), reinterpret_cast<mla_pointer_t>(processClickEvent));
 }
