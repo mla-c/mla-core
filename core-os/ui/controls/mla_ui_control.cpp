@@ -553,6 +553,9 @@ void mla_ui_control_process_input_events(
                         mla_ui_control_set_value_as_bool(control, mla_string_const(mla_ui_control_has_focus_attribute),
                                                          true);
                     }
+
+                    // Here you can handle the event for the control, e.g., call a callback or set a value
+
                 }
             } else {
                 // No matching input area, reset focus on all controls

@@ -7,6 +7,8 @@
 #include "../../task/mla_task_manager.h"
 #include "../../system/mla_id.h"
 
+#define mla_ui_control_surface_connector_drawing_lock_timeout_ms 100
+#define mla_ui_control_surface_connector_rendering_lock_timeout_ms 50
 
 mla_ui_control_surface_connector_drawing_t mla_ui_control_surface_connector_drawing_empty() {
     return {
@@ -87,19 +89,19 @@ mla_task_process_result_state __mla_ui_control_surface_connector_render_task(mla
 
     mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> unprocessedInputEvents = mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>();
 
-    if (!mla_mutex_trylock(connector->lock, 100)) {
+    if (!mla_mutex_trylock(connector->lock, mla_ui_control_surface_connector_rendering_lock_timeout_ms)) {
         return TASK_PROCESS_RESULT_CONTINUE;
     }
 
     unprocessedInputEvents = connector->drawing.unprocessedInputEvents;
     connector->drawing.unprocessedInputEvents = mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>();
 
+    // Unlock while rendering
+    mla_mutex_unlock(connector->lock);
+
     // Get surface size and input states
     mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(connector->surface);
     mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(connector->surface);
-
-    // Unlock while rendering
-    mla_mutex_unlock(connector->lock);
 
     // Process input events
     mla_ui_control_process_input_events(connector->rendering.root, unprocessedInputEvents, connector->rendering.inputAreas);
@@ -114,7 +116,7 @@ mla_task_process_result_state __mla_ui_control_surface_connector_render_task(mla
     }
 
     // Update the draw commands
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_connector_calc_text_size, reinterpret_cast<mla_callback_userdata>(&connector));
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_connector_calc_text_size, userData);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas = mla_array_list<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
 
@@ -125,7 +127,7 @@ mla_task_process_result_state __mla_ui_control_surface_connector_render_task(mla
     }
 
     // Lock again to update shared data
-    if (!mla_mutex_trylock(connector->lock, 100)) {
+    if (!mla_mutex_trylock(connector->lock, mla_ui_control_surface_connector_rendering_lock_timeout_ms)) {
         mla_warning("Failed to lock mutex to update draw commands");
         return TASK_PROCESS_RESULT_CONTINUE;
     }
@@ -143,21 +145,31 @@ mla_task_process_result_state __mla_ui_control_surface_connector_drawing_task(ml
 
     mla_ui_control_surface_connector_t* connector = reinterpret_cast<mla_ui_control_surface_connector_t*>(userData);
 
-    if (mla_mutex_trylock(connector->lock, 100)) {
-
-        mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list_empty<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
-
-        // Render to surface
-        mla_ui_surface_render_draw_commands(
-            connector->surface,
-            connector->drawing.drawCommands,
-            connector->drawing.unprocessedInputEvents
-        );
-
-
-        mla_mutex_unlock(connector->lock);
-
+    if (!mla_mutex_trylock(connector->lock, mla_ui_control_surface_connector_drawing_lock_timeout_ms)) {
+        return TASK_PROCESS_RESULT_CONTINUE;
     }
+    
+    mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = connector->drawing.drawCommands;
+    mla_mutex_unlock(connector->lock);
+
+    mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> newUnprocessedInputEvents = mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>();
+
+    // Render to surface
+    mla_ui_surface_render_draw_commands(
+        connector->surface,
+        drawCommands,
+        newUnprocessedInputEvents
+    );
+
+    if (!mla_mutex_lock(connector->lock)) {
+        mla_warning(mla_string_const("Unable to lock mutex to update input events"));
+        return TASK_PROCESS_RESULT_CONTINUE;
+    }
+
+    // Append new unprocessed input events
+    mla_array_list_add_all(connector->drawing.unprocessedInputEvents, newUnprocessedInputEvents);
+
+    mla_mutex_unlock(connector->lock);
 
     return TASK_PROCESS_RESULT_CONTINUE;
 }
