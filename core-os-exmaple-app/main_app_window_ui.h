@@ -261,6 +261,20 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     passEditDis.layout.height = 32;
     mla_array_list_add(uiControls, passEditDis);
 
+    mla_ui_control_t selectedTextEdit = mla_ui_text_edit();
+    mla_ui_text_edit_set_text(selectedTextEdit, mla_string_const("Edit Selection"));
+    mla_ui_text_edit_set_style(selectedTextEdit, MLA_UI_TEXT_EDIT_STYLE_STANDARD);
+
+    // Set the selected text (This assumes the "Selection" part of the text string is highlighted)
+    mla_ui_text_edit_set_selected_text(selectedTextEdit, mla_string_const("Selection"));
+
+    selectedTextEdit.layout.x = 440;
+    // Positioned below the password fields (previous y=270, height=32, gap implicit)
+    selectedTextEdit.layout.y = 320;
+    selectedTextEdit.layout.width = 120;
+    selectedTextEdit.layout.height = 32;
+    mla_array_list_add(uiControls, selectedTextEdit);
+
     return uiControls;
 }
 
