@@ -305,10 +305,17 @@ enum mla_ui_surface_input_event_char_input_kind : mla_uint8_t {
     MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT,
 };
 
+enum surface_input_event_spical_control_char_kind: mla_uint8_t {
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_NONE = 0,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL,
+    MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_ALT,
+};
+
 struct mla_ui_surface_input_event_char_input_t {
     mla_ui_surface_input_event_char_input_kind kind;
     mla_char_t character[4]; // UTF-8 character (up to 4 bytes)
-
+    surface_input_event_spical_control_char_kind pressedControlKeys; // Bitmask for control keys
 };
 
 enum mla_ui_surface_input_event_kind : mla_uint8_t {

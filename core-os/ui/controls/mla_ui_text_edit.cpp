@@ -8,10 +8,10 @@
 mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
 
     mla_string_t currentText = mla_ui_text_edit_get_text(control);
-    mla_int32_t cursorPosition = mla_ui_text_edit_get_cursor_position(control);
+    mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(control);
 
     // Ensure cursor matches text bounds
-    mla_int32_t textLen = mla_string_length(currentText);
+    mla_size_t textLen = mla_string_length(currentText);
     if (cursorPosition < 0) cursorPosition = 0;
     if (cursorPosition > textLen) cursorPosition = textLen;
 
@@ -213,10 +213,22 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t&>(element), mla_string_const("blink_timer"), blinkTimer);
 
             // Blink every 1000ms (500ms visible, 500ms hidden)
-            if ((context.timeSinceLastFrameMs % 1000) < 500) {
+            if ((blinkTimer % 1000) < 500) {
                 mla_double_t cursorXOffset = 0.0;
+
                 if(context.calcTextSize && !mla_string_is_empty(text)) {
-                    mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, text);
+                    // Fix: Calculate cursor offset based on cursor position, not full text width
+                    mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(element);
+
+                    // Clamp position to valid range
+                    if (cursorPosition < 0)
+                        cursorPosition = 0;
+                    if (cursorPosition > mla_string_length(text))
+                        cursorPosition = mla_string_length(text);
+
+                    // Measure text up to cursor
+                    mla_string_t textBeforeCursor = mla_string_substr(text, 0, cursorPosition);
+                    mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, textBeforeCursor);
                     cursorXOffset = txtSize.width;
                 }
 
@@ -373,12 +385,12 @@ mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &button, mla_bool_t dis
     return mla_ui_control_set_value_as_bool(button, mla_string_const("disabled"), disable);
 }
 
-mla_int32_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit) {
-    return mla_ui_control_get_value_as_int32(textEdit, mla_string_const("cursor_position"), 0);
+mla_size_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit) {
+    return mla_ui_control_get_value_as_uint32(textEdit, mla_string_const("cursor_position"), 0);
 }
 
-mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_int32_t position) {
-    return mla_ui_control_set_value_as_int32(textEdit, mla_string_const("cursor_position"), position);
+mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_size_t position) {
+    return mla_ui_control_set_value_as_uint32(textEdit, mla_string_const("cursor_position"), position);
 }
 
 mla_string_t mla_ui_text_edit_get_selected_text(const mla_ui_control_t &textEdit) {
