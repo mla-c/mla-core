@@ -48,12 +48,14 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
     fontType.size = 12.0;
     fontType.bold = false;
 
+    // We track if we are drawing a selection to alter text rendering logic later
+    mla_string_t activeSelectedText = mla_string_empty();
+
     if (hasFocus && !disabled) {
         // Focused State colors
         textColor = {0, 0, 0, 255}; // Default text black
 
         // 1. Focus Ring
-        // SVG: x=0.5, y=0.5, w=199 (w-1), h=31 (h-1), rx=7, ry=7, stroke=#27ae60
         mla_ui_surface_draw_command_t ringCmd = mla_ui_surface_draw_command_empty();
         ringCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
         ringCmd.rect.x = context.offsetX + x + 0.5;
@@ -68,7 +70,6 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
         mla_array_list_add(drawCommands, ringCmd);
 
         // 2. Input Background
-        // SVG: x=2, y=2, w=196 (w-4), h=28 (h-4), rx=6, ry=6, fill=#ffffff
         mla_ui_surface_draw_command_t bgCmd = mla_ui_surface_draw_command_empty();
         bgCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
         bgCmd.rect.x = context.offsetX + x + 2.0;
@@ -89,12 +90,23 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
                 selSize = context.calcTextSize(context, fontType, selectedText);
             }
 
+            // Calculate x-offset based on text before the selection
+            mla_double_t selectionXOffset = 0.0;
+            if (context.calcTextSize) {
+                const mla_int32_t idx = mla_string_index_of(text, selectedText);
+                if (idx >= 0) {
+                    const mla_string_t prefix = mla_string_substr(text, 0, idx);
+                    selectionXOffset = context.calcTextSize(context, fontType, prefix).width;
+
+                    // Store for text drawing logic
+                    activeSelectedText = selectedText;
+                }
+            }
+
             // Draw selection rect
             mla_ui_surface_draw_command_t selCmd = mla_ui_surface_draw_command_empty();
             selCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
-            // Align with text start (x + 10)
-            selCmd.rect.x = context.offsetX + x + 10.0;
-            // Centered vertically height 16
+            selCmd.rect.x = context.offsetX + x + 10.0 + selectionXOffset;
             selCmd.rect.y = context.offsetY + y + (h - 16.0) / 2.0;
             selCmd.rect.width = selSize.width > 0 ? selSize.width : 5.0; // Fallback width
             selCmd.rect.height = 16.0;
@@ -103,14 +115,11 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             selCmd.rect.color = {0, 120, 212, 255}; // #0078d4
             mla_array_list_add(drawCommands, selCmd);
 
-            // Change text color to white
-            textColor = {255, 255, 255, 255};
+            // NOTE: Removed `textColor = White` here to prevent non-selected text from vanishing.
         } else {
             // 4. Cursor (only if no selection)
-            // Draw Cursor
             mla_double_t cursorXOffset = 0.0;
              if(context.calcTextSize && !mla_string_is_empty(text)) {
-                 // Without substring logic exposed, estimating cursor at end of text for non-empty text
                  mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, text);
                  cursorXOffset = txtSize.width;
              }
@@ -118,7 +127,7 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             mla_ui_surface_draw_command_t curCmd = mla_ui_surface_draw_command_empty();
             curCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
             curCmd.rect.x = context.offsetX + x + 10.0 + cursorXOffset;
-            curCmd.rect.y = context.offsetY + y + (h - 14.0) / 2.0; // Height 14 centered
+            curCmd.rect.y = context.offsetY + y + (h - 14.0) / 2.0;
             curCmd.rect.width = 1.0;
             curCmd.rect.height = 14.0;
             curCmd.rect.color = {0, 0, 0, 255};
@@ -141,7 +150,6 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             textColor = {0, 0, 0, 255};
         }
 
-        // Draw Background Rect
         mla_ui_surface_draw_command_t bgCmd = mla_ui_surface_draw_command_empty();
         bgCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
         bgCmd.rect.x = context.offsetX + x + 1.0;
@@ -159,20 +167,71 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
     // Draw Text
     // SVG: x=10, y=21
     if (!mla_string_is_empty(text)) {
-        mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
-        txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+        if (!mla_string_is_empty(activeSelectedText) && context.calcTextSize) {
+            // Split Text Rendering: Prefix(Black) - Selected(White) - Suffix(Black)
 
-        // Horizontal position: x + 10 padding
-        txtCmd.text.x = context.offsetX + x + 10.0;
+            mla_int32_t idx = mla_string_index_of(text, activeSelectedText);
+            mla_int32_t len = mla_string_length(activeSelectedText);
 
-        // Vertical position: Center vertically.
-        // SVG y=21 for h=32 implies baseline positioning.
-        // Using calculation similar to button for consistency: y + (h/2) - (textSize/2) - adjustment
-        txtCmd.text.y = context.offsetY + y + (h / 2.0) - (fontType.size / 2.0);
-        txtCmd.text.content = text;
-        txtCmd.text.font_type = fontType;
-        txtCmd.text.fill = textColor;
-        mla_array_list_add(drawCommands, txtCmd);
+            mla_string_t prefix = mla_string_substr(text, 0, idx);
+            mla_string_t suffix = mla_string_substr(text, idx + len, mla_string_length(text) - (idx + len));
+
+            mla_double_t currentX = context.offsetX + x + 10.0;
+            mla_double_t yPos = context.offsetY + y + (h / 2.0) - (fontType.size / 2.0);
+
+            // 1. Draw Prefix (Black)
+            if (!mla_string_is_empty(prefix)) {
+                mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
+                txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+                txtCmd.text.x = currentX;
+                txtCmd.text.y = yPos;
+                txtCmd.text.content = prefix;
+                txtCmd.text.font_type = fontType;
+                txtCmd.text.fill = {0, 0, 0, 255};
+                mla_array_list_add(drawCommands, txtCmd);
+
+                // Advance X
+                currentX += context.calcTextSize(context, fontType, prefix).width;
+            }
+
+            // 2. Draw Selection (White)
+            {
+                mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
+                txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+                txtCmd.text.x = currentX;
+                txtCmd.text.y = yPos;
+                txtCmd.text.content = activeSelectedText;
+                txtCmd.text.font_type = fontType;
+                txtCmd.text.fill = {255, 255, 255, 255}; // Highlight Text Color
+                mla_array_list_add(drawCommands, txtCmd);
+
+                // Advance X
+                currentX += context.calcTextSize(context, fontType, activeSelectedText).width;
+            }
+
+            // 3. Draw Suffix (Black)
+            if (!mla_string_is_empty(suffix)) {
+                mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
+                txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+                txtCmd.text.x = currentX;
+                txtCmd.text.y = yPos;
+                txtCmd.text.content = suffix;
+                txtCmd.text.font_type = fontType;
+                txtCmd.text.fill = {0, 0, 0, 255};
+                mla_array_list_add(drawCommands, txtCmd);
+            }
+
+        } else {
+            // Standard Single Text Drawing
+            mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
+            txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+            txtCmd.text.x = context.offsetX + x + 10.0;
+            txtCmd.text.y = context.offsetY + y + (h / 2.0) - (fontType.size / 2.0);
+            txtCmd.text.content = text;
+            txtCmd.text.font_type = fontType;
+            txtCmd.text.fill = textColor;
+            mla_array_list_add(drawCommands, txtCmd);
+        }
     }
 
     // Input Area for clicking/focusing
