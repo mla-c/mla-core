@@ -1051,7 +1051,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
 
         renderTarget->DrawText(
             wBuffer,
-            wcslen(wBuffer),
+            (UINT32)wcslen(wBuffer),
             debugFont,
             D2D1::RectF(rtSize.width - 75, rtSize.height - 25, rtSize.width, rtSize.height),
             debugBrush
@@ -1066,7 +1066,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     HRESULT hr = renderTarget->EndDraw();
 
     // Handle device lost
-    if (hr == D2DERR_RECREATE_TARGET) {
+    if (hr == (HRESULT)D2DERR_RECREATE_TARGET) {
         // Release resources because they are no longer valid
         window_surface->renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
         renderTarget->Release();

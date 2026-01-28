@@ -5,15 +5,18 @@
 #include "mla_ui_text_edit.h"
 #include "../../system/mla_string_concat.h"
 
-mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
-
+mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
+                                                       const mla_ui_surface_input_event_char_input_t &charInputEvent,
+                                                       mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>
+                                                       &uiControls, mla_callback_userdata userData) {
     mla_string_t currentText = mla_ui_text_edit_get_text(control);
     mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(control);
 
     // Ensure cursor matches text bounds
     mla_size_t textLen = mla_string_length(currentText);
-    if (cursorPosition < 0) cursorPosition = 0;
-    if (cursorPosition > textLen) cursorPosition = textLen;
+
+    if (cursorPosition > textLen)
+        cursorPosition = textLen;
 
     bool textModified = false;
 
@@ -23,7 +26,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
     const bool ctrlPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL);
 
     if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT) {
-
         // Handle Ctrl + A (Select All)
         // Check for ASCII Control Code (1) or 'a'/'A' with Control modifier
         if ((charInputEvent.character[0] == 1) ||
@@ -51,7 +53,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 
         cursorPosition += stringLen;
         textModified = true;
-
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE) {
         if (cursorPosition > 0) {
             // Remove character before cursor
@@ -62,7 +63,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
             cursorPosition--;
             textModified = true;
         }
-
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE) {
         if (cursorPosition < textLen) {
             // Remove character after cursor
@@ -72,7 +72,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
             currentText = mla_string_concat(prefix, suffix);
             textModified = true;
         }
-
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_LEFT) {
         mla_size_t oldCursorPos = cursorPosition;
 
@@ -89,10 +88,10 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
                     // If cursor was at start of selection, anchor is at end
-                    if (oldCursorPos == (mla_size_t)idx)
+                    if (oldCursorPos == (mla_size_t) idx)
                         anchor = idx + selLen;
 
-                    // If cursor was at end of selection, anchor is at start
+                        // If cursor was at end of selection, anchor is at start
                     else if (oldCursorPos == idx + selLen)
                         anchor = idx;
                 }
@@ -105,7 +104,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
         } else {
             mla_ui_text_edit_set_selected_text(control, mla_string_empty());
         }
-
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT) {
         mla_size_t oldCursorPos = cursorPosition;
 
@@ -121,7 +119,7 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
                 mla_int32_t idx = mla_string_index_of(currentText, activeSel);
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
-                    if (oldCursorPos == (mla_size_t)idx)
+                    if (oldCursorPos == (mla_size_t) idx)
                         anchor = idx + selLen;
                     else if (oldCursorPos == idx + selLen)
                         anchor = idx;
@@ -152,7 +150,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 
 
     if (textModified) {
-
         // Trigger text changed event if set
         mla_ui_text_edit_text_changed_t textChangedEvent = mla_ui_text_edit_get_text_changed_event(control);
         if (textChangedEvent) {
@@ -164,7 +161,12 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 }
 
 
-mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context,
+                                                     const mla_ui_control_t &element,
+                                                     mla_array_list_t<mla_ui_surface_draw_command_t,
+                                                         mla_ui_surface_draw_command_initializer_t> &drawCommands,
+                                                     mla_array_list_t<mla_ui_control_input_area_t,
+                                                         mla_ui_control_input_area_initializer_t> &inputAreas) {
     mla_double_t x = element.layout.x;
     mla_double_t y = element.layout.y;
     mla_double_t w = element.layout.width;
@@ -185,7 +187,7 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
     }
 
     // Calculate hover state
-    const mla_ui_control_layout_t bounds = { x, y, w, h };
+    const mla_ui_control_layout_t bounds = {x, y, w, h};
     const mla_bool_t hovered = !disabled && mla_ui_control_is_hovered(context, bounds);
 
     // Color definitions based on state
@@ -236,8 +238,8 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
         mla_string_t selectedText = mla_ui_text_edit_get_selected_text(element);
         if (!mla_string_is_empty(selectedText) && !mla_string_is_empty(text)) {
             // Measure selected text width
-            mla_ui_surface_draw_size_t selSize = {0,0};
-            if(context.calcTextSize) {
+            mla_ui_surface_draw_size_t selSize = {0, 0};
+            if (context.calcTextSize) {
                 selSize = context.calcTextSize(context, fontType, selectedText);
             }
 
@@ -273,19 +275,18 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             // Update blink timer
             mla_uint64_t blinkTimer = mla_ui_control_get_value_as_uint64(element, mla_string_const("blink_timer"), 0);
             blinkTimer += context.timeSinceLastFrameMs;
-            mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t&>(element), mla_string_const("blink_timer"), blinkTimer);
+            mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t &>(element), mla_string_const("blink_timer"),
+                                               blinkTimer);
 
             // Blink every 1000ms (500ms visible, 500ms hidden)
             if ((blinkTimer % 1000) < 500) {
                 mla_double_t cursorXOffset = 0.0;
 
-                if(context.calcTextSize && !mla_string_is_empty(text)) {
+                if (context.calcTextSize && !mla_string_is_empty(text)) {
                     // Fix: Calculate cursor offset based on cursor position, not full text width
                     mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(element);
 
                     // Clamp position to valid range
-                    if (cursorPosition < 0)
-                        cursorPosition = 0;
                     if (cursorPosition > mla_string_length(text))
                         cursorPosition = mla_string_length(text);
 
@@ -305,7 +306,6 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
                 mla_array_list_add(drawCommands, curCmd);
             }
         }
-
     } else {
         // Normal / Disabled / Hover Logic
         if (disabled) {
@@ -392,7 +392,6 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
                 txtCmd.text.fill = {0, 0, 0, 255};
                 mla_array_list_add(drawCommands, txtCmd);
             }
-
         } else {
             // Standard Single Text Drawing
             mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
@@ -408,7 +407,8 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
 
     // Input Area for clicking/focusing
     if (!disabled) {
-        mla_ui_control_input_area_t inputArea = mla_ui_control_input_area(element.id, element.layout, mla_string_const("edit"), MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK);
+        mla_ui_control_input_area_t inputArea = mla_ui_control_input_area(
+            element.id, element.layout, mla_string_const("edit"), MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK);
         mla_array_list_add(inputAreas, inputArea);
     }
 
@@ -417,7 +417,6 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
 
 
 mla_ui_control_t mla_ui_text_edit() {
-
     mla_ui_control_t button = mla_ui_control();
     button.renderToDrawCommands = __mla_ui_text_edit_render_to_drawCommands;
     button.processCharInputEvent = __mla_ui_text_edit_process_char_input_event;
@@ -425,7 +424,8 @@ mla_ui_control_t mla_ui_text_edit() {
 }
 
 mla_ui_text_edit_style_t mla_ui_text_edit_get_style(const mla_ui_control_t &textEdit) {
-    return static_cast<mla_ui_text_edit_style_t>(mla_ui_control_get_value_as_uint8(textEdit, mla_string_const("style"), MLA_UI_TEXT_EDIT_STYLE_STANDARD));
+    return static_cast<mla_ui_text_edit_style_t>(mla_ui_control_get_value_as_uint8(
+        textEdit, mla_string_const("style"), MLA_UI_TEXT_EDIT_STYLE_STANDARD));
 }
 
 mla_bool_t mla_ui_text_edit_set_style(mla_ui_control_t &textEdit, mla_ui_text_edit_style_t style) {
@@ -436,7 +436,7 @@ mla_string_t mla_ui_text_edit_get_text(const mla_ui_control_t &textEdit) {
     return mla_ui_control_get_value_as_string(textEdit, mla_string_const("text"));
 }
 
-mla_bool_t mla_ui_text_edit_set_text(mla_ui_control_t &textEdit, const mla_string_t& text) {
+mla_bool_t mla_ui_text_edit_set_text(mla_ui_control_t &textEdit, const mla_string_t &text) {
     return mla_ui_control_set_value_as_string(textEdit, mla_string_const("text"), text);
 }
 
@@ -460,8 +460,7 @@ mla_string_t mla_ui_text_edit_get_selected_text(const mla_ui_control_t &textEdit
     return mla_ui_control_get_value_as_string(textEdit, mla_string_const("selected_text"));
 }
 
-mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const mla_string_t& selectedText) {
-
+mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const mla_string_t &selectedText) {
     // Check if the selectedText is a substring of the current text
     mla_string_t currentText = mla_ui_text_edit_get_text(textEdit);
 
@@ -473,9 +472,12 @@ mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const 
 }
 
 mla_ui_text_edit_text_changed_t mla_ui_text_edit_get_text_changed_event(const mla_ui_control_t &textEdit) {
-    return reinterpret_cast<mla_ui_text_edit_text_changed_t>(mla_ui_control_get_value_as_pointer(textEdit, mla_string_const("text_changed_event"), nullptr));
+    return reinterpret_cast<mla_ui_text_edit_text_changed_t>(mla_ui_control_get_value_as_pointer(
+        textEdit, mla_string_const("text_changed_event"), nullptr));
 }
 
-mla_bool_t mla_ui_text_edit_set_text_changed_event(mla_ui_control_t &textEdit, mla_ui_text_edit_text_changed_t textChangedEvent) {
-    return mla_ui_control_set_value_as_pointer(textEdit, mla_string_const("text_changed_event"), reinterpret_cast<void*>(textChangedEvent));
+mla_bool_t mla_ui_text_edit_set_text_changed_event(mla_ui_control_t &textEdit,
+                                                   mla_ui_text_edit_text_changed_t textChangedEvent) {
+    return mla_ui_control_set_value_as_pointer(textEdit, mla_string_const("text_changed_event"),
+                                               reinterpret_cast<void *>(textChangedEvent));
 }
