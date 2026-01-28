@@ -3,12 +3,100 @@
 //
 
 #include "mla_ui_text_edit.h"
+#include "../../system/mla_string_concat.h"
 
 mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
-    (void)control;
-    (void)charInputEvent;
-    (void)uiControls;
-    (void)userData;
+
+    mla_string_t currentText = mla_ui_text_edit_get_text(control);
+    mla_int32_t cursorPosition = mla_ui_text_edit_get_cursor_position(control);
+
+    // Ensure cursor matches text bounds
+    mla_int32_t textLen = mla_string_length(currentText);
+    if (cursorPosition < 0) cursorPosition = 0;
+    if (cursorPosition > textLen) cursorPosition = textLen;
+
+    bool textModified = false;
+
+    if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT) {
+        // Construct string from input char
+        // charInputEvent.character is char[4] (utf-8 buffer), create string from it.
+
+        mla_size_t stringLen = 0;
+        while (stringLen < 4 && charInputEvent.character[stringLen] != '\0') {
+            stringLen++;
+        }
+
+        mla_string_t newChar = mla_string_copy(charInputEvent.character, stringLen);
+
+        // Split text at cursor
+        mla_string_t prefix = mla_string_substr(currentText, 0, cursorPosition);
+        mla_string_t suffix = mla_string_substr(currentText, cursorPosition, textLen - cursorPosition);
+
+        // Reassemble: prefix + newChar + suffix
+        currentText = mla_string_concat(prefix, newChar, suffix);
+
+        cursorPosition += stringLen;
+        textModified = true;
+
+    } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE) {
+        if (cursorPosition > 0) {
+            // Remove character before cursor
+            mla_string_t prefix = mla_string_substr(currentText, 0, cursorPosition - 1);
+            mla_string_t suffix = mla_string_substr(currentText, cursorPosition, textLen - cursorPosition);
+
+            currentText = mla_string_concat(prefix, suffix);
+            cursorPosition--;
+            textModified = true;
+        }
+
+    } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE) {
+        if (cursorPosition < textLen) {
+            // Remove character after cursor
+            mla_string_t prefix = mla_string_substr(currentText, 0, cursorPosition);
+            mla_string_t suffix = mla_string_substr(currentText, cursorPosition + 1, textLen - (cursorPosition + 1));
+
+            currentText = mla_string_concat(prefix, suffix);
+            textModified = true;
+        }
+
+    } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_LEFT) {
+
+        if (cursorPosition > 0) {
+            cursorPosition--;
+        }
+
+    } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT) {
+
+        if (cursorPosition < textLen) {
+            cursorPosition++;
+        }
+    }
+
+    if (textModified) {
+        mla_ui_text_edit_set_text(control, currentText);
+
+        // Clear selection on text change
+        mla_ui_text_edit_set_selected_text(control, mla_string_empty());
+
+
+    }
+
+    // Always update cursor position
+    mla_ui_text_edit_set_cursor_position(control, cursorPosition);
+
+    // Reset blink timer so cursor is visible immediately upon interaction
+    mla_ui_control_set_value_as_uint64(control, mla_string_const("blink_timer"), 0);
+
+
+    if (textModified) {
+
+        // Trigger text changed event if set
+        mla_ui_text_edit_text_changed_t textChangedEvent = mla_ui_text_edit_get_text_changed_event(control);
+        if (textChangedEvent) {
+            textChangedEvent(control, uiControls, userData);
+        }
+    }
+
     return true;
 }
 
@@ -125,7 +213,7 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t&>(element), mla_string_const("blink_timer"), blinkTimer);
 
             // Blink every 1000ms (500ms visible, 500ms hidden)
-            if ((blinkTimer % 1000) < 500) {
+            if ((context.timeSinceLastFrameMs % 1000) < 500) {
                 mla_double_t cursorXOffset = 0.0;
                 if(context.calcTextSize && !mla_string_is_empty(text)) {
                     mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, text);
@@ -307,4 +395,12 @@ mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const 
     }
 
     return false;
+}
+
+mla_ui_text_edit_text_changed_t mla_ui_text_edit_get_text_changed_event(const mla_ui_control_t &textEdit) {
+    return reinterpret_cast<mla_ui_text_edit_text_changed_t>(mla_ui_control_get_value_as_pointer(textEdit, mla_string_const("text_changed_event"), nullptr));
+}
+
+mla_bool_t mla_ui_text_edit_set_text_changed_event(mla_ui_control_t &textEdit, mla_ui_text_edit_text_changed_t textChangedEvent) {
+    return mla_ui_control_set_value_as_pointer(textEdit, mla_string_const("text_changed_event"), reinterpret_cast<void*>(textChangedEvent));
 }

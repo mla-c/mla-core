@@ -8,6 +8,8 @@
 #include "mla_ui_control.h"
 #include "mla_ui_style.h"
 
+typedef void (*mla_ui_text_edit_text_changed_t)(mla_ui_control_t &control, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData);
+
 mla_ui_control_t mla_ui_text_edit();
 
 mla_ui_text_edit_style_t mla_ui_text_edit_get_style(const mla_ui_control_t &textEdit);
@@ -24,5 +26,8 @@ mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_
 
 mla_string_t mla_ui_text_edit_get_selected_text(const mla_ui_control_t &textEdit);
 mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const mla_string_t& selectedText);
+
+mla_ui_text_edit_text_changed_t mla_ui_text_edit_get_text_changed_event(const mla_ui_control_t &textEdit);
+mla_bool_t mla_ui_text_edit_set_text_changed_event(mla_ui_control_t &textEdit, mla_ui_text_edit_text_changed_t textChangedEvent);
 
 #endif

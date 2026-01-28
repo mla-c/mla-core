@@ -556,7 +556,7 @@ void mla_ui_control_process_input_events(
         const mla_ui_surface_input_event_t &event = mla_array_list_get_unsafe(inputEvents, i);
 
         // Check if its an click event
-        if ((event.kind & MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK) != 0) {
+        if ((event.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK)) {
             // Best matching input area
             mla_ui_control_input_area_t bestMatchInputArea = mla_ui_control_input_area_empty();
 
@@ -607,7 +607,7 @@ void mla_ui_control_process_input_events(
                 // No matching input area, reset focus on all controls
                 mla_ui_control_reset_values(uiControls, mla_string_const(mla_ui_control_has_focus_attribute));
             }
-        } else if ((event.kind & MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR) != 0) {
+        } else if (event.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR) {
 
             mla_ui_control_t* control = nullptr;
             // Find control with focus
