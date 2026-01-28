@@ -10,6 +10,7 @@
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 #include <unistd.h>
+#include <time.h>
 
 #if mla_use_fast_float == 1
 
