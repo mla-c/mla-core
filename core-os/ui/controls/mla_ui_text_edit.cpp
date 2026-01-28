@@ -118,20 +118,29 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             // NOTE: Removed `textColor = White` here to prevent non-selected text from vanishing.
         } else {
             // 4. Cursor (only if no selection)
-            mla_double_t cursorXOffset = 0.0;
-             if(context.calcTextSize && !mla_string_is_empty(text)) {
-                 mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, text);
-                 cursorXOffset = txtSize.width;
-             }
 
-            mla_ui_surface_draw_command_t curCmd = mla_ui_surface_draw_command_empty();
-            curCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
-            curCmd.rect.x = context.offsetX + x + 10.0 + cursorXOffset;
-            curCmd.rect.y = context.offsetY + y + (h - 14.0) / 2.0;
-            curCmd.rect.width = 1.0;
-            curCmd.rect.height = 14.0;
-            curCmd.rect.color = {0, 0, 0, 255};
-            mla_array_list_add(drawCommands, curCmd);
+            // Update blink timer
+            mla_uint64_t blinkTimer = mla_ui_control_get_value_as_uint64(element, mla_string_const("blink_timer"), 0);
+            blinkTimer += context.timeSinceLastFrameMs;
+            mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t&>(element), mla_string_const("blink_timer"), blinkTimer);
+
+            // Blink every 1000ms (500ms visible, 500ms hidden)
+            if ((blinkTimer % 1000) < 500) {
+                mla_double_t cursorXOffset = 0.0;
+                if(context.calcTextSize && !mla_string_is_empty(text)) {
+                    mla_ui_surface_draw_size_t txtSize = context.calcTextSize(context, fontType, text);
+                    cursorXOffset = txtSize.width;
+                }
+
+                mla_ui_surface_draw_command_t curCmd = mla_ui_surface_draw_command_empty();
+                curCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
+                curCmd.rect.x = context.offsetX + x + 10.0 + cursorXOffset;
+                curCmd.rect.y = context.offsetY + y + (h - 14.0) / 2.0;
+                curCmd.rect.width = 1.0;
+                curCmd.rect.height = 14.0;
+                curCmd.rect.color = {0, 0, 0, 255};
+                mla_array_list_add(drawCommands, curCmd);
+            }
         }
 
     } else {

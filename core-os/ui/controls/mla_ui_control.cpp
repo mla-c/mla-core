@@ -407,13 +407,13 @@ mla_bool_t mla_ui_controls_render_to_draw_commands(const mla_ui_control_context_
 
 mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height,
                                                 const mla_ui_surface_input_states_t &input_states,
-                                                mla_ui_control_context_calcTextSize_t *calcTextSize, mla_callback_userdata userData) {
+                                                mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_callback_userdata userData) {
     return {
         0,
         0,
         width,
         height,
-        0,
+        timeSinceLastFrameMs,
         userData,
         input_states,
         calcTextSize,
@@ -422,9 +422,9 @@ mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t
 
 mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height,
                                                 const mla_ui_surface_input_states_t &input_states,
-                                                mla_ui_control_context_calcTextSize_t *calcTextSize) {
+                                                mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs) {
 
-    return mla_ui_control_context(width, height, input_states, calcTextSize, 0);
+    return mla_ui_control_context(width, height, input_states, calcTextSize, timeSinceLastFrameMs, 0);
 }
 
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext,

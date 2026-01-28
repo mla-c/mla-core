@@ -20,14 +20,14 @@ struct mla_ui_control_context_t {
     mla_double_t offsetY;
     mla_double_t width;
     mla_double_t height;
-    mla_size_t timeSinceLastFrameMs;
+    mla_uint64_t timeSinceLastFrameMs;
     mla_callback_userdata userData;
     mla_ui_surface_input_states_t input_states;
     mla_ui_control_context_calcTextSize_t *calcTextSize;
 };
 
-mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_callback_userdata userData);
-mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize);
+mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_callback_userdata userData);
+mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs);
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
 
 struct mla_ui_control_value_t {

@@ -21,7 +21,8 @@ mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_empty() {
     return {
         mla_array_list_empty<mla_ui_control_t, mla_ui_control_initializer_t>(),
         mla_array_list_empty<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>(),
-        nullptr
+        nullptr,
+        0
     };
 }
 
@@ -142,7 +143,10 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
     }
 
     // Update the draw commands
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, userData);
+    mla_uint64_t currentTimeMs = mla_system_time_ms();
+    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->rendering.lastFrameTimeMs);
+
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas = mla_array_list<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
 
@@ -161,6 +165,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
     // Update drawing data
     connector->drawing.drawCommands = drawCommands;
     connector->rendering.inputAreas = inputAreas;
+    connector->rendering.lastFrameTimeMs = currentTimeMs;
 
     mla_mutex_unlock(connector->lock);
 
@@ -224,7 +229,10 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
     }
 
     // Update the draw commands
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, userData);
+    mla_uint64_t currentTimeMs = mla_system_time_ms();
+    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->rendering.lastFrameTimeMs);
+
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
 
     mla_array_list_clear(connector->drawing.drawCommands);
     mla_array_list_clear(connector->rendering.inputAreas);
@@ -240,6 +248,8 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
         connector->drawing.drawCommands,
         connector->drawing.unprocessedInputEvents
     );
+
+    connector->rendering.lastFrameTimeMs = currentTimeMs;
 
     return TASK_PROCESS_RESULT_CONTINUE;
 

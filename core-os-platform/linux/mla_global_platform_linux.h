@@ -38,6 +38,15 @@ void __linux_sleep(mla_uint32_t milliseconds) {
     usleep(milliseconds * 1000); // Convert milliseconds to microseconds
 }
 
+mla_uint64_t __linux_system_time_ms() {
+
+    struct timespec ts;
+    // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
+    clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
+    return (mla_uint64_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access ={
     __generic_memcpy,
@@ -57,6 +66,7 @@ mla_low_level_operations_t g_low_level_access ={
         mla_platform_strtoll,
         mla_platform_strtoull,
     __linux_sleep,
+    __linux_system_time_ms
 };
 
 

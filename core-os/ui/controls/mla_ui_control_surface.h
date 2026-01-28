@@ -24,6 +24,7 @@ struct mla_ui_control_surface_rendering_t {
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> root;
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas;
     mla_ui_control_surface_rendering_task_t renderingTask;
+    mla_uint64_t lastFrameTimeMs; // Time when the last frame was rendered
 };
 
 mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_empty();
