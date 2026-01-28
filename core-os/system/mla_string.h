@@ -133,6 +133,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length);
+mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times);
 
 inline mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start) {
     return mla_string_substr(p_String, p_Start, mla_size_max);
@@ -146,10 +147,10 @@ mla_string_t mla_string_trim(const mla_string_t &p_String);
 mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String, mla_size_t p_Index);
 mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String);
 
-mla_string_utf16_buffer_t mla_string_to_utf16_buffer(mla_string_t &p_String);
+mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_String);
 mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf16Buffer);
 
-mla_string_utf32_buffer_t mla_string_to_utf32_buffer(mla_string_t &p_String);
+mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_String);
 mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer);
 
 // Memory layout conversion
@@ -159,6 +160,7 @@ mla_string_memory_layout_t mla_string_get_memory_layout(const mla_string_t &p_St
 mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
 mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
 mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
+mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString);
 
 // String creation from basic types
 mla_string_t mla_string_from_int8(mla_int8_t p_Value);

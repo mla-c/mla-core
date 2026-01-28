@@ -70,6 +70,9 @@
 #define mla_float_min (-3.40282347e+38F)
 #define mla_float_max (3.40282347e+38F)
 
+#define mla_double_min (-1.79769313486231570e+308)
+#define mla_double_max (1.79769313486231570e+308)
+
 
 // Shortcut for common types
 #define mla_callback_userdata mla_uint64_t
@@ -163,6 +166,7 @@ typedef struct mla_low_level_operations_t {
 
     // Timing
     void (*sleep)(mla_uint32_t milliseconds);
+    mla_uint64_t (*system_time_ms)(); // System time in milliseconds
 
 } mla_low_level_operations_t;
 
@@ -199,6 +203,7 @@ mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename,
 
 // Sleep function for timing
 #define mla_sleep(milliseconds) g_low_level_access.sleep((milliseconds))
+#define mla_system_time_ms() g_low_level_access.system_time_ms()
 
 // Default initializer for structs and classes which is used to initialize items in data structures like arrays or hash maps.
 // Is not really a macro but is part of multiple other macros

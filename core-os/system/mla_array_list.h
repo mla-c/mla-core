@@ -125,6 +125,18 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 }
 
 template <mla_array_list_template>
+mla_bool_t mla_array_list_add_all(mla_array_list_t<T, TInit>& list, const mla_array_list_t<T, TInit>& newItems) {
+
+    for (mla_size_t i = 0; i < newItems.size; ++i) {
+        if (!mla_array_list_add(list, newItems.items[i])) {
+            return false; // Memory allocation failed
+        }
+    }
+
+    return true;
+}
+
+template <mla_array_list_template>
 void mla_array_list_reverse(mla_array_list_t<T, TInit>& list) {
 
     if (list.size < 2) {
@@ -157,6 +169,11 @@ mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t
     return true;
 }
 
+template <mla_array_list_template>
+T* mla_array_list_get_ref_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
+
+    return &list.items[index]; // Return the item at the specified index
+}
 
 template <mla_array_list_template>
 T* mla_array_list_get_ref(const mla_array_list_t<T, TInit>& list, mla_size_t index) {

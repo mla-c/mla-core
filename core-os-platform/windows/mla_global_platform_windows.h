@@ -36,6 +36,12 @@ void __windows_sleep(mla_uint32_t milliseconds) {
 
 }
 
+mla_uint64_t __windows_system_time_ms() {
+
+    return GetTickCount64();
+
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
     __generic_memcpy,
@@ -55,6 +61,7 @@ mla_low_level_operations_t g_low_level_access {
         mla_platform_strtoll,
         mla_platform_strtoull,
         __windows_sleep,
+        __windows_system_time_ms
     };
 
 void mla_boot_os_application() {

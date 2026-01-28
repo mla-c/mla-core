@@ -67,7 +67,7 @@ mla_bool_t __mla_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stre
         return false;
     }
 
-    userdata->chunkSizeRemaining = chunkSize;
+    userdata->chunkSizeRemaining = (mla_size_t)chunkSize;
     return true;
 }
 

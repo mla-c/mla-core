@@ -7,6 +7,7 @@
 
 #include "../../core-os/mla_data_types.h"
 #include <unistd.h>
+#include <time.h>
 #include "../generic/mla_global_platform_generic.h"
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
@@ -14,6 +15,13 @@
 void __wasm_sleep(mla_uint32_t milliseconds) {
 
     usleep(milliseconds * 1000); // Convert milliseconds to microseconds
+}
+
+mla_uint64_t __wasm_system_time_ms() {
+    struct timespec ts;
+    // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
+    clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
+    return (mla_uint64_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 
 // Initialize low-level memory operations with default implementations
@@ -35,6 +43,7 @@ mla_low_level_operations_t g_low_level_access ={
     __generic_strtoll,
     __generic_strtoull,
     __wasm_sleep,
+    __wasm_system_time_ms
 };
 
 

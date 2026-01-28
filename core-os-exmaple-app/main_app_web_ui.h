@@ -7,7 +7,7 @@
 
 #include "../core-os/http/mla_http_server.h"
 #include "../core-os/rpc/mla_rpc_http_server.h"
-#include "../core-os/ui/mla_ui_http_server.h"
+#include "../core-os/ui/web/mla_ui_http_server.h"
 #include "../core-os/log/mla_logger_rpc.h"
 
 static mla_http_server_t g_main_app_web_ui_http_server = mla_http_server_invalid();

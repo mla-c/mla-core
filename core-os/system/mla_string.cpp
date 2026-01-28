@@ -597,6 +597,43 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
     return result;
 }
 
+mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times) {
+
+    mla_size_t length = mla_string_length(p_String);
+
+    if (p_Times == 0 || length == 0) {
+        return mla_string_empty(); // Nothing to repeat
+    }
+
+    mla_size_t resultLength = length * p_Times;
+
+    if (resultLength <= mla_string_sso_max_length) {
+
+        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = static_cast<mla_uint8_t>(resultLength);
+
+        for (mla_size_t i = 0; i < p_Times; ++i) {
+            mla_memcpy(result.embedded.data + i * length, mla_string_data(p_String), length);
+        }
+        return result;
+    }
+
+    mla_char_t *newData = mla_create_char_array(resultLength);
+
+    if (newData == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    for (mla_size_t i = 0; i < p_Times; ++i) {
+        mla_memcpy(newData + i * length, mla_string_data(p_String), length);
+    }
+
+    mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.data = newData;
+    result.heap.length = resultLength;
+    return result;
+}
+
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter) {
 
     mla_array_list_t<mla_string_t, mla_string_initializer> result = mla_array_list<mla_string_t, mla_string_initializer>(1);
@@ -829,4 +866,15 @@ mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
     mla_memcpy(cString, data, length);
     cString[length] = '\0'; // Null-terminate the string
     return { cString, true};
+}
+
+mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString) {
+
+    if (p_CString.isOwner && p_CString.c_str != nullptr) {
+        mla_free(const_cast<mla_char_t*>(p_CString.c_str));
+        p_CString.c_str = nullptr;
+        return true;
+    }
+
+    return false; // Nothing to destroy
 }

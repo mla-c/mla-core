@@ -31,7 +31,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
     mla_uint64_t padded_message_size = msg_size + pad_len + 8; // +8 for length
 
     // Allocate padded message
-    mla_bytes_t padded_message = mla_bytes(padded_message_size);
+    mla_bytes_t padded_message = mla_bytes((mla_size_t)padded_message_size);
     if (padded_message.data == nullptr) return mla_bytes_empty();
 
     mla_byte_t *padded = mla_bytes_get_data_for_writing(padded_message);
@@ -42,7 +42,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
     // Copy original input
     if (input.data && msg_size > 0)
-        mla_memcpy(padded, input.data, msg_size);
+        mla_memcpy(padded, input.data, (mla_size_t)msg_size);
 
     // Append 0x80
     padded[msg_size] = 0x80;
