@@ -289,6 +289,11 @@ const mlaImports = {
         }
 
         Atomics.wait(sleepView, 0, 0, milliseconds);
+    },
+
+    external_system_time_ms: () => {
+        // Return current time in milliseconds
+        return Date.now();
     }
 };
 

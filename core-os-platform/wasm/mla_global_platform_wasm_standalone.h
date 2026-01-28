@@ -54,6 +54,9 @@ extern "C" {
     // Timing
     __attribute__((import_module("mla"), import_name("external_sleep")))
     void external_sleep(unsigned int milliseconds);
+
+    __attribute__((import_module("mla"), import_name("external_system_time_ms")))
+    unsigned long long external_system_time_ms();
 }
 
 // In a standalone WASM environment, we typically don't exit, so this can be a no-op.
@@ -165,6 +168,10 @@ void __wasm_standalone_sleep(mla_uint32_t milliseconds) {
     external_sleep(milliseconds);
 }
 
+mla_uint64_t __wasm_standalone_system_time_ms() {
+    return external_system_time_ms();
+}
+
 // Initialize low-level memory operations with WASM standalone implementations
 mla_low_level_operations_t g_low_level_access = {
     __wasm_standalone_memcpy,
@@ -184,6 +191,7 @@ mla_low_level_operations_t g_low_level_access = {
     __wasm_standalone_strtoll,
     __wasm_standalone_strtoull,
     __wasm_standalone_sleep,
+    __wasm_standalone_system_time_ms
 };
 
 void mla_boot_os_application() {
