@@ -143,3 +143,27 @@ mla_bool_t mla_ui_text_edit_get_disable(const mla_ui_control_t &button) {
 mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &button, mla_bool_t disable) {
     return mla_ui_control_set_value_as_bool(button, mla_string_const("disabled"), disable);
 }
+
+mla_int32_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit) {
+    return mla_ui_control_get_value_as_int32(textEdit, mla_string_const("cursor_position"), 0);
+}
+
+mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_int32_t position) {
+    return mla_ui_control_set_value_as_int32(textEdit, mla_string_const("cursor_position"), position);
+}
+
+mla_string_t mla_ui_text_edit_get_selected_text(const mla_ui_control_t &textEdit) {
+    return mla_ui_control_get_value_as_string(textEdit, mla_string_const("selected_text"));
+}
+
+mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const mla_string_t& selectedText) {
+
+    // Check if the selectedText is a substring of the current text
+    mla_string_t currentText = mla_ui_text_edit_get_text(textEdit);
+
+    if (mla_string_contains(currentText, selectedText)) {
+        return mla_ui_control_set_value_as_string(textEdit, mla_string_const("selected_text"), selectedText);
+    }
+
+    return false;
+}

@@ -19,4 +19,10 @@ mla_bool_t mla_ui_text_edit_set_text(mla_ui_control_t &textEdit, const mla_strin
 mla_bool_t mla_ui_text_edit_get_disable(const mla_ui_control_t &textEdit);
 mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &textEdit, mla_bool_t disable);
 
+mla_int32_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit);
+mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_int32_t position);
+
+mla_string_t mla_ui_text_edit_get_selected_text(const mla_ui_control_t &textEdit);
+mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const mla_string_t& selectedText);
+
 #endif
