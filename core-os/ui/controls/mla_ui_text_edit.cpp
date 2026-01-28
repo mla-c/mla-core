@@ -17,7 +17,21 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 
     bool textModified = false;
 
+    // Check modifiers
+
+    const bool shiftPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT);
+    const bool ctrlPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL);
+
     if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT) {
+
+        // Handle Ctrl + A (Select All)
+        // Check for ASCII Control Code (1) or 'a'/'A' with Control modifier
+        if ((charInputEvent.character[0] == 1) ||
+            (ctrlPressed && (charInputEvent.character[0] == 'a' || charInputEvent.character[0] == 'A'))) {
+            mla_ui_text_edit_set_selected_text(control, currentText);
+            return true;
+        }
+
         // Construct string from input char
         // charInputEvent.character is char[4] (utf-8 buffer), create string from it.
 
@@ -60,15 +74,66 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
         }
 
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_LEFT) {
+        mla_size_t oldCursorPos = cursorPosition;
 
         if (cursorPosition > 0) {
             cursorPosition--;
         }
 
+        if (shiftPressed) {
+            // Resolve anchor from current selection before update
+            mla_size_t anchor = oldCursorPos;
+            mla_string_t activeSel = mla_ui_text_edit_get_selected_text(control);
+            if (!mla_string_is_empty(activeSel)) {
+                mla_int32_t idx = mla_string_index_of(currentText, activeSel);
+                if (idx > -1) {
+                    mla_size_t selLen = mla_string_length(activeSel);
+                    // If cursor was at start of selection, anchor is at end
+                    if (oldCursorPos == (mla_size_t)idx)
+                        anchor = idx + selLen;
+
+                    // If cursor was at end of selection, anchor is at start
+                    else if (oldCursorPos == idx + selLen)
+                        anchor = idx;
+                }
+            }
+
+            // Calculate new selection range
+            mla_size_t start = (cursorPosition < anchor) ? cursorPosition : anchor;
+            mla_size_t len = (cursorPosition < anchor) ? (anchor - cursorPosition) : (cursorPosition - anchor);
+            mla_ui_text_edit_set_selected_text(control, mla_string_substr(currentText, start, len));
+        } else {
+            mla_ui_text_edit_set_selected_text(control, mla_string_empty());
+        }
+
     } else if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT) {
+        mla_size_t oldCursorPos = cursorPosition;
 
         if (cursorPosition < textLen) {
             cursorPosition++;
+        }
+
+        if (shiftPressed) {
+            // Resolve anchor
+            mla_size_t anchor = oldCursorPos;
+            mla_string_t activeSel = mla_ui_text_edit_get_selected_text(control);
+            if (!mla_string_is_empty(activeSel)) {
+                mla_int32_t idx = mla_string_index_of(currentText, activeSel);
+                if (idx > -1) {
+                    mla_size_t selLen = mla_string_length(activeSel);
+                    if (oldCursorPos == (mla_size_t)idx)
+                        anchor = idx + selLen;
+                    else if (oldCursorPos == idx + selLen)
+                        anchor = idx;
+                }
+            }
+
+            // Calculate new selection range
+            mla_size_t start = (cursorPosition < anchor) ? cursorPosition : anchor;
+            mla_size_t len = (cursorPosition < anchor) ? (anchor - cursorPosition) : (cursorPosition - anchor);
+            mla_ui_text_edit_set_selected_text(control, mla_string_substr(currentText, start, len));
+        } else {
+            mla_ui_text_edit_set_selected_text(control, mla_string_empty());
         }
     }
 
@@ -77,8 +142,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 
         // Clear selection on text change
         mla_ui_text_edit_set_selected_text(control, mla_string_empty());
-
-
     }
 
     // Always update cursor position
