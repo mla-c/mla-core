@@ -27,6 +27,10 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
     const mla_string_t text = mla_ui_text_edit_get_text(element);
     const mla_ui_text_edit_style_t style = mla_ui_text_edit_get_style(element);
 
+    // Calculate hover state
+    const mla_ui_control_layout_t bounds = { x, y, w, h };
+    const mla_bool_t hovered = !disabled && mla_ui_control_is_hovered(context, bounds);
+
     // Color definitions based on state
     mla_ui_surface_draw_command_color_t bgFill;
     mla_ui_surface_draw_command_color_t strokeColor;
@@ -37,6 +41,11 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
         bgFill = {242, 242, 242, 255};
         strokeColor = {208, 208, 208, 255};
         textColor = {158, 158, 158, 255};
+    } else if (hovered) {
+        // Hover: Fill #ffffff, Stroke #9e9e9e, Text #000000
+        bgFill = {255, 255, 255, 255};
+        strokeColor = {158, 158, 158, 255};
+        textColor = {0, 0, 0, 255};
     } else {
         // Normal: Fill #ffffff, Stroke #c8c8c8, Text #000000
         bgFill = {255, 255, 255, 255};
