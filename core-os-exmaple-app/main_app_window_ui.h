@@ -9,6 +9,7 @@
 #include "../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../core-os/ui/controls/mla_ui_label.h"
 #include "../core-os/ui/controls/mla_ui_button.h"
+#include "../core-os/ui/controls/mla_ui_text_edit.h"
 #include "../core-os/ui/controls/mla_ui_control_surface.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
@@ -168,6 +169,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     secondaryBtn.layout.y = 70;
     secondaryBtn.layout.width = 120;
     secondaryBtn.layout.height = 32;
+    mla_array_list_add(uiControls, secondaryBtn);
 
     mla_ui_control_t secondaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(secondaryBtnDis, mla_string_const("Secondary Dis"));
@@ -219,6 +221,46 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     linkBtnDis.layout.height = 32;
     mla_array_list_add(uiControls, linkBtnDis);
 
+    // --- Text Edit (Standard) ---
+    mla_ui_control_t stdEdit = mla_ui_text_edit();
+    mla_ui_text_edit_set_text(stdEdit, mla_string_const("Standard"));
+    mla_ui_text_edit_set_style(stdEdit, MLA_UI_TEXT_EDIT_STYLE_STANDARD);
+    stdEdit.layout.x = 440;
+    stdEdit.layout.y = 220;
+    stdEdit.layout.width = 120;
+    stdEdit.layout.height = 32;
+    mla_array_list_add(uiControls, stdEdit);
+
+    mla_ui_control_t stdEditDis = mla_ui_text_edit();
+    mla_ui_text_edit_set_text(stdEditDis, mla_string_const("Standard Dis"));
+    mla_ui_text_edit_set_style(stdEditDis, MLA_UI_TEXT_EDIT_STYLE_STANDARD);
+    mla_ui_button_set_disable(stdEditDis, true);
+    stdEditDis.layout.x = 580;
+    stdEditDis.layout.y = 220;
+    stdEditDis.layout.width = 120;
+    stdEditDis.layout.height = 32;
+    mla_array_list_add(uiControls, stdEditDis);
+
+    // --- Text Edit (Password) ---
+    mla_ui_control_t passEdit = mla_ui_text_edit();
+    mla_ui_text_edit_set_text(passEdit, mla_string_const("Password"));
+    mla_ui_text_edit_set_style(passEdit, MLA_UI_TEXT_EDIT_STYLE_PASSWORD);
+    passEdit.layout.x = 440;
+    passEdit.layout.y = 270;
+    passEdit.layout.width = 120;
+    passEdit.layout.height = 32;
+    mla_array_list_add(uiControls, passEdit);
+
+    mla_ui_control_t passEditDis = mla_ui_text_edit();
+    mla_ui_text_edit_set_text(passEditDis, mla_string_const("Password Dis"));
+    mla_ui_text_edit_set_style(passEditDis, MLA_UI_TEXT_EDIT_STYLE_PASSWORD);
+    mla_ui_button_set_disable(passEditDis, true);
+    passEditDis.layout.x = 580;
+    passEditDis.layout.y = 270;
+    passEditDis.layout.width = 120;
+    passEditDis.layout.height = 32;
+    mla_array_list_add(uiControls, passEditDis);
+
     return uiControls;
 }
 
@@ -248,12 +290,6 @@ inline void main_app_window_ui_init() {
 
     mla_ui_control_surface_start_single_threaded_mode(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
 
-
-
-
-
 }
 
-
 #endif
-
