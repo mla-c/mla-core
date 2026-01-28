@@ -100,4 +100,9 @@ enum mla_ui_button_style_t: mla_uint8_t {
 #define MLA_UI_COLOR_BUTTON_TERTIARY_TEXT_DISABLED    MLA_UI_COLOR_TEXT_DISABLED
 #define MLA_UI_COLOR_BUTTON_TERTIARY_BG_PRESSED     {224, 224, 224, 255}
 
+enum mla_ui_text_edit_style_t : mla_uint8_t {
+    MLA_UI_TEXT_EDIT_STYLE_STANDARD,
+    MLA_UI_TEXT_EDIT_STYLE_PASSWORD,
+};
+
 #endif
