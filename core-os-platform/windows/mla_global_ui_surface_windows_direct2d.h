@@ -306,7 +306,7 @@ mla_bool_t __windows_ScreenPosition_to_client_position(const HWND& hwnd, POINT &
 
     // 1. Mouse Position
     RECT clientRect;
-    if (ScreenToClient(hwnd, &cursorPos) && GetClientRect(hwnd, &clientRect)) {
+    if (GetClientRect(hwnd, &clientRect)) {
 
         if (PtInRect(&clientRect, cursorPos)) {
 
@@ -341,7 +341,11 @@ mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surfac
     // 1. Mouse Position
     POINT cursorPos;
     if (GetCursorPos(&cursorPos)) {
-        __windows_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
+
+        if (ScreenToClient(window_surface->hwnd, &cursorPos)) {
+            __windows_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
+        }
+
     }
     // 2. Mouse Buttons
     // specific bits: 0x8000 means the key is currently down

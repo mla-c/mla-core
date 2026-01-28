@@ -169,6 +169,11 @@ mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t
     return true;
 }
 
+template <mla_array_list_template>
+T* mla_array_list_get_ref_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
+
+    return &list.items[index]; // Return the item at the specified index
+}
 
 template <mla_array_list_template>
 T* mla_array_list_get_ref(const mla_array_list_t<T, TInit>& list, mla_size_t index) {

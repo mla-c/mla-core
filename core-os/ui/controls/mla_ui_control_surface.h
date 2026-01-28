@@ -44,6 +44,7 @@ mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &s
 mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, mla_callback_userdata userData);
 
 mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask);
+mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask);
 
 mla_bool_t mla_ui_control_surface_stop(mla_ui_control_surface_t &connector);
 

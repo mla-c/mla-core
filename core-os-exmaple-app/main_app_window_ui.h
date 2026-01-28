@@ -20,13 +20,13 @@ inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const m
     (void)uiControls;
     (void)userData;
 
-    mla_ui_control_t disabledButton = mla_ui_control_empty();
+    mla_ui_control_t* disabledButton = nullptr;
 
     if (!mla_ui_control_find_by_id(uiControls, mla_string_const("primary_disabled_button"), disabledButton)) {
         return;
     }
 
-    mla_ui_button_set_disable(disabledButton, !mla_ui_button_get_disable(disabledButton));
+    mla_ui_button_set_disable(*disabledButton, !mla_ui_button_get_disable(*disabledButton));
 }
 
 inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_app_build_ui() {
@@ -244,7 +244,11 @@ inline void main_app_window_ui_init() {
     g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface);
 
     // Start the ui threads
-    mla_ui_control_surface_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
+    //mla_ui_control_surface_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
+
+    mla_ui_control_surface_start_single_threaded_mode(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
+
+
 
 
 

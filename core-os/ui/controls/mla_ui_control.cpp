@@ -47,10 +47,10 @@ mla_ui_control_t mla_ui_control_empty() {
 }
 
 mla_bool_t __mla_ui_control_find_value_by_name(const mla_ui_control_t &control, const mla_string_t &name,
-                                               mla_ui_control_value_t &out) {
+                                               mla_ui_control_value_t* &out) {
     for (mla_size_t i = 0; i < mla_array_list_size(control.values); i++) {
-        mla_ui_control_value_t &value = mla_array_list_get_unsafe(control.values, i);
-        if (mla_string_equals(value.name, name)) {
+        mla_ui_control_value_t* value = mla_array_list_get_ref_unsafe(control.values, i);
+        if (mla_string_equals(value->name, name)) {
             out = value;
             return true;
         }
@@ -60,124 +60,124 @@ mla_bool_t __mla_ui_control_find_value_by_name(const mla_ui_control_t &control, 
 
 mla_uint8_t mla_ui_control_get_value_as_uint8(const mla_ui_control_t &control, const mla_string_t &name,
                                               mla_uint8_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint8_t>(value.uint64Value);
+        return static_cast<mla_uint8_t>(value->uint64Value);
     }
     return defaultValue;
 }
 
 mla_int8_t mla_ui_control_get_value_as_int8(const mla_ui_control_t &control, const mla_string_t &name,
                                             mla_int8_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int8_t>(value.int64Value);
+        return static_cast<mla_int8_t>(value->int64Value);
     }
     return defaultValue;
 }
 
 mla_uint16_t mla_ui_control_get_value_as_uint16(const mla_ui_control_t &control, const mla_string_t &name,
                                                 mla_uint16_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint16_t>(value.uint64Value);
+        return static_cast<mla_uint16_t>(value->uint64Value);
     }
     return defaultValue;
 }
 
 mla_int16_t mla_ui_control_get_value_as_int16(const mla_ui_control_t &control, const mla_string_t &name,
                                               mla_int16_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int16_t>(value.int64Value);
+        return static_cast<mla_int16_t>(value->int64Value);
     }
     return defaultValue;
 }
 
 mla_uint32_t mla_ui_control_get_value_as_uint32(const mla_ui_control_t &control, const mla_string_t &name,
                                                 mla_uint32_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint32_t>(value.uint64Value);
+        return static_cast<mla_uint32_t>(value->uint64Value);
     }
     return defaultValue;
 }
 
 mla_int32_t mla_ui_control_get_value_as_int32(const mla_ui_control_t &control, const mla_string_t &name,
                                               mla_int32_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int32_t>(value.int64Value);
+        return static_cast<mla_int32_t>(value->int64Value);
     }
     return defaultValue;
 }
 
 mla_uint64_t mla_ui_control_get_value_as_uint64(const mla_ui_control_t &control, const mla_string_t &name,
                                                 mla_uint64_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.uint64Value;
+        return value->uint64Value;
     }
     return defaultValue;
 }
 
 mla_int64_t mla_ui_control_get_value_as_int64(const mla_ui_control_t &control, const mla_string_t &name,
                                               mla_int64_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.int64Value;
+        return value->int64Value;
     }
     return defaultValue;
 }
 
 mla_float_t mla_ui_control_get_value_as_float(const mla_ui_control_t &control, const mla_string_t &name,
                                               mla_float_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_float_t>(value.doubleValue);
+        return static_cast<mla_float_t>(value->doubleValue);
     }
     return defaultValue;
 }
 
 mla_double_t mla_ui_control_get_value_as_double(const mla_ui_control_t &control, const mla_string_t &name,
                                                 mla_double_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.doubleValue;
+        return value->doubleValue;
     }
     return defaultValue;
 }
 
 mla_string_t mla_ui_control_get_value_as_string(const mla_ui_control_t &control, const mla_string_t &name,
                                                 const mla_string_t &defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.stringValue;
+        return value->stringValue;
     }
     return defaultValue;
 }
 
 mla_bool_t mla_ui_control_get_value_as_bool(const mla_ui_control_t &control, const mla_string_t &name,
                                             mla_bool_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.boolValue;
+        return value->boolValue;
     }
     return defaultValue;
 }
 
 mla_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t defaultValue) {
-    mla_ui_control_value_t value = mla_ui_control_value_empty();
+    mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
-        return value.pointerValue;
+        return value->pointerValue;
     }
     return defaultValue;
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint8(mla_ui_control_t &control, const mla_string_t &name, mla_uint8_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
         return true;
     }
 
@@ -189,9 +189,9 @@ mla_bool_t mla_ui_control_set_value_as_uint8(mla_ui_control_t &control, const ml
 }
 
 mla_bool_t mla_ui_control_set_value_as_int8(mla_ui_control_t &control, const mla_string_t &name, mla_int8_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.int64Value = static_cast<mla_int64_t>(value);
+        internalValue->int64Value = static_cast<mla_int64_t>(value);
         return true;
     }
 
@@ -203,9 +203,9 @@ mla_bool_t mla_ui_control_set_value_as_int8(mla_ui_control_t &control, const mla
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint16(mla_ui_control_t &control, const mla_string_t &name, mla_uint16_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
         return true;
     }
 
@@ -217,9 +217,9 @@ mla_bool_t mla_ui_control_set_value_as_uint16(mla_ui_control_t &control, const m
 }
 
 mla_bool_t mla_ui_control_set_value_as_int16(mla_ui_control_t &control, const mla_string_t &name, mla_int16_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.int64Value = static_cast<mla_int64_t>(value);
+        internalValue->int64Value = static_cast<mla_int64_t>(value);
         return true;
     }
 
@@ -231,9 +231,9 @@ mla_bool_t mla_ui_control_set_value_as_int16(mla_ui_control_t &control, const ml
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint32(mla_ui_control_t &control, const mla_string_t &name, mla_uint32_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
         return true;
     }
 
@@ -245,9 +245,9 @@ mla_bool_t mla_ui_control_set_value_as_uint32(mla_ui_control_t &control, const m
 }
 
 mla_bool_t mla_ui_control_set_value_as_int32(mla_ui_control_t &control, const mla_string_t &name, mla_int32_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.int64Value = static_cast<mla_int64_t>(value);
+        internalValue->int64Value = static_cast<mla_int64_t>(value);
         return true;
     }
 
@@ -259,9 +259,9 @@ mla_bool_t mla_ui_control_set_value_as_int32(mla_ui_control_t &control, const ml
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint64(mla_ui_control_t &control, const mla_string_t &name, mla_uint64_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.uint64Value = value;
+        internalValue->uint64Value = value;
         return true;
     }
 
@@ -273,9 +273,9 @@ mla_bool_t mla_ui_control_set_value_as_uint64(mla_ui_control_t &control, const m
 }
 
 mla_bool_t mla_ui_control_set_value_as_int64(mla_ui_control_t &control, const mla_string_t &name, mla_int64_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.int64Value = value;
+        internalValue->int64Value = value;
         return true;
     }
 
@@ -287,9 +287,9 @@ mla_bool_t mla_ui_control_set_value_as_int64(mla_ui_control_t &control, const ml
 }
 
 mla_bool_t mla_ui_control_set_value_as_float(mla_ui_control_t &control, const mla_string_t &name, mla_float_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.doubleValue = static_cast<mla_double_t>(value);
+        internalValue->doubleValue = static_cast<mla_double_t>(value);
         return true;
     }
 
@@ -301,9 +301,9 @@ mla_bool_t mla_ui_control_set_value_as_float(mla_ui_control_t &control, const ml
 }
 
 mla_bool_t mla_ui_control_set_value_as_double(mla_ui_control_t &control, const mla_string_t &name, mla_double_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.doubleValue = value;
+        internalValue->doubleValue = value;
         return true;
     }
 
@@ -316,9 +316,9 @@ mla_bool_t mla_ui_control_set_value_as_double(mla_ui_control_t &control, const m
 
 mla_bool_t mla_ui_control_set_value_as_string(mla_ui_control_t &control, const mla_string_t &name,
                                               const mla_string_t &value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.stringValue = value;
+        internalValue->stringValue = value;
         return true;
     }
 
@@ -330,9 +330,9 @@ mla_bool_t mla_ui_control_set_value_as_string(mla_ui_control_t &control, const m
 }
 
 mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla_string_t &name, mla_bool_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.boolValue = value;
+        internalValue->boolValue = value;
         return true;
     }
 
@@ -344,9 +344,9 @@ mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla
 }
 
 mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t value) {
-    mla_ui_control_value_t internalValue = mla_ui_control_value_empty();
+    mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue.pointerValue = value;
+        internalValue->pointerValue = value;
         return true;
     }
 
@@ -508,34 +508,34 @@ mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &contro
 }
 
 mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls,
-                                     const mla_string_t &controlId, mla_ui_control_t &outControl) {
+                                     const mla_string_t &controlId, mla_ui_control_t* &outControl) {
     for (mla_size_t i = 0; i < mla_array_list_size(uiControls); i++) {
-        const mla_ui_control_t &control = mla_array_list_get_unsafe(uiControls, i);
+        mla_ui_control_t* control = mla_array_list_get_ref_unsafe(uiControls, i);
 
-        if (mla_string_equals(control.id, controlId)) {
+        if (mla_string_equals(control->id, controlId)) {
             outControl = control;
             return true;
         }
 
         // Search in children
-        if (mla_ui_control_find_by_id(control.children, controlId, outControl)) {
+        if (mla_ui_control_find_by_id(control->children, controlId, outControl)) {
             return true;
         }
     }
     return false;
 }
 
-mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t &outControl) {
+mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t* &outControl) {
     for (mla_size_t i = 0; i < mla_array_list_size(uiControls); i++) {
-        const mla_ui_control_t &control = mla_array_list_get_unsafe(uiControls, i);
+        mla_ui_control_t* control = mla_array_list_get_ref_unsafe(uiControls, i);
 
-        if (mla_ui_control_has_focus(control)) {
+        if (mla_ui_control_has_focus(*control)) {
             outControl = control;
             return true;
         }
 
         // Search in children
-        if (mla_ui_control_find_focused_control(control.children, outControl)) {
+        if (mla_ui_control_find_focused_control(control->children, outControl)) {
             return true;
         }
     }
@@ -589,17 +589,17 @@ void mla_ui_control_process_input_events(
 
             if (!mla_string_is_empty(bestMatchInputArea.controlId)) {
                 // Find control by id
-                mla_ui_control_t control = mla_ui_control_empty();
+                mla_ui_control_t* control = nullptr;
                 if (mla_ui_control_find_by_id(uiControls, bestMatchInputArea.controlId, control)) {
-                    if (!mla_ui_control_has_focus(control)) {
+                    if (!mla_ui_control_has_focus(*control)) {
                         // set focus
                         mla_ui_control_reset_values(uiControls, mla_string_const(mla_ui_control_has_focus_attribute));
-                        mla_ui_control_set_value_as_bool(control, mla_string_const(mla_ui_control_has_focus_attribute),
+                        mla_ui_control_set_value_as_bool(*control, mla_string_const(mla_ui_control_has_focus_attribute),
                                                          true);
                     }
 
-                    if (control.processClickEvent != nullptr) {
-                        control.processClickEvent(control, event.click, bestMatchInputArea, uiControls, userData);
+                    if (control->processClickEvent != nullptr) {
+                        control->processClickEvent(*control, event.click, bestMatchInputArea, uiControls, userData);
                     }
 
                 }
@@ -609,11 +609,11 @@ void mla_ui_control_process_input_events(
             }
         } else if ((event.kind & MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR) != 0) {
 
-            mla_ui_control_t control = mla_ui_control_empty();
+            mla_ui_control_t* control = nullptr;
             // Find control with focus
             if (mla_ui_control_find_focused_control(uiControls, control)) {
-                if (control.processCharInputEvent != nullptr) {
-                    control.processCharInputEvent(control, event.char_input, uiControls, userData);
+                if (control->processCharInputEvent != nullptr) {
+                    control->processCharInputEvent(*control, event.char_input, uiControls, userData);
                 }
             }
 

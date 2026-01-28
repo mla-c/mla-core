@@ -160,8 +160,8 @@ if (childrenCount > 0) { \
     } \
 } \
 
-mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &controlId, mla_ui_control_t &outControl);
-mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t &outControl);
+mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &controlId, mla_ui_control_t* &outControl);
+mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t* &outControl);
 
 void mla_ui_control_process_input_events(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents, const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas, mla_callback_userdata userData);
 
