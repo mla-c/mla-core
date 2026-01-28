@@ -39,6 +39,12 @@ void __esp32_sleep(mla_uint32_t milliseconds) {
 
 }
 
+mla_uint64_t __esp32_system_time_ms() {
+
+    return pdTICKS_TO_MS(xTaskGetTickCount());
+
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
     __generic_memcpy,
@@ -52,12 +58,13 @@ mla_low_level_operations_t g_low_level_access {
         __generic_free,
         __generic_is_gcc_pointer,
         __generic_on_malloc_failure,
-        __generic_printf,
+        __generic_print,
         __generic_std_read,
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,
         __esp32_sleep,
+        __esp32_system_time_ms
     };
 
 void mla_boot_os_application() {
