@@ -4,6 +4,8 @@
 
 #include "../surfaces/mla_ui_surface.h"
 
+mla_global mla_ui_surface_low_level_access_t g_ui_surface_low_level_access;
+
 mla_ui_surface_t mla_ui_surface_invalid() {
     return {
         nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr, nullptr

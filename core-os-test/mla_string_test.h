@@ -1054,6 +1054,40 @@ void SplitTest() {
 
 }
 
+void RepeatTest() {
+    // Test basic repetition
+    mla_string_t str = mla_string("ab");
+    mla_string_t repeated = mla_string_repeat(str, 3);
+    assert_true(mla_string_equals(repeated, mla_string("ababab")), "Repeating 'ab' 3 times should equal 'ababab'");
+    mla_string_destroy(repeated);
+
+    // Test repeating 0 times
+    repeated = mla_string_repeat(str, 0);
+    assert_true(mla_string_is_empty(repeated), "Repeating 0 times should result in empty string");
+    mla_string_destroy(repeated);
+
+    // Test repeating 1 time (should basically be a copy)
+    repeated = mla_string_repeat(str, 1);
+    assert_true(mla_string_equals(repeated, str), "Repeating 1 time should equal original string");
+    mla_string_destroy(repeated);
+
+    mla_string_destroy(str);
+
+    // Test repeating empty string
+    str = mla_string_empty();
+    repeated = mla_string_repeat(str, 5);
+    assert_true(mla_string_is_empty(repeated), "Repeating empty string should result in empty string");
+    mla_string_destroy(repeated);
+    mla_string_destroy(str);
+
+    // Test repeating multi-byte string
+    str = mla_string("€");
+    repeated = mla_string_repeat(str, 2);
+    assert_true(mla_string_equals(repeated, mla_string("€€")), "Repeating '€' 2 times should equal '€€'");
+    mla_string_destroy(repeated);
+    mla_string_destroy(str);
+}
+
 
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
@@ -1201,6 +1235,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Split", test_category, SplitTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Repeat", test_category, RepeatTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

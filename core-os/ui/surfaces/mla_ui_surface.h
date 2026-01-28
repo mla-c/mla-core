@@ -54,7 +54,4 @@ struct mla_ui_surface_low_level_access_t {
     mla_bool_t (*create_surface)(mla_ui_surface_t& outSurface);
 };
 
-mla_global mla_ui_surface_low_level_access_t g_ui_surface_low_level_access;
-
-
 #endif
