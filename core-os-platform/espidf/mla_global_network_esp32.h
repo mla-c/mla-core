@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
+#include <net/if.h>
 
 mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints;
