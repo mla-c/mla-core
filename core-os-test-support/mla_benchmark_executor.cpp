@@ -105,6 +105,11 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
     if (output_format == mla_test_output_format_text) {
         mla_test_char_t buffer[12];
         mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
+
+        if (strLength < 3) {
+            for (mla_test_uint32_t k = 0; k < 3 - strLength; k++) mla_test_print(" ", 1);
+        }
+
         mla_test_print(buffer, strLength);
     } else if (output_format == mla_test_output_format_json) {
         mla_test_print("{\n", 2);

@@ -515,7 +515,24 @@ inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
 
     deserializer.read_next(deserializer);
     mla_deserializer_read_struct_read_function(deserializer, &g_benchmarkAllTypes, __mla_all_types_struct_read_function);
-    (void)g_benchmarkAllTypes;
+    g_benchmarkAllTypes = {
+        false,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1.0f,
+        1.0,
+        mla_string_empty(),
+        mla_bytes_empty(),
+        { 0, false },
+        mla_array_list_empty<mla_int32_t>(),
+        mla_array_list_empty<mla_all_types_inner_struct>()
+    };
 }
 
 //////////////////////////////////////////////////////////////////////////
