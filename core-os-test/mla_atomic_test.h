@@ -76,7 +76,7 @@ void RegisterAtomicTests(mla_test_executor_t& exec) {
     mla_test_executor_register_test(exec, test);
 }
 
-static inline void bench_touch(volatile mla_int32_t v) {
+static inline void bench_touch(mla_int32_t v) {
     (void)v;
 }
 
