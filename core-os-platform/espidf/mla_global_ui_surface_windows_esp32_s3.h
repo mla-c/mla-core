@@ -6,15 +6,6 @@
 #define COREOS_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
-#include <math.h>
-#include <stdlib.h>
-
-#include <esp_lcd_panel_io.h>
-#include <esp_lcd_panel_ops.h>
-#include <esp_lcd_panel_rgb.h>
-#include <esp_heap_caps.h>
-#include <driver/gpio.h>
-#include <esp_attr.h>
 
 // Basic 5x7 font - simplified ASCII
 static const unsigned char font5x7[] = {
@@ -262,7 +253,7 @@ static void mla_esp32_software_renderer_clear(mla_esp32_software_renderer_t* r, 
 #define LCD_V_RES                      480
 
 struct mla_esp32_surface_t {
-    esp_lcd_panel_handle_t panel_handle;
+    mla_pointer_t panel;
     uint16_t *frame_buffer;
     mla_esp32_software_renderer_t renderer;
     mla_ui_surface_size_t size;
@@ -273,6 +264,15 @@ inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_pointer_t data, mla_c
     (void) userData;
     mla_esp32_surface_t *surface = (mla_esp32_surface_t *) data;
     if (surface) {
+        if (surface->panel) {
+            // QQQ deinit panel if needed
+            surface->panel = nullptr;
+        }
+        if (surface->frame_buffer) {
+            free(surface->frame_buffer);
+            surface->frame_buffer = nullptr;
+        }
+
         // panel handle cleanup if needed, usually we don't deinit display in embedded
     }
     return CLEAN_UP_NEEDED;
@@ -399,82 +399,31 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
          return true;
     }
 
-    // Configure GPIOs
-    gpio_config_t bk_gpio_config = {
-        .pin_bit_mask = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT,
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    gpio_config(&bk_gpio_config);
+    // Create the panel object
+    // QQQ Init the Driver
 
-    esp_lcd_rgb_panel_config_t panel_config;
-    memset(&panel_config, 0, sizeof(panel_config));
+    // turn on backlight maximum
 
-    panel_config.data_width = 16;
-    panel_config.psram_trans_align = 64;
-    panel_config.num_fbs = 1;
-    panel_config.clk_src = LCD_CLK_SRC_DEFAULT;
-    panel_config.disp_gpio_num = EXAMPLE_PIN_NUM_DISP_EN;
-    panel_config.pclk_gpio_num = EXAMPLE_PIN_NUM_PCLK;
-    panel_config.vsync_gpio_num = EXAMPLE_PIN_NUM_VSYNC;
-    panel_config.hsync_gpio_num = EXAMPLE_PIN_NUM_HSYNC;
-    panel_config.de_gpio_num = EXAMPLE_PIN_NUM_DE;
-    panel_config.data_gpio_nums[0] = EXAMPLE_PIN_NUM_DATA0;
-    panel_config.data_gpio_nums[1] = EXAMPLE_PIN_NUM_DATA1;
-    panel_config.data_gpio_nums[2] = EXAMPLE_PIN_NUM_DATA2;
-    panel_config.data_gpio_nums[3] = EXAMPLE_PIN_NUM_DATA3;
-    panel_config.data_gpio_nums[4] = EXAMPLE_PIN_NUM_DATA4;
-    panel_config.data_gpio_nums[5] = EXAMPLE_PIN_NUM_DATA5;
-    panel_config.data_gpio_nums[6] = EXAMPLE_PIN_NUM_DATA6;
-    panel_config.data_gpio_nums[7] = EXAMPLE_PIN_NUM_DATA7;
-    panel_config.data_gpio_nums[8] = EXAMPLE_PIN_NUM_DATA8;
-    panel_config.data_gpio_nums[9] = EXAMPLE_PIN_NUM_DATA9;
-    panel_config.data_gpio_nums[10] = EXAMPLE_PIN_NUM_DATA10;
-    panel_config.data_gpio_nums[11] = EXAMPLE_PIN_NUM_DATA11;
-    panel_config.data_gpio_nums[12] = EXAMPLE_PIN_NUM_DATA12;
-    panel_config.data_gpio_nums[13] = EXAMPLE_PIN_NUM_DATA13;
-    panel_config.data_gpio_nums[14] = EXAMPLE_PIN_NUM_DATA14;
-    panel_config.data_gpio_nums[15] = EXAMPLE_PIN_NUM_DATA15;
 
-    panel_config.timings.pclk_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ;
-    panel_config.timings.h_res = LCD_H_RES;
-    panel_config.timings.v_res = LCD_V_RES;
-    panel_config.timings.hsync_back_porch = 50;
-    panel_config.timings.hsync_front_porch = 10;
-    panel_config.timings.hsync_pulse_width = 8;
-    panel_config.timings.vsync_back_porch = 20;
-    panel_config.timings.vsync_front_porch = 10;
-    panel_config.timings.vsync_pulse_width = 8;
-    panel_config.timings.flags.pclk_active_neg = true;
-    panel_config.flags.fb_in_psram = 1;
+    // allocate framebuffer (RGB565)
+    uint16_t *fb = (uint16_t*)heap_caps_malloc(
+        LCD_V_RES * LCD_H_RES * sizeof(uint16_t),
+        MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA
+    );
 
-    esp_lcd_panel_handle_t panel_handle = NULL;
-
-    // Check available SPIRAM
-    size_t free_spiram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-    size_t largest_block = heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
-    printf("Free SPIRAM: %zu, Largest Block: %zu. Required approx: %u\n", free_spiram, largest_block, LCD_H_RES * LCD_V_RES * 2);
-
-    ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &panel_handle));
-    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
-    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-
-    // Get framebuffer
-    uint16_t *frame_buffer = NULL;
-    ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 1, (void **)&frame_buffer));
-
-    // Turn on backlight
-    gpio_set_level((gpio_num_t)EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
+    if (fb == nullptr) {
+        // Failed to allocate
+        // cleanup dirver resource
+        return false;
+    }
 
     mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) mla_malloc(sizeof(mla_esp32_surface_t));
-    esp_surface->panel_handle = panel_handle;
-    esp_surface->frame_buffer = frame_buffer;
+    esp_surface->panel = nullptr; // QQQ Assign initialized panel
+    esp_surface->frame_buffer = fb;
     esp_surface->size = {LCD_H_RES, LCD_V_RES};
 
     // Init software renderer
-    esp_surface->renderer = {frame_buffer, LCD_H_RES, LCD_V_RES};
+    esp_surface->renderer = {fb, LCD_H_RES, LCD_V_RES};
 
     // Initial clear
     mla_esp32_software_renderer_clear(&esp_surface->renderer, 0x0000);
