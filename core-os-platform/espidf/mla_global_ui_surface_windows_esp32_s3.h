@@ -224,30 +224,6 @@ static void mla_esp32_software_renderer_clear(mla_esp32_software_renderer_t* r, 
     }
 }
 
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (16 * 1000 * 1000)
-#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1
-#define EXAMPLE_PIN_NUM_BK_LIGHT       38
-#define EXAMPLE_PIN_NUM_HSYNC          39
-#define EXAMPLE_PIN_NUM_VSYNC          41
-#define EXAMPLE_PIN_NUM_DE             40
-#define EXAMPLE_PIN_NUM_PCLK           42
-#define EXAMPLE_PIN_NUM_DATA0          45 // R0
-#define EXAMPLE_PIN_NUM_DATA1          48 // R1
-#define EXAMPLE_PIN_NUM_DATA2          47 // R2
-#define EXAMPLE_PIN_NUM_DATA3          21 // R3
-#define EXAMPLE_PIN_NUM_DATA4          14 // R4
-#define EXAMPLE_PIN_NUM_DATA5          5  // G0
-#define EXAMPLE_PIN_NUM_DATA6          6  // G1
-#define EXAMPLE_PIN_NUM_DATA7          7  // G2
-#define EXAMPLE_PIN_NUM_DATA8          15 // G3
-#define EXAMPLE_PIN_NUM_DATA9          16 // G4
-#define EXAMPLE_PIN_NUM_DATA10         4  // G5
-#define EXAMPLE_PIN_NUM_DATA11         8  // B0
-#define EXAMPLE_PIN_NUM_DATA12         3  // B1
-#define EXAMPLE_PIN_NUM_DATA13         46 // B2
-#define EXAMPLE_PIN_NUM_DATA14         9  // B3
-#define EXAMPLE_PIN_NUM_DATA15         1  // B4
-#define EXAMPLE_PIN_NUM_DISP_EN        -1
 
 #define LCD_H_RES                      480
 #define LCD_V_RES                      480
