@@ -316,9 +316,7 @@ inline void main_app_window_ui_init() {
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls =  __main_app_build_ui();
     g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface);
 
-    // Start the ui threads
-    //mla_ui_control_surface_start(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
-
+    // Start the single-threaded mode for rendering
     mla_ui_control_surface_start_single_threaded_mode(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
 
 }
