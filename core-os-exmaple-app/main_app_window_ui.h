@@ -36,7 +36,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
 
     // Create example labels (Left Column)
     mla_ui_control_t titleLabel = mla_ui_label();
-    mla_ui_label_set_text(titleLabel, mla_string_const("Main Header Label"));
+    mla_ui_label_set_text(titleLabel, mla_string_const("Loading"));
     mla_ui_label_set_font_size(titleLabel, MLA_UI_FONT_SIZE_PAGE_TITLE);
     mla_ui_label_set_text_kind(titleLabel, MLA_UI_TEXT_KIND_PRIMARY);
     titleLabel.layout.x = 20;
@@ -44,6 +44,28 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     titleLabel.layout.width = 400;
     titleLabel.layout.height = 40;
     mla_array_list_add(uiControls, titleLabel);
+
+    return uiControls;
+}
+
+mla_bool_t main_app_window_ui_rendering(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
+
+    if (mla_array_list_size(root) != 1) {
+        return true;
+    }
+
+    mla_array_list_clear(root);
+
+    // Create example labels (Left Column)
+    mla_ui_control_t titleLabel = mla_ui_label();
+    mla_ui_label_set_text(titleLabel, mla_string_const("Main Header Label"));
+    mla_ui_label_set_font_size(titleLabel, MLA_UI_FONT_SIZE_PAGE_TITLE);
+    mla_ui_label_set_text_kind(titleLabel, MLA_UI_TEXT_KIND_PRIMARY);
+    titleLabel.layout.x = 20;
+    titleLabel.layout.y = 20;
+    titleLabel.layout.width = 400;
+    titleLabel.layout.height = 40;
+    mla_array_list_add(root, titleLabel);
 
     mla_ui_control_t subTitleLabel = mla_ui_label();
     mla_ui_label_set_text(subTitleLabel, mla_string_const("Secondary Subtitle Style"));
@@ -53,7 +75,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     subTitleLabel.layout.y = 70;
     subTitleLabel.layout.width = 400;
     subTitleLabel.layout.height = 30;
-    mla_array_list_add(uiControls, subTitleLabel);
+    mla_array_list_add(root, subTitleLabel);
 
     mla_ui_control_t standardLabel = mla_ui_label();
     mla_ui_label_set_text(standardLabel, mla_string_const("Standard body text example at size 14."));
@@ -62,7 +84,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     standardLabel.layout.y = 110;
     standardLabel.layout.width = 400;
     standardLabel.layout.height = 20;
-    mla_array_list_add(uiControls, standardLabel);
+    mla_array_list_add(root, standardLabel);
 
     mla_ui_control_t errorLabel = mla_ui_label();
     mla_ui_label_set_text(errorLabel, mla_string_const("Error: Connection timeout occurred"));
@@ -71,7 +93,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     errorLabel.layout.y = 140;
     errorLabel.layout.width = 400;
     errorLabel.layout.height = 20;
-    mla_array_list_add(uiControls, errorLabel);
+    mla_array_list_add(root, errorLabel);
 
     mla_ui_control_t successLabel = mla_ui_label();
     mla_ui_label_set_text(successLabel, mla_string_const("Success: File saved successfully"));
@@ -80,7 +102,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     successLabel.layout.y = 170;
     successLabel.layout.width = 400;
     successLabel.layout.height = 20;
-    mla_array_list_add(uiControls, successLabel);
+    mla_array_list_add(root, successLabel);
 
     mla_ui_control_t linkLabel = mla_ui_label();
     mla_ui_label_set_text(linkLabel, mla_string_const("Click here for more details"));
@@ -89,7 +111,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     linkLabel.layout.y = 200;
     linkLabel.layout.width = 400;
     linkLabel.layout.height = 20;
-    mla_array_list_add(uiControls, linkLabel);
+    mla_array_list_add(root, linkLabel);
 
     mla_ui_control_t disabledLabel = mla_ui_label();
     mla_ui_label_set_text(disabledLabel, mla_string_const("Disabled Text Example"));
@@ -98,7 +120,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     disabledLabel.layout.y = 230;
     disabledLabel.layout.width = 400;
     disabledLabel.layout.height = 20;
-    mla_array_list_add(uiControls, disabledLabel);
+    mla_array_list_add(root, disabledLabel);
 
     mla_ui_control_t linkDisabledLabel = mla_ui_label();
     mla_ui_label_set_text(linkDisabledLabel, mla_string_const("Disabled Link Example"));
@@ -107,7 +129,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     linkDisabledLabel.layout.y = 260;
     linkDisabledLabel.layout.width = 400;
     linkDisabledLabel.layout.height = 20;
-    mla_array_list_add(uiControls, linkDisabledLabel);
+    mla_array_list_add(root, linkDisabledLabel);
 
     mla_ui_control_t warningLabel = mla_ui_label();
     mla_ui_label_set_text(warningLabel, mla_string_const("Warning: Battery low"));
@@ -116,7 +138,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     warningLabel.layout.y = 290;
     warningLabel.layout.width = 400;
     warningLabel.layout.height = 20;
-    mla_array_list_add(uiControls, warningLabel);
+    mla_array_list_add(root, warningLabel);
 
     mla_ui_control_t infoLabel = mla_ui_label();
     mla_ui_label_set_text(infoLabel, mla_string_const("Info: System normal"));
@@ -125,7 +147,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     infoLabel.layout.y = 320;
     infoLabel.layout.width = 400;
     infoLabel.layout.height = 20;
-    mla_array_list_add(uiControls, infoLabel);
+    mla_array_list_add(root, infoLabel);
 
     mla_ui_control_t customLabel = mla_ui_label();
     mla_ui_label_set_text(customLabel, mla_string_const("Custom: Specific Hex Color"));
@@ -135,10 +157,11 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     customLabel.layout.y = 350;
     customLabel.layout.width = 400;
     customLabel.layout.height = 20;
-    mla_array_list_add(uiControls, customLabel);
+    mla_array_list_add(root, customLabel);
 
     // Create example buttons (Right Columns)
 
+    /*
     // --- Primary ---
     mla_ui_control_t primaryBtn = mla_ui_button();
     mla_ui_button_set_text(primaryBtn, mla_string_const("Primary"));
@@ -148,7 +171,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     primaryBtn.layout.y = 20;
     primaryBtn.layout.width = 120;
     primaryBtn.layout.height = 32;
-    mla_array_list_add(uiControls, primaryBtn);
+    mla_array_list_add(root, primaryBtn);
 
     mla_ui_control_t primaryBtnDis = mla_ui_button();
     primaryBtnDis.id = mla_string_const("primary_disabled_button");
@@ -159,7 +182,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     primaryBtnDis.layout.y = 20;
     primaryBtnDis.layout.width = 120;
     primaryBtnDis.layout.height = 32;
-    mla_array_list_add(uiControls, primaryBtnDis);
+    mla_array_list_add(root, primaryBtnDis);
 
     // --- Secondary ---
     mla_ui_control_t secondaryBtn = mla_ui_button();
@@ -169,7 +192,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     secondaryBtn.layout.y = 70;
     secondaryBtn.layout.width = 120;
     secondaryBtn.layout.height = 32;
-    mla_array_list_add(uiControls, secondaryBtn);
+    mla_array_list_add(root, secondaryBtn);
 
     mla_ui_control_t secondaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(secondaryBtnDis, mla_string_const("Secondary Dis"));
@@ -179,7 +202,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     secondaryBtnDis.layout.y = 70;
     secondaryBtnDis.layout.width = 120;
     secondaryBtnDis.layout.height = 32;
-    mla_array_list_add(uiControls, secondaryBtnDis);
+    mla_array_list_add(root, secondaryBtnDis);
 
     // --- Tertiary ---
     mla_ui_control_t tertiaryBtn = mla_ui_button();
@@ -189,7 +212,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     tertiaryBtn.layout.y = 120;
     tertiaryBtn.layout.width = 120;
     tertiaryBtn.layout.height = 32;
-    mla_array_list_add(uiControls, tertiaryBtn);
+    mla_array_list_add(root, tertiaryBtn);
 
     mla_ui_control_t tertiaryBtnDis = mla_ui_button();
     mla_ui_button_set_text(tertiaryBtnDis, mla_string_const("Tertiary Dis"));
@@ -199,7 +222,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     tertiaryBtnDis.layout.y = 120;
     tertiaryBtnDis.layout.width = 120;
     tertiaryBtnDis.layout.height = 32;
-    mla_array_list_add(uiControls, tertiaryBtnDis);
+    mla_array_list_add(root, tertiaryBtnDis);
 
     // --- Link ---
     mla_ui_control_t linkBtn = mla_ui_button();
@@ -209,7 +232,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     linkBtn.layout.y = 170;
     linkBtn.layout.width = 120;
     linkBtn.layout.height = 32;
-    mla_array_list_add(uiControls, linkBtn);
+    mla_array_list_add(root, linkBtn);
 
     mla_ui_control_t linkBtnDis = mla_ui_button();
     mla_ui_button_set_text(linkBtnDis, mla_string_const("Link Style Dis"));
@@ -219,7 +242,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     linkBtnDis.layout.y = 170;
     linkBtnDis.layout.width = 120;
     linkBtnDis.layout.height = 32;
-    mla_array_list_add(uiControls, linkBtnDis);
+    mla_array_list_add(root, linkBtnDis);
 
     // --- Text Edit (Standard) ---
     mla_ui_control_t stdEdit = mla_ui_text_edit();
@@ -229,7 +252,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     stdEdit.layout.y = 220;
     stdEdit.layout.width = 120;
     stdEdit.layout.height = 32;
-    mla_array_list_add(uiControls, stdEdit);
+    mla_array_list_add(root, stdEdit);
 
     mla_ui_control_t stdEditDis = mla_ui_text_edit();
     mla_ui_text_edit_set_text(stdEditDis, mla_string_const("Standard Dis"));
@@ -239,7 +262,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     stdEditDis.layout.y = 220;
     stdEditDis.layout.width = 120;
     stdEditDis.layout.height = 32;
-    mla_array_list_add(uiControls, stdEditDis);
+    mla_array_list_add(root, stdEditDis);
 
     // --- Text Edit (Password) ---
     mla_ui_control_t passEdit = mla_ui_text_edit();
@@ -249,7 +272,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     passEdit.layout.y = 270;
     passEdit.layout.width = 120;
     passEdit.layout.height = 32;
-    mla_array_list_add(uiControls, passEdit);
+    mla_array_list_add(root, passEdit);
 
     mla_ui_control_t passEditDis = mla_ui_text_edit();
     mla_ui_text_edit_set_text(passEditDis, mla_string_const("Password Dis"));
@@ -259,7 +282,7 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     passEditDis.layout.y = 270;
     passEditDis.layout.width = 120;
     passEditDis.layout.height = 32;
-    mla_array_list_add(uiControls, passEditDis);
+    mla_array_list_add(root, passEditDis);
 
     mla_ui_control_t selectedTextEdit = mla_ui_text_edit();
     mla_ui_text_edit_set_text(selectedTextEdit, mla_string_const("Edit Selection"));
@@ -273,12 +296,9 @@ inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_a
     selectedTextEdit.layout.y = 320;
     selectedTextEdit.layout.width = 120;
     selectedTextEdit.layout.height = 32;
-    mla_array_list_add(uiControls, selectedTextEdit);
+    mla_array_list_add(root, selectedTextEdit);
+    */
 
-    return uiControls;
-}
-
-mla_bool_t main_app_window_ui_rendering(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
     (void)root;
     (void)surfaceSize;
     (void)input_states;
@@ -295,8 +315,10 @@ inline void main_app_window_ui_init() {
         return;
     }
 
+    mla_debug("Start build UI");
+
     // Build the UI controls
-    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls = __main_app_build_ui();
+    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls =  __main_app_build_ui();
     g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface);
 
     // Start the ui threads

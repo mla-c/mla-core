@@ -25,6 +25,8 @@ int run() {
 
     mla_task_manager_process_all_tasks();
 
+    mla_info("Exiting Test Application...");
+
     return 0;
 }
 

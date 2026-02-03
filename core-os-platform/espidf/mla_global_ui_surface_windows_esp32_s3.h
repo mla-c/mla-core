@@ -7,6 +7,21 @@
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 
+#if defined(ESP32)
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "esp_heap_caps.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_rgb.h"
+#include "esp_lcd_panel_vendor.h"
+#include "esp_lcd_panel_ops.h"
+#include "driver/gpio.h"
+#include "driver/spi_master.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include <esp_cache.h>
+#endif
+
 // Basic 5x7 font - simplified ASCII
 static const unsigned char font5x7[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, // Space
@@ -225,8 +240,135 @@ static void mla_esp32_software_renderer_clear(mla_esp32_software_renderer_t* r, 
 }
 
 
-#define LCD_H_RES                      480
-#define LCD_V_RES                      480
+// ESP32-S3-4848S040 Pinout
+#define LCD_PIXEL_CLOCK_HZ     (10 * 1000 * 1000)
+#define LCD_BK_LIGHT           38
+#define LCD_H_RES              480
+#define LCD_V_RES              480
+
+#define LCD_PIN_HSYNC          42
+#define LCD_PIN_VSYNC          41
+#define LCD_PIN_DE             40
+#define LCD_PIN_PCLK           39
+#define LCD_PIN_DATA0          45
+#define LCD_PIN_DATA1          48
+#define LCD_PIN_DATA2          47
+#define LCD_PIN_DATA3          21
+#define LCD_PIN_DATA4          14
+#define LCD_PIN_DATA5          5
+#define LCD_PIN_DATA6          6
+#define LCD_PIN_DATA7          7
+#define LCD_PIN_DATA8          15
+#define LCD_PIN_DATA9          16
+#define LCD_PIN_DATA10         4
+#define LCD_PIN_DATA11         8
+#define LCD_PIN_DATA12         3
+#define LCD_PIN_DATA13         46
+#define LCD_PIN_DATA14         9
+#define LCD_PIN_DATA15         1
+
+// SPI Init Pins (Shared)
+#define LCD_SPI_CS             39
+#define LCD_SPI_SDA            8
+#define LCD_SPI_SCL            9
+
+#if defined(ESP32)
+
+static void st7701_spi_write_cmd(int cs, int sck, int sda, uint8_t cmd) {
+    gpio_set_level((gpio_num_t)cs, 0);
+    // 3-wire 9-bit SPI: 0 + 8bit cmd
+    gpio_set_level((gpio_num_t)sck, 0);
+    gpio_set_level((gpio_num_t)sda, 0); // Command bit = 0
+    gpio_set_level((gpio_num_t)sck, 1);
+
+    for (int i = 0; i < 8; i++) {
+        gpio_set_level((gpio_num_t)sck, 0);
+        if (cmd & 0x80) gpio_set_level((gpio_num_t)sda, 1);
+        else            gpio_set_level((gpio_num_t)sda, 0);
+        gpio_set_level((gpio_num_t)sck, 1);
+        cmd <<= 1;
+    }
+    gpio_set_level((gpio_num_t)cs, 1);
+}
+
+static void st7701_spi_write_data(int cs, int sck, int sda, uint8_t data) {
+    gpio_set_level((gpio_num_t)cs, 0);
+    // 3-wire 9-bit SPI: 1 + 8bit data
+    gpio_set_level((gpio_num_t)sck, 0);
+    gpio_set_level((gpio_num_t)sda, 1); // Data bit = 1
+    gpio_set_level((gpio_num_t)sck, 1);
+
+    for (int i = 0; i < 8; i++) {
+        gpio_set_level((gpio_num_t)sck, 0);
+        if (data & 0x80) gpio_set_level((gpio_num_t)sda, 1);
+        else            gpio_set_level((gpio_num_t)sda, 0);
+        gpio_set_level((gpio_num_t)sck, 1);
+        data <<= 1;
+    }
+    gpio_set_level((gpio_num_t)cs, 1);
+}
+
+static void st7701_init_sequence() {
+    int cs = LCD_SPI_CS;
+    int sck = LCD_SPI_SCL;
+    int sda = LCD_SPI_SDA;
+
+    // Config GPIOs for Bitbang
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = (1ULL << cs) | (1ULL << sck) | (1ULL << sda);
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+
+    gpio_set_level((gpio_num_t)cs, 1);
+    gpio_set_level((gpio_num_t)sck, 1);
+    gpio_set_level((gpio_num_t)sda, 1);
+
+    mla_sleep(120);
+
+    // Commands
+    st7701_spi_write_cmd(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0x77); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x13);
+    st7701_spi_write_cmd(cs, sck, sda, 0xEF); st7701_spi_write_data(cs, sck, sda, 0x08);
+    st7701_spi_write_cmd(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0x77); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x10);
+    st7701_spi_write_cmd(cs, sck, sda, 0xC0); st7701_spi_write_data(cs, sck, sda, 0x3B); st7701_spi_write_data(cs, sck, sda, 0x00);
+    st7701_spi_write_cmd(cs, sck, sda, 0xC1); st7701_spi_write_data(cs, sck, sda, 0x0D); st7701_spi_write_data(cs, sck, sda, 0x02);
+    st7701_spi_write_cmd(cs, sck, sda, 0xC2); st7701_spi_write_data(cs, sck, sda, 0x21); st7701_spi_write_data(cs, sck, sda, 0x08);
+    st7701_spi_write_cmd(cs, sck, sda, 0xCC); st7701_spi_write_data(cs, sck, sda, 0x10);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB0); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x05); st7701_spi_write_data(cs, sck, sda, 0x0F); st7701_spi_write_data(cs, sck, sda, 0x0D); st7701_spi_write_data(cs, sck, sda, 0x13); st7701_spi_write_data(cs, sck, sda, 0x07); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0x08); st7701_spi_write_data(cs, sck, sda, 0x09); st7701_spi_write_data(cs, sck, sda, 0x1E); st7701_spi_write_data(cs, sck, sda, 0x04); st7701_spi_write_data(cs, sck, sda, 0x12); st7701_spi_write_data(cs, sck, sda, 0x10); st7701_spi_write_data(cs, sck, sda, 0xA7); st7701_spi_write_data(cs, sck, sda, 0x2F); st7701_spi_write_data(cs, sck, sda, 0x18);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB1); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x0F); st7701_spi_write_data(cs, sck, sda, 0x17); st7701_spi_write_data(cs, sck, sda, 0x0C); st7701_spi_write_data(cs, sck, sda, 0x11); st7701_spi_write_data(cs, sck, sda, 0x06); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x08); st7701_spi_write_data(cs, sck, sda, 0x09); st7701_spi_write_data(cs, sck, sda, 0x1E); st7701_spi_write_data(cs, sck, sda, 0x03); st7701_spi_write_data(cs, sck, sda, 0x11); st7701_spi_write_data(cs, sck, sda, 0x10); st7701_spi_write_data(cs, sck, sda, 0xAA); st7701_spi_write_data(cs, sck, sda, 0x2F); st7701_spi_write_data(cs, sck, sda, 0x18);
+    st7701_spi_write_cmd(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0x77); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x11);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB0); st7701_spi_write_data(cs, sck, sda, 0x4D);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB1); st7701_spi_write_data(cs, sck, sda, 0x4D); // Vcom
+    st7701_spi_write_cmd(cs, sck, sda, 0xB2); st7701_spi_write_data(cs, sck, sda, 0x87);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB3); st7701_spi_write_data(cs, sck, sda, 0x80);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB5); st7701_spi_write_data(cs, sck, sda, 0x47);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB7); st7701_spi_write_data(cs, sck, sda, 0x85);
+    st7701_spi_write_cmd(cs, sck, sda, 0xB8); st7701_spi_write_data(cs, sck, sda, 0x20);
+    st7701_spi_write_cmd(cs, sck, sda, 0xC1); st7701_spi_write_data(cs, sck, sda, 0x78);
+    st7701_spi_write_cmd(cs, sck, sda, 0xC2); st7701_spi_write_data(cs, sck, sda, 0x78);
+    st7701_spi_write_cmd(cs, sck, sda, 0xD0); st7701_spi_write_data(cs, sck, sda, 0x88);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE0); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x02);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE1); st7701_spi_write_data(cs, sck, sda, 0x08); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x0A); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x07); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x09); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x33); st7701_spi_write_data(cs, sck, sda, 0x33);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE2); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE3); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x33); st7701_spi_write_data(cs, sck, sda, 0x33);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE4); st7701_spi_write_data(cs, sck, sda, 0x44); st7701_spi_write_data(cs, sck, sda, 0x44);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE5); st7701_spi_write_data(cs, sck, sda, 0x0E); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x10); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x0A); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x0C); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE6); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x33); st7701_spi_write_data(cs, sck, sda, 0x33);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE7); st7701_spi_write_data(cs, sck, sda, 0x44); st7701_spi_write_data(cs, sck, sda, 0x44);
+    st7701_spi_write_cmd(cs, sck, sda, 0xE8); st7701_spi_write_data(cs, sck, sda, 0x0D); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x0F); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x09); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0x0B); st7701_spi_write_data(cs, sck, sda, 0x2D); st7701_spi_write_data(cs, sck, sda, 0xA0); st7701_spi_write_data(cs, sck, sda, 0xA0);
+    st7701_spi_write_cmd(cs, sck, sda, 0xEB); st7701_spi_write_data(cs, sck, sda, 0x02); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0xE4); st7701_spi_write_data(cs, sck, sda, 0xE4); st7701_spi_write_data(cs, sck, sda, 0x44); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x40);
+    st7701_spi_write_cmd(cs, sck, sda, 0xEC); st7701_spi_write_data(cs, sck, sda, 0x02); st7701_spi_write_data(cs, sck, sda, 0x01);
+    st7701_spi_write_cmd(cs, sck, sda, 0xED); st7701_spi_write_data(cs, sck, sda, 0xAB); st7701_spi_write_data(cs, sck, sda, 0x89); st7701_spi_write_data(cs, sck, sda, 0x76); st7701_spi_write_data(cs, sck, sda, 0x54); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0x10); st7701_spi_write_data(cs, sck, sda, 0x45); st7701_spi_write_data(cs, sck, sda, 0x67); st7701_spi_write_data(cs, sck, sda, 0x98); st7701_spi_write_data(cs, sck, sda, 0xBA);
+    st7701_spi_write_cmd(cs, sck, sda, 0xFF); st7701_spi_write_data(cs, sck, sda, 0x77); st7701_spi_write_data(cs, sck, sda, 0x01); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00); st7701_spi_write_data(cs, sck, sda, 0x00);
+    st7701_spi_write_cmd(cs, sck, sda, 0x11); // Sleep Out
+    vTaskDelay(pdMS_TO_TICKS(120));
+    st7701_spi_write_cmd(cs, sck, sda, 0x29); // Display On
+}
+
+#endif
+
 
 struct mla_esp32_surface_t {
     mla_pointer_t panel;
@@ -241,11 +383,10 @@ inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_pointer_t data, mla_c
     mla_esp32_surface_t *surface = (mla_esp32_surface_t *) data;
     if (surface) {
         if (surface->panel) {
-            // QQQ deinit panel if needed
             surface->panel = nullptr;
         }
+
         if (surface->frame_buffer) {
-            free(surface->frame_buffer);
             surface->frame_buffer = nullptr;
         }
 
@@ -290,7 +431,10 @@ inline mla_ui_surface_input_states_t __esp32_surface_get_input_states(const mla_
 inline mla_bool_t __esp32_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
     (void) eventsSinceLastFame;
     mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) surface.resource;
-    if (!esp_surface) return false;
+    if (!esp_surface)
+        return false;
+
+    ESP_LOGI("LCD", "Rendering %d draw commands", (int)mla_array_list_size(drawCommands));
 
     mla_esp32_software_renderer_t *r = &esp_surface->renderer;
 
@@ -352,9 +496,17 @@ inline mla_bool_t __esp32_surface_render_draw_commands(const mla_ui_surface_t& s
         }
     }
 
-    // Explicitly cache maintenance if needed, but esp_lcd usually handles it via bounce buffer or direct
-    // Since we write to PSRAM mapped frame buffer, we should ensure data is written to RAM
-    // esp_cache_msync((void*)esp_surface->frame_buffer, LCD_H_RES * LCD_V_RES * 2, ESP_CACHE_MSYNC_FLAG_DIR_C2M);
+    // Push framebuffer to display
+    esp_lcd_panel_handle_t panel = (esp_lcd_panel_handle_t)(esp_surface->panel);
+    if (panel) {
+        size_t buffer_size = LCD_H_RES * LCD_V_RES * sizeof(uint16_t);
+        esp_cache_msync((void *)r->framebuffer, buffer_size, ESP_CACHE_MSYNC_FLAG_DIR_C2M);
+        esp_err_t err = esp_lcd_panel_draw_bitmap(panel, 0, 0, LCD_H_RES, LCD_V_RES, (void *)r->framebuffer);
+        if (err != ESP_OK) {
+            ESP_LOGE("LCD", "Failed to draw bitmap to panel: %s", esp_err_to_name(err));
+            return false;
+        }
+    }
 
     return true;
 }
@@ -375,31 +527,99 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
          return true;
     }
 
-    // Create the panel object
-    // QQQ Init the Driver
+#if defined(ESP32)
+    // 1. Initialize ST7701 via SPI
+    ESP_LOGI("LCD", "Initializing ST7701...");
+    st7701_init_sequence();
 
-    // turn on backlight maximum
+    // 2. Initialize RGB Panel
+    ESP_LOGI("LCD", "Initializing RGB Panel...");
 
+    // Check for PSRAM
+    size_t free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    ESP_LOGI("LCD", "Free PSRAM: %d bytes", (int)free_psram);
+    if (free_psram < (LCD_H_RES * LCD_V_RES * 2)) {
+        ESP_LOGE("LCD", "Insufficient PSRAM for Framebuffer! Required: %d, Available: %d", (LCD_H_RES * LCD_V_RES * 2), (int)free_psram);
+        ESP_LOGE("LCD", "Please ensure PSRAM is enabled in sdkconfig (CONFIG_SPIRAM=y)");
+    }
 
-    // allocate framebuffer (RGB565)
-    uint16_t *fb = (uint16_t*)heap_caps_malloc(
-        LCD_V_RES * LCD_H_RES * sizeof(uint16_t),
-        MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA
-    );
+    // Enable Backlight
+    gpio_config_t bk_conf = {};
+    bk_conf.pin_bit_mask = (1ULL << LCD_BK_LIGHT);
+    bk_conf.mode = GPIO_MODE_OUTPUT;
+    bk_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    bk_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    bk_conf.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&bk_conf);
+    gpio_set_level((gpio_num_t)LCD_BK_LIGHT, 1);
 
-    if (fb == nullptr) {
-        // Failed to allocate
-        // cleanup dirver resource
+    esp_lcd_rgb_panel_config_t panel_config = {};
+    panel_config.clk_src = LCD_CLK_SRC_PLL160M;
+    panel_config.timings.pclk_hz = LCD_PIXEL_CLOCK_HZ;
+    panel_config.timings.h_res = LCD_H_RES;
+    panel_config.timings.v_res = LCD_V_RES;
+    panel_config.timings.hsync_pulse_width = 10;
+    panel_config.timings.hsync_back_porch = 50;
+    panel_config.timings.hsync_front_porch = 50;
+    panel_config.timings.vsync_pulse_width = 10;
+    panel_config.timings.vsync_back_porch = 20;
+    panel_config.timings.vsync_front_porch = 20;
+    panel_config.timings.flags.pclk_active_neg = true;
+
+    // IMPORTANT: Set bounce buffer to avoid large internal RAM allocation
+    panel_config.bounce_buffer_size_px = LCD_H_RES * 10;
+
+    panel_config.data_width = 16;
+    panel_config.psram_trans_align = 64;
+    panel_config.hsync_gpio_num = (gpio_num_t)LCD_PIN_HSYNC;
+    panel_config.vsync_gpio_num = (gpio_num_t)LCD_PIN_VSYNC;
+    panel_config.de_gpio_num = (gpio_num_t)LCD_PIN_DE;
+    panel_config.pclk_gpio_num = (gpio_num_t)LCD_PIN_PCLK;
+
+    panel_config.data_gpio_nums[0] = (gpio_num_t)LCD_PIN_DATA0;
+    panel_config.data_gpio_nums[1] = (gpio_num_t)LCD_PIN_DATA1;
+    panel_config.data_gpio_nums[2] = (gpio_num_t)LCD_PIN_DATA2;
+    panel_config.data_gpio_nums[3] = (gpio_num_t)LCD_PIN_DATA3;
+    panel_config.data_gpio_nums[4] = (gpio_num_t)LCD_PIN_DATA4;
+    panel_config.data_gpio_nums[5] = (gpio_num_t)LCD_PIN_DATA5;
+    panel_config.data_gpio_nums[6] = (gpio_num_t)LCD_PIN_DATA6;
+    panel_config.data_gpio_nums[7] = (gpio_num_t)LCD_PIN_DATA7;
+    panel_config.data_gpio_nums[8] = (gpio_num_t)LCD_PIN_DATA8;
+    panel_config.data_gpio_nums[9] = (gpio_num_t)LCD_PIN_DATA9;
+    panel_config.data_gpio_nums[10] = (gpio_num_t)LCD_PIN_DATA10;
+    panel_config.data_gpio_nums[11] = (gpio_num_t)LCD_PIN_DATA11;
+    panel_config.data_gpio_nums[12] = (gpio_num_t)LCD_PIN_DATA12;
+    panel_config.data_gpio_nums[13] = (gpio_num_t)LCD_PIN_DATA13;
+    panel_config.data_gpio_nums[14] = (gpio_num_t)LCD_PIN_DATA14;
+    panel_config.data_gpio_nums[15] = (gpio_num_t)LCD_PIN_DATA15;
+
+    panel_config.disp_gpio_num = GPIO_NUM_NC;
+    panel_config.num_fbs = 1;
+    panel_config.flags.fb_in_psram = 1;
+
+    ESP_LOGI("LCD", "Creating RGB Panel...");
+
+    esp_lcd_panel_handle_t panel_handle = nullptr;
+    ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+
+    ESP_LOGI("LCD", "RGB Panel initialized.");
+
+    void *fb = nullptr;
+    ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 1, &fb));
+
+    mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) mla_malloc(sizeof(mla_esp32_surface_t));
+
+    if (esp_surface == nullptr) {
+        ESP_LOGE("LCD", "Failed to allocate memory for esp32 surface.");
         return false;
     }
 
-    mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) mla_malloc(sizeof(mla_esp32_surface_t));
-    esp_surface->panel = nullptr; // QQQ Assign initialized panel
-    esp_surface->frame_buffer = fb;
+    esp_surface->panel = (mla_pointer_t)panel_handle;
+    esp_surface->frame_buffer = (uint16_t*)fb;
     esp_surface->size = {LCD_H_RES, LCD_V_RES};
-
-    // Init software renderer
-    esp_surface->renderer = {fb, LCD_H_RES, LCD_V_RES};
+    esp_surface->renderer = {(uint16_t*)fb, LCD_H_RES, LCD_V_RES};
 
     // Initial clear
     mla_esp32_software_renderer_clear(&esp_surface->renderer, 0x0000);
@@ -415,7 +635,12 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
     s_global_surface = esp_surface;
     s_is_initialized = true;
 
+    ESP_LOGI("LCD", "Surface created successfully.");
+
     return true;
+#else
+    return false;
+#endif
 }
 
 mla_ui_surface_low_level_access_t g_ui_surface_low_level_access = {
@@ -423,5 +648,3 @@ mla_ui_surface_low_level_access_t g_ui_surface_low_level_access = {
 };
 
 #endif
-
-
