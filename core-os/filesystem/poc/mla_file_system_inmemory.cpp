@@ -171,9 +171,7 @@ mla_bool_t __mla_file_system_inmemory_file_exists(mla_file_system_t &file_system
 
 }
 
-mla_bool_t __mla_file_system_inmemory_open_file(mla_file_system_t &file_system, const mla_string_t &path,
-                                                mla_file_system_file_open_mode mode,
-                                                mla_file_system_file_open_mode &out_stream) {
+mla_bool_t __mla_file_system_inmemory_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
     return false;
 }
 
@@ -312,7 +310,7 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
     freeBlock->type = MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_DIRECTORY;
     freeBlock->next = mla_size_max;
 
-    __mla_file_system_inmemory_read_string_data()
+    //__mla_file_system_inmemory_read_string_data()
 
 
     return true;
