@@ -3,6 +3,8 @@
 //
 
 #include "mla_ui_control_surface.h"
+
+#include "mla_ui_loading_indicator.h"
 #include "../../system/mla_buffer.h"
 #include "../../task/mla_task_manager.h"
 #include "../../system/mla_id.h"
@@ -13,7 +15,8 @@
 mla_ui_control_surface_drawing_t mla_ui_control_surface_drawing_empty() {
     return {
     mla_array_list_empty<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>(),
-        mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>()
+        mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>(),
+        0
     };
 }
 
@@ -21,8 +24,15 @@ mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_empty() {
     return {
         mla_array_list_empty<mla_ui_control_t, mla_ui_control_initializer_t>(),
         mla_array_list_empty<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>(),
-        nullptr,
-        0
+        nullptr
+    };
+}
+
+mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_create(const mla_ui_control_surface_process_task_t &renderingTask) {
+    return {
+        mla_array_list_empty<mla_ui_control_t, mla_ui_control_initializer_t>(),
+        mla_array_list_empty<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>(),
+        renderingTask
     };
 }
 
@@ -38,17 +48,17 @@ mla_ui_control_surface_t mla_ui_control_surface_empty() {
     };
 }
 
-mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface) {
-    return mla_ui_control_surface_create(surface, 0);
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &processTask) {
+    return mla_ui_control_surface_create(surface, processTask, 0);
 }
 
-mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, mla_callback_userdata userData) {
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &renderingTask, mla_callback_userdata userData) {
     return {
         mla_string_empty(),
         mla_buffer_reference_noOwner(),
         surface,
         mla_mutex_create("mla_ui_control_surface_lock"),
-        mla_ui_control_surface_rendering_empty(),
+        mla_ui_control_surface_rendering_create(renderingTask),
         mla_ui_control_surface_drawing_empty(),
         userData
     };
@@ -77,6 +87,8 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_pointer_t data, mla
             mla_task_manager_abort_task(__mla_ui_control_surface_rendering_task_name(connector->taskId));
             mla_task_manager_abort_task(__mla_ui_control_surface_drawing_task_name(connector->taskId));
         }
+
+        connector->taskId = mla_string_empty();
     }
 
     // No cleanup needed for this resource. We just need to stop the tasks.
@@ -110,6 +122,20 @@ mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_
     return connector->surface.calc_text_size(connector->surface, font_type, text);
 }
 
+
+mla_ui_control_t __mla_ui_control_surface_build_loading_indicator(const mla_ui_control_context_t& context) {
+
+
+    mla_ui_control_t loadingPanel = mla_ui_loading_indicator();
+    // Center the loading indicator
+    loadingPanel.layout.x = (context.width - 50) / 2.0; // Assuming 50x50 size for loading indicator
+    loadingPanel.layout.y = (context.height - 50) / 2.0;
+    loadingPanel.layout.width = 50;
+    loadingPanel.layout.height = 50;
+    return loadingPanel;
+
+}
+
 mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_userdata userData) {
 
     mla_ui_control_surface_t* connector = reinterpret_cast<mla_ui_control_surface_t*>(userData);
@@ -133,10 +159,10 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
     // Process input events
     mla_ui_control_process_input_events(connector->rendering.root, unprocessedInputEvents, connector->rendering.inputAreas, connector->userData);
 
-    if (connector->rendering.renderingTask) {
+    if (connector->rendering.processTask) {
 
         // Call custom rendering task if provided
-        if (!connector->rendering.renderingTask(connector->rendering.root, surfaceSize, input_states)) {
+        if (!connector->rendering.processTask(connector->rendering.root, surfaceSize, input_states)) {
             mla_error("Custom rendering task failed");
             return TASK_PROCESS_RESULT_CONTINUE;
         }
@@ -144,14 +170,27 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
 
     // Update the draw commands
     mla_uint64_t currentTimeMs = mla_system_time_ms();
-    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->rendering.lastFrameTimeMs);
+    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->drawing.lastFrameTimeMs);
 
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas = mla_array_list<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
 
+    mla_bool_t hasControlsToRender = mla_array_list_size(connector->rendering.root) > 0;
 
-    if (!mla_ui_controls_render_to_draw_commands(context, connector->rendering.root, drawCommands, inputAreas)) {
+    if (!hasControlsToRender) {
+        // If no controls to render, draw a loading screen
+        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
+        mla_array_list_add(connector->rendering.root, loadingIndicator);
+    }
+
+    mla_bool_t drawSucessfull = mla_ui_controls_render_to_draw_commands(context, connector->rendering.root, drawCommands, inputAreas);
+
+    if (!hasControlsToRender) {
+        mla_array_list_clear(connector->rendering.root);
+    }
+
+    if (!drawSucessfull) {
         mla_error("Failed to render UI controls to draw commands");
         return TASK_PROCESS_RESULT_CONTINUE;
     }
@@ -165,7 +204,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_callback_
     // Update drawing data
     connector->drawing.drawCommands = drawCommands;
     connector->rendering.inputAreas = inputAreas;
-    connector->rendering.lastFrameTimeMs = currentTimeMs;
+    connector->drawing.lastFrameTimeMs = currentTimeMs;
 
     mla_mutex_unlock(connector->lock);
 
@@ -205,6 +244,7 @@ mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_callback
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
+
 mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_callback_userdata userData) {
 
     mla_ui_control_surface_t* connector = reinterpret_cast<mla_ui_control_surface_t*>(userData);
@@ -219,10 +259,10 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
     mla_ui_control_process_input_events(connector->rendering.root, connector->drawing.unprocessedInputEvents, connector->rendering.inputAreas, connector->userData);
     mla_array_list_clear(connector->drawing.unprocessedInputEvents);
 
-    if (connector->rendering.renderingTask) {
+    if (connector->rendering.processTask) {
 
         // Call custom rendering task if provided
-        if (!connector->rendering.renderingTask(connector->rendering.root, surfaceSize, input_states)) {
+        if (!connector->rendering.processTask(connector->rendering.root, surfaceSize, input_states)) {
             mla_error("Custom rendering task failed");
             return TASK_PROCESS_RESULT_CONTINUE;
         }
@@ -230,14 +270,28 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
 
     // Update the draw commands
     mla_uint64_t currentTimeMs = mla_system_time_ms();
-    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->rendering.lastFrameTimeMs);
+    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->drawing.lastFrameTimeMs);
 
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
 
     mla_array_list_clear(connector->drawing.drawCommands);
     mla_array_list_clear(connector->rendering.inputAreas);
 
-    if (!mla_ui_controls_render_to_draw_commands(context, connector->rendering.root, connector->drawing.drawCommands, connector->rendering.inputAreas)) {
+    mla_bool_t hasControlsToRender = mla_array_list_size(connector->rendering.root) > 0;
+
+    if (!hasControlsToRender) {
+        // If no controls to render, draw a loading screen
+        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
+        mla_array_list_add(connector->rendering.root, loadingIndicator);
+    }
+
+    mla_bool_t drawSucessfull = mla_ui_controls_render_to_draw_commands(context, connector->rendering.root, connector->drawing.drawCommands, connector->rendering.inputAreas);
+
+    if (!hasControlsToRender) {
+        mla_array_list_clear(connector->rendering.root);
+    }
+
+    if (!drawSucessfull) {
         mla_error("Failed to render UI controls to draw commands");
         return TASK_PROCESS_RESULT_CONTINUE;
     }
@@ -249,23 +303,22 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
         connector->drawing.unprocessedInputEvents
     );
 
-    connector->rendering.lastFrameTimeMs = currentTimeMs;
+    connector->drawing.lastFrameTimeMs = currentTimeMs;
 
     return TASK_PROCESS_RESULT_CONTINUE;
 
 }
 
-mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask) {
+mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
 
-    if (connector.rendering.renderingTask) {
+    if (!mla_string_is_empty(connector.taskId)) {
         mla_warning("Connector is already started");
         return false;
     }
 
     // Init rendering
-    connector.rendering.root = root;
-    connector.rendering.renderingTask = renderingTask;
     connector.rendering.inputAreas = mla_array_list_empty<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
+    connector.drawing.lastFrameTimeMs = mla_uint64_max;
 
     mla_string_t id = mla_generate_runtime_id();
 
@@ -305,17 +358,16 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector, mla
     return true;
 }
 
-mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask) {
+mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector) {
 
-    if (connector.rendering.renderingTask) {
+    if (!mla_string_is_empty(connector.taskId)) {
         mla_warning("Connector is already started");
         return false;
     }
 
     // Init rendering
-    connector.rendering.root = root;
-    connector.rendering.renderingTask = renderingTask;
     connector.rendering.inputAreas = mla_array_list_empty<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
+    connector.drawing.lastFrameTimeMs = mla_uint64_max;
 
     mla_string_t id = mla_generate_runtime_id();
 

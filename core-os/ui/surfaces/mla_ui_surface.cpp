@@ -4,27 +4,10 @@
 
 #include "../surfaces/mla_ui_surface.h"
 
-mla_global mla_ui_surface_low_level_access_t g_ui_surface_low_level_access;
-
 mla_ui_surface_t mla_ui_surface_invalid() {
     return {
         nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr, nullptr
     };
-}
-
-mla_ui_surface_t mla_ui_surface_create() {
-
-    if (g_ui_surface_low_level_access.create_surface == nullptr) {
-        return mla_ui_surface_invalid();
-    }
-
-    mla_ui_surface_t surface = mla_ui_surface_invalid();
-
-    if (!g_ui_surface_low_level_access.create_surface(surface)) {
-        return mla_ui_surface_invalid();
-    }
-
-    return surface;
 }
 
 mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface) {

@@ -12,19 +12,19 @@
 struct mla_ui_control_surface_drawing_t {
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands;
     mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> unprocessedInputEvents;
+    mla_uint64_t lastFrameTimeMs; // Time when the last frame was rendered
 };
 
 mla_ui_control_surface_drawing_t mla_ui_control_surface_drawing_empty();
 
 struct mla_ui_control_surface_rendering_t;
 
-typedef mla_bool_t (*mla_ui_control_surface_rendering_task_t)(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states);
+typedef mla_bool_t (*mla_ui_control_surface_process_task_t)(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states);
 
 struct mla_ui_control_surface_rendering_t {
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> root;
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas;
-    mla_ui_control_surface_rendering_task_t renderingTask;
-    mla_uint64_t lastFrameTimeMs; // Time when the last frame was rendered
+    mla_ui_control_surface_process_task_t processTask;
 };
 
 mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_empty();
@@ -41,11 +41,11 @@ struct mla_ui_control_surface_t {
 
 mla_ui_control_surface_t mla_ui_control_surface_empty();
 
-mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface);
-mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, mla_callback_userdata userData);
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &processTask);
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &renderingTask, mla_callback_userdata userData);
 
-mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask);
-mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>& root, const mla_ui_control_surface_rendering_task_t &renderingTask);
+mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector);
+mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector);
 
 mla_bool_t mla_ui_control_surface_stop(mla_ui_control_surface_t &connector);
 

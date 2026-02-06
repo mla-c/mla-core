@@ -32,6 +32,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/serializer/mla_json_serializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/serializer/mla_xml_serializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/utils/mla_endian_utils.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/utils/mla_math_utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/hash/mla_sha1.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/rpc/mla_rpc.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/lifecycle/mla_lifecycle_events.cpp
@@ -43,7 +44,10 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_label.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_button.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_text_edit.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_loading_indicator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/surfaces/mla_ui_surface_draw.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_control_surface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/surfaces/mla_ui_surface.cpp
 )
 
 # Network source files
@@ -69,8 +73,7 @@ set(SOURCE_FILE_SYSTEM_FILES
 
 # UI source files
 set(SOURCE_UI_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/controls/mla_ui_control_surface.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/surfaces/mla_ui_surface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/ui/display/mla_ui_display_surface.cpp
 )
 
 # Test support source files

@@ -6,6 +6,7 @@
 #define COREOS_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
+#include "../../core-os/ui/display/mla_ui_display_surface.h"
 
 #if defined(ESP32)
 #include <freertos/FreeRTOS.h>
@@ -643,7 +644,7 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
 #endif
 }
 
-mla_ui_surface_low_level_access_t g_ui_surface_low_level_access = {
+mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
     __esp32_create_surface
 };
 

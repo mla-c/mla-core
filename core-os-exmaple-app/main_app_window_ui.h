@@ -11,6 +11,7 @@
 #include "../core-os/ui/controls/mla_ui_button.h"
 #include "../core-os/ui/controls/mla_ui_text_edit.h"
 #include "../core-os/ui/controls/mla_ui_control_surface.h"
+#include "../core-os/ui/display/mla_ui_display_surface.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 static mla_ui_control_surface_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_empty();
@@ -30,27 +31,9 @@ inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const m
     mla_ui_button_set_disable(*disabledButton, !mla_ui_button_get_disable(*disabledButton));
 }
 
-inline mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> __main_app_build_ui() {
+mla_bool_t main_app_window_ui_process(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
 
-    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls = mla_array_list<mla_ui_control_t, mla_ui_control_initializer_t>();
-
-    // Create example labels (Left Column)
-    mla_ui_control_t titleLabel = mla_ui_label();
-    mla_ui_label_set_text(titleLabel, mla_string_const("Loading"));
-    mla_ui_label_set_font_size(titleLabel, MLA_UI_FONT_SIZE_PAGE_TITLE);
-    mla_ui_label_set_text_kind(titleLabel, MLA_UI_TEXT_KIND_PRIMARY);
-    titleLabel.layout.x = 20;
-    titleLabel.layout.y = 20;
-    titleLabel.layout.width = 400;
-    titleLabel.layout.height = 40;
-    mla_array_list_add(uiControls, titleLabel);
-
-    return uiControls;
-}
-
-mla_bool_t main_app_window_ui_rendering(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
-
-    if (mla_array_list_size(root) != 1) {
+    if (true) {
         return true;
     }
 
@@ -303,7 +286,7 @@ mla_bool_t main_app_window_ui_rendering(mla_array_list_t<mla_ui_control_t, mla_u
 inline void main_app_window_ui_init() {
 
     // Create a windowed application UI here
-    g_main_app_window_ui_surface = mla_ui_surface_create();
+    g_main_app_window_ui_surface = mla_ui_display_surface_create();
 
     if (!mla_ui_surface_is_valid(g_main_app_window_ui_surface)) {
         mla_error("Failed to create main application window UI surface!");
@@ -313,11 +296,10 @@ inline void main_app_window_ui_init() {
     mla_debug("Start build UI");
 
     // Build the UI controls
-    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> uiControls =  __main_app_build_ui();
-    g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface);
+    g_main_app_window_ui_surface_connector = mla_ui_control_surface_create(g_main_app_window_ui_surface, main_app_window_ui_process);
 
     // Start the single-threaded mode for rendering
-    mla_ui_control_surface_start_single_threaded_mode(g_main_app_window_ui_surface_connector, uiControls, main_app_window_ui_rendering);
+    mla_ui_control_surface_start_single_threaded_mode(g_main_app_window_ui_surface_connector);
 
 }
 

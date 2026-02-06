@@ -36,7 +36,6 @@ struct mla_ui_surface_t {
 };
 
 mla_ui_surface_t mla_ui_surface_invalid();
-mla_ui_surface_t mla_ui_surface_create();
 mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface);
 
 mla_ui_surface_size_t mla_ui_surface_get_size(const mla_ui_surface_t& surface);
@@ -45,13 +44,5 @@ mla_bool_t mla_ui_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surfa
 mla_ui_surface_input_states_t mla_ui_surface_get_input_states(const mla_ui_surface_t &surface);
 
 mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame);
-
-
-// Low level access to UI surface creation
-////////////////////////////////////////////////////////////////////////////
-
-struct mla_ui_surface_low_level_access_t {
-    mla_bool_t (*create_surface)(mla_ui_surface_t& outSurface);
-};
 
 #endif
