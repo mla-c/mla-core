@@ -10,6 +10,7 @@
 #include "../core-os/ui/controls/mla_ui_label.h"
 #include "../core-os/ui/controls/mla_ui_button.h"
 #include "../core-os/ui/controls/mla_ui_text_edit.h"
+#include "../core-os/ui/controls/mla_ui_loading_indicator.h"
 #include "../core-os/ui/controls/mla_ui_control_surface.h"
 #include "../core-os/ui/display/mla_ui_display_surface.h"
 
@@ -33,11 +34,41 @@ inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const m
 
 mla_bool_t main_app_window_ui_process(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
 
+    if (mla_array_list_size(root) > 0) {
+        return true;
+    }
+
+    // Create multiple loading indicator near to each other starting from the top left corner each has witdh 50 and height 10 no spacing between them
+    // We create as much loading indicators as possible until we reach the end of the surface width (surfaceSize.width) and then we move to the next line and repeat the process until we reach the end of the surface height (surfaceSize.height)
+
+    // Loading indicator dimensions
+    const mla_uint32_t indicatorWidth = 50;
+    const mla_uint32_t indicatorHeight = 50;
+
+    // Calculate how many indicators fit horizontally and vertically
+    const mla_uint32_t indicatorsPerRow = surfaceSize.width / indicatorWidth;
+    const mla_uint32_t indicatorsPerColumn = surfaceSize.height / indicatorHeight;
+
+    // Create loading indicators in a grid pattern
+    for (mla_uint32_t row = 0; row < indicatorsPerColumn; row++) {
+        for (mla_uint32_t col = 0; col < indicatorsPerRow; col++) {
+            mla_ui_control_t control = mla_ui_loading_indicator();
+
+            control.layout.x = col * indicatorWidth;
+            control.layout.y = row * indicatorHeight;
+            control.layout.width = indicatorWidth;
+            control.layout.height = indicatorHeight;
+
+            mla_array_list_add(root, control);
+        }
+    }
+
+
+
     if (true) {
         return true;
     }
 
-    mla_array_list_clear(root);
 
     // Create example labels (Left Column)
     mla_ui_control_t control = mla_ui_label();

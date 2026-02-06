@@ -205,10 +205,20 @@ mla_ui_surface_size_t __windows_surface_get_size(const mla_ui_surface_t &surface
     }
 
     RECT rect;
-
     if (GetClientRect(window_surface->hwnd, &rect)) {
-        size.width = (mla_uint32_t) (rect.right - rect.left);
-        size.height = (mla_uint32_t) (rect.bottom - rect.top);
+        // Get physical pixel size
+        mla_uint32_t physicalWidth = (mla_uint32_t)(rect.right - rect.left);
+        mla_uint32_t physicalHeight = (mla_uint32_t)(rect.bottom - rect.top);
+
+        // Convert to DIPs using system DPI
+        FLOAT dpiX = 96.0f;
+        FLOAT dpiY = 96.0f;
+        if (g_pD2DFactory) {
+            g_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
+        }
+
+        size.width = (mla_uint32_t)((mla_double_t)physicalWidth * (96.0f / dpiX));
+        size.height = (mla_uint32_t)((mla_double_t)physicalHeight * (96.0f / dpiY));
     }
 
     return size;
@@ -230,10 +240,20 @@ mla_bool_t __windows_surface_set_size(const mla_ui_surface_t &surface, mla_ui_su
         return false;
     }
 
-    if (SetWindowPos(window_surface->hwnd, nullptr, 0, 0, (int) size.width, (int) size.height,
+    // Convert DIPs to physical pixels using system DPI
+    FLOAT dpiX = 96.0f;
+    FLOAT dpiY = 96.0f;
+    if (g_pD2DFactory) {
+        g_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
+    }
+
+    mla_int32_t physicalWidth = (mla_int32_t)((mla_double_t)size.width * (dpiX / 96.0f));
+    mla_int32_t physicalHeight = (mla_int32_t)((mla_double_t)size.height * (dpiY / 96.0f));
+
+    if (SetWindowPos(window_surface->hwnd, nullptr, 0, 0, physicalWidth, physicalHeight,
                      SWP_NOMOVE | SWP_NOZORDER)) {
         return true;
-    }
+                     }
 
     return false;
 }
