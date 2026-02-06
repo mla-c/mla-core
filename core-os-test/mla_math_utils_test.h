@@ -7,7 +7,6 @@
 
 #include "../core-os/utils/mla_math_utils.h"
 #include "../core-os-test-support/mla_test_executor.h"
-#include "../core-os-test-support/mla_benchmark_executor.h"
 
 inline void MathSinTest() {
     // Test known values
