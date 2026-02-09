@@ -249,62 +249,11 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
 
     mla_ui_control_surface_t* connector = reinterpret_cast<mla_ui_control_surface_t*>(userData);
 
-    // No locking here as it's single threaded mode
-
-    // Get surface size and input states
-    mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(connector->surface);
-    mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(connector->surface);
-
-    // Process input events
-    mla_ui_control_process_input_events(connector->rendering.root, connector->drawing.unprocessedInputEvents, connector->rendering.inputAreas, connector->userData);
-    mla_array_list_clear(connector->drawing.unprocessedInputEvents);
-
-    if (connector->rendering.processTask) {
-
-        // Call custom rendering task if provided
-        if (!connector->rendering.processTask(connector->rendering.root, surfaceSize, input_states)) {
-            mla_error("Custom rendering task failed");
-            return TASK_PROCESS_RESULT_CONTINUE;
-        }
+    if (connector == nullptr) {
+        return TASK_PROCESS_RESULT_DONE;
     }
 
-    // Update the draw commands
-    mla_uint64_t currentTimeMs = mla_system_time_ms();
-    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->drawing.lastFrameTimeMs);
-
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
-
-    mla_array_list_clear(connector->drawing.drawCommands);
-    mla_array_list_clear(connector->rendering.inputAreas);
-
-    mla_bool_t hasControlsToRender = mla_array_list_size(connector->rendering.root) > 0;
-
-    if (!hasControlsToRender) {
-        // If no controls to render, draw a loading screen
-        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
-        mla_array_list_add(connector->rendering.root, loadingIndicator);
-    }
-
-    mla_bool_t drawSucessfull = mla_ui_controls_render_to_draw_commands(context, connector->rendering.root, connector->drawing.drawCommands, connector->rendering.inputAreas);
-
-    if (!hasControlsToRender) {
-        mla_array_list_clear(connector->rendering.root);
-    }
-
-    if (!drawSucessfull) {
-        mla_error("Failed to render UI controls to draw commands");
-        return TASK_PROCESS_RESULT_CONTINUE;
-    }
-
-    // Render to surface
-    mla_ui_surface_render_draw_commands(
-        connector->surface,
-        connector->drawing.drawCommands,
-        connector->drawing.unprocessedInputEvents
-    );
-
-    connector->drawing.lastFrameTimeMs = currentTimeMs;
-
+    mla_ui_control_surface_execute_render_and_draw(*connector);
     return TASK_PROCESS_RESULT_CONTINUE;
 
 }
@@ -388,6 +337,64 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
     connector.taskId = id;
 
     return true;
+}
+
+mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface_t &connector) {
+
+    // No locking here as it's single threaded mode
+
+    // Get surface size and input states
+    mla_ui_surface_size_t surfaceSize = mla_ui_surface_get_size(connector.surface);
+    mla_ui_surface_input_states_t input_states = mla_ui_surface_get_input_states(connector.surface);
+
+    // Process input events
+    mla_ui_control_process_input_events(connector.rendering.root, connector.drawing.unprocessedInputEvents, connector.rendering.inputAreas, connector.userData);
+    mla_array_list_clear(connector.drawing.unprocessedInputEvents);
+
+    if (connector.rendering.processTask) {
+
+        // Call custom rendering task if provided
+        if (!connector.rendering.processTask(connector.rendering.root, surfaceSize, input_states)) {
+            mla_error("Custom rendering task failed");
+            return false;
+        }
+    }
+
+    // Update the draw commands
+    mla_uint64_t currentTimeMs = mla_system_time_ms();
+    mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector.drawing.lastFrameTimeMs);
+
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, connector.userData);
+
+    mla_array_list_clear(connector.drawing.drawCommands);
+    mla_array_list_clear(connector.rendering.inputAreas);
+
+    mla_bool_t hasControlsToRender = mla_array_list_size(connector.rendering.root) > 0;
+
+    if (!hasControlsToRender) {
+        // If no controls to render, draw a loading screen
+        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
+        mla_array_list_add(connector.rendering.root, loadingIndicator);
+    }
+
+    mla_bool_t drawSucessfull = mla_ui_controls_render_to_draw_commands(context, connector.rendering.root, connector.drawing.drawCommands, connector.rendering.inputAreas);
+
+    if (!hasControlsToRender) {
+        mla_array_list_clear(connector.rendering.root);
+    }
+
+    if (!drawSucessfull) {
+        mla_error("Failed to render UI controls to draw commands");
+        return false;
+    }
+
+    // Render to surface
+    mla_ui_surface_render_draw_commands(connector.surface, connector.drawing.drawCommands, connector.drawing.unprocessedInputEvents);
+
+    connector.drawing.lastFrameTimeMs = currentTimeMs;
+
+    return true;
+
 }
 
 mla_bool_t mla_ui_control_surface_stop(mla_ui_control_surface_t &connector) {

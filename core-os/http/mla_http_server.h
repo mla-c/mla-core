@@ -57,8 +57,10 @@ struct mla_http_server_handler_item_initializer {
 struct mla_http_server_t;
 struct mla_http_server_websocket_connection_t;
 
+typedef mla_bool_t (*mla_http_websocket_open_handler_t)(mla_http_server_websocket_connection_t& connection);
 typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment);
 typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment);
+typedef void (*mla_http_websocket_closed_handler_t)(const mla_http_server_websocket_connection_t& connection);
 
 struct mla_http_server_websocket_connection_t {
     mla_http_server_t* server;
@@ -66,8 +68,10 @@ struct mla_http_server_websocket_connection_t {
     mla_string_t id;
     mla_mutex_t lock;
     mla_callback_userdata userdata;
+    mla_http_websocket_open_handler_t open_executor;
     mla_http_websocket_text_message_handler_t text_executor;
     mla_http_websocket_binary_message_handler_t binary_executor;
+    mla_http_websocket_closed_handler_t closed_executor;
     mla_buffer_reference_t userDataOwner;
 };
 
@@ -82,8 +86,10 @@ struct mla_http_server_websocket_connection_initializer {
 struct mla_http_server_websocket_handler_item_t {
     mla_callback_userdata userdata;
     mla_http_request_handler_checker_t checker;
+    mla_http_websocket_open_handler_t open_executor;
     mla_http_websocket_text_message_handler_t text_executor;
     mla_http_websocket_binary_message_handler_t binary_executor;
+    mla_http_websocket_closed_handler_t close_executor;
     mla_buffer_reference_t userDataOwner;
 };
 
@@ -97,6 +103,8 @@ struct mla_http_server_websocket_handler_item_initializer {
     static mla_http_server_websocket_handler_item_t init() {
         return {
             0,
+            nullptr,
+            nullptr,
             nullptr,
             nullptr,
             nullptr,

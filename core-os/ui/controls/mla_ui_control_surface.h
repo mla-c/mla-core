@@ -47,6 +47,8 @@ mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &s
 mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector);
 mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector);
 
+mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface_t &connector);
+
 mla_bool_t mla_ui_control_surface_stop(mla_ui_control_surface_t &connector);
 
 #endif
