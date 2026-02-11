@@ -80,6 +80,18 @@ struct mla_ui_http_server_web_surface_data_t {
     mla_array_list_t<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer> client_datas;
 };
 
+struct mla_ui_http_server_web_surface_data_initializer {
+    static mla_ui_http_server_web_surface_data_t init() {
+        return {
+            mla_string_empty(),
+            nullptr,
+            mla_array_list_empty<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>()
+        };
+    }
+};
+
+#define mla_ui_http_server_web_surface_data_user_data_name "wuisd"
+
 mla_ui_http_server_web_surface_data_client_t* mla_ui_http_server_web_surface_data_get_client_data(mla_ui_http_server_web_surface_data_t* surfaceData, const mla_string_t& connectionId) {
 
     for (mla_size_t i = 0; i < mla_array_list_size(surfaceData->client_datas); i++) {
@@ -97,7 +109,7 @@ mla_ui_http_server_web_surface_data_client_t* mla_ui_http_server_web_surface_dat
 
 mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment) {
 
-    mla_ui_http_server_web_surface_data_t *task_data = reinterpret_cast<mla_ui_http_server_web_surface_data_t *>(connection.userdata);
+    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
     if (task_data == nullptr)
         return false;
@@ -126,9 +138,9 @@ mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websock
     return true;
 }
 
-mla_bool_t __mla_ui_http_server_web_surface_path_checker(const mla_callback_userdata &userdata, const mla_string_t &url) {
+mla_bool_t __mla_ui_http_server_web_surface_path_checker(const mla_user_data_t &userdata, const mla_string_t &url) {
 
-    mla_ui_http_server_web_surface_data_t *task_data = reinterpret_cast<mla_ui_http_server_web_surface_data_t *>(userdata);
+    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
     if (task_data == nullptr)
         return false;
@@ -136,7 +148,7 @@ mla_bool_t __mla_ui_http_server_web_surface_path_checker(const mla_callback_user
     return mla_string_equals(url, task_data->surfaceName);
 }
 
-mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(data);
 
@@ -144,10 +156,8 @@ mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_pointer_t d
         return CLEAN_UP_SKIP; // Nothing to clean up
     }
 
-    taskData->surfaceName = mla_string_empty();
-    taskData->client_datas = mla_array_list_empty<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>();
     mla_task_manager_abort_task(taskData->surfaceName);
-
+    *taskData = mla_ui_http_server_web_surface_data_initializer::init(); // Reset the structure to release resources
     return CLEAN_UP_NEEDED;
 }
 
@@ -156,7 +166,7 @@ mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_pointer_t d
 
 mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_connection_t& connection) {
 
-    mla_ui_http_server_web_surface_data_t *task_data = reinterpret_cast<mla_ui_http_server_web_surface_data_t *>(connection.userdata);
+    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
     if (task_data == nullptr) {
         return false;
@@ -192,7 +202,7 @@ mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_conne
 
 void __mla_ui_http_server_web_surface_closed(const mla_http_server_websocket_connection_t& connection) {
 
-    mla_ui_http_server_web_surface_data_t *task_data = reinterpret_cast<mla_ui_http_server_web_surface_data_t *>(connection.userdata);
+    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
     if (task_data == nullptr) {
         return;
@@ -210,9 +220,9 @@ void __mla_ui_http_server_web_surface_closed(const mla_http_server_websocket_con
     }
 }
 
-mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_task(mla_callback_userdata userData) {
+mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_task(mla_user_data_t& userData) {
 
-    mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(userData);
+    mla_ui_http_server_web_surface_data_t* taskData = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(userData, mla_ui_http_server_web_surface_data_user_data_name);
 
     if (taskData == nullptr) {
         return TASK_PROCESS_RESULT_DONE;
@@ -241,14 +251,14 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, ml
     taskData->surfaceName = mla_string_concat("/surface/", surface_name);
     taskData->processTask = processTask;
     taskData->client_datas = mla_array_list_empty<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>();
-    mla_buffer_reference_t taskDataOwner = mla_buffer_reference(taskData, false, __mla_ui_http_server_web_surface_cleanup);
 
-    mla_http_server_websocket_handler_item_t handler = mla_http_server_websocket_handler(reinterpret_cast<mla_callback_userdata>(taskData),
+    mla_user_data_t ui_http_user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership_ex(ui_http_user_data, mla_ui_http_server_web_surface_data_user_data_name, taskData, __mla_ui_http_server_web_surface_cleanup, true);
+
+    mla_http_server_websocket_handler_item_t handler = mla_http_server_websocket_handler(ui_http_user_data,
             __mla_ui_http_server_web_surface_path_checker,
             __mla_ui_http_server_web_surface_text_handler,
-            nullptr,
-            taskDataOwner
-            );
+            nullptr);
 
     handler.open_executor = __mla_ui_http_server_web_surface_open;
     handler.close_executor = __mla_ui_http_server_web_surface_closed;
@@ -257,7 +267,7 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, ml
     mla_task_t render_draw_task = mla_task_repeating(
             taskData->surfaceName,
             __mla_ui_http_server_web_surface_render_and_draw_task,
-            reinterpret_cast<mla_callback_userdata>(&taskData)
+            ui_http_user_data
         );
 
     if (!mla_task_manager_register_task(render_draw_task)) {

@@ -22,7 +22,7 @@ static mla_rpc_cache_logger g_rpc_log_cache =  {
 };
 
 void __mla_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
-                              const mla_callback_userdata userData) {
+                              mla_user_data_t& userData) {
 
     (void)userData;
 
@@ -81,7 +81,7 @@ mla_bool_t mla_logger_rpc_activate() {
         mla_rpc_logger_level, // Default log level
         true, // Need full managed strings
         __mla_log_rpc_writer, // Function to write log messages
-        0
+        mla_user_data_empty()
     };
 
     return mla_log_register_logger(logger);

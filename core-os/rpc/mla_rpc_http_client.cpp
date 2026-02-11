@@ -16,10 +16,33 @@ struct mla_rpc_http_client_config {
     mla_http_rpc_content_type content_type;
 };
 
+struct mla_rpc_http_client_config_initializer {
+
+    static mla_rpc_http_client_config init() {
+        return {
+            mla_string_empty(),
+            mla_http_rpc_content_type_unknown
+        };
+    }
+
+};
+
 struct mla_rpc_http_request_body_config {
     mla_serialize_definition_t input_definition;
     const mla_pointer_t input_data;
     mla_http_rpc_content_type content_type;
+};
+
+struct mla_rpc_http_request_body_config_initializer {
+
+    static mla_rpc_http_request_body_config init() {
+        return {
+            mla_serialize_definition_invalid(),
+            nullptr,
+            mla_http_rpc_content_type_unknown
+        };
+    }
+
 };
 
 mla_string_t __mla_http_rpc_content_type_to_string(mla_http_rpc_content_type content_type) {
@@ -56,9 +79,11 @@ mla_bool_t __mla_http_rpc_request_content_write(mla_http_rpc_content_type conten
 
 }
 
+#define mla_http_rpc_request_content_writer_body_config_user_data_name "rpcHbc"
+
 mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
-    mla_rpc_http_request_body_config* body_config = reinterpret_cast<mla_rpc_http_request_body_config*>(writer.userData);
+    mla_rpc_http_request_body_config* body_config = mla_user_data_get_pointer<mla_rpc_http_request_body_config>(writer.userData, mla_http_rpc_request_content_writer_body_config_user_data_name);
 
     if (body_config == nullptr) {
         return false;
@@ -77,9 +102,11 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
 
 }
 
-mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data) {
+#define mla_rpc_http_client_config_user_data_name "rpcHCC"
 
-    mla_rpc_http_client_config* config = reinterpret_cast<mla_rpc_http_client_config*>(userdata);
+mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data) {
+
+    mla_rpc_http_client_config* config = mla_user_data_get_pointer<mla_rpc_http_client_config>(userdata, mla_rpc_http_client_config_user_data_name);
 
     if (config == nullptr) {
         return false;
@@ -122,7 +149,11 @@ mla_bool_t __mla_rpc_http_execute(const mla_callback_userdata& userdata, const m
 
             // We dont know the content length so send as chunked
             mla_http_headers_add(request.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
-            request.contentWriter = mla_http_request_content_writer(reinterpret_cast<mla_callback_userdata>(body_config), mla_buffer_reference(body_config), __mla_http_rpc_request_content_writer);
+
+            mla_user_data_t writer_user_data = mla_user_data_empty();
+            mla_user_data_set_pointer_with_ownership<mla_rpc_http_request_body_config, mla_rpc_http_request_body_config_initializer>(writer_user_data, mla_http_rpc_request_content_writer_body_config_user_data_name, body_config);
+
+            request.contentWriter = mla_http_request_content_writer(writer_user_data, __mla_http_rpc_request_content_writer);
 
         }
 
@@ -170,21 +201,21 @@ mla_rpc_remote_endpoint_t mla_rpc_http_register_endpoint(const mla_string_t& ser
         return mla_rpc_remote_endpoint_invalid();
     }
 
-    mla_rpc_http_client_config* config = reinterpret_cast<mla_rpc_http_client_config*>(mla_malloc(sizeof(mla_rpc_http_client_config)));
+    mla_rpc_http_client_config* config = static_cast<mla_rpc_http_client_config*>(mla_malloc(sizeof(mla_rpc_http_client_config)));
 
     if (config == nullptr) {
         return mla_rpc_remote_endpoint_invalid();
     }
 
     mla_memset(config, 0, sizeof(mla_rpc_http_client_config));
-
     config->server_url = server_url;
     config->content_type = content_type;
-    mla_buffer_reference_t config_owner = mla_buffer_reference(config);
 
-    mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_all(__mla_rpc_http_execute,
-                                                                   reinterpret_cast<mla_callback_userdata>(config),
-                                                                   config_owner);
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_rpc_http_client_config, mla_rpc_http_client_config_initializer>(user_data, mla_rpc_http_client_config_user_data_name, config);
+
+    mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_all(__mla_rpc_http_execute, user_data);
+
     if (!mla_rpc_register_remote_endpoint(endpoint))
         return mla_rpc_remote_endpoint_invalid();
 

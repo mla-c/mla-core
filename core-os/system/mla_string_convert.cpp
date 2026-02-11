@@ -5,7 +5,6 @@
 
 #include "mla_string.h"
 #include "../mla_data_types.h"
-#include "mla_reference.h"
 
 mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 

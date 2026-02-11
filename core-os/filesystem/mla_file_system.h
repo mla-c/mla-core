@@ -28,7 +28,7 @@ struct mla_file_system_stream_t {
     mla_size_t (*read)(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Optional, can be nullptr if not supported
     mla_size_t (*write)(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer); // Optional, can be nullptr if not supported
 
-    mla_callback_userdata user_data;
+    mla_dynamic_data_t resource;
     mla_buffer_reference_t resourceOwner;
 };
 
@@ -60,7 +60,7 @@ struct mla_file_system_t {
     mla_bool_t (*delete_directory)(mla_file_system_t& file_system, const mla_string_t& path);
     mla_bool_t (*list_directory)(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
 
-    mla_callback_userdata user_data;
+    mla_dynamic_data_t user_data;
     mla_buffer_reference_t resourceOwner;
 };
 

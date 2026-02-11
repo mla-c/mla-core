@@ -20,7 +20,7 @@ struct mla_mutex_t {
 };
 
 mla_mutex_t mla_mutex_invalid();
-mla_mutex_t mla_mutex(mla_string_t name);
+mla_mutex_t mla_mutex(const mla_string_t& name);
 mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size);
 mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, mla_bool_t silent, const mla_char_t* source, mla_uint32_t line);
 mla_bool_t mla_mutex_try_unlock(const mla_mutex_t& mutex, const mla_char_t* source, mla_uint32_t line);

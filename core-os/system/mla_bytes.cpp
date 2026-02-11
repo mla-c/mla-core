@@ -87,6 +87,17 @@ mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes) {
 
 }
 
+mla_size_t mla_bytes_length(const mla_bytes_t& p_Bytes) {
+
+    return p_Bytes.size;
+}
+
+mla_bool_t mla_bytes_is_empty(const mla_bytes_t& p_Bytes) {
+
+    return p_Bytes.data == nullptr || p_Bytes.size == 0;
+
+}
+
 void mla_bytes_destroy(mla_bytes_t& p_Bytes) {
 
     if (p_Bytes.data == nullptr) {

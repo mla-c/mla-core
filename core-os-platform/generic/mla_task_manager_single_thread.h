@@ -16,8 +16,7 @@ extern mla_task_manager_t g_TaskManager;
 
 mla_bool_t mla_task_manager_single_thread_create_task(
     const mla_task_worker_t worker,
-    mla_callback_userdata userData,
-    mla_callback_userdata userData2,
+    mla_user_data_t& userData,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
     mla_buffer_reference_t* outTaskResourceOwner,
@@ -25,7 +24,6 @@ mla_bool_t mla_task_manager_single_thread_create_task(
 ) {
     (void)worker; // Silences the unused parameter warning
     (void)userData; // Silences the unused parameter warning
-    (void)userData2; // Silences the unused parameter warning
     (void)stackSize; // Silences the unused parameter warning
     (void)priority; // Silences the unused parameter warning
     (void)outTaskResourceOwner; // Silences the unused parameter warning
@@ -147,7 +145,7 @@ mla_uint32_t mla_task_manager_single_thread_run_with_prio(mla_task_priority prio
 
                 if (task->worker != nullptr) {
 
-                    mla_task_process_result_state result_state = task->worker(task->workerUserdata, task->workerUserdata2);
+                    mla_task_process_result_state result_state = task->worker(task->userData);
 
                     if (result_state == TASK_PROCESS_RESULT_DONE) {
                         shared_states->processingState = TASK_STATE_COMPLETED;

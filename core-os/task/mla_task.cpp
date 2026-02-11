@@ -4,20 +4,27 @@
 
 #include "mla_task.h"
 
-mla_task_process_result_state __mla_task_worker_repeating(mla_callback_userdata userData, mla_callback_userdata userData2) {
-    mla_task_worker_repeating_t worker = reinterpret_cast<mla_task_worker_repeating_t>(userData);
+#define mla_user_data_name_task_rep_worker "tskRep"
+#define mla_user_data_name_task_one_worker "tskOne"
+
+mla_task_process_result_state __mla_task_worker_repeating(mla_user_data_t& userData) {
+
+    mla_task_worker_repeating_t worker = mla_user_data_get_callback<mla_task_worker_repeating_t>(userData, mla_user_data_name_task_rep_worker);
+
     if (worker != nullptr) {
-        return worker(userData2);
+        return worker(userData);
     }
     return TASK_PROCESS_RESULT_DONE;
 }
 
-mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeating_t worker, mla_callback_userdata userData) {
+mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeating_t worker, mla_user_data_t& userData) {
+
+    mla_user_data_set_callback(userData, mla_user_data_name_task_rep_worker, worker);
+
     return {
         name,
         __mla_task_worker_repeating,
-        reinterpret_cast<mla_callback_userdata>(worker),
-        userData, // Not used for repeating tasks
+        userData,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
         mla_buffer_reference_noOwner(),
@@ -26,20 +33,24 @@ mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeatin
     };
 }
 
-mla_task_process_result_state __mla_task_worker_one_time(mla_callback_userdata userData, mla_callback_userdata userData2) {
-    mla_task_worker_one_time_t worker = reinterpret_cast<mla_task_worker_one_time_t>(userData);
+mla_task_process_result_state __mla_task_worker_one_time(mla_user_data_t& userData) {
+
+    mla_task_worker_one_time_t worker = mla_user_data_get_callback<mla_task_worker_one_time_t>(userData, mla_user_data_name_task_one_worker);
+
     if (worker != nullptr) {
-        worker(userData2);
+        worker(userData);
     }
     return TASK_PROCESS_RESULT_DONE;
 }
 
-mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_callback_userdata userData) {
+mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_user_data_t& userData) {
+
+    mla_user_data_set_callback(userData, mla_user_data_name_task_one_worker, worker);
+
     return {
         name,
         __mla_task_worker_one_time,
-        reinterpret_cast<mla_callback_userdata>(worker),
-        userData, // Store the one-time worker as userdata
+        userData,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
         mla_buffer_reference_noOwner(),
@@ -48,12 +59,11 @@ mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_
     };
 }
 
-mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_callback_userdata userData, mla_callback_userdata userData2) {
+mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_user_data_t& userData) {
     return {
         name,
         worker,
         userData,
-        userData2,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
         mla_buffer_reference_noOwner(),

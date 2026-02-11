@@ -97,7 +97,7 @@ mla_global_ui_surface_windows_opengl_Cache __mla_global_ui_surface_windows_openg
     };
 }
 
-mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(mla_pointer_t data, const mla_callback_userdata userData) {
     (void)userData;
     
     mla_opengl_font_resources* resources = static_cast<mla_opengl_font_resources*>(data);
@@ -1458,7 +1458,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(mla_pointer_t data, const mla_callback_userdata userData) {
     (void)userData;
     
     mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(data);

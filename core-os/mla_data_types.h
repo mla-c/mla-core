@@ -73,9 +73,39 @@
 #define mla_double_min (-1.79769313486231570e+308)
 #define mla_double_max (1.79769313486231570e+308)
 
-
 // Shortcut for common types
-#define mla_callback_userdata mla_uint64_t
+struct mla_dynamic_data_t {
+    union {
+        mla_bool_t asBool;
+        mla_int8_t asInt8;
+        mla_uint8_t asUint8;
+        mla_int16_t asInt16;
+        mla_uint16_t asUint16;
+        mla_int32_t asInt32;
+        mla_uint32_t asUint32;
+        mla_int64_t asInt64;
+        mla_uint64_t asUint64;
+        mla_float_t asFloat;
+        mla_double_t asDouble;
+        mla_pointer_t asPointer;
+        mla_char_t asChar;
+    };
+};
+
+mla_dynamic_data_t mla_dynamic_data_empty();
+mla_dynamic_data_t mla_dynamic_data_from_bool(mla_bool_t value);
+mla_dynamic_data_t mla_dynamic_data_from_int8(mla_int8_t value);
+mla_dynamic_data_t mla_dynamic_data_from_uint8(mla_uint8_t value);
+mla_dynamic_data_t mla_dynamic_data_from_int16(mla_int16_t value);
+mla_dynamic_data_t mla_dynamic_data_from_uint16(mla_uint16_t value);
+mla_dynamic_data_t mla_dynamic_data_from_int32(mla_int32_t value);
+mla_dynamic_data_t mla_dynamic_data_from_uint32(mla_uint32_t value);
+mla_dynamic_data_t mla_dynamic_data_from_int64(mla_int64_t value);
+mla_dynamic_data_t mla_dynamic_data_from_uint64(mla_uint64_t value);
+mla_dynamic_data_t mla_dynamic_data_from_float(mla_float_t value);
+mla_dynamic_data_t mla_dynamic_data_from_double(mla_double_t value);
+mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_pointer_t value);
+mla_dynamic_data_t mla_dynamic_data_from_char(mla_char_t value);
 
 #define mla_size_t mla_uint32_t
 #define mla_size_min mla_uint32_min
@@ -216,6 +246,7 @@ struct mla_default_initializer {
 };
 
 #define mla_default_init(T) mla_default_initializer<T>
+#define mla_default_init_ref(T) mla_default_initializer<T*>
 
 //#define mla_offsetof(type, member) ((mla_size_t)((mla_byte_t*)&(((type*)((mla_byte_t*)1))->member) - (mla_byte_t*)1))
 #define mla_offsetof(type, member) ((mla_size_t)__builtin_offsetof(type, member))

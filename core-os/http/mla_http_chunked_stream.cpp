@@ -13,22 +13,25 @@ struct mla_http_chunked_stream_input_userdata_t {
     mla_size_t chunkSizeRemaining;
 };
 
-mla_buffer_cleanup_mode __mla_http_chunked_stream_input_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
-    (void)userData;
+struct mla_http_chunked_stream_input_userdata_initializer {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(data);
+    static mla_http_chunked_stream_input_userdata_t init() {
+        return {
+            mla_stream_noop_input(),
+            0,
+            false,
+            0
+        };
+    }
 
-    if (userdata == nullptr)
-        return CLEAN_UP_SKIP;
+};
 
-    // Clean up ref counter
-    userdata->baseStream = mla_stream_noop_input();
-    return CLEAN_UP_NEEDED;
-}
+#define mla_http_chunked_stream_input_user_data_name "httpci"
+
 
 mla_size_t __mla_http_chunked_stream_input_available_bytes(const mla_stream_input_t& input) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(input.userdata);
+    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
     if (userdata == nullptr || userdata->endOfStream) {
         return 0;
@@ -73,7 +76,7 @@ mla_bool_t __mla_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stre
 
 mla_size_t __mla_http_chunked_stream_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(input.userdata);
+    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
     if (userdata == nullptr || userdata->endOfStream) {
         return 0;
@@ -120,13 +123,13 @@ mla_stream_input_t mla_http_chunked_stream_input(const mla_stream_input_t &baseS
     userdata->endOfStream = false;
     userdata->chunkSizeRemaining = 0;
 
-    mla_buffer_reference_t owner = mla_buffer_reference(userdata, true, __mla_http_chunked_stream_input_cleanup);
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_http_chunked_stream_input_userdata_t, mla_http_chunked_stream_input_userdata_initializer>(user_data, mla_http_chunked_stream_input_user_data_name, userdata);
 
     return {
-        reinterpret_cast<mla_callback_userdata>(userdata),
+        user_data,
         __mla_http_chunked_stream_input_read,
         __mla_http_chunked_stream_input_available_bytes,
-        owner
     };
 
 }
@@ -151,34 +154,53 @@ mla_http_chunked_stream_output_t mla_http_chunked_stream_output_invalid() {
     };
 }
 
+struct mla_http_chunked_stream_output_userdata_t {
+    mla_stream_output_t baseStream;
+};
+
+struct mla_http_chunked_stream_output_userdata_initializer {
+
+    static mla_http_chunked_stream_output_userdata_t init() {
+        return {
+            mla_stream_noop_output()
+        };
+    }
+
+};
+
+#define mla_http_chunked_stream_output_user_data_name "httpco"
+
 mla_size_t __mla_http_chunked_stream_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     // Get the base stream
-    const mla_stream_output_t* baseStream = reinterpret_cast<const mla_stream_output_t*>(output.userdata);
-    if (baseStream == nullptr) {
+    mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_output_userdata_t>(output.userdata, mla_http_chunked_stream_output_user_data_name);
+
+    if (userdata == nullptr) {
         return 0;
     }
 
     // Write the chunk size in hexadecimal followed by CRLF
     mla_string_t chunkSizeStr = mla_string_from_uint64_hex(length);
 
-    if (!mla_stream_output_write_string(*baseStream, chunkSizeStr)) {
+    mla_stream_output_t& baseStream = userdata->baseStream;
+
+    if (!mla_stream_output_write_string(baseStream, chunkSizeStr)) {
         return 0;
     }
 
-    if (!mla_stream_output_write_string(*baseStream, mla_string_const("\r\n"))) {
+    if (!mla_stream_output_write_string(baseStream, mla_string_const("\r\n"))) {
         return 0;
     }
 
     // Write the actual chunk data
-    mla_size_t written = baseStream->write(*baseStream, offset, length, buffer);
+    mla_size_t written = baseStream.write(baseStream, offset, length, buffer);
 
     if (written != length) {
         return written;
     }
 
     // Write the trailing CRLF
-    if (!mla_stream_output_write_string(*baseStream, mla_string_const("\r\n"))) {
+    if (!mla_stream_output_write_string(baseStream, mla_string_const("\r\n"))) {
         return 0;
     }
 
@@ -187,13 +209,23 @@ mla_size_t __mla_http_chunked_stream_output_write(const mla_stream_output_t& out
 }
 
 mla_http_chunked_stream_output_t mla_http_chunked_stream_output(const mla_stream_output_t &baseStream) {
+    mla_http_chunked_stream_output_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_output_userdata_t*>(mla_malloc(sizeof(mla_http_chunked_stream_output_userdata_t)));
+
+    if (userdata == nullptr) {
+        return mla_http_chunked_stream_output_invalid();
+    }
+    mla_memset(userdata, 0, sizeof(mla_http_chunked_stream_output_userdata_t));
+
+    userdata->baseStream = baseStream;
+
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_http_chunked_stream_output_userdata_t, mla_http_chunked_stream_output_userdata_initializer>(user_data, mla_http_chunked_stream_output_user_data_name, userdata);
 
     return {
         {
-            reinterpret_cast<mla_callback_userdata>(&baseStream),
+            user_data,
             __mla_http_chunked_stream_output_write,
             baseStream.available_bytes,
-            baseStream.refOwner
         },
         baseStream
     };

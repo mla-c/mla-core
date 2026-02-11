@@ -192,7 +192,7 @@ mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, 
         return false; // No remote endpoint can handle this procedure
     }
 
-    return endpoint.execute_procedure(endpoint.procedure_userdata, procedure_name, input_definition, output_definition, input_data, output_data);
+    return endpoint.execute_procedure(endpoint.user_data, procedure_name, input_definition, output_definition, input_data, output_data);
 }
 
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures() {
@@ -201,81 +201,81 @@ mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initialize
 
 mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_invalid() {
     return {
-        0,
-        0,
+        mla_user_data_empty(),
         mla_string_empty(),
         nullptr,
-        nullptr,
-        mla_buffer_reference_noOwner(),
-        mla_buffer_reference_noOwner()
+        nullptr
     };
 }
 
-mla_bool_t __mla_rpc_remote_endpoint_all_checker(const mla_callback_userdata &userdata, const mla_string_t &procedure_name) {
+mla_bool_t __mla_rpc_remote_endpoint_all_checker(const mla_user_data_t &userdata, const mla_string_t &procedure_name) {
     (void)userdata;
     (void)procedure_name;
     return true;
 }
 
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner) {
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data) {
 
     return {
-        0,
-        procedure_userdata,
+        user_data,
         mla_generate_runtime_id(),
         __mla_rpc_remote_endpoint_all_checker,
-        execute_procedure_handler,
-        mla_buffer_reference_noOwner(),
-        procedure_userDataOwner
+        execute_procedure_handler
     };
 }
 
-mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_callback_userdata &userdata,
+struct mla_rpc_remote_endpoint_start_with_user_data_t {
+    mla_string_t prefix;
+};
+
+struct mla_rpc_remote_endpoint_start_with_user_data_initializer {
+    static mla_rpc_remote_endpoint_start_with_user_data_t init() {
+        return { mla_string_empty() };
+    }
+};
+
+#define mla_rpc_endpoint_start_with_user_data_name "rpcstar"
+
+mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& user_data,
                                                     const mla_string_t &procedure_name) {
-    mla_char_t *pathPrefix = reinterpret_cast<mla_char_t *>(userdata);
+
+    mla_rpc_remote_endpoint_start_with_user_data_t *pathPrefix = mla_user_data_get_pointer<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data, mla_rpc_endpoint_start_with_user_data_name);
 
     if (pathPrefix == nullptr)
         return false;
 
-    mla_string_t str_prefix = mla_string_from_buffer_without_ownership(pathPrefix, mla_strlen(pathPrefix));
-
-    return mla_string_starts_with(procedure_name, str_prefix);
+    return mla_string_starts_with(procedure_name, pathPrefix->prefix);
 }
 
 
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(mla_string_t start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner) {
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t& start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data) {
 
-    mla_c_string_t c_string = mla_string_to_cString(start_string, true);
+    mla_rpc_remote_endpoint_start_with_user_data_t* user_data_payload = reinterpret_cast<mla_rpc_remote_endpoint_start_with_user_data_t*>(mla_malloc(sizeof(mla_rpc_remote_endpoint_start_with_user_data_t)));
 
-    if (c_string.c_str == nullptr) {
+    if (user_data_payload == nullptr) {
         return mla_rpc_remote_endpoint_invalid();
     }
 
-    if (!c_string.isOwner) {
-        return mla_rpc_remote_endpoint_invalid();
-    }
+    user_data_payload->prefix = start_string;
+
+
+    mla_user_data_set_pointer_with_ownership<mla_rpc_remote_endpoint_start_with_user_data_t, mla_rpc_remote_endpoint_start_with_user_data_initializer>(user_data, mla_rpc_endpoint_start_with_user_data_name, user_data_payload);
 
     return {
-        reinterpret_cast<mla_callback_userdata>(c_string.c_str),
-        procedure_userdata,
+        user_data,
         mla_generate_runtime_id(),
         __mla_rpc_remote_endpoint_start_with_checker,
-        execute_procedure_handler,
-        mla_buffer_reference(c_string.c_str),
-        procedure_userDataOwner
+        execute_procedure_handler
     };
 }
 
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint(mla_rpc_remote_endpoint_can_handle can_handle_handler, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata checker_userdata, mla_buffer_reference_t checker_userDataOwner, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner) {
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint(mla_rpc_remote_endpoint_can_handle can_handle_handler, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data) {
 
     return {
-        checker_userdata,
-        procedure_userdata,
+        user_data,
         mla_generate_runtime_id(),
         can_handle_handler,
-        execute_procedure_handler,
-        checker_userDataOwner,
-        procedure_userDataOwner
+        execute_procedure_handler
     };
 }
 
@@ -326,7 +326,7 @@ mla_bool_t mla_rpc_remote_endpoint_find_handler(const mla_string_t &procedure_na
     for (mla_size_t i = 0; i < mla_array_list_size(g_rpc_container.remote_endpoints); i++) {
         mla_rpc_remote_endpoint_t& endpoint = mla_array_list_get_unsafe(g_rpc_container.remote_endpoints, i);
 
-        if (endpoint.can_handle(endpoint.checker_userdata, procedure_name)) {
+        if (endpoint.can_handle(endpoint.user_data, procedure_name)) {
             out_endpoint = endpoint;
             mla_rw_unlock_read(g_rpc_container.remote_endpoints_lock);
             return true;

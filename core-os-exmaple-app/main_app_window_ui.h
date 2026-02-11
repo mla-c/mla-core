@@ -17,7 +17,7 @@
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 static mla_ui_control_surface_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_empty();
 
-inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData) {
+inline void __main_app_primary_button_clicked(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData) {
     (void)control;
     (void)clickEvent;
     (void)uiControls;

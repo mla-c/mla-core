@@ -18,7 +18,7 @@
 mla_websocket_client_t mla_websocket_client_invalid() {
     return {
         mla_network_connection_disconnected(),
-        0
+        mla_user_data_empty()
     };
 }
 

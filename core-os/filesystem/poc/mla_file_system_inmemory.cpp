@@ -349,7 +349,7 @@ mla_bool_t __mla_file_system_inmemory_list_directories(mla_file_system_t &file_s
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
     mla_file_system_inmemory_t *fs = static_cast<mla_file_system_inmemory_t *>(data);
 

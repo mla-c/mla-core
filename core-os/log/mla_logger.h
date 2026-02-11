@@ -7,6 +7,7 @@
 
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
+#include "../system/mla_user_data.h"
 
 enum mla_log_level: mla_uint8_t {
     MLA_LOG_LEVEL_VERBOSE = 0, 	// Used for show verboses messages
@@ -16,7 +17,7 @@ enum mla_log_level: mla_uint8_t {
     MLA_LOG_LEVEL_ERROR = 4,		// Used for show error messages
 };
 
-typedef void(*mla_log_writer_t)(const mla_log_level level, mla_string_t& message, mla_string_t& context1, const mla_callback_userdata userData);
+typedef void(*mla_log_writer_t)(const mla_log_level level, mla_string_t& message, mla_string_t& context1, mla_user_data_t& userData);
 
 // Logger which can be register at the mla_logger_manager
 struct mla_logger_t {
@@ -24,10 +25,10 @@ struct mla_logger_t {
     mla_log_level level; // The log level of the logger
     mla_bool_t need_full_managed_strings; // Indicates if the logger needs fully managed strings
     mla_log_writer_t write;  // The function to write log messages
-    mla_callback_userdata userData; // User data for the log writer function
+    mla_user_data_t userData; // User data for the log writer function
 
     mla_bool_t operator==(const mla_logger_t& other) const {
-        return level == other.level && write == other.write && userData == other.userData;
+        return level == other.level && write == other.write && mla_user_data_equal(userData, other.userData);
     }
 };
 
@@ -39,7 +40,7 @@ struct  mla_logger_initializer {
             MLA_LOG_LEVEL_ERROR,
             false,
             nullptr,
-            0
+            mla_user_data_empty()
         };
     }
 };

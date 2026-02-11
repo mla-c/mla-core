@@ -7,14 +7,14 @@
 
 #include "../mla_data_types.h"
 #include "../system/mla_buffer.h"
-#include "mla_atomic.h"
+#include "../system/mla_user_data.h"
 
 enum mla_task_process_result_state: mla_uint8_t {
     TASK_PROCESS_RESULT_DONE,
     TASK_PROCESS_RESULT_CONTINUE,
 };
 
-typedef mla_task_process_result_state (*mla_task_worker_t)(mla_callback_userdata userData, mla_callback_userdata userData2);
+typedef mla_task_process_result_state (*mla_task_worker_t)(mla_user_data_t& user_data);
 
 enum mla_task_priority: mla_uint8_t {
     TASK_PRIO_LOW,
@@ -55,7 +55,7 @@ struct mla_task_shared_states {
 
 struct mla_task_manager_low_level_access {
 
-    mla_bool_t (*create_task)(const mla_task_worker_t worker, mla_callback_userdata userData, mla_callback_userdata userData2, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);
+    mla_bool_t (*create_task)(const mla_task_worker_t worker, mla_user_data_t& user_data, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);
     void (*run_tasks)();
     mla_bool_t (*create_mutex)(mla_pointer_t* outMutex);
     mla_bool_t (*lock_mutex)(mla_pointer_t mutex, mla_int32_t timeout);

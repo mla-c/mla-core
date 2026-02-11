@@ -7,24 +7,22 @@
 
 #include "mla_bytes.h"
 #include "../mla_data_types.h"
-#include "../system/mla_reference.h"
+#include "mla_user_data.h"
 
 // Define the buffer size for reading from fast streams non blocking streams
 // Is better to keep the memory low and read more often than allocating a big buffer
 #define mla_stream_fast_read_buffer_size 128
 
 struct mla_stream_input_t {
-    mla_callback_userdata userdata; // Userdata for the read function
+    mla_user_data_t userdata; // Userdata for the read function
     mla_size_t (*read)(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Read function
     mla_size_t (*remaining_bytes)(const mla_stream_input_t& input); // Function to get the remaining bytes, can be nullptr. If result is max size_t, means data are there but unknown size
-    mla_buffer_reference_t refOwner;
 };
 
 struct mla_stream_output_t {
-    mla_callback_userdata userdata;
+    mla_user_data_t userdata;
     mla_size_t (*write)(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer);
     mla_size_t (*available_bytes)(const mla_stream_output_t& output); // Function to get the available bytes, can be nullptr. If result is max size_t, means space is there but unknown size
-    mla_buffer_reference_t refOwner;
 };
 
 // No-op streams

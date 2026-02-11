@@ -57,7 +57,7 @@ la_global_ui_surface_windows_direct2d_Cache __mla_global_ui_surface_windows_dire
 }
 
 mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(
-    mla_pointer_t data, mla_callback_userdata userData) {
+    mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     ID2D1SolidColorBrush *solid_brush = static_cast<ID2D1SolidColorBrush *>(data);
@@ -73,8 +73,8 @@ ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_br
     la_global_ui_surface_windows_direct2d_Cache &cache, ID2D1RenderTarget *renderTarget, const D2D1_COLOR_F &color) {
     if (!cache.solidBrush) {
         renderTarget->CreateSolidColorBrush(color, &cache.solidBrush);
-        cache.solidBrushOwner = mla_buffer_reference(cache.solidBrush, true,
-                                                     __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup);
+        cache.solidBrushOwner = mla_buffer_reference_create(cache.solidBrush, true,
+                                                     __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup, mla_dynamic_data_empty());
         cache.currentFillColor = color;
     } else if (mla_memcmp(&cache.currentFillColor, &color, sizeof(D2D1_COLOR_F)) != 0) {
         cache.solidBrush->SetColor(color);
@@ -85,7 +85,7 @@ ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_br
 }
 
 mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(
-    mla_pointer_t data, mla_callback_userdata userData) {
+    mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     IDWriteTextFormat *textFormat = static_cast<IDWriteTextFormat *>(data);
@@ -153,8 +153,8 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
 
     mla_global_ui_surface_windows_direct2d_font_cache_item newItem = {
         fontType,
-        mla_buffer_reference(textFormat, true,
-                             __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup),
+        mla_buffer_reference_create(textFormat, true,
+                             __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup, mla_dynamic_data_empty()),
         textFormat
     };
 
@@ -1099,7 +1099,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     return SUCCEEDED(hr);
 }
 
-mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(data);
@@ -1140,7 +1140,7 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
 #endif
 
     outSurface.resource = window_surface;
-    outSurface.resourceOwner = mla_buffer_reference(window_surface, true, __windows_surface_buffer_cleanup);
+    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, __windows_surface_buffer_cleanup, mla_dynamic_data_empty());
     outSurface.get_size = __windows_surface_get_size;
     outSurface.set_size = __windows_surface_set_size;
     outSurface.render_draw_commands = __windows_surface_render_draw_commands;

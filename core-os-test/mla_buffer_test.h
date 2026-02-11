@@ -44,7 +44,7 @@ void SimpleReleaseTest() {
 
     mla_pointer_t data = mla_malloc(64);
 
-    my_buffer_test_t container = {data, mla_buffer(data)};
+    my_buffer_test_t container = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
 
     if (container.dataOwner.buffer != nullptr) {
         assert_equal(container.dataOwner.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after creation");
@@ -79,9 +79,9 @@ void SimpleReleaseTest() {
 
 }
 
-static mla_callback_userdata my_test_user_data = 0;
+static mla_dynamic_data_t my_test_user_data = mla_dynamic_data_empty();
 
-mla_buffer_cleanup_mode my_test_cleanup_hook(mla_pointer_t p_Data, mla_callback_userdata p_UserData) {
+mla_buffer_cleanup_mode my_test_cleanup_hook(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
     (void)p_Data;
     my_test_user_data = p_UserData;
     return CLEAN_UP_NEEDED;
@@ -90,7 +90,7 @@ mla_buffer_cleanup_mode my_test_cleanup_hook(mla_pointer_t p_Data, mla_callback_
 void CleanUpHookTests() {
 
     mla_pointer_t data = mla_malloc(64);
-    my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, 42)};
+    my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, mla_dynamic_data_from_int32(42))};
 
     if (container.dataOwner.buffer != nullptr) {
         assert_equal(container.dataOwner.buffer->refCount.value, (mla_int32_t)1, "Reference count should be 1 after creation");
@@ -98,9 +98,9 @@ void CleanUpHookTests() {
         assert_fail("Data buffer should not be null after creation");
     }
 
-    my_test_user_data = 0; // Reset user data before cleanup
+    my_test_user_data = mla_dynamic_data_empty(); // Reset user data before cleanup
     container = {nullptr, mla_buffer_reference_noOwner()}; // Clear the container
-    assert_equal(my_test_user_data, (mla_callback_userdata)42, "User data should be passed to cleanup hook");
+    assert_equal(my_test_user_data.asInt32, 42, "User data should be passed to cleanup hook");
 
 }
 
@@ -119,7 +119,7 @@ void RegisterBufferTests(mla_test_executor_t &p_TestExecutor) {
 void BufferMemoryManagementBenchmark() {
 
     mla_pointer_t data = mla_malloc(64);
-    my_buffer_test_t container1 = {data, mla_buffer(data)};
+    my_buffer_test_t container1 = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
     my_buffer_test_t container2 = container1;
     my_buffer_test_t container3 = container2;
 

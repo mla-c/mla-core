@@ -10,6 +10,7 @@
 #include "ws2tcpip.h"
 #include <cstdio>
 
+#define mla_network_connection_user_data_name "nwconn"
 
 mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     WSADATA wsaData;
@@ -71,9 +72,9 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
-    (void)userData;
-    SOCKET sock = (SOCKET)(uintptr_t)data;
+mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+    (void)data;
+    SOCKET sock = (SOCKET)userData.asUint64;
     if (sock != INVALID_SOCKET) {
 
         // Flush before closing
@@ -87,7 +88,8 @@ mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, mla_callbac
 mla_size_t __windows_socket_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)offset;
-    SOCKET sock = (SOCKET)(uintptr_t)input.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    SOCKET sock = (SOCKET)socket_data.asUint64;
     if (sock == INVALID_SOCKET) {
         return 0;
     }
@@ -101,7 +103,10 @@ mla_size_t __windows_socket_read(const mla_stream_input_t& input, mla_size_t off
 }
 
 mla_size_t __windows_socket_remaining_bytes(const mla_stream_input_t& input) {
-    SOCKET sock = (SOCKET)(uintptr_t)input.userdata;
+
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+
+    SOCKET sock = (SOCKET)socket_data.asUint64;
     if (sock == INVALID_SOCKET) {
         return 0;
     }
@@ -120,7 +125,9 @@ mla_size_t __windows_socket_remaining_bytes(const mla_stream_input_t& input) {
 mla_size_t __windows_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     (void)offset;
-    SOCKET sock = (SOCKET)(uintptr_t)output.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
+
+    SOCKET sock = (SOCKET)socket_data.asUint64;
     if (sock == INVALID_SOCKET) {
         return 0;
     }
@@ -227,20 +234,19 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
         setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay));
     }
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)sock, true, __windows_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), __windows_socket_cleanup);
 
     connection.inputStream = {
-        sock,
+        userData,
         __windows_socket_read,
-        __windows_socket_remaining_bytes,
-        ref
+        __windows_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        sock,
+        userData,
         __windows_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
@@ -248,7 +254,10 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
 
 mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
 
-    SOCKET listenSock = listener.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
+
+    SOCKET listenSock = (SOCKET)socket_data.asUint64;
+
     if (listenSock == INVALID_SOCKET) {
         return false;
     }
@@ -308,20 +317,20 @@ mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, m
 
     connection.host = peer;
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)clientSock, true, __windows_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(clientSock), __windows_socket_cleanup);
+
 
     connection.inputStream = {
-        clientSock,
+        userData,
         __windows_socket_read,
-        __windows_socket_remaining_bytes,
-        ref
+        __windows_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        clientSock,
+        userData,
         __windows_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
@@ -406,9 +415,10 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
         }
     }
 
-    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)(uintptr_t)sock, true, __windows_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), __windows_socket_cleanup);
     listener.accept_connection = __windows_accept_connection;
-    listener.userdata = sock;
+    listener.userdata = userData;
 
     return true;
 }

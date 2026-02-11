@@ -28,23 +28,20 @@ struct mla_rpc_procedure_unsafe_initializer {
     }
 };
 
-typedef mla_bool_t (*mla_rpc_remote_endpoint_can_handle)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name);
-typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_callback_userdata &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data);
+typedef mla_bool_t (*mla_rpc_remote_endpoint_can_handle)(const mla_user_data_t &userdata, const mla_string_t &procedure_name);
+typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data);
 
 struct mla_rpc_remote_endpoint_t {
-    mla_callback_userdata checker_userdata;
-    mla_callback_userdata procedure_userdata;
+    mla_user_data_t user_data;
     mla_string_t endpoint_id;
     mla_rpc_remote_endpoint_can_handle can_handle;
     mla_rpc_remote_endpoint_execute_procedure execute_procedure;
-    mla_buffer_reference_t checker_userDataOwner;
-    mla_buffer_reference_t procedure_userDataOwner;
 };
 
 mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_invalid();
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(mla_string_t start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
-mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint(mla_rpc_remote_endpoint_can_handle can_handle_handler, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_callback_userdata checker_userdata, mla_buffer_reference_t checker_userDataOwner, mla_callback_userdata procedure_userdata, mla_buffer_reference_t procedure_userDataOwner);
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data);
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t& start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data);
+mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint(mla_rpc_remote_endpoint_can_handle can_handle_handler, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data);
 mla_bool_t mla_rpc_register_remote_endpoint(const mla_rpc_remote_endpoint_t &endpoint);
 mla_bool_t mla_rpc_unregister_remote_endpoint(const mla_rpc_remote_endpoint_t &endpoint);
 mla_bool_t mla_rpc_remote_endpoint_find_handler(const mla_string_t &procedure_name, mla_rpc_remote_endpoint_t& out_endpoint);

@@ -8,11 +8,11 @@
 #include "../lifecycle/mla_lifecycle_events.h"
 
 mla_file_system_t mla_file_system_empty() {
-    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, mla_buffer_reference_noOwner() };
+    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, mla_dynamic_data_empty(), mla_buffer_reference_noOwner() };
 }
 
 mla_file_system_stream_t mla_file_system_stream_empty() {
-    return { mla_string_empty(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, mla_buffer_reference_noOwner() };
+    return { mla_string_empty(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, mla_dynamic_data_empty(), mla_buffer_reference_noOwner() };
 }
 
 

@@ -5,7 +5,7 @@
 #include "mla_mutx.h"
 
 
-mla_buffer_cleanup_mode __mla_mutex_cleanup_hook(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_mutex_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -29,7 +29,7 @@ mla_mutex_t mla_mutex_invalid() {
     };
 }
 
-mla_mutex_t mla_mutex(mla_string_t name) {
+mla_mutex_t mla_mutex(const mla_string_t& name) {
 
     mla_mutex_t mutex = {
         name,
@@ -47,7 +47,7 @@ mla_mutex_t mla_mutex(mla_string_t name) {
     }
 
     mutex.resource = outResource; // Assign the resource pointer
-    mutex.resourceOwner = mla_buffer_reference(outResource, true, __mla_mutex_cleanup_hook);
+    mutex.resourceOwner = mla_buffer_reference_create(outResource, true, __mla_mutex_cleanup_hook, mla_dynamic_data_empty());
     return mutex;
 }
 

@@ -16,8 +16,10 @@ struct TestOutputData {
     mla_size_t position;
 };
 
-inline void test_output_write(mla_callback_userdata userdata, const mla_string_t &data) {
-    auto* output = reinterpret_cast<TestOutputData*>(userdata);
+#define mla_cli_module_TestOutputData_user_data_name "cliTOD"
+
+inline void test_output_write(const mla_user_data_t& userdata, const mla_string_t &data) {
+    auto* output = mla_user_data_get_pointer<TestOutputData>(userdata, mla_cli_module_TestOutputData_user_data_name);
     mla_size_t dataLen = mla_string_length(data);
     if (output->position + dataLen < 1024) {
         mla_memcpy(output->buffer + output->position, mla_string_data(data), dataLen);
@@ -26,8 +28,8 @@ inline void test_output_write(mla_callback_userdata userdata, const mla_string_t
     }
 }
 
-inline void test_output_write_cstring(mla_callback_userdata userdata, const mla_char_t* data) {
-    auto* output = reinterpret_cast<TestOutputData*>(userdata);
+inline void test_output_write_cstring(const mla_user_data_t& userdata, const mla_char_t* data) {
+    auto* output = mla_user_data_get_pointer<TestOutputData>(userdata, mla_cli_module_TestOutputData_user_data_name);
     mla_size_t dataLen = mla_strlen(data);
     if (output->position + dataLen < 1024) {
         mla_memcpy(output->buffer + output->position, data, dataLen);
@@ -36,12 +38,12 @@ inline void test_output_write_cstring(mla_callback_userdata userdata, const mla_
     }
 }
 
-inline void test_task_worker(mla_callback_userdata userData) {
+inline void test_task_worker(mla_user_data_t& userData) {
     (void)userData;
     // Simple worker that does nothing
 }
 
-inline mla_task_process_result_state test_repeating_task_worker(mla_callback_userdata userData) {
+inline mla_task_process_result_state test_repeating_task_worker(mla_user_data_t& userData) {
     (void)userData;
     return TASK_PROCESS_RESULT_CONTINUE;
 }
@@ -54,7 +56,8 @@ inline void ListTaskCliTaskTest() {
 
     // Create a task to be listed
     mla_string_t taskName = mla_string_const("TestListTask");
-    mla_task_t task = mla_task_one_time(taskName, test_task_worker, 0);
+    mla_user_data_t taskData = mla_user_data_empty();
+    mla_task_t task = mla_task_one_time(taskName, test_task_worker, taskData);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
 
     // Set up output stream
@@ -62,10 +65,12 @@ inline void ListTaskCliTaskTest() {
     outputData.position = 0;
     outputData.buffer[0] = '\0';
 
-    mla_cli_command_execute_outstream_t outStream = {};
-    outStream.userdata = reinterpret_cast<mla_callback_userdata>(&outputData);
-    outStream.write = test_output_write;
-    outStream.writeCString = test_output_write_cstring;
+    mla_cli_command_execute_outstream_t outStream = {
+        mla_user_data_empty(),
+        test_output_write,
+        test_output_write_cstring
+    };
+    mla_user_data_set_pointer_without_ownership(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, &outputData);
 
     // Execute the list command
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> parameters =
@@ -95,7 +100,8 @@ inline void KillCliTaskTest() {
 
     // Create a task to kill
     mla_string_t taskName = mla_string_const("TestKillTask");
-    mla_task_t task = mla_task_repeating(taskName, test_repeating_task_worker, 10);
+    mla_user_data_t taskData = mla_user_data_empty();
+    mla_task_t task = mla_task_repeating(taskName, test_repeating_task_worker, taskData);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
     assert_true(mla_task_manager_task_exists(taskName), "Task should exist before kill");
 
@@ -104,10 +110,12 @@ inline void KillCliTaskTest() {
     outputData.position = 0;
     outputData.buffer[0] = '\0';
 
-    mla_cli_command_execute_outstream_t outStream = {};
-    outStream.userdata = reinterpret_cast<mla_callback_userdata>(&outputData);
-    outStream.write = test_output_write;
-    outStream.writeCString = test_output_write_cstring;
+    mla_cli_command_execute_outstream_t outStream = {
+        mla_user_data_empty(),
+        test_output_write,
+        test_output_write_cstring
+    };
+    mla_user_data_set_pointer_without_ownership(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, &outputData);
 
     // Set up parameters for kill command
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> parameters =

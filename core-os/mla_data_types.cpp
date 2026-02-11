@@ -34,3 +34,87 @@ mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* path, con
     }
     return ptr;
 }
+
+mla_dynamic_data_t mla_dynamic_data_empty() {
+    mla_dynamic_data_t data = {};
+    data.asInt64 = 0;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_bool(mla_bool_t value) {
+    mla_dynamic_data_t data = {};
+    data.asBool = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_int8(mla_int8_t value) {
+    mla_dynamic_data_t data = {};
+    data.asInt8 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_uint8(mla_uint8_t value) {
+    mla_dynamic_data_t data = {};
+    data.asUint8 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_int16(mla_int16_t value) {
+    mla_dynamic_data_t data = {};
+    data.asInt16 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_uint16(mla_uint16_t value) {
+    mla_dynamic_data_t data = {};
+    data.asUint16 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_int32(mla_int32_t value) {
+    mla_dynamic_data_t data = {};
+    data.asInt32 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_uint32(mla_uint32_t value) {
+    mla_dynamic_data_t data = {};
+    data.asUint32 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_int64(mla_int64_t value) {
+    mla_dynamic_data_t data = {};
+    data.asInt64 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_uint64(mla_uint64_t value) {
+    mla_dynamic_data_t data = {};
+    data.asUint64 = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_float(mla_float_t value) {
+    mla_dynamic_data_t data = {};
+    data.asFloat = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_double(mla_double_t value) {
+    mla_dynamic_data_t data = {};
+    data.asDouble = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_pointer_t value) {
+    mla_dynamic_data_t data = {};
+    data.asPointer = value;
+    return data;
+}
+
+mla_dynamic_data_t mla_dynamic_data_from_char(mla_char_t value) {
+    mla_dynamic_data_t data = {};
+    data.asChar = value;
+    return data;
+}

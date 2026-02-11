@@ -11,7 +11,7 @@
 
 #define mla_bytes_prefix "mla_bytes:"
 
-enum mla_json_serializer_element_type_t {
+enum mla_json_serializer_element_type_t: mla_uint8_t {
     MLA_JSON_SERIALIZER_ELEMENT_NONE = 0,
     MLA_JSON_SERIALIZER_ELEMENT_START_LIST = 1,
     MLA_JSON_SERIALIZER_ELEMENT_END_LIST = 2,
@@ -23,9 +23,13 @@ enum mla_json_serializer_element_type_t {
     MLA_JSON_SERIALIZER_ELEMENT_VALUE = 6
 };
 
+#define mla_json_serializer_element_type_user_data_name "jsonEl"
+
 mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
                                                  mla_json_serializer_element_type_t new_type) {
-    mla_json_serializer_element_type_t last_type = static_cast<mla_json_serializer_element_type_t>(instance.userdata);
+
+    mla_json_serializer_element_type_t last_type = (mla_json_serializer_element_type_t)mla_user_data_get_uint8(instance.user_data, mla_json_serializer_element_type_user_data_name, MLA_JSON_SERIALIZER_ELEMENT_NONE);
+
 
     switch (new_type) {
         case MLA_JSON_SERIALIZER_ELEMENT_NONE:
@@ -70,7 +74,7 @@ mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instanc
             break;
     }
 
-    instance.userdata = static_cast<mla_callback_userdata>(new_type);
+    mla_user_data_set_uint8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type);
     return true;
 }
 
@@ -307,8 +311,7 @@ mla_bool_t mla_json_serializer_write_bytes(mla_serializer_t &instance, const mla
 mla_serializer_t mla_json_serializer(const mla_stream_output_t &output) {
     return {
         output,
-        MLA_JSON_SERIALIZER_ELEMENT_NONE,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         mla_json_serializer_write_start_struct,
         mla_json_serializer_write_end_struct,
         mla_json_serializer_write_start_list,
@@ -330,15 +333,20 @@ mla_serializer_t mla_json_serializer(const mla_stream_output_t &output) {
     };
 }
 
+
+#define mla_json_deserializer_char_buffer_user_data_name "jsonChr"
+
 mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserializer_t &instance, mla_char_t &out_char) {
     // Check if there is something in buffer
-    if (instance.userdata != 0) {
-        mla_char_t temp_char = (mla_char_t) instance.userdata;
-        instance.userdata = 0;
+    mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
 
-        if (temp_char != ' ' && temp_char != '\n' && temp_char != '\r' && temp_char != '\t') {
+    if (buffered_char != 0) {
+
+        mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
+
+        if (buffered_char != ' ' && buffered_char != '\n' && buffered_char != '\r' && buffered_char != '\t') {
             // Skip whitespace
-            out_char = temp_char;
+            out_char = buffered_char;
             return true;
         }
 
@@ -372,10 +380,12 @@ mla_size_t __mla_json_deserializer_read_next_data(mla_deserializer_t &instance, 
     if (length == 0)
         return 0;
 
+    mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
+
     // Read buffer if exists
-    if (instance.userdata != 0) {
-        charBuffer[0] = (mla_char_t) instance.userdata;
-        instance.userdata = 0;
+    if (buffered_char != 0) {
+        charBuffer[0] = buffered_char;
+        mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
         offset = 1;
         lengthRemaining = length - offset;
     } else {
@@ -409,10 +419,12 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
     mla_size_t position = 0;
     out_str = mla_string_empty();
 
+    mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
+
     // Read buffer if exists
-    if (instance.userdata != 0) {
-        charBuffer[0] = (mla_char_t) instance.userdata;
-        instance.userdata = 0;
+    if (buffered_char != 0) {
+        charBuffer[0] = buffered_char;
+        mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
         position = 1;
     }
 
@@ -608,10 +620,12 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
     mla_bool_t has_decimal = false;
     mla_bool_t has_exponent = false;
 
+    mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
+
     // Read buffer if exists
-    if (instance.userdata != 0) {
-        charBuffer[0] = (mla_char_t) instance.userdata;
-        instance.userdata = 0;
+    if (buffered_char != 0) {
+        charBuffer[0] = buffered_char;
+        mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
 
         // Check if negative
         if (charBuffer[0] == '-') {
@@ -641,7 +655,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
             }
         } else {
             // Put back non-number character
-            instance.userdata = c;
+            mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, c);
             break;
         }
     }
@@ -809,7 +823,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                     }
 
                     // Put the char back into buffer for next usage
-                    instance.userdata = new_char;
+                    mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, new_char);
                     return true;
                 }
             }
@@ -855,7 +869,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
             case '8':
             case '9':
                 // Number detected, read the full number
-                instance.userdata = (mla_callback_userdata)new_char;
+                mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, new_char);
                 return __mla_json_deserializer_read_number_data(instance);
 
             case ',':
@@ -872,8 +886,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
 mla_deserializer_t mla_json_deserializer(const mla_stream_input_t &input) {
     return {
         input,
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         mla_json_deserializer_read_read_next
     };

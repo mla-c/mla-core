@@ -21,12 +21,12 @@ struct mla_ui_control_context_t {
     mla_double_t width;
     mla_double_t height;
     mla_uint64_t timeSinceLastFrameMs;
-    mla_callback_userdata userData;
+    mla_user_data_t userData;
     mla_ui_surface_input_states_t input_states;
     mla_ui_control_context_calcTextSize_t *calcTextSize;
 };
 
-mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_callback_userdata userData);
+mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_user_data_t& userData);
 mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height, const mla_ui_surface_input_states_t& input_states, mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs);
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext, const mla_ui_control_t &control);
 
@@ -57,8 +57,8 @@ struct mla_ui_control_input_area_initializer_t;
 struct mla_ui_control_initializer_t;
 
 typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas);
-typedef mla_bool_t (*mla_ui_control_process_click_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData);
-typedef mla_bool_t (*mla_ui_control_process_char_input_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_callback_userdata userData);
+typedef mla_bool_t (*mla_ui_control_process_click_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData);
+typedef mla_bool_t (*mla_ui_control_process_char_input_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData);
 
 struct mla_ui_control_layout_t {
     mla_double_t x;
@@ -95,13 +95,13 @@ struct mla_ui_control_input_area_t {
     mla_string_t controlId;
     mla_ui_control_layout_t position; // x, y, width, height
     mla_string_t event_name;
-    mla_callback_userdata userData;
+    mla_user_data_t userData;
     mla_ui_surface_input_event_kind acceptedEvents; // Bitmask of accepted event kinds
 };
 
 mla_ui_control_input_area_t mla_ui_control_input_area_empty();
 mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name, mla_ui_surface_input_event_kind acceptedEvents);
-mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name, mla_ui_surface_input_event_kind acceptedEvents, mla_callback_userdata userData);
+mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name, mla_ui_surface_input_event_kind acceptedEvents, mla_user_data_t& userData);
 
 struct mla_ui_control_input_area_initializer_t {
     static mla_ui_control_input_area_t init() {
@@ -163,7 +163,7 @@ if (childrenCount > 0) { \
 mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &controlId, mla_ui_control_t* &outControl);
 mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t* &outControl);
 
-void mla_ui_control_process_input_events(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents, const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas, mla_callback_userdata userData);
+void mla_ui_control_process_input_events(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents, const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas, mla_user_data_t& userData);
 
 
 #endif

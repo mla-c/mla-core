@@ -44,7 +44,7 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
 
     mla_memcpy(newData, p_Data, p_Length);
 
-    mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    mla_string_t result =  {mla_buffer_reference_create(newData, false, nullptr, mla_dynamic_data_empty()), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.data = newData;
     result.heap.length = p_Length;
     return result;

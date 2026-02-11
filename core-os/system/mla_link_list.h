@@ -38,7 +38,7 @@ struct mla_link_list_t {
 };
 
 template < mla_list_list_template >
-mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -53,7 +53,7 @@ mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, ml
 }
 
 template < mla_list_list_template >
-mla_buffer_cleanup_mode __mla_link_list_data_cleanup_hook(mla_pointer_t p_Data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_link_list_data_cleanup_hook(mla_pointer_t p_Data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -113,7 +113,7 @@ inline mla_link_list_t<T, TInit> mla_link_list() {
         return mla_link_list_empty<T, TInit>(); // Return an empty list if memory allocation fails
     }
 
-    mla_link_list_t<T, TInit> list = { 0, mla_buffer_reference_noOwner(), mla_buffer_reference_noOwner(), data, mla_buffer_reference(data, true, __mla_link_list_data_cleanup_hook<T, TInit>) };
+    mla_link_list_t<T, TInit> list = { 0, mla_buffer_reference_noOwner(), mla_buffer_reference_noOwner(), data, mla_buffer_reference_create(data, false, __mla_link_list_data_cleanup_hook<T, TInit>, mla_dynamic_data_empty()) };
     return list; // Initialize an empty linked list
 }
 
@@ -138,7 +138,7 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
             return false; // Return false if memory allocation fails
         }
 
-        list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
+        list.dataOwner = mla_buffer_reference_create(list.data, false, __mla_link_list_data_cleanup_hook<T, TInit>, mla_dynamic_data_empty());
     }
 
     // Create a new node
@@ -149,7 +149,7 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
     }
 
     mla_memset(newNode, 0, sizeof(mla_link_list_node_t<T, TInit>)); // Initialize the new node
-    mla_buffer_reference_t newNodeRef = mla_buffer_reference(newNode, false, __mla_link_list_node_cleanup_hook<T, TInit>);
+    mla_buffer_reference_t newNodeRef = mla_buffer_reference_create(newNode, false, __mla_link_list_node_cleanup_hook<T, TInit>, mla_dynamic_data_empty());
 
     newNode->data = item; // Set the data
     newNode->prev = list.data->tail; // Set previous pointer to the current tail
@@ -185,7 +185,7 @@ mla_bool_t mla_link_list_remove(mla_link_list_t<T, TInit>& list, mla_int32_t ind
             return false; // Return false if memory allocation fails
         }
 
-        list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
+        list.dataOwner = mla_buffer_reference_create(list.data, false, __mla_link_list_data_cleanup_hook<T, TInit>, mla_dynamic_data_empty());
     }
 
     mla_link_list_node_t<T, TInit>* current = list.data->head;
@@ -325,7 +325,7 @@ inline void mla_link_list_clear(mla_link_list_t<T, TInit>& list) {
             return; // Return if memory allocation fails
         }
 
-        list.dataOwner = mla_buffer_reference(list.data, true, __mla_link_list_data_cleanup_hook<T, TInit>);
+        list.dataOwner = mla_buffer_reference_create(list.data, false, __mla_link_list_data_cleanup_hook<T, TInit>, mla_dynamic_data_empty());
     }
 
     mla_link_list_destroy(list); // Clear the linked list by destroying it

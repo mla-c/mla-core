@@ -36,27 +36,23 @@ struct mla_http_response_content_writer_t;
 typedef mla_bool_t (*mla_http_response_content_writer_func_t)(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream);
 
 struct mla_http_response_content_writer_t {
-    mla_callback_userdata userData;
-    mla_buffer_reference_t userDataOwner;
+    mla_user_data_t userData;
     mla_http_response_content_writer_func_t writeTo;
 };
 
 inline mla_http_response_content_writer_t mla_http_response_content_writer(
-    const mla_callback_userdata &userdata,
-    const mla_buffer_reference_t &userDataOwner,
+    const mla_user_data_t &userdata,
     const mla_http_response_content_writer_func_t &writer
 ) {
     return {
         userdata,
-        userDataOwner,
         writer
     };
 }
 
 inline mla_http_response_content_writer_t mla_http_response_content_writer_invalid() {
     return {
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         nullptr
     };
 }

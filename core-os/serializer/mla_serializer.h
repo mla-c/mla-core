@@ -15,8 +15,7 @@
 struct mla_serializer_t {
 
     mla_stream_output_t output;
-    mla_callback_userdata userdata;
-    mla_buffer_reference_t user_data_owner;
+    mla_user_data_t user_data;
 
     mla_bool_t (*write_start_struct)(mla_serializer_t& instance);
     mla_bool_t (*write_end_struct)(mla_serializer_t& instance);
@@ -104,8 +103,7 @@ struct mla_deserializer_token_t {
 struct mla_deserializer_t {
 
     mla_stream_input_t input;
-    mla_callback_userdata userdata;
-    mla_buffer_reference_t user_data_owner;
+    mla_user_data_t user_data;
 
     mla_deserializer_token_t current_token;
     mla_bool_t (*read_next)(mla_deserializer_t& instance);

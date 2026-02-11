@@ -18,14 +18,26 @@
 
 #define mla_bytes_prefix "mla_bytes:"
 
+#define mla_xml_serializer_state_user_data_name "xmlSt"
+
 struct mla_xml_serializer_state_t {
     mla_bool_t in_open_tag;
     mla_string_t pending_property_name;
     mla_array_list_t<mla_string_t, mla_string_initializer> tag_stack; // Stack to track tag names
 };
 
+struct mla_xml_serializer_state_initializer {
+    static mla_xml_serializer_state_t init() {
+        return {
+            false,
+            mla_string_empty(),
+            mla_array_list_empty<mla_string_t, mla_string_initializer>()
+        };
+    }
+};
+
 mla_xml_serializer_state_t *__mla_xml_ser_get_state(mla_serializer_t &inst) {
-    return reinterpret_cast<mla_xml_serializer_state_t *>(inst.userdata);
+    return mla_user_data_get_pointer<mla_xml_serializer_state_t>(inst.user_data, mla_xml_serializer_state_user_data_name);
 }
 
 mla_bool_t __mla_xml_write_str(const mla_stream_output_t &out, const mla_string_t str) {
@@ -571,17 +583,6 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
     }
 }
 
-mla_buffer_cleanup_mode __mla_serializer_reset_state(mla_pointer_t data, mla_callback_userdata userData) {
-
-    (void)userData;
-    mla_xml_serializer_state_t *state = reinterpret_cast<mla_xml_serializer_state_t *>(data);
-    if (state != nullptr) {
-        state->tag_stack = mla_array_list_empty<mla_string_t, mla_string_initializer>();
-        state->pending_property_name = mla_string_empty();
-    }
-    return CLEAN_UP_NEEDED;
-}
-
 
 mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     // Note: state memory is allocated but framework has no destructor pattern
@@ -599,10 +600,12 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     state->pending_property_name = mla_string_empty();
     state->tag_stack = mla_array_list<mla_string_t, mla_string_initializer>();
 
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_xml_serializer_state_t, mla_xml_serializer_state_initializer>(user_data, mla_xml_serializer_state_user_data_name, state);
+
     return {
         output,
-        reinterpret_cast<mla_callback_userdata>(state),
-        mla_buffer_reference(state, false, __mla_serializer_reset_state),
+        user_data,
         mla_xml_serializer_write_start_struct,
         mla_xml_serializer_write_end_struct,
         mla_xml_serializer_write_start_list,
@@ -652,8 +655,27 @@ struct mla_xml_deser_state_t {
     mla_bool_t pending_struct_end;
 };
 
+struct mla_xml_deser_state_initializer {
+    static mla_xml_deser_state_t init() {
+        return {
+            mla_array_list_empty<mla_bool_t>(),
+            mla_array_list_empty<mla_xml_attr_t>(),
+            mla_string_empty(),
+            0,
+            0,
+            {0},
+            false,
+            false,
+            false,
+            false
+        };
+    }
+};
+
+#define mla_deserializer_state_user_data_name "xmlDeSt"
+
 static mla_xml_deser_state_t *__mla_xml_deser_get_state(mla_deserializer_t &inst) {
-    return reinterpret_cast<mla_xml_deser_state_t *>(inst.userdata);
+    return mla_user_data_get_pointer<mla_xml_deser_state_t>(inst.user_data, mla_deserializer_state_user_data_name);
 }
 
 static mla_bool_t __mla_xml_read_char(mla_deserializer_t &inst, mla_char_t &c) {
@@ -1047,18 +1069,6 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_deserializer_reset_state(mla_pointer_t data, mla_callback_userdata userData) {
-
-    (void)userData;
-    mla_xml_deser_state_t *state = reinterpret_cast<mla_xml_deser_state_t *>(data);
-    if (state != nullptr) {
-        state->container_is_list_stack = mla_array_list_empty<mla_bool_t>();
-        state->attrs = mla_array_list_empty<mla_xml_attr_t>();
-        state->pending_tag_name = mla_string_empty();
-    }
-    return CLEAN_UP_NEEDED;
-}
-
 mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where deserializers
@@ -1080,10 +1090,12 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     state->pending_tag_is_list = false;
     state->pending_struct_end = false;
 
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_xml_deser_state_t, mla_xml_deser_state_initializer>(user_data, mla_deserializer_state_user_data_name, state);
+
     return {
         input,
-        reinterpret_cast<mla_callback_userdata>(state),
-        mla_buffer_reference(state, false, __mla_deserializer_reset_state),
+        user_data,
         {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         mla_xml_deserializer_read_next
     };

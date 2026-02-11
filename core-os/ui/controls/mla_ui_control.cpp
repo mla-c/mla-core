@@ -407,7 +407,7 @@ mla_bool_t mla_ui_controls_render_to_draw_commands(const mla_ui_control_context_
 
 mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t height,
                                                 const mla_ui_surface_input_states_t &input_states,
-                                                mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_callback_userdata userData) {
+                                                mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs, mla_user_data_t& userData) {
     return {
         0,
         0,
@@ -424,7 +424,8 @@ mla_ui_control_context_t mla_ui_control_context(mla_double_t width, mla_double_t
                                                 const mla_ui_surface_input_states_t &input_states,
                                                 mla_ui_control_context_calcTextSize_t *calcTextSize, mla_uint64_t timeSinceLastFrameMs) {
 
-    return mla_ui_control_context(width, height, input_states, calcTextSize, timeSinceLastFrameMs, 0);
+    mla_user_data_t user_data = mla_user_data_empty();
+    return mla_ui_control_context(width, height, input_states, calcTextSize, timeSinceLastFrameMs, user_data);
 }
 
 mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui_control_context_t &parentContext,
@@ -479,7 +480,7 @@ mla_ui_control_input_area_t mla_ui_control_input_area_empty() {
         mla_string_empty(),
         {0, 0, 0, 0},
         mla_string_empty(),
-        0,
+        mla_user_data_empty(),
         MLA_UI_SURFACE_INPUT_EVENT_KIND_NONE,
     };
 }
@@ -490,14 +491,14 @@ mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &contro
         controlId,
         position,
         event_name,
-        0,
+        mla_user_data_empty(),
         acceptedEvents,
     };
 }
 
 mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name,
                                                       mla_ui_surface_input_event_kind acceptedEvents,
-                                                      mla_callback_userdata userData) {
+                                                      mla_user_data_t& userData) {
     return {
         controlId,
         position,
@@ -546,7 +547,7 @@ void mla_ui_control_process_input_events(
     mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls,
     const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents,
     const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas,
-    mla_callback_userdata userData) {
+    mla_user_data_t& userData) {
 
     mla_size_t inputAreaCount = mla_array_list_size(inputAreas);
     mla_size_t inputEventCount = mla_array_list_size(inputEvents);

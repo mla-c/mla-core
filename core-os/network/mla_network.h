@@ -51,9 +51,8 @@ mla_bool_t mla_network_connection_is_connected(const mla_network_connection_t &c
 
 struct mla_network_listener_t {
     mla_network_host_t host;
-    mla_buffer_reference_t listenerOwner;
     mla_bool_t (*accept_connection)(const mla_network_listener_t& listener, mla_network_connection_t &connection);
-    mla_callback_userdata userdata;
+    mla_user_data_t userdata;
 };
 
 mla_network_listener_t mla_network_listener_invalid();

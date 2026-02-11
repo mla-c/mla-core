@@ -153,7 +153,7 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     return true;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, mla_dynamic_data_t& userData) {
     (void)userData;
     int fd = *reinterpret_cast<int*>(data);
 
@@ -164,7 +164,7 @@ mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, 
 }
 
 mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
-    int* fd = reinterpret_cast<int*>(stream.user_data);
+    int* fd = reinterpret_cast<int*>(stream.resource);
 
     return lseek(*fd, offset, SEEK_SET) != -1;
 }
@@ -265,8 +265,8 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             __mla_file_system_native_open_file_set_length,
             __mla_file_system_native_open_file_read,
             __mla_file_system_native_open_file_write,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
-            mla_buffer_reference(fdPtr, true, __mla_file_system_native_close_file)
+            mla_dynamic_data_from_pointer(fdPtr),
+            mla_buffer_reference_create(fdPtr, true, __mla_file_system_native_close_file, mla_dynamic_data_empty())
         };
     } else if (canRead) {
         out_stream = {
@@ -277,8 +277,8 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             nullptr,
             __mla_file_system_native_open_file_read,
             nullptr,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
-            mla_buffer_reference(fdPtr, true, __mla_file_system_native_close_file)
+            mla_dynamic_data_from_pointer(fdPtr),
+            mla_buffer_reference_create(fdPtr, true, __mla_file_system_native_close_file, mla_dynamic_data_empty())
         };
     } else if (canWrite) {
         out_stream = {
@@ -289,8 +289,8 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             __mla_file_system_native_open_file_set_length,
             nullptr,
             __mla_file_system_native_open_file_write,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
-            mla_buffer_reference(fdPtr, true, __mla_file_system_native_close_file)
+            mla_dynamic_data_from_pointer(fdPtr),
+            mla_buffer_reference_create(fdPtr, true, __mla_file_system_native_close_file, mla_dynamic_data_empty())
         };
     } else {
         close(fd);
@@ -303,7 +303,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
     return true;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla_dynamic_data_t& userData) {
 
     (void)userData;
 
@@ -335,8 +335,8 @@ mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& 
         __mla_file_system_native_directory_exists,
         __mla_file_system_native_delete_directory,
         __mla_file_system_native_list_directory,
-        reinterpret_cast<mla_callback_userdata>(fs),
-        mla_buffer_reference(fs, true, __mla_file_system_native_cleanup)
+        mla_dynamic_data_from_pointer(fs),
+        mla_buffer_reference_create(fs, true, __mla_file_system_native_cleanup, mla_dynamic_data_empty())
     };
 }
 

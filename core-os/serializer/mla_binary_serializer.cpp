@@ -213,8 +213,7 @@ mla_serializer_t mla_binary_serializer(const mla_stream_output_t& output) {
 
     return {
         output,
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         mla_binary_serializer_write_start_struct,
         mla_binary_serializer_write_end_struct,
         mla_binary_serializer_write_start_list,
@@ -526,8 +525,7 @@ mla_deserializer_t mla_binary_deserializer(const mla_stream_input_t& input) {
 
     return {
         input,
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         mla_binary_deserializer_read_read_next
     };

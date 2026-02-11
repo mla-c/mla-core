@@ -7,8 +7,7 @@
 mla_serializer_t mla_serializer_invalid() {
     return {
         mla_stream_noop_output(),
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
         nullptr,
         nullptr,
         nullptr,
@@ -37,8 +36,7 @@ mla_bool_t mla_serializer_is_invalid(const mla_serializer_t& serializer) {
 mla_deserializer_t mla_deserializer_invalid() {
     return {
         mla_stream_noop_input(),
-        0,
-        mla_buffer_reference_noOwner(),
+        mla_user_data_empty(),
 {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
         nullptr
     };

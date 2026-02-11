@@ -110,7 +110,7 @@ void mla_log_message(const mla_log_level level, const mla_string_t& message, con
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_logger_manager.loggers); ++i) {
 
-        const mla_logger_t logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
+        mla_logger_t& logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
         if (logger.level <= level && logger.write) {
 

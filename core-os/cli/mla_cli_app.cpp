@@ -7,17 +7,31 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 
+#define mla_stream_output_user_data_name "cliout"
+#define mla_cli_app_user_data_name "cliapp"
+#define mla_cli_submodule_user_data_name "clisub"
+
 void __mla_cli_write_string(const mla_stream_output_t &outputStream, mla_string_t str) {
     outputStream.write(outputStream, 0, mla_string_length(str), (mla_byte_t*)mla_string_data(str));
 }
 
-void __mla_cli_command_execute_outstream_to_stream_bridge(mla_callback_userdata userdata, const mla_string_t &data) {
-    const mla_stream_output_t *output = reinterpret_cast<const mla_stream_output_t *>(userdata);
+void __mla_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
+    const mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
     __mla_cli_write_string(*output, data);
 }
 
-void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(mla_callback_userdata userdata, const mla_char_t* data) {
-    mla_stream_output_t *output = reinterpret_cast<mla_stream_output_t *>(userdata);
+void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
+    const mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
     output->write(*output, 0, mla_strlen(data), (mla_byte_t*)data);
 }
 
@@ -48,7 +62,11 @@ mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
     (void) parameters;
-    mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
+    mla_cli_app_t *app = mla_user_data_get_pointer<mla_cli_app_t>(command.user_data, mla_cli_app_user_data_name);
+
+    if (app == nullptr) {
+        return false;
+    }
 
     mla_size_t size = mla_array_list_size(app->activeModules);
 
@@ -106,7 +124,11 @@ mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
     (void) parameters;
-    mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
+    mla_cli_app_t *app = mla_user_data_get_pointer<mla_cli_app_t>(command.user_data, mla_cli_app_user_data_name);
+
+    if (app == nullptr) {
+        return false;
+    }
 
     mla_size_t size = mla_array_list_size(app->activeModules);
 
@@ -165,8 +187,18 @@ mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &comman
                                                mla_string_initializer> &parameters,
                                            const mla_cli_command_execute_outstream_t &out) {
     (void) parameters;
-    mla_cli_app_t *app = reinterpret_cast<mla_cli_app_t *>(command.userdata);
-    mla_cli_module_t *subModule = reinterpret_cast<mla_cli_module_t *>(command.userdata2);
+
+    mla_cli_app_t *app = mla_user_data_get_pointer<mla_cli_app_t>(command.user_data, mla_cli_app_user_data_name);
+
+    if (app == nullptr) {
+        return false;
+    }
+
+    mla_cli_module_t *subModule = mla_user_data_get_pointer<mla_cli_module_t>(command.user_data, mla_cli_submodule_user_data_name);
+
+    if (subModule == nullptr) {
+        return false;
+    }
 
     out.write(out.userdata, mla_string_concat("Open module '", subModule->moduleName, "'\n"));
     __mla_activate_module(*app, *subModule);
@@ -192,8 +224,9 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
             mla_cli_module_t *subModule = mla_array_list_get_ref(currentModule->subModules, i);
             mla_cli_command_t cmdEnterModule = mla_cli_command(subModule->moduleName);
 
-            cmdEnterModule.userdata = reinterpret_cast<mla_callback_userdata>(&app);
-            cmdEnterModule.userdata2 = reinterpret_cast<mla_callback_userdata>(subModule);
+            mla_user_data_set_pointer_without_ownership<mla_cli_app_t>(cmdEnterModule.user_data, mla_cli_app_user_data_name, &app);
+            mla_user_data_set_pointer_without_ownership<mla_cli_module_t>(cmdEnterModule.user_data, mla_cli_submodule_user_data_name, subModule);
+
             cmdEnterModule.execute = __mla_cli_cmd_open_sub_module_execute;
             mla_array_list_add(parser.availableCommands, cmdEnterModule);
         }
@@ -204,14 +237,14 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
     if (moduleCount > 1) {
         mla_cli_command_t cmdExit = mla_cli_command(mla_string_const("exit"));
 
-        cmdExit.userdata = reinterpret_cast<mla_callback_userdata>(&app);
+        mla_user_data_set_pointer_without_ownership<mla_cli_app_t>(cmdExit.user_data, mla_cli_app_user_data_name, &app);
         cmdExit.execute = __mla_cli_cmd_exit_execute;
         mla_array_list_add(parser.availableCommands, cmdExit);
     }
 
     // Help command
     mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"));
-    cmdHelp.userdata = reinterpret_cast<mla_callback_userdata>(&app);
+    mla_user_data_set_pointer_without_ownership<mla_cli_app_t>(cmdHelp.user_data, mla_cli_app_user_data_name, &app);
     cmdHelp.execute = __mla_cli_cmd_help_execute;
     mla_array_list_add(parser.availableCommands, cmdHelp);
 
@@ -242,8 +275,11 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
         // Execute the command
         if (parser_result.matchingCommand.execute != nullptr) {
 
+            mla_user_data_t user_data = mla_user_data_empty();
+            mla_user_data_set_pointer_without_ownership(user_data, mla_stream_output_user_data_name, &outputStream);
+
             mla_cli_command_execute_outstream_t stringOutstream = {
-                reinterpret_cast<mla_callback_userdata>(&outputStream),
+                user_data,
                 __mla_cli_command_execute_outstream_to_stream_bridge,
                 __mla_cli_command_execute_outstream_c_string_to_stream_bridge
             };

@@ -8,6 +8,7 @@
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
 #include "../system/mla_hash_map.h"
+#include "../system/mla_user_data.h"
 
 struct mla_cli_command_parameter_t {
     mla_string_t parameterName;
@@ -44,10 +45,10 @@ struct mla_cli_command_parameter_initializer {
 struct mla_cli_command_t;
 
 struct mla_cli_command_execute_outstream_t {
-    mla_callback_userdata userdata;
+    mla_user_data_t userdata;
 
-    void (*write)(mla_callback_userdata userdata, const mla_string_t &data);
-    void (*writeCString)(mla_callback_userdata userdata, const mla_char_t* data);
+    void (*write)(const mla_user_data_t& userdata, const mla_string_t &data);
+    void (*writeCString)(const mla_user_data_t& userdata, const mla_char_t* data);
 };
 
 typedef mla_bool_t (*mla_cli_command_execute_t)(const mla_cli_command_t &command,
@@ -60,8 +61,7 @@ struct mla_cli_command_t {
     mla_string_t description;
     mla_array_list_t<mla_cli_command_parameter_t, mla_cli_command_parameter_initializer> parameters;
     mla_cli_command_execute_t execute;
-    mla_callback_userdata userdata;
-    mla_callback_userdata userdata2;
+    mla_user_data_t user_data;
 };
 
 struct mla_cli_command_initializer {
@@ -71,8 +71,7 @@ struct mla_cli_command_initializer {
             mla_string_empty(),
             mla_array_list_empty<mla_cli_command_parameter_t, mla_cli_command_parameter_initializer>(),
             nullptr,
-            0,
-            0
+            mla_user_data_empty()
         };
     }
 };
@@ -84,8 +83,7 @@ inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name, const mla_s
         mla_array_list_empty<mla_cli_command_parameter_t,
             mla_cli_command_parameter_initializer>(),
         nullptr,
-        0,
-        0
+        mla_user_data_empty()
     };
 }
 
@@ -96,8 +94,7 @@ inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name) {
         mla_array_list_empty<mla_cli_command_parameter_t,
             mla_cli_command_parameter_initializer>(),
         nullptr,
-        0,
-        0
+        mla_user_data_empty()
     };
 }
 

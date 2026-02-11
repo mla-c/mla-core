@@ -22,11 +22,11 @@ struct mla_array_list_t {
 };
 
 template <mla_array_list_template>
-mla_buffer_cleanup_mode __mla_array_list_cleanup(mla_pointer_t p_Data, mla_callback_userdata p_UserData) {
+mla_buffer_cleanup_mode __mla_array_list_cleanup(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
 
     T* l_Item = static_cast<T*>(p_Data);
 
-    for (mla_size_t i = 0; i < p_UserData; ++i) {
+    for (mla_size_t i = 0; i < p_UserData.asUint32; ++i) {
         l_Item[i] = TInit::init(); // Assign default value to trigger destructor if T is a class
     }
 
@@ -50,7 +50,7 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_array
     }
 
     mla_memset(items, 0, size);
-    return { 0, initialCapacity, items, mla_buffer_reference(items, false, __mla_array_list_cleanup<T, TInit>, initialCapacity) };
+    return { 0, initialCapacity, items, mla_buffer_reference_create(items, false, __mla_array_list_cleanup<T, TInit>, mla_dynamic_data_from_uint32(initialCapacity)) };
 }
 
 template <mla_array_list_template>
@@ -102,7 +102,7 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
         // We dont need to call the cleanup hook here because we are not destroying the old items
         // Instead, we just copy the existing items to the new array
         mla_buffer_reference_destroy_without_cleanup_unsafe(list.itemsOwner);
-        list.itemsOwner = mla_buffer_reference(newItems, false, __mla_array_list_cleanup<T, TInit>, newSize); // Update the buffer reference
+        list.itemsOwner = mla_buffer_reference_create(newItems, false, __mla_array_list_cleanup<T, TInit>, mla_dynamic_data_from_uint32(newSize)); // Update the buffer reference
         return true;
     }
 

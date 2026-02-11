@@ -10,7 +10,7 @@
 
 static mla_bool_t OneTimeTaskTestWorkerProcess = false;
 
-void OneTimeTaskTestWorker(mla_callback_userdata userData) {
+void OneTimeTaskTestWorker(mla_user_data_t& userData) {
 
     (void)userData;
 
@@ -22,7 +22,8 @@ void OneTimeTaskTest() {
     mla_string_t taskName = mla_string_const("OneTimeTask");
     assert_false(mla_task_manager_task_exists(taskName), "Task should not exist before registration");
 
-    mla_task_t task = mla_task_one_time(taskName, OneTimeTaskTestWorker, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_task_t task = mla_task_one_time(taskName, OneTimeTaskTestWorker, userData);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
 
     mla_task_info_t info = mla_task_manager_get_task_info(taskName);
@@ -45,9 +46,13 @@ void OneTimeTaskTest() {
 
 static mla_size_t RepeatingTaskTestWorkerCount = 0;
 
-mla_task_process_result_state RepeatingTaskTestWorker(mla_callback_userdata userData) {
+#define mla_RepeatingTaskTestWorker_call_count_user_data_name "callCnt"
 
-    if (userData == RepeatingTaskTestWorkerCount)
+mla_task_process_result_state RepeatingTaskTestWorker(mla_user_data_t& userData) {
+
+    mla_uint32_t count = mla_user_data_get_int32(userData, mla_RepeatingTaskTestWorker_call_count_user_data_name);
+
+    if (count == RepeatingTaskTestWorkerCount)
         return TASK_PROCESS_RESULT_DONE;
 
     RepeatingTaskTestWorkerCount++;
@@ -58,7 +63,10 @@ void RepeatingTaskTest() {
 
     mla_string_t taskName = mla_string_const("RepeatingTask");
 
-    mla_task_t task = mla_task_repeating(taskName, RepeatingTaskTestWorker, 10);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_int32(userData, mla_RepeatingTaskTestWorker_call_count_user_data_name, 10);
+
+    mla_task_t task = mla_task_repeating(taskName, RepeatingTaskTestWorker, userData);
 
     RepeatingTaskTestWorkerCount = 0;
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
@@ -80,7 +88,7 @@ void RepeatingTaskTest() {
 
 }
 
-void CleanUpTestWorker(mla_callback_userdata userData) {
+void CleanUpTestWorker(mla_user_data_t& userData) {
     (void)userData;
 
 }
@@ -89,7 +97,8 @@ void CleanupTest() {
 
     mla_string_t taskName = mla_string_const("OneTimeTask");
 
-    mla_task_t task = mla_task_one_time(taskName, CleanUpTestWorker, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_task_t task = mla_task_one_time(taskName, CleanUpTestWorker, userData);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
 
     mla_task_info_t info = mla_task_manager_get_task_info(taskName);
@@ -111,7 +120,7 @@ void CleanupTest() {
     assert_equal(info.state, TASK_STATE_UNKNOWN, "Task state should be completed");
 }
 
-mla_task_process_result_state AbortTaskTestWorker(mla_callback_userdata userData) {
+mla_task_process_result_state AbortTaskTestWorker(mla_user_data_t& userData) {
     (void)userData;
     return TASK_PROCESS_RESULT_CONTINUE;
 }
@@ -120,7 +129,8 @@ void AbortTaskTest() {
 
     mla_string_t taskName = mla_string_const("AbortTask");
 
-    mla_task_t task = mla_task_repeating(taskName, AbortTaskTestWorker, 10);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_task_t task = mla_task_repeating(taskName, AbortTaskTestWorker, userData);
     assert_true(mla_task_manager_register_task(task), "Task should be registered successfully");
 
     mla_task_info_t info = mla_task_manager_get_task_info(taskName);

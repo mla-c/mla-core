@@ -8,20 +8,19 @@
 #include "../system/mla_string.h"
 #include "mla_task_manager_data_types.h"
 
-typedef void (*mla_task_worker_one_time_t)(mla_callback_userdata userData);
-typedef mla_task_process_result_state (*mla_task_worker_repeating_t)(mla_callback_userdata userData);
+typedef void (*mla_task_worker_one_time_t)(mla_user_data_t& userData);
+typedef mla_task_process_result_state (*mla_task_worker_repeating_t)(mla_user_data_t& userData);
 
 
 struct mla_task_t {
     mla_string_t name; // Name of the task
     mla_task_worker_t worker;
-    mla_callback_userdata workerUserdata; // User data for the task
-    mla_callback_userdata workerUserdata2; // User data for the task
+    mla_user_data_t userData; // User data for the task
     mla_task_priority priority; // Priority of the task
     mla_task_stack_size stack_size; // Stack size for the task
 
     // OS Resources
-    mla_buffer_reference_t taskResource;
+    mla_buffer_reference_t taskResource; // Maybe move this to userdata
 
     // States
     mla_task_shared_states* sharedStates; // Shared states for the task
@@ -33,8 +32,7 @@ struct mla_task_initializer_t {
         return {
             mla_string_empty(),
             nullptr,
-            0,
-            0,
+            mla_user_data_empty(),
             TASK_PRIO_NORMAL,
             TASK_STACK_SIZE_DEFAULT,
             mla_buffer_reference_noOwner(),
@@ -44,10 +42,10 @@ struct mla_task_initializer_t {
     }
 };
 
-mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeating_t worker, mla_callback_userdata userData = 0);
-mla_task_process_result_state __mla_task_worker_one_time(mla_callback_userdata userData, mla_callback_userdata userData2);
-mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_callback_userdata userData = 0);
-mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_callback_userdata userData = 0, mla_callback_userdata userData2 = 0);
+mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeating_t worker, mla_user_data_t& userData);
+mla_task_process_result_state __mla_task_worker_one_time(mla_user_data_t& userData);
+mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_user_data_t& userData);
+mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_user_data_t& userData);
 
 // Utils
 const mla_char_t* mla_task_priority_to_string(mla_task_priority priority);

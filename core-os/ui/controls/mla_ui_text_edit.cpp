@@ -8,7 +8,7 @@
 mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
                                                        const mla_ui_surface_input_event_char_input_t &charInputEvent,
                                                        mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>
-                                                       &uiControls, mla_callback_userdata userData) {
+                                                       &uiControls, mla_user_data_t& userData) {
     mla_string_t currentText = mla_ui_text_edit_get_text(control);
     mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(control);
 

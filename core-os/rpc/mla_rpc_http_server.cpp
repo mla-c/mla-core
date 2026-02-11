@@ -11,7 +11,7 @@
 #include "mla_rpc_http_data_types.h"
 #include "../http/mla_http_chunked_stream.h"
 
-
+#define mla_rpc_http_server_writer_output_buffer_user_data "rpcHoB"
 
 mla_http_rpc_content_type __mla_rpc_http_server_get_content_type(const mla_http_request_t& request) {
 
@@ -55,7 +55,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type
 
 mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
-    mla_pointer_t buffer = reinterpret_cast<mla_pointer_t>(writer.userData);
+    mla_pointer_t buffer = mla_user_data_get_mla_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
 
     if (buffer == nullptr) {
         return false;
@@ -228,7 +228,11 @@ mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_
             } else {
 
                 mla_http_headers_add(response.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
-                response.contentWriter = mla_http_response_content_writer(reinterpret_cast<mla_callback_userdata>(output), mla_buffer_reference(output), __mla_rpc_http_server_handler_content_writer);
+
+                mla_user_data_t writer_user_data = mla_user_data_empty();
+                mla_user_data_set_pointer_with_ownership_ex(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output, nullptr);
+
+                response.contentWriter = mla_http_response_content_writer(writer_user_data, __mla_rpc_http_server_handler_content_writer);
             }
         }
 

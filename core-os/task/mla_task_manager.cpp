@@ -82,7 +82,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     /////////////////////////////
 
     mla_buffer_reference_t outTaskResourceOwner = mla_buffer_reference_noOwner();
-    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.workerUserdata, task.workerUserdata2, task.stack_size, task.priority, &outTaskResourceOwner, sharedStates);
+    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.userData, task.stack_size, task.priority, &outTaskResourceOwner, sharedStates);
 
 
     // Update the task resource in the task manager if the task was created successfully or remove the task if it failed to create

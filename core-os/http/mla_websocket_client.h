@@ -48,7 +48,7 @@ struct mla_websocket_binary_message_t {
  */
 struct mla_websocket_client_t {
     mla_network_connection_t connection;  ///< Underlying network connection
-    mla_callback_userdata userdata;       ///< User-defined data for callbacks
+    mla_user_data_t userdata;       ///< User-defined data for callbacks
 };
 
 /**

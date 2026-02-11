@@ -36,13 +36,13 @@ struct mla_ui_control_surface_t {
     mla_mutex_t lock;
     mla_ui_control_surface_rendering_t rendering;
     mla_ui_control_surface_drawing_t drawing;
-    mla_callback_userdata userData;
+    mla_user_data_t userData;
 };
 
 mla_ui_control_surface_t mla_ui_control_surface_empty();
 
 mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &processTask);
-mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &renderingTask, mla_callback_userdata userData);
+mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &renderingTask, mla_user_data_t& userData);
 
 mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector);
 mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector);

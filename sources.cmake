@@ -11,6 +11,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_bytes.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_number.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_id.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_user_data.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/log/mla_logging.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/log/mla_logger_console.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/log/mla_logger.cpp
