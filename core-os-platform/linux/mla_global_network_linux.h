@@ -18,6 +18,8 @@
 #include <string.h>
 #include <netinet/tcp.h>
 
+#define mla_network_connection_user_data_name "nwconn"
+
 mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints = {
         0,
@@ -70,7 +72,7 @@ mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     return true;
 }
 
-mla_buffer_cleanup_mode __linux_socket_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __linux_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     int sock = (int)(intptr_t)data;
     if (sock >= 0) {
@@ -81,7 +83,8 @@ mla_buffer_cleanup_mode __linux_socket_cleanup(mla_pointer_t data, mla_callback_
 
 mla_size_t __linux_socket_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
     (void)offset;
-    int sock = (int)(intptr_t)input.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    int sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
@@ -95,7 +98,8 @@ mla_size_t __linux_socket_read(const mla_stream_input_t& input, mla_size_t offse
 }
 
 mla_size_t __linux_socket_remaining_bytes(const mla_stream_input_t& input) {
-    int sock = (int)(intptr_t)input.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    int sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
@@ -112,7 +116,8 @@ mla_size_t __linux_socket_remaining_bytes(const mla_stream_input_t& input) {
 
 mla_size_t __linux_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void)offset;
-    int sock = (int)(intptr_t)output.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
+    int sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
@@ -214,27 +219,27 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
         setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
     }
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __linux_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __linux_socket_cleanup);
 
     connection.inputStream = {
-        (mla_callback_userdata)sock,
+        userData,
         __linux_socket_read,
-        __linux_socket_remaining_bytes,
-        ref
+        __linux_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        (mla_callback_userdata)sock,
+        userData,
         __linux_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
 }
 
 mla_bool_t __linux_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
-    int listenSock = (int)(intptr_t)listener.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
+    int listenSock = socket_data.asInt32;
     if (listenSock < 0) {
         return false;
     }
@@ -289,20 +294,19 @@ mla_bool_t __linux_accept_connection(const mla_network_listener_t& listener, mla
 
     connection.host = peer;
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)clientSock, true, __linux_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(clientSock), __linux_socket_cleanup);
 
     connection.inputStream = {
-        (mla_callback_userdata)clientSock,
+        userData,
         __linux_socket_read,
-        __linux_socket_remaining_bytes,
-        ref
+        __linux_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        (mla_callback_userdata)clientSock,
+        userData,
         __linux_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
@@ -380,9 +384,11 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
         fcntl(sock, F_SETFL, flags | O_NONBLOCK);
     }
 
-    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __linux_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __linux_socket_cleanup);
+
     listener.accept_connection = __linux_accept_connection;
-    listener.userdata = (mla_callback_userdata)sock;
+    listener.userdata = userData;
 
     return true;
 }

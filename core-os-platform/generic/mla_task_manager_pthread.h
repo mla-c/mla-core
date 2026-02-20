@@ -10,13 +10,12 @@
 
 struct mla_task_manager_pthread_data_t {
     pthread_t thread;
-    mla_callback_userdata userData;
-    mla_callback_userdata userData2;
+    mla_user_data_t userData;
     mla_task_worker_t worker;
     mla_task_shared_states* sharedStates;
 };
 
-mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Unused parameter
 
@@ -55,7 +54,7 @@ mla_pointer_t __mla_task_manager_pthread_worker(mla_pointer_t payload) {
             }
 
             shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
-            mla_task_process_result_state result_state = thread_data->worker(thread_data->userData, thread_data->userData2); // Call the worker function
+            mla_task_process_result_state result_state = thread_data->worker(thread_data->userData); // Call the worker function
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
                 shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
@@ -93,8 +92,7 @@ mla_size_t mla_task_manager_pthread_get_stack_size(mla_task_stack_size stackSize
 
 mla_bool_t mla_task_manager_pthread_create_task(
     const mla_task_worker_t worker,
-    mla_callback_userdata userData,
-    mla_callback_userdata userData2,
+    mla_user_data_t& user_data,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
     mla_buffer_reference_t* outTaskResourceOwner,
@@ -108,8 +106,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
     mla_memset(thread_data, 0, sizeof(mla_task_manager_pthread_data_t));
     thread_data->worker = worker;
-    thread_data->userData = userData;
-    thread_data->userData2 = userData2;
+    thread_data->userData = user_data;
     thread_data->sharedStates = shared_states;
 
     // Create thread attributes if needed for stack size
@@ -172,7 +169,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     }
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference(thread_data, true, __mla_task_manager_pthread_cleanup);
+    *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_pthread_cleanup, mla_dynamic_data_empty());
 
     return true;
 
