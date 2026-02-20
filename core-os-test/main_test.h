@@ -38,6 +38,7 @@
 #include "mla_reflection_rpc_test.h"
 #include "mla_memory_test.h"
 #include "mla_math_utils_test.h"
+#include "mla_user_data_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -89,6 +90,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterReflectionTests(l_TestExecutor);
     RegisterReflectionRpcTests(l_TestExecutor);
     RegisterMathUtilsTests(l_TestExecutor);
+    RegisterUserDataTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1

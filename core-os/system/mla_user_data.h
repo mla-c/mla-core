@@ -67,7 +67,7 @@ mla_int16_t mla_user_data_get_int16(const mla_user_data_t& userData, const mla_c
 mla_uint16_t mla_user_data_get_uint16(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_uint16_t defaultValue = 0);
 mla_int32_t mla_user_data_get_int32(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_int32_t defaultValue = 0);
 mla_uint32_t mla_user_data_get_uint32(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_uint32_t defaultValue = 0);
-mla_int32_t mla_user_data_get_int64(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_int64_t defaultValue = 0);
+mla_int64_t mla_user_data_get_int64(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_int64_t defaultValue = 0);
 mla_uint64_t mla_user_data_get_uint64(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_uint64_t defaultValue = 0);
 mla_float_t mla_user_data_get_float(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_float_t defaultValue = 0);
 mla_double_t mla_user_data_get_double(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_double_t defaultValue = 0);

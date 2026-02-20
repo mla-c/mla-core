@@ -495,7 +495,7 @@ mla_uint32_t mla_user_data_get_uint32(const mla_user_data_t& userData, const mla
     return found->data.asUint32;
 }
 
-mla_int32_t mla_user_data_get_int64(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_int64_t defaultValue) {
+mla_int64_t mla_user_data_get_int64(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_int64_t defaultValue) {
 
     const mla_user_data_t* found = mla_user_data_get((mla_user_data_t&)userData, name);
     if (found == nullptr) {
