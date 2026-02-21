@@ -162,12 +162,13 @@ SkFont *__mla_global_ui_surface_skia_font_cache_getOrCreateFont(
 
     if (mla_array_list_size(cache.fontCache) < mla_global_ui_surface_skia_font_cache_size) {
         mla_array_list_add(cache.fontCache, newItem);
+        return &mla_array_list_get_unsafe(cache.fontCache,
+            mla_array_list_size(cache.fontCache) - 1).font;
     } else {
+        // Overwrite oldest entry (index 0) when cache is full
         mla_array_list_get_unsafe(cache.fontCache, 0) = newItem;
+        return &mla_array_list_get_unsafe(cache.fontCache, 0).font;
     }
-
-    return &mla_array_list_get_unsafe(cache.fontCache,
-        mla_array_list_size(cache.fontCache) - 1).font;
 }
 
 // ============================================================================
