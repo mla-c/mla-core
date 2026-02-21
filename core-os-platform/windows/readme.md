@@ -15,6 +15,8 @@ The Windows platform module implements the following components:
 
 ## Features
 
+- **Renderer Compatibility Entry Point** - `mla_global_ui_surface_windows_gdiplus.h` currently uses the Direct2D renderer backend until a dedicated GDI+ renderer implementation is introduced.
+
 ### Fast Float Parsing
 
 The Windows platform supports the fast-float library for optimized floating-point number parsing, which is approximately 40% faster than standard library implementations. This feature can be enabled via the `mla_use_fast_float` configuration flag.
