@@ -15,7 +15,7 @@ The Windows platform module implements the following components:
 
 ## Features
 
-- **Renderer Compatibility Entry Point** - `mla_global_ui_surface_windows_gdiplus.h` currently uses the Direct2D renderer backend until a dedicated GDI+ renderer implementation is introduced.
+- **GDI+ Renderer** - `mla_global_ui_surface_windows_gdiplus.h` provides a dedicated GDI+ renderer implementation for the Windows surface backend.
 
 ### Fast Float Parsing
 
