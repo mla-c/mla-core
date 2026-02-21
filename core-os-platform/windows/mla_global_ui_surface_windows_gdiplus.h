@@ -1,0 +1,6 @@
+#ifndef COREOS_MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
+#define COREOS_MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
+
+#include "mla_global_ui_surface_windows_direct2d.h"
+
+#endif
