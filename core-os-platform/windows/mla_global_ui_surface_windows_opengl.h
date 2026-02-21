@@ -8,19 +8,20 @@
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../../core-os/ui/display/mla_ui_display_surface.h"
+#include "../../core-os/utils/mla_math_utils.h"
 #include <windows.h>
 #include <gl/GL.h>
-#include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 #define mla_global_ui_surface_windows_opengl_font_cache_size 16
 
 // Curve tessellation quality
 #define MLA_BEZIER_SEGMENTS 32
 #define MLA_ARC_SEGMENTS 32
+
+// Helper wrappers for GL float-precision math using MLA math utilities
+static inline GLfloat __gl_cosf(GLfloat x) { return (GLfloat)mla_math_cos((mla_double_t)x); }
+static inline GLfloat __gl_sinf(GLfloat x) { return (GLfloat)mla_math_sin((mla_double_t)x); }
+static inline mla_double_t __mla_fabs(mla_double_t x) { return x < 0.0 ? -x : x; }
 
 // Global OpenGL context
 static HGLRC g_hGLRC = nullptr;
@@ -97,7 +98,8 @@ mla_global_ui_surface_windows_opengl_Cache __mla_global_ui_surface_windows_openg
     };
 }
 
-mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(mla_pointer_t data, const mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(
+    mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
     mla_opengl_font_resources* resources = static_cast<mla_opengl_font_resources*>(data);
@@ -204,7 +206,7 @@ mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_wi
     
     mla_global_ui_surface_windows_opengl_font_cache_item newItem = {
         fontType,
-        mla_buffer_reference(resources, true, __mla_global_ui_surface_windows_opengl_font_cleanup),
+        mla_buffer_reference_create(resources, true, __mla_global_ui_surface_windows_opengl_font_cleanup, mla_dynamic_data_empty()),
         resources
     };
     
@@ -293,12 +295,12 @@ mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_d
         return result;
     }
     
-    rx = fabs(rx);
-    ry = fabs(ry);
+    rx = __mla_fabs(rx);
+    ry = __mla_fabs(ry);
     
-    mla_double_t phi = x_axis_rotation * M_PI / 180.0;
-    mla_double_t cos_phi = cos(phi);
-    mla_double_t sin_phi = sin(phi);
+    mla_double_t phi = x_axis_rotation * mla_math_pi / 180.0;
+    mla_double_t cos_phi = mla_math_cos(phi);
+    mla_double_t sin_phi = mla_math_sin(phi);
     
     // Compute center point
     mla_double_t dx = (x1 - x2) / 2.0;
@@ -310,14 +312,14 @@ mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_d
     // Correct radii
     mla_double_t lambda = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry);
     if (lambda > 1.0) {
-        rx *= sqrt(lambda);
-        ry *= sqrt(lambda);
+        rx *= mla_math_sqrt(lambda);
+        ry *= mla_math_sqrt(lambda);
     }
     
     mla_double_t sq = (rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p) /
                       (rx * rx * y1p * y1p + ry * ry * x1p * x1p);
     
-    sq = sq < 0 ? 0 : sqrt(sq);
+    sq = sq < 0 ? 0 : mla_math_sqrt(sq);
     
     if (large_arc == sweep) {
         sq = -sq;
@@ -335,22 +337,22 @@ mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_d
     mla_double_t vx = (-x1p - cxp) / rx;
     mla_double_t vy = (-y1p - cyp) / ry;
     
-    mla_double_t n = sqrt(ux * ux + uy * uy);
+    mla_double_t n = mla_math_sqrt(ux * ux + uy * uy);
     mla_double_t p = ux;
     mla_double_t sign = (uy < 0) ? -1.0 : 1.0;
     
-    result.start_angle = sign * acos(p / n);
+    result.start_angle = sign * mla_math_acos(p / n);
     
-    n = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    n = mla_math_sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
     p = ux * vx + uy * vy;
     sign = (ux * vy - uy * vx < 0) ? -1.0 : 1.0;
     
-    mla_double_t angle_extent = sign * acos(p / n);
+    mla_double_t angle_extent = sign * mla_math_acos(p / n);
     
     if (!sweep && angle_extent > 0) {
-        angle_extent -= 2.0 * M_PI;
+        angle_extent -= 2.0 * mla_math_pi;
     } else if (sweep && angle_extent < 0) {
-        angle_extent += 2.0 * M_PI;
+        angle_extent += 2.0 * mla_math_pi;
     }
     
     result.sweep_angle = angle_extent;
@@ -366,17 +368,17 @@ void __gl_draw_arc(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double
     
     mla_arc_params arc = __svg_arc_to_center_param(x1, y1, x2, y2, rx, ry, x_axis_rotation, large_arc, sweep);
     
-    mla_double_t phi = arc.x_axis_rotation * M_PI / 180.0;
-    mla_double_t cos_phi = cos(phi);
-    mla_double_t sin_phi = sin(phi);
+    mla_double_t phi = arc.x_axis_rotation * mla_math_pi / 180.0;
+    mla_double_t cos_phi = mla_math_cos(phi);
+    mla_double_t sin_phi = mla_math_sin(phi);
     
     int segments = MLA_ARC_SEGMENTS;
     for (int i = 0; i <= segments; i++) {
         mla_double_t t = (mla_double_t)i / (mla_double_t)segments;
         mla_double_t angle = arc.start_angle + t * arc.sweep_angle;
         
-        mla_double_t x = arc.rx * cos(angle);
-        mla_double_t y = arc.ry * sin(angle);
+        mla_double_t x = arc.rx * mla_math_cos(angle);
+        mla_double_t y = arc.ry * mla_math_sin(angle);
         
         // Apply rotation
         mla_double_t xr = cos_phi * x - sin_phi * y + arc.cx;
@@ -395,7 +397,7 @@ void __gl_apply_linear_gradient(mla_opengl_gradient_state& gradient, mla_double_
     // Calculate gradient position (0 to 1)
     mla_double_t dx = gradient.linear_x2 - gradient.linear_x1;
     mla_double_t dy = gradient.linear_y2 - gradient.linear_y1;
-    mla_double_t len = sqrt(dx * dx + dy * dy);
+    mla_double_t len = mla_math_sqrt(dx * dx + dy * dy);
     
     if (len < 0.001) {
         __gl_set_color(gradient.linear_start_color);
@@ -424,7 +426,7 @@ void __gl_apply_radial_gradient(mla_opengl_gradient_state& gradient, mla_double_
     
     mla_double_t dx = x - gradient.radial_cx;
     mla_double_t dy = y - gradient.radial_cy;
-    mla_double_t dist = sqrt(dx * dx + dy * dy);
+    mla_double_t dist = mla_math_sqrt(dx * dx + dy * dy);
     
     mla_double_t t = dist / gradient.radial_r;
     t = t < 0 ? 0 : (t > 1 ? 1 : t);
@@ -443,8 +445,8 @@ void __gl_draw_circle(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64)
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
     for (int i = 0; i <= segments; i++) {
-        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + radius * cosf(angle), cy + radius * sinf(angle));
+        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
+        glVertex2f(cx + radius * __gl_cosf(angle), cy + radius * __gl_sinf(angle));
     }
     glEnd();
 }
@@ -452,8 +454,8 @@ void __gl_draw_circle(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64)
 void __gl_draw_circle_outline(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64) {
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < segments; i++) {
-        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + radius * cosf(angle), cy + radius * sinf(angle));
+        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
+        glVertex2f(cx + radius * __gl_cosf(angle), cy + radius * __gl_sinf(angle));
     }
     glEnd();
 }
@@ -462,8 +464,8 @@ void __gl_draw_ellipse(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segme
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
     for (int i = 0; i <= segments; i++) {
-        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + rx * cosf(angle), cy + ry * sinf(angle));
+        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
+        glVertex2f(cx + rx * __gl_cosf(angle), cy + ry * __gl_sinf(angle));
     }
     glEnd();
 }
@@ -471,8 +473,8 @@ void __gl_draw_ellipse(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segme
 void __gl_draw_ellipse_outline(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segments = 64) {
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < segments; i++) {
-        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + rx * cosf(angle), cy + ry * sinf(angle));
+        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
+        glVertex2f(cx + rx * __gl_cosf(angle), cy + ry * __gl_sinf(angle));
     }
     glEnd();
 }
@@ -484,26 +486,26 @@ void __gl_draw_rounded_rect(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
     
     // Top-left corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)M_PI + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * cosf(angle), y + ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
     }
     
     // Top-right corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = 1.5f * (GLfloat)M_PI + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * cosf(angle), y + ry + ry * sinf(angle));
+        GLfloat angle = 1.5f * (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
     }
     
     // Bottom-right corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * cosf(angle), y + height - ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
     }
     
     // Bottom-left corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)M_PI / 2.0f + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * cosf(angle), y + height - ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)mla_math_pi / 2.0f + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
     }
     
     glEnd();
@@ -517,26 +519,26 @@ void __gl_draw_rounded_rect_outline(GLfloat x, GLfloat y, GLfloat width, GLfloat
     
     // Top-left corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)M_PI + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * cosf(angle), y + ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
     }
     
     // Top-right corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = 1.5f * (GLfloat)M_PI + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * cosf(angle), y + ry + ry * sinf(angle));
+        GLfloat angle = 1.5f * (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
     }
     
     // Bottom-right corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * cosf(angle), y + height - ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
     }
     
     // Bottom-left corner
     for (int i = segments; i >= 0; i--) {
-        GLfloat angle = (GLfloat)M_PI / 2.0f + (GLfloat)i * ((GLfloat)M_PI / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * cosf(angle), y + height - ry + ry * sinf(angle));
+        GLfloat angle = (GLfloat)mla_math_pi / 2.0f + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
+        glVertex2f(x + rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
     }
     
     glEnd();
@@ -563,8 +565,18 @@ mla_ui_surface_size_t __windows_surface_opengl_get_size(const mla_ui_surface_t &
     RECT rect;
     
     if (GetClientRect(window_surface->hwnd, &rect)) {
-        size.width = (mla_uint32_t)(rect.right - rect.left);
-        size.height = (mla_uint32_t)(rect.bottom - rect.top);
+        // Get physical pixel size
+        mla_uint32_t physicalWidth = (mla_uint32_t)(rect.right - rect.left);
+        mla_uint32_t physicalHeight = (mla_uint32_t)(rect.bottom - rect.top);
+
+        // Convert to DIPs using system DPI
+        HDC hdc = GetDC(window_surface->hwnd);
+        FLOAT dpiX = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSX);
+        FLOAT dpiY = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSY);
+        ReleaseDC(window_surface->hwnd, hdc);
+
+        size.width = (mla_uint32_t)((mla_double_t)physicalWidth * (96.0f / dpiX));
+        size.height = (mla_uint32_t)((mla_double_t)physicalHeight * (96.0f / dpiY));
     }
     
     return size;
@@ -585,8 +597,17 @@ mla_bool_t __windows_surface_opengl_set_size(const mla_ui_surface_t &surface, ml
     if (!IsWindow(window_surface->hwnd)) {
         return false;
     }
-    
-    if (SetWindowPos(window_surface->hwnd, nullptr, 0, 0, (int)size.width, (int)size.height,
+
+    // Convert DIPs to physical pixels using system DPI
+    HDC hdc = GetDC(window_surface->hwnd);
+    FLOAT dpiX = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSX);
+    FLOAT dpiY = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSY);
+    ReleaseDC(window_surface->hwnd, hdc);
+
+    mla_int32_t physicalWidth = (mla_int32_t)((mla_double_t)size.width * (dpiX / 96.0f));
+    mla_int32_t physicalHeight = (mla_int32_t)((mla_double_t)size.height * (dpiY / 96.0f));
+
+    if (SetWindowPos(window_surface->hwnd, nullptr, 0, 0, physicalWidth, physicalHeight,
                      SWP_NOMOVE | SWP_NOZORDER)) {
         return true;
     }
@@ -603,6 +624,26 @@ LRESULT CALLBACK __windows_surface_opengl_proc(HWND hwnd, UINT uMsg, WPARAM wPar
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
+mla_bool_t __windows_opengl_ScreenPosition_to_client_position(const HWND &hwnd, POINT &cursorPos,
+                                                              mla_ui_surface_draw_point_t &out_clientPosition) {
+    RECT clientRect;
+    if (GetClientRect(hwnd, &clientRect)) {
+        if (PtInRect(&clientRect, cursorPos)) {
+            // Convert physical pixels to logical DIPs
+            HDC hdc = GetDC(hwnd);
+            FLOAT dpiX = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSX);
+            FLOAT dpiY = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSY);
+            ReleaseDC(hwnd, hdc);
+
+            out_clientPosition.x = (mla_double_t)cursorPos.x * (96.0f / dpiX);
+            out_clientPosition.y = (mla_double_t)cursorPos.y * (96.0f / dpiY);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui_surface_t &surface) {
     
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
@@ -616,11 +657,9 @@ mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui
     
     // 1. Mouse Position
     POINT cursorPos;
-    RECT clientRect;
-    if (GetCursorPos(&cursorPos) && ScreenToClient(window_surface->hwnd, &cursorPos) && GetClientRect(window_surface->hwnd, &clientRect)) {
-        if (PtInRect(&clientRect, cursorPos)) {
-            inputStates.cursorPosition.x = (mla_double_t)cursorPos.x;
-            inputStates.cursorPosition.y = (mla_double_t)cursorPos.y;
+    if (GetCursorPos(&cursorPos)) {
+        if (ScreenToClient(window_surface->hwnd, &cursorPos)) {
+            __windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
         }
     }
     
@@ -637,14 +676,14 @@ mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui
                                ((GetKeyState(VK_RWIN)   & 0x8000) != 0);
     
     // 4. Key Code Down (basic polling)
+    // Scan common virtual key range for the first pressed key (skipping mouse buttons)
     inputStates.keyCodeDown = 0;
     for (int key = 0x08; key <= 0xFE; ++key) {
-        if ((key >= VK_LBUTTON && key <= VK_XBUTTON2)) {
-            continue; // skip mouse buttons
-        }
-        if (GetKeyState(key) & 0x8000) {
-            inputStates.keyCodeDown = key;
-            break;
+        if ((key == VK_SHIFT) || (key == VK_CONTROL) || (key == VK_MENU)) continue;
+
+        if ((GetKeyState(key) & 0x8000) != 0) {
+            inputStates.keyCodeDown = (mla_uint32_t)key;
+            break; // Valid limitation: only reports the first detected key
         }
     }
     
@@ -776,7 +815,9 @@ mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_
 
 mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t &surface,
                                                          const mla_array_list_t<mla_ui_surface_draw_command_t,
-                                                             mla_ui_surface_draw_command_initializer_t> &drawCommands) {
+                                                             mla_ui_surface_draw_command_initializer_t> &drawCommands,
+                                                         mla_array_list_t<mla_ui_surface_input_event_t,
+                                                             mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame) {
     mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
@@ -791,6 +832,104 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     
     MSG msg;
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        if (msg.hwnd == window_surface->hwnd) {
+            // Handle Mouse Release Events (Clicks)
+            if (msg.message == WM_LBUTTONUP || msg.message == WM_RBUTTONUP || msg.message == WM_MBUTTONUP) {
+                // Extract physical client coordinates
+                int physicalX = (short)LOWORD(msg.lParam);
+                int physicalY = (short)HIWORD(msg.lParam);
+                POINT cursorPos = {physicalX, physicalY};
+                mla_ui_surface_input_event_t clickEvent = mla_ui_surface_input_event_empty();
+                clickEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK;
+                __windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, clickEvent.click.position);
+
+                if (msg.message == WM_LBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT;
+                } else if (msg.message == WM_RBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_RIGHT;
+                } else if (msg.message == WM_MBUTTONUP) {
+                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_MIDDLE;
+                }
+
+                mla_array_list_add(eventsSinceLastFame, clickEvent);
+            } else if (msg.message == WM_KEYDOWN) {
+                // Check if Shift or Ctrl is held down
+                surface_input_event_spical_control_char_kind pressedControlKeys = MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_NONE;
+
+                if ((GetKeyState(VK_SHIFT) & 0x8000) != 0) {
+                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
+                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT);
+                }
+
+                if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
+                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
+                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL);
+                }
+
+                if ((GetKeyState(VK_MENU) & 0x8000) != 0) {
+                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
+                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_ALT);
+                }
+
+                mla_ui_surface_input_event_char_input_kind specialKeyKind = (mla_ui_surface_input_event_char_input_kind)
+                        0xFF;
+
+                switch (msg.wParam) {
+                    case VK_RETURN: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER;
+                        break;
+                    case VK_BACK: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE;
+                        break;
+                    case VK_DELETE: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE;
+                        break;
+                    case VK_TAB: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_TAB;
+                        break;
+                    case VK_ESCAPE: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ESCAPE;
+                        break;
+                    case VK_UP: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_UP;
+                        break;
+                    case VK_DOWN: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_DOWN;
+                        break;
+                    case VK_LEFT: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_LEFT;
+                        break;
+                    case VK_RIGHT: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT;
+                        break;
+                }
+
+                if (specialKeyKind != 0xFF) {
+                    mla_ui_surface_input_event_t event = mla_ui_surface_input_event_empty();
+                    event.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                    event.char_input.kind = specialKeyKind;
+                    event.char_input.pressedControlKeys = pressedControlKeys;
+                    mla_memset(event.char_input.character, 0, 4);
+                    mla_array_list_add(eventsSinceLastFame, event);
+                } else {
+                    // For other keys, generate a char input event if it's a printable character
+                    BYTE keyboardState[256];
+                    GetKeyboardState(keyboardState);
+
+                    WCHAR unicodeChar[4];
+                    int result = ToUnicode((UINT)msg.wParam, (UINT)((msg.lParam >> 16) & 0xFF), keyboardState,
+                                           unicodeChar, 4, 0);
+                    if (result > 0) {
+                        mla_ui_surface_input_event_t charInputEvent = mla_ui_surface_input_event_empty();
+                        charInputEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
+                        charInputEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT;
+                        charInputEvent.char_input.pressedControlKeys = pressedControlKeys;
+
+                        // Convert WCHAR to UTF-8
+                        int utf8Length = WideCharToMultiByte(CP_UTF8, 0, unicodeChar, result, nullptr, 0, nullptr,
+                                                             nullptr);
+                        if (utf8Length > 0 && utf8Length < 4) {
+                            WideCharToMultiByte(CP_UTF8, 0, unicodeChar, result, charInputEvent.char_input.character,
+                                                utf8Length, nullptr, nullptr);
+                            charInputEvent.char_input.character[utf8Length] = '\0';
+                            mla_array_list_add(eventsSinceLastFame, charInputEvent);
+                        }
+                    }
+                }
+            }
+        }
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -803,12 +942,18 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     GetClientRect(window_surface->hwnd, &rc);
     int windowWidth = rc.right - rc.left;
     int windowHeight = rc.bottom - rc.top;
-    
-    // Setup viewport and projection
+
+    // Get DPI for logical coordinate conversion
+    FLOAT dpiX = (FLOAT)GetDeviceCaps(window_surface->hdc, LOGPIXELSX);
+    FLOAT dpiY = (FLOAT)GetDeviceCaps(window_surface->hdc, LOGPIXELSY);
+    mla_double_t logicalWidth = (mla_double_t)windowWidth * (96.0 / dpiX);
+    mla_double_t logicalHeight = (mla_double_t)windowHeight * (96.0 / dpiY);
+
+    // Setup viewport in physical pixels, projection in logical (DIP) coordinates
     glViewport(0, 0, windowWidth, windowHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, windowWidth, windowHeight, 0, -1, 1);
+    glOrtho(0, logicalWidth, logicalHeight, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
@@ -927,9 +1072,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     glVertex2f(cx, cy);
                     
                     for (int i = 0; i <= 64; i++) {
-                        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / 64.0f;
-                        GLfloat px = cx + r * cosf(angle);
-                        GLfloat py = cy + r * sinf(angle);
+                        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / 64.0f;
+                        GLfloat px = cx + r * __gl_cosf(angle);
+                        GLfloat py = cy + r * __gl_sinf(angle);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
                             __gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
@@ -975,9 +1120,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     glVertex2f(cx, cy);
                     
                     for (int i = 0; i <= 64; i++) {
-                        GLfloat angle = 2.0f * (GLfloat)M_PI * (GLfloat)i / 64.0f;
-                        GLfloat px = cx + rx * cosf(angle);
-                        GLfloat py = cy + ry * sinf(angle);
+                        GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / 64.0f;
+                        GLfloat px = cx + rx * __gl_cosf(angle);
+                        GLfloat py = cy + ry * __gl_sinf(angle);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
                             __gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
@@ -1439,14 +1584,14 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
         glColor3f(1.0f, 0.0f, 0.0f); // Red color
         
         glPushMatrix();
-        glTranslatef((GLfloat)(windowWidth - 75), (GLfloat)(windowHeight - 25), 0.0f);
+        glTranslatef((GLfloat)(logicalWidth - 75), (GLfloat)(logicalHeight - 25), 0.0f);
         glScalef(22.5f, -22.5f, 1.0f); // 15 * 1.5 = 22.5
         
         char buffer[64];
         wsprintfA(buffer, "FPS: %d", window_surface->DEBUG_current_fps);
         
         glListBase(debugFont->resources->displayListBase);
-        glCallLists((GLsizei)strlen(buffer), GL_UNSIGNED_BYTE, buffer);
+        glCallLists((GLsizei)mla_strlen(buffer), GL_UNSIGNED_BYTE, buffer);
         
         glPopMatrix();
     }
@@ -1458,7 +1603,8 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(mla_pointer_t data, const mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
+    mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
     mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(data);
@@ -1506,7 +1652,7 @@ mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
 #endif
     
     outSurface.resource = window_surface;
-    outSurface.resourceOwner = mla_buffer_reference(window_surface, true, __windows_surface_opengl_buffer_cleanup);
+    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, __windows_surface_opengl_buffer_cleanup, mla_dynamic_data_empty());
     outSurface.get_size = __windows_surface_opengl_get_size;
     outSurface.set_size = __windows_surface_opengl_set_size;
     outSurface.render_draw_commands = __windows_surface_opengl_render_draw_commands;
