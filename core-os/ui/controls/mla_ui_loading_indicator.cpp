@@ -32,7 +32,7 @@ mla_bool_t __mla_ui_indicator_render_to_drawCommands(const mla_ui_control_contex
 
     // 1. Background circle
     // <circle cx="12" cy="12" r="9" fill="none" stroke="#d0d0d0" stroke-width="2"/>
-    mla_ui_surface_draw_command_t bgCircle = mla_ui_surface_draw_command_initializer_t::init();
+    mla_ui_surface_draw_command_t bgCircle = mla_ui_surface_draw_command_empty();
     bgCircle.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_CIRCLE;
     bgCircle.circle.cx = cx;
     bgCircle.circle.cy = cy;
@@ -65,7 +65,7 @@ mla_bool_t __mla_ui_indicator_render_to_drawCommands(const mla_ui_control_contex
     mla_double_t ex = cx + r * mla_math_cos(endAngle);
     mla_double_t ey = cy + r * mla_math_sin(endAngle);
 
-    mla_ui_surface_draw_command_t activeSegment = mla_ui_surface_draw_command_initializer_t::init();
+    mla_ui_surface_draw_command_t activeSegment = mla_ui_surface_draw_command_empty();
     activeSegment.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_PATH;
     activeSegment.path = mla_ui_surface_draw_command_path_initializer_t::init();
     activeSegment.path.fill = {0, 0, 0, 0};
