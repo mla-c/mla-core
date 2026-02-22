@@ -11,15 +11,14 @@
 
 void TaskLocalCreateTest() {
 
-    mla_task_local_t local = mla_task_local_create("TestLocal");
+    mla_task_local_t local = mla_task_local_create();
 
     assert_not_null(local.resource, "Task local resource should not be null after creation");
-    assert_true(mla_string_length(local.name) > 0, "Task local name should not be empty");
 }
 
 void TaskLocalSetGetTest() {
 
-    mla_task_local_t local = mla_task_local_create("TestLocalSetGet");
+    mla_task_local_t local = mla_task_local_create();
 
     mla_int32_t testValue = 42;
     assert_true(mla_task_local_set(local, &testValue), "Task local set should succeed");
@@ -33,7 +32,7 @@ void TaskLocalSetGetTest() {
 
 void TaskLocalOverwriteTest() {
 
-    mla_task_local_t local = mla_task_local_create("TestLocalOverwrite");
+    mla_task_local_t local = mla_task_local_create();
 
     mla_int32_t firstValue = 10;
     mla_int32_t secondValue = 20;
@@ -48,7 +47,7 @@ void TaskLocalOverwriteTest() {
 
 void TaskLocalNullDefaultTest() {
 
-    mla_task_local_t local = mla_task_local_create("TestLocalNull");
+    mla_task_local_t local = mla_task_local_create();
 
     mla_pointer_t result = mla_task_local_get(local);
     assert_null(result, "Task local should return null before any value is set");
@@ -84,11 +83,11 @@ void RegisterTaskLocalTests(mla_test_executor_t &p_TestExecutor) {
 
 void TaskLocalCreateDestroyBenchmark() {
 
-    mla_task_local_t local = mla_task_local_create("BenchmarkLocal");
+    mla_task_local_t local = mla_task_local_create();
 
 }
 
-static mla_task_local_t TaskLocalBenchmarkLocal = mla_task_local_create("BenchmarkSetGet");
+static mla_task_local_t TaskLocalBenchmarkLocal = mla_task_local_create();
 static mla_int32_t TaskLocalBenchmarkValue = 42;
 
 void TaskLocalSetGetBenchmark() {

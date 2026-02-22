@@ -21,16 +21,14 @@ mla_buffer_cleanup_mode __mla_task_local_cleanup_hook(mla_pointer_t data, const 
 mla_task_local_t mla_task_local_invalid() {
 
     return {
-        mla_string_empty(),
         nullptr,
         mla_buffer_reference_noOwner(),
     };
 }
 
-mla_task_local_t mla_task_local(const mla_string_t& name) {
+mla_task_local_t mla_task_local() {
 
     mla_task_local_t local = {
-        name,
         nullptr,
         mla_buffer_reference_noOwner(),
     };
@@ -40,8 +38,7 @@ mla_task_local_t mla_task_local(const mla_string_t& name) {
     mla_bool_t success = g_task_low_level_access.create_task_local(&outResource);
 
     if (!success) {
-        mla_string_t message = mla_string_concat("Failed to create task local: ", name);
-        mla_error(message);
+        mla_error("Failed to create task local");
     }
 
     local.resource = outResource; // Assign the resource pointer
@@ -49,14 +46,9 @@ mla_task_local_t mla_task_local(const mla_string_t& name) {
     return local;
 }
 
-mla_task_local_t mla_task_local(const mla_char_t* name, mla_size_t size) {
-
-    return mla_task_local(mla_string(name, size));
-}
-
 mla_bool_t mla_task_local_set(const mla_task_local_t& local, mla_pointer_t value) {
 
-    if (mla_string_length(local.name) == 0) {
+    if (local.resource == nullptr) {
         mla_error("Attempting to set value on an invalid task local");
         return false;
     }
@@ -66,7 +58,7 @@ mla_bool_t mla_task_local_set(const mla_task_local_t& local, mla_pointer_t value
 
 mla_pointer_t mla_task_local_get(const mla_task_local_t& local) {
 
-    if (mla_string_length(local.name) == 0) {
+    if (local.resource == nullptr) {
         mla_error("Attempting to get value from an invalid task local");
         return nullptr;
     }

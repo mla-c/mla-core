@@ -276,20 +276,38 @@ mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int32_t& va
 /// Task Local Storage Implementation
 ////////////////////////////////////////////////////////////////////////////
 
+// Uses FreeRTOS Thread Local Storage Pointers
+// Each task local allocates a unique index into the per-task TLS array.
+
+static mla_bool_t g_esp32_task_local_slots_used[configNUM_THREAD_LOCAL_STORAGE_POINTERS] = {};
+
 struct mla_task_manager_esp32_task_local {
-    mla_pointer_t value;
+    BaseType_t index;
 };
 
 mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t* outTaskLocal) {
+
+    // Find a free slot
+    BaseType_t freeIndex = -1;
+    for (BaseType_t i = 0; i < configNUM_THREAD_LOCAL_STORAGE_POINTERS; i++) {
+        if (!g_esp32_task_local_slots_used[i]) {
+            freeIndex = i;
+            break;
+        }
+    }
+
+    if (freeIndex < 0) {
+        return false; // No free slots available
+    }
 
     mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(mla_malloc(sizeof(mla_task_manager_esp32_task_local)));
 
     if (local == nullptr) {
         return false;
     }
-    mla_memset(local, 0, sizeof(mla_task_manager_esp32_task_local));
 
-    local->value = nullptr;
+    g_esp32_task_local_slots_used[freeIndex] = true;
+    local->index = freeIndex;
     *outTaskLocal = static_cast<mla_pointer_t>(local);
 
     return true;
@@ -303,6 +321,7 @@ mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_pointer_t taskLocal) {
         return true;
     }
 
+    g_esp32_task_local_slots_used[local->index] = false;
     mla_free(local);
     return true;
 }
@@ -315,7 +334,7 @@ mla_bool_t mla_task_manager_esp32_set_task_local(mla_pointer_t taskLocal, mla_po
         return false;
     }
 
-    local->value = value;
+    vTaskSetThreadLocalStoragePointer(nullptr, local->index, value);
     return true;
 }
 
@@ -327,7 +346,7 @@ mla_pointer_t mla_task_manager_esp32_get_task_local(mla_pointer_t taskLocal) {
         return nullptr;
     }
 
-    return local->value;
+    return pvTaskGetThreadLocalStoragePointer(nullptr, local->index);
 }
 
 mla_task_manager_low_level_access g_task_low_level_access = {
