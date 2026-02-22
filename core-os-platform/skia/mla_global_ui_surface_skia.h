@@ -35,21 +35,8 @@
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 
 #include <new> // For placement new
-
-#ifdef _WIN32
 #include <windows.h>
 #include <GL/gl.h>
-#else
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
-#endif
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 #define mla_global_ui_surface_skia_font_cache_size 16
 
@@ -182,8 +169,6 @@ static inline SkColor __skia_convert_color(const mla_ui_surface_draw_command_col
 // ============================================================================
 // Platform-specific window surface
 // ============================================================================
-
-#ifdef _WIN32
 
 // Windows platform surface
 struct mla_skia_window_surface_t {
@@ -369,171 +354,6 @@ mla_bool_t __skia_platform_get_window_size(mla_skia_window_surface_t *surface, m
     return true;
 }
 
-#else // Linux / X11
-
-// Linux/X11 platform surface
-struct mla_skia_window_surface_t {
-    Display *display;
-    Window window;
-    GLXContext glxContext;
-    Colormap colormap;
-    mla_bool_t is_initialized;
-    mla_ui_surface_size_t default_size;
-
-    // Skia rendering resources
-    sk_sp<GrDirectContext> grContext;
-    sk_sp<SkSurface> skSurface;
-    mla_global_ui_surface_skia_cache_t renderCache;
-
-    mla_uint32_t currentWidth;
-    mla_uint32_t currentHeight;
-
-#ifdef mla_debug_build
-    mla_uint64_t DEBUG_last_fps_time;
-    mla_int32_t DEBUG_frames_accumulated;
-    mla_int32_t DEBUG_current_fps;
-#endif
-};
-
-mla_bool_t __skia_create_platform_window(mla_skia_window_surface_t *surface) {
-    Display *display = XOpenDisplay(nullptr);
-    if (!display) return false;
-
-    int screen = DefaultScreen(display);
-
-    // Choose GLX visual
-    static int visualAttribs[] = {
-        GLX_RGBA,
-        GLX_DEPTH_SIZE, 24,
-        GLX_STENCIL_SIZE, 8,
-        GLX_DOUBLEBUFFER,
-        None
-    };
-
-    XVisualInfo *vi = glXChooseVisual(display, screen, visualAttribs);
-    if (!vi) {
-        XCloseDisplay(display);
-        return false;
-    }
-
-    Colormap colormap = XCreateColormap(display, RootWindow(display, screen), vi->visual, AllocNone);
-
-    XSetWindowAttributes swa;
-    swa.colormap = colormap;
-    swa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask |
-                     PointerMotionMask | StructureNotifyMask;
-
-    int width = surface->default_size.width;
-    if (width == 0) width = 800;
-    int height = surface->default_size.height;
-    if (height == 0) height = 600;
-
-    Window window = XCreateWindow(
-        display, RootWindow(display, screen),
-        0, 0, width, height, 0,
-        vi->depth, InputOutput, vi->visual,
-        CWColormap | CWEventMask, &swa
-    );
-
-    XStoreName(display, window, "MLA App (Skia)");
-    XMapWindow(display, window);
-
-    // Set up WM_DELETE_WINDOW protocol
-    Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(display, window, &wmDeleteMessage, 1);
-
-    GLXContext glxContext = glXCreateContext(display, vi, nullptr, GL_TRUE);
-    glXMakeCurrent(display, window, glxContext);
-
-    XFree(vi);
-
-    surface->display = display;
-    surface->window = window;
-    surface->glxContext = glxContext;
-    surface->colormap = colormap;
-    surface->is_initialized = true;
-    surface->currentWidth = (mla_uint32_t) width;
-    surface->currentHeight = (mla_uint32_t) height;
-
-    return true;
-}
-
-mla_ui_surface_size_t __skia_surface_get_size(const mla_ui_surface_t &surface) {
-    mla_ui_surface_size_t size = {0, 0};
-    mla_skia_window_surface_t *window_surface = static_cast<mla_skia_window_surface_t *>(surface.resource);
-
-    if (window_surface == nullptr) return size;
-    if (!window_surface->is_initialized) return window_surface->default_size;
-
-    XWindowAttributes attrs;
-    if (XGetWindowAttributes(window_surface->display, window_surface->window, &attrs)) {
-        size.width = (mla_uint32_t) attrs.width;
-        size.height = (mla_uint32_t) attrs.height;
-    }
-
-    return size;
-}
-
-mla_bool_t __skia_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
-    mla_skia_window_surface_t *window_surface = static_cast<mla_skia_window_surface_t *>(surface.resource);
-
-    if (window_surface == nullptr) return false;
-    if (!window_surface->is_initialized) {
-        window_surface->default_size = size;
-        return true;
-    }
-
-    XResizeWindow(window_surface->display, window_surface->window, size.width, size.height);
-    return true;
-}
-
-mla_ui_surface_input_states_t __skia_surface_input_states(const mla_ui_surface_t &surface) {
-    mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
-    mla_skia_window_surface_t *window_surface = static_cast<mla_skia_window_surface_t *>(surface.resource);
-
-    if (window_surface == nullptr || !window_surface->is_initialized) {
-        return inputStates;
-    }
-
-    Window root_return, child_return;
-    int root_x, root_y, win_x, win_y;
-    unsigned int mask;
-
-    if (XQueryPointer(window_surface->display, window_surface->window,
-                      &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask)) {
-        inputStates.cursorPosition.x = (mla_double_t) win_x;
-        inputStates.cursorPosition.y = (mla_double_t) win_y;
-
-        inputStates.leftMouseButtonDown = (mask & Button1Mask) != 0;
-        inputStates.middleMouseButtonDown = (mask & Button2Mask) != 0;
-        inputStates.rightMouseButtonDown = (mask & Button3Mask) != 0;
-        inputStates.shiftKeyDown = (mask & ShiftMask) != 0;
-        inputStates.ctrlKeyDown = (mask & ControlMask) != 0;
-        inputStates.altKeyDown = (mask & Mod1Mask) != 0;
-        inputStates.metaKeyDown = (mask & Mod4Mask) != 0;
-    }
-
-    return inputStates;
-}
-
-void __skia_platform_swap_buffers(mla_skia_window_surface_t *surface) {
-    glXSwapBuffers(surface->display, surface->window);
-}
-
-void __skia_platform_make_current(mla_skia_window_surface_t *surface) {
-    glXMakeCurrent(surface->display, surface->window, surface->glxContext);
-}
-
-mla_bool_t __skia_platform_get_window_size(mla_skia_window_surface_t *surface, mla_uint32_t &outWidth, mla_uint32_t &outHeight) {
-    XWindowAttributes attrs;
-    if (!XGetWindowAttributes(surface->display, surface->window, &attrs)) return false;
-    outWidth = (mla_uint32_t) attrs.width;
-    outHeight = (mla_uint32_t) attrs.height;
-    return true;
-}
-
-#endif // _WIN32
-
 // ============================================================================
 // Skia GPU context and surface management
 // ============================================================================
@@ -651,8 +471,6 @@ static inline void __skia_set_stroke(SkPaint &paint, const mla_ui_surface_draw_c
 // Event processing helpers
 // ============================================================================
 
-#ifdef _WIN32
-
 void __skia_process_win32_events(mla_skia_window_surface_t *window_surface,
                                   mla_array_list_t<mla_ui_surface_input_event_t,
                                       mla_ui_surface_input_event_initializer_t> &eventsSinceLastFrame) {
@@ -744,103 +562,6 @@ void __skia_process_win32_events(mla_skia_window_surface_t *window_surface,
     }
 }
 
-#else // Linux / X11
-
-void __skia_process_x11_events(mla_skia_window_surface_t *window_surface,
-                                mla_array_list_t<mla_ui_surface_input_event_t,
-                                    mla_ui_surface_input_event_initializer_t> &eventsSinceLastFrame) {
-    while (XPending(window_surface->display)) {
-        XEvent event;
-        XNextEvent(window_surface->display, &event);
-
-        switch (event.type) {
-            case ButtonRelease: {
-                mla_ui_surface_input_event_t clickEvent = mla_ui_surface_input_event_empty();
-                clickEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK;
-                clickEvent.click.position.x = (mla_double_t) event.xbutton.x;
-                clickEvent.click.position.y = (mla_double_t) event.xbutton.y;
-
-                if (event.xbutton.button == Button1) {
-                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT;
-                } else if (event.xbutton.button == Button3) {
-                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_RIGHT;
-                } else if (event.xbutton.button == Button2) {
-                    clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_MIDDLE;
-                }
-
-                mla_array_list_add(eventsSinceLastFrame, clickEvent);
-                break;
-            }
-
-            case KeyPress: {
-                surface_input_event_spical_control_char_kind pressedControlKeys = MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_NONE;
-
-                if (event.xkey.state & ShiftMask) {
-                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
-                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT);
-                }
-                if (event.xkey.state & ControlMask) {
-                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
-                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL);
-                }
-                if (event.xkey.state & Mod1Mask) {
-                    pressedControlKeys = (surface_input_event_spical_control_char_kind)
-                        (pressedControlKeys | MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_ALT);
-                }
-
-                KeySym keySym = XLookupKeysym(&event.xkey, 0);
-                mla_ui_surface_input_event_char_input_kind specialKeyKind = (mla_ui_surface_input_event_char_input_kind) 0xFF;
-
-                switch (keySym) {
-                    case XK_Return: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ENTER; break;
-                    case XK_BackSpace: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_BACKSPACE; break;
-                    case XK_Delete: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_DELETE; break;
-                    case XK_Tab: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_TAB; break;
-                    case XK_Escape: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ESCAPE; break;
-                    case XK_Up: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_UP; break;
-                    case XK_Down: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_DOWN; break;
-                    case XK_Left: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_LEFT; break;
-                    case XK_Right: specialKeyKind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_ARROW_RIGHT; break;
-                }
-
-                if (specialKeyKind != 0xFF) {
-                    mla_ui_surface_input_event_t charEvent = mla_ui_surface_input_event_empty();
-                    charEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
-                    charEvent.char_input.kind = specialKeyKind;
-                    charEvent.char_input.pressedControlKeys = pressedControlKeys;
-                    mla_memset(charEvent.char_input.character, 0, 4);
-                    mla_array_list_add(eventsSinceLastFrame, charEvent);
-                } else {
-                    // Regular character input
-                    char buffer[8];
-                    int count = XLookupString(&event.xkey, buffer, sizeof(buffer) - 1, nullptr, nullptr);
-                    if (count > 0 && count < 4) {
-                        mla_ui_surface_input_event_t charInputEvent = mla_ui_surface_input_event_empty();
-                        charInputEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR;
-                        charInputEvent.char_input.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT;
-                        charInputEvent.char_input.pressedControlKeys = pressedControlKeys;
-                        mla_memcpy(charInputEvent.char_input.character, buffer, count);
-                        charInputEvent.char_input.character[count] = '\0';
-                        mla_array_list_add(eventsSinceLastFrame, charInputEvent);
-                    }
-                }
-                break;
-            }
-
-            case ConfigureNotify: {
-                window_surface->currentWidth = (mla_uint32_t) event.xconfigure.width;
-                window_surface->currentHeight = (mla_uint32_t) event.xconfigure.height;
-                break;
-            }
-
-            default:
-                break;
-        }
-    }
-}
-
-#endif // _WIN32
-
 // ============================================================================
 // Main render function
 // ============================================================================
@@ -861,11 +582,7 @@ mla_bool_t __skia_surface_render_draw_commands(const mla_ui_surface_t &surface,
     }
 
     // Process platform events
-#ifdef _WIN32
     __skia_process_win32_events(window_surface, eventsSinceLastFrame);
-#else
-    __skia_process_x11_events(window_surface, eventsSinceLastFrame);
-#endif
 
     // Get current window size
     mla_uint32_t width = 0, height = 0;
@@ -1252,7 +969,6 @@ mla_buffer_cleanup_mode __skia_surface_buffer_cleanup(mla_pointer_t data, const 
         window_surface->skSurface.reset();
         window_surface->grContext.reset();
 
-#ifdef _WIN32
         if (window_surface->hglrc) {
             wglMakeCurrent(nullptr, nullptr);
             wglDeleteContext(window_surface->hglrc);
@@ -1263,17 +979,6 @@ mla_buffer_cleanup_mode __skia_surface_buffer_cleanup(mla_pointer_t data, const 
         if (IsWindow(window_surface->hwnd)) {
             DestroyWindow(window_surface->hwnd);
         }
-#else
-        if (window_surface->glxContext) {
-            glXMakeCurrent(window_surface->display, None, nullptr);
-            glXDestroyContext(window_surface->display, window_surface->glxContext);
-        }
-        if (window_surface->display && window_surface->window) {
-            XDestroyWindow(window_surface->display, window_surface->window);
-            XFreeColormap(window_surface->display, window_surface->colormap);
-            XCloseDisplay(window_surface->display);
-        }
-#endif
 
         // Call destructor for C++ members (sk_sp, SkPaint, font cache)
         window_surface->~mla_skia_window_surface_t();
