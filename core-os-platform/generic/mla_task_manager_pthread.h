@@ -288,6 +288,55 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
     return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
 }
 
+mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t* outTaskLocal) {
+
+    pthread_key_t* key = static_cast<pthread_key_t*>(mla_malloc(sizeof(pthread_key_t)));
+    if (key == nullptr) {
+        return false;
+    }
+
+    int result = pthread_key_create(key, nullptr);
+    if (result != 0) {
+        mla_free(key);
+        return false;
+    }
+
+    *outTaskLocal = static_cast<mla_pointer_t>(key);
+    return true;
+}
+
+mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_pointer_t taskLocal) {
+
+    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
+    if (key == nullptr) {
+        return false;
+    }
+
+    mla_bool_t success = pthread_key_delete(*key) == 0;
+    mla_free(key);
+    return success;
+}
+
+mla_bool_t mla_task_manager_pthread_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+
+    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
+    if (key == nullptr) {
+        return false;
+    }
+
+    return pthread_setspecific(*key, value) == 0;
+}
+
+mla_pointer_t mla_task_manager_pthread_get_task_local(mla_pointer_t taskLocal) {
+
+    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
+    if (key == nullptr) {
+        return nullptr;
+    }
+
+    return pthread_getspecific(*key);
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_pthread_create_task,
     mla_task_manager_pthread_run,
@@ -296,6 +345,10 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_pthread_unlock_mutex,
     mla_task_manager_pthread_destroy_mutex,
     mla_task_manager_pthread_multi_task_mode,
+    mla_task_manager_pthread_create_task_local,
+    mla_task_manager_pthread_destroy_task_local,
+    mla_task_manager_pthread_set_task_local,
+    mla_task_manager_pthread_get_task_local,
     mla_task_manager_pthread_atomic_int32_increment,
     mla_task_manager_pthread_atomic_int32_decrement,
     mla_task_manager_pthread_atomic_int32_add,
