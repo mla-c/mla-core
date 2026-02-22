@@ -125,6 +125,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterAtomicBenchmarks(l_BenchmarkExecutor);
     RegisterSha1Benchmarks(l_BenchmarkExecutor);
     RegisterHashBenchmarks(l_BenchmarkExecutor);
+    RegisterTaskLocalBenchmarks(l_BenchmarkExecutor);
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Benchmarks

@@ -7,6 +7,7 @@
 
 #include "../core-os/task/mla_task_local.h"
 #include "../core-os-test-support/mla_test_executor.h"
+#include "../core-os-test-support/mla_benchmark_executor.h"
 
 void TaskLocalCreateTest() {
 
@@ -78,6 +79,32 @@ void RegisterTaskLocalTests(mla_test_executor_t &p_TestExecutor) {
 
     test = mla_test("TaskLocalInvalid", test_category, TaskLocalInvalidTest);
     mla_test_executor_register_test(p_TestExecutor, test);
+
+}
+
+void TaskLocalCreateDestroyBenchmark() {
+
+    mla_task_local_t local = mla_task_local_create("BenchmarkLocal");
+
+}
+
+static mla_task_local_t TaskLocalBenchmarkLocal = mla_task_local_create("BenchmarkSetGet");
+static mla_int32_t TaskLocalBenchmarkValue = 42;
+
+void TaskLocalSetGetBenchmark() {
+
+    mla_task_local_set(TaskLocalBenchmarkLocal, &TaskLocalBenchmarkValue);
+    mla_task_local_get(TaskLocalBenchmarkLocal);
+
+}
+
+void RegisterTaskLocalBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("TaskLocalCreate", benchmark_category, TaskLocalCreateDestroyBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("TaskLocalSetGet", benchmark_category, TaskLocalSetGetBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
 
