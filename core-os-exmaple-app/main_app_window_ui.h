@@ -64,7 +64,6 @@ mla_bool_t main_app_window_ui_process(mla_array_list_t<mla_ui_control_t, mla_ui_
     }
 
 
-
     if (true) {
         return true;
     }
