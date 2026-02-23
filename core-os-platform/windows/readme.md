@@ -11,8 +11,11 @@ The Windows platform module implements the following components:
 - **File System** (`mla_global_file_system_windows.h`): Windows file system API operations
 - **Task Management** (`mla_global_platform_task_manager_windows.h`): Windows threading and task scheduling
 - **Configuration** (`mla_global_config_windows.h`): Platform-specific configuration settings
+- **UI Surface Renderers** (`mla_global_ui_surface_windows_direct2d.h`, `mla_global_ui_surface_windows_gdiplus.h`, `mla_global_ui_surface_windows_opengl.h`): Native and accelerated Windows UI rendering backends
 
 ## Features
+
+- **GDI+ Renderer** - `mla_global_ui_surface_windows_gdiplus.h` provides a dedicated GDI+ renderer implementation for the Windows surface backend.
 
 ### Fast Float Parsing
 
