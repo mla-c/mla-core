@@ -25,6 +25,7 @@
 #include "mla_cli_parser_test.h"
 #include "mla_cli_app_test.h"
 #include "mla_task_cli_module_test.h"
+#include "mla_task_local_test.h"
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
 #include "mla_id_test.h"
@@ -78,6 +79,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterCliParserTests(l_TestExecutor);
     RegisterCliAppTests(l_TestExecutor);
     RegisterTaskCliModuleTests(l_TestExecutor);
+    RegisterTaskLocalTests(l_TestExecutor);
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
     RegisterIdTests(l_TestExecutor);
@@ -123,6 +125,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterAtomicBenchmarks(l_BenchmarkExecutor);
     RegisterSha1Benchmarks(l_BenchmarkExecutor);
     RegisterHashBenchmarks(l_BenchmarkExecutor);
+    RegisterTaskLocalBenchmarks(l_BenchmarkExecutor);
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Benchmarks

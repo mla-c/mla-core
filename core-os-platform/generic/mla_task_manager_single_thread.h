@@ -227,6 +227,60 @@ mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atom
 
 }
 
+struct mla_task_manager_single_thread_task_local {
+    mla_pointer_t value;
+};
+
+mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t* outTaskLocal) {
+
+    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(mla_malloc(sizeof(mla_task_manager_single_thread_task_local)));
+
+    if (local == nullptr) {
+        return false;
+    }
+    mla_memset(local, 0, sizeof(mla_task_manager_single_thread_task_local));
+
+    local->value = nullptr;
+    *outTaskLocal = static_cast<mla_pointer_t>(local);
+
+    return true;
+}
+
+mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_pointer_t taskLocal) {
+
+    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return true;
+    }
+
+    mla_free(local);
+    return true;
+}
+
+mla_bool_t mla_task_manager_single_thread_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+
+    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return false;
+    }
+
+    local->value = value;
+    return true;
+}
+
+mla_pointer_t mla_task_manager_single_thread_get_task_local(mla_pointer_t taskLocal) {
+
+    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return nullptr;
+    }
+
+    return local->value;
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_create_task,
     mla_task_manager_single_thread_run,
@@ -235,6 +289,10 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_unlock_mutex,
     mla_task_manager_single_thread_destroy_mutex,
     mla_task_manager_single_thread_multi_task_mode,
+    mla_task_manager_single_thread_create_task_local,
+    mla_task_manager_single_thread_destroy_task_local,
+    mla_task_manager_single_thread_set_task_local,
+    mla_task_manager_single_thread_get_task_local,
     mla_task_manager_single_thread_atomic_int32_increment,
     mla_task_manager_single_thread_atomic_int32_decrement,
     mla_task_manager_single_thread_atomic_int32_add,

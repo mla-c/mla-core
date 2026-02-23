@@ -20,6 +20,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_rw_lock.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_atomic.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_local.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_cli_module.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/cli/mla_cli_parser.cpp

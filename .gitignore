@@ -191,4 +191,6 @@ $RECYCLE.BIN/
 Session.vim
 .netrwhist
 
+_codeql_detected_source_root
+
 

@@ -63,6 +63,12 @@ struct mla_task_manager_low_level_access {
     mla_bool_t (*destroy_mutex)(mla_pointer_t mutex);
     mla_multi_task_mode (*get_multi_task_mode)();
 
+    // task local storage
+    mla_bool_t (*create_task_local)(mla_pointer_t* outTaskLocal);
+    mla_bool_t (*destroy_task_local)(mla_pointer_t taskLocal);
+    mla_bool_t (*set_task_local)(mla_pointer_t taskLocal, mla_pointer_t value);
+    mla_pointer_t (*get_task_local)(mla_pointer_t taskLocal);
+
     // atomic operations
     mla_int32_t (*atomic_int32_increment)(mla_atomic_int32_t& value);
     mla_int32_t (*atomic_int32_decrement)(mla_atomic_int32_t& value);
