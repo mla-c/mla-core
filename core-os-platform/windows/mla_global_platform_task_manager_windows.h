@@ -284,6 +284,56 @@ mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_atomic_int
 
 }
 
+mla_bool_t mla_task_manager_windows_native_create_task_local(mla_pointer_t* outTaskLocal) {
+
+    DWORD flsIndex = FlsAlloc(nullptr);
+    if (flsIndex == FLS_OUT_OF_INDEXES) {
+        return false;
+    }
+
+    DWORD* index = static_cast<DWORD*>(mla_malloc(sizeof(DWORD)));
+    if (index == nullptr) {
+        FlsFree(flsIndex);
+        return false;
+    }
+
+    *index = flsIndex;
+    *outTaskLocal = static_cast<mla_pointer_t>(index);
+    return true;
+}
+
+mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_pointer_t taskLocal) {
+
+    DWORD* index = static_cast<DWORD*>(taskLocal);
+    if (index == nullptr) {
+        return false;
+    }
+
+    mla_bool_t success = FlsFree(*index) != 0;
+    mla_free(index);
+    return success;
+}
+
+mla_bool_t mla_task_manager_windows_native_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+
+    DWORD* index = static_cast<DWORD*>(taskLocal);
+    if (index == nullptr) {
+        return false;
+    }
+
+    return FlsSetValue(*index, value) != 0;
+}
+
+mla_pointer_t mla_task_manager_windows_native_get_task_local(mla_pointer_t taskLocal) {
+
+    DWORD* index = static_cast<DWORD*>(taskLocal);
+    if (index == nullptr) {
+        return nullptr;
+    }
+
+    return FlsGetValue(*index);
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_create_task,
         mla_task_manager_windows_native_run,
@@ -292,6 +342,10 @@ mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_unlock_mutex,
         mla_task_manager_windows_native_destroy_mutex,
         mla_task_manager_windows_multi_task_mode,
+        mla_task_manager_windows_native_create_task_local,
+        mla_task_manager_windows_native_destroy_task_local,
+        mla_task_manager_windows_native_set_task_local,
+        mla_task_manager_windows_native_get_task_local,
         mla_task_manager_windows_atomic_int32_increment,
         mla_task_manager_windows_atomic_int32_decrement,
     mla_task_manager_windows_atomic_int32_add,

@@ -272,6 +272,83 @@ mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int32_t& va
 }
 
 
+////////////////////////////////////////////////////////////////////////////
+/// Task Local Storage Implementation
+////////////////////////////////////////////////////////////////////////////
+
+// Uses FreeRTOS Thread Local Storage Pointers
+// Each task local allocates a unique index into the per-task TLS array.
+
+static mla_bool_t g_esp32_task_local_slots_used[configNUM_THREAD_LOCAL_STORAGE_POINTERS] = {};
+
+struct mla_task_manager_esp32_task_local {
+    BaseType_t index;
+};
+
+mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t* outTaskLocal) {
+
+    // Find a free slot
+    BaseType_t freeIndex = -1;
+    for (BaseType_t i = 0; i < configNUM_THREAD_LOCAL_STORAGE_POINTERS; i++) {
+        if (!g_esp32_task_local_slots_used[i]) {
+            freeIndex = i;
+            break;
+        }
+    }
+
+    if (freeIndex < 0) {
+        return false; // No free slots available
+    }
+
+    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(mla_malloc(sizeof(mla_task_manager_esp32_task_local)));
+
+    if (local == nullptr) {
+        return false;
+    }
+
+    g_esp32_task_local_slots_used[freeIndex] = true;
+    local->index = freeIndex;
+    *outTaskLocal = static_cast<mla_pointer_t>(local);
+
+    return true;
+}
+
+mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_pointer_t taskLocal) {
+
+    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return true;
+    }
+
+    g_esp32_task_local_slots_used[local->index] = false;
+    mla_free(local);
+    return true;
+}
+
+mla_bool_t mla_task_manager_esp32_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+
+    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return false;
+    }
+
+    vTaskSetThreadLocalStoragePointer(nullptr, local->index, value);
+    return true;
+}
+
+mla_pointer_t mla_task_manager_esp32_get_task_local(mla_pointer_t taskLocal) {
+
+    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
+
+    if (local == nullptr) {
+        return nullptr;
+    }
+
+    return pvTaskGetThreadLocalStoragePointer(nullptr, local->index);
+}
+
 mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_esp32_native_create_task,
     mla_task_manager_esp32_native_run,
@@ -280,6 +357,10 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_esp32_native_unlock_mutex,
     mla_task_manager_esp32_native_destroy_mutex,
     mla_task_manager_esp32_native_get_multi_task_mode,
+    mla_task_manager_esp32_create_task_local,
+    mla_task_manager_esp32_destroy_task_local,
+    mla_task_manager_esp32_set_task_local,
+    mla_task_manager_esp32_get_task_local,
     mla_task_manager_esp32_atomic_increment,
     mla_task_manager_esp32_atomic_decrement,
     mla_task_manager_esp32_atomic_add,
