@@ -63,7 +63,7 @@
 
 int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat) {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(300);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(325);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -111,7 +111,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterFileSystemPathTests(l_TestExecutor);
 #endif
 
-    mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(75);
+    mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(100);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
     RegisterNumberBenchmarks(l_BenchmarkExecutor);
     RegisterBufferBenchmarks(l_BenchmarkExecutor);

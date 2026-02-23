@@ -10,14 +10,12 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 void TaskLocalCreateTest() {
-
     mla_task_local_t local = mla_task_local_create();
 
     assert_not_null(local.resource, "Task local resource should not be null after creation");
 }
 
 void TaskLocalSetGetTest() {
-
     mla_task_local_t local = mla_task_local_create();
 
     mla_int32_t testValue = 42;
@@ -26,12 +24,16 @@ void TaskLocalSetGetTest() {
     mla_pointer_t result = mla_task_local_get(local);
     assert_not_null(result, "Task local get should return a non-null pointer");
 
-    mla_int32_t* resultValue = static_cast<mla_int32_t*>(result);
-    assert_equal(*resultValue, 42, "Task local get should return the value that was set");
+    mla_int32_t *resultValue = static_cast<mla_int32_t *>(result);
+
+    if (resultValue == nullptr) {
+        assert_fail("Task local get should not return null after setting a value");
+    } else {
+        assert_equal(*resultValue, 42, "Task local get should return the value that was set");
+    }
 }
 
 void TaskLocalOverwriteTest() {
-
     mla_task_local_t local = mla_task_local_create();
 
     mla_int32_t firstValue = 10;
@@ -41,12 +43,16 @@ void TaskLocalOverwriteTest() {
     assert_true(mla_task_local_set(local, &secondValue), "Second set should succeed");
 
     mla_pointer_t result = mla_task_local_get(local);
-    mla_int32_t* resultValue = static_cast<mla_int32_t*>(result);
-    assert_equal(*resultValue, 20, "Task local should return the overwritten value");
+    mla_int32_t *resultValue = static_cast<mla_int32_t *>(result);
+
+    if (resultValue == nullptr) {
+        assert_fail("Task local get should not return null after setting a value");
+    } else {
+        assert_equal(*resultValue, 20, "Task local should return the overwritten value");
+    }
 }
 
 void TaskLocalNullDefaultTest() {
-
     mla_task_local_t local = mla_task_local_create();
 
     mla_pointer_t result = mla_task_local_get(local);
@@ -54,7 +60,6 @@ void TaskLocalNullDefaultTest() {
 }
 
 void TaskLocalInvalidTest() {
-
     mla_task_local_t local = mla_task_local_invalid();
 
     assert_null(local.resource, "Invalid task local resource should be null");
@@ -63,7 +68,6 @@ void TaskLocalInvalidTest() {
 }
 
 void RegisterTaskLocalTests(mla_test_executor_t &p_TestExecutor) {
-
     mla_test_t test = mla_test("TaskLocalCreate", test_category, TaskLocalCreateTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -78,33 +82,26 @@ void RegisterTaskLocalTests(mla_test_executor_t &p_TestExecutor) {
 
     test = mla_test("TaskLocalInvalid", test_category, TaskLocalInvalidTest);
     mla_test_executor_register_test(p_TestExecutor, test);
-
 }
 
 void TaskLocalCreateDestroyBenchmark() {
-
     mla_task_local_t local = mla_task_local_create();
-
 }
 
 static mla_task_local_t TaskLocalBenchmarkLocal = mla_task_local_create();
 static mla_int32_t TaskLocalBenchmarkValue = 42;
 
 void TaskLocalSetGetBenchmark() {
-
     mla_task_local_set(TaskLocalBenchmarkLocal, &TaskLocalBenchmarkValue);
     mla_task_local_get(TaskLocalBenchmarkLocal);
-
 }
 
 void RegisterTaskLocalBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
-
     mla_benchmark_t benchmark = mla_benchmark("TaskLocalCreate", benchmark_category, TaskLocalCreateDestroyBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("TaskLocalSetGet", benchmark_category, TaskLocalSetGetBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
-
 }
 
 
