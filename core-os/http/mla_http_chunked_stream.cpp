@@ -29,7 +29,7 @@ struct mla_http_chunked_stream_input_userdata_initializer {
 #define mla_http_chunked_stream_input_user_data_name "httpci"
 
 
-mla_size_t __mla_http_chunked_stream_input_available_bytes(const mla_stream_input_t& input) {
+mla_size_t __mla_http_chunked_stream_input_available_bytes(mla_stream_input_t& input) {
 
     mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
@@ -74,7 +74,7 @@ mla_bool_t __mla_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stre
     return true;
 }
 
-mla_size_t __mla_http_chunked_stream_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_http_chunked_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
@@ -170,7 +170,7 @@ struct mla_http_chunked_stream_output_userdata_initializer {
 
 #define mla_http_chunked_stream_output_user_data_name "httpco"
 
-mla_size_t __mla_http_chunked_stream_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __mla_http_chunked_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     // Get the base stream
     mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_output_userdata_t>(output.userdata, mla_http_chunked_stream_output_user_data_name);

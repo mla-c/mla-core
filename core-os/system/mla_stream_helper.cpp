@@ -4,7 +4,7 @@
 
 #include "mla_stream.h"
 
-mla_bool_t mla_stream_copy(const mla_stream_input_t &input, const mla_stream_output_t &output) {
+mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &output) {
 
     mla_byte_t buffer[mla_stream_fast_read_buffer_size];
     mla_size_t bytesRead;
@@ -25,7 +25,7 @@ mla_bool_t mla_stream_copy(const mla_stream_input_t &input, const mla_stream_out
 
 }
 
-mla_bool_t mla_stream_output_write_string(const mla_stream_output_t &output, const mla_string_t &string) {
+mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla_string_t &string) {
 
     mla_size_t length = mla_string_length(string);
 

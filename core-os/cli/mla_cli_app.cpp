@@ -11,12 +11,12 @@
 #define mla_cli_app_user_data_name "cliapp"
 #define mla_cli_submodule_user_data_name "clisub"
 
-void __mla_cli_write_string(const mla_stream_output_t &outputStream, mla_string_t str) {
+void __mla_cli_write_string(mla_stream_output_t &outputStream, mla_string_t str) {
     outputStream.write(outputStream, 0, mla_string_length(str), (mla_byte_t*)mla_string_data(str));
 }
 
 void __mla_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
-    const mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+    mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
 
     if (output == nullptr) {
         return;
@@ -26,7 +26,7 @@ void __mla_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t&
 }
 
 void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
-    const mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+    mla_stream_output_t *output = mla_user_data_get_pointer<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
 
     if (output == nullptr) {
         return;
@@ -35,7 +35,7 @@ void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_use
     output->write(*output, 0, mla_strlen(data), (mla_byte_t*)data);
 }
 
-void __mla_cli_write_module_prompt(mla_cli_app_t &app, const mla_stream_output_t &outputStream) {
+void __mla_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
     mla_size_t size = mla_array_list_size(app.activeModules);
 
     if (size > 1) {
@@ -251,7 +251,7 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
     return parser;
 }
 
-void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, const mla_stream_output_t &outputStream) {
+void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, mla_stream_output_t &outputStream) {
     if (parser_result.isValid && mla_string_length(parser_result.matchingCommand.name) != 0) {
         // Validate mandatory parameters
         mla_bool_t missingMandatoryParameter = false;
@@ -318,7 +318,7 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
 }
 
 void __mla_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_string_t &command,
-                                                const mla_stream_output_t &outputStream) {
+                                                mla_stream_output_t &outputStream) {
     // Setup the parser
     mla_cli_parser_t parser = __mla_cli_setup_parser(app);
 
@@ -336,7 +336,7 @@ mla_cli_app_t mla_cli_app_empty() {
     };
 }
 
-mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, const mla_stream_output_t &outputStream) {
+mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, mla_stream_output_t &outputStream) {
     mla_cli_app_t app = {
         mla_array_list<mla_cli_module_t, mla_cli_module_initializer>(2),
         mla_string_empty()
@@ -347,8 +347,8 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, const mla_stream_ou
     return app;
 }
 
-void mla_cli_app_update_and_process_input(mla_cli_app_t &app, const mla_stream_input_t &inputStream,
-                                          const mla_stream_output_t &outputStream) {
+void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t &inputStream,
+                                          mla_stream_output_t &outputStream) {
 
     // Create an own scopt so that the buffer is removed from the stack after reading
     {

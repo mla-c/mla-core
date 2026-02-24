@@ -11,13 +11,13 @@
 #include "../utils/mla_endian_utils.h"
 
 
-mla_bool_t __mla_binary_serializer_write_element_type(const mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
+mla_bool_t __mla_binary_serializer_write_element_type(mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
 
     mla_uint8_t byteType = (mla_uint8_t)type;
     return output.write(output, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType)) == sizeof(byteType);
 }
 
-mla_bool_t __mla_binary_serializer_write_string_data(const mla_stream_output_t& output, const mla_string_t& name) {
+mla_bool_t __mla_binary_serializer_write_string_data(mla_stream_output_t& output, const mla_string_t& name) {
 
     mla_size_t length = mla_string_length(name);
 

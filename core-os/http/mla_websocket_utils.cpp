@@ -8,6 +8,8 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 
+#define mla_websocket_stream_small_buffer_size 1024 // 1 KB
+
 // WebSocket frame opcodes
 #define mla_websocket_opcode_continuation 0x00
 #define mla_websocket_opcode_text 0x01
@@ -125,6 +127,60 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
     }
 
     return true;
+
+}
+
+mla_bool_t mla_websocket_transport_send_text_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
+
+    // Byte 0: FIN bit + opcode (0x01 for text)
+    mla_uint8_t fin_and_opcode = mla_websocket_fin_bit | mla_websocket_opcode_text;
+
+    if (output.write(output, 0, 1, &fin_and_opcode) != 1)
+        return false;
+
+    // If its an short input we can optimize by writing it directly
+    mla_memory_stream_t temp_stream = mla_memory_stream(mla_websocket_stream_small_buffer_size, false);
+
+    if (message_generator(temp_stream.output, userData)) {
+
+        mla_memory_stream_set_position(temp_stream, 0);
+
+        // Short message
+        mla_size_t payload_length = mla_memory_stream_get_size(temp_stream);
+
+        if (!__mla_websocket_client_write_message_length(output, payload_length))
+            return false;
+
+        // Generate and write masking key
+        mla_uint8_t masking_key[mla_websocket_masking_key_size];
+        if (!__mla_websocket_client_send_masking_key(output, masking_key))
+            return false;
+
+        while (payload_length != 0) {
+            mla_byte_t buffer[mla_stream_fast_read_buffer_size];
+            mla_size_t chunk_size = temp_stream.input.read(temp_stream.input, 0, sizeof(buffer), buffer);
+            if (chunk_size == 0)
+                break;
+
+            for (mla_size_t i = 0; i < chunk_size; i++) {
+                mla_uint8_t masked_byte = buffer[i] ^ masking_key[i % mla_websocket_masking_key_size];
+                if (output.write(output, 0, 1, &masked_byte) != 1)
+                    return false;
+            }
+
+            payload_length -= chunk_size;
+        }
+
+        return true;
+
+    } else {
+
+        // If the generator failed, we can assume it already wrote a partial message that exceeds the small buffer size, so we need to switch to a new stream for the rest of the message
+        temp_stream = mla_memory_stream_empty();
+
+
+
+    }
 
 }
 

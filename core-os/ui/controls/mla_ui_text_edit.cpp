@@ -145,9 +145,6 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
     // Always update cursor position
     mla_ui_text_edit_set_cursor_position(control, cursorPosition);
 
-    // Reset blink timer so cursor is visible immediately upon interaction
-    mla_ui_control_set_value_as_uint64(control, mla_string_const("blink_timer"), 0);
-
 
     if (textModified) {
         // Trigger text changed event if set
@@ -267,23 +264,15 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             selCmd.rect.ry = 2.0;
             selCmd.rect.color = {0, 120, 212, 255}; // #0078d4
             mla_array_list_add(drawCommands, selCmd);
-
-            // NOTE: Removed `textColor = White` here to prevent non-selected text from vanishing.
         } else {
             // 4. Cursor (only if no selection)
 
-            // Update blink timer
-            mla_uint64_t blinkTimer = mla_ui_control_get_value_as_uint64(element, mla_string_const("blink_timer"), 0);
-            blinkTimer += context.timeSinceLastFrameMs;
-            mla_ui_control_set_value_as_uint64(const_cast<mla_ui_control_t &>(element), mla_string_const("blink_timer"),
-                                               blinkTimer);
-
-            // Blink every 1000ms (500ms visible, 500ms hidden)
-            if ((blinkTimer % 1000) < 500) {
+            // Use mla_system_time_ms() to drive cursor blink — visible for 500ms, hidden for 500ms
+            const mla_uint64_t currentTimeMs = mla_system_time_ms();
+            if ((currentTimeMs % 1000) < 500) {
                 mla_double_t cursorXOffset = 0.0;
 
                 if (context.calcTextSize && !mla_string_is_empty(text)) {
-                    // Fix: Calculate cursor offset based on cursor position, not full text width
                     mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(element);
 
                     // Clamp position to valid range

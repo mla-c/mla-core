@@ -18,7 +18,10 @@ inline mla_task_process_result_state __cli_task(mla_user_data_t& userdata) {
 
     (void)userdata;
 
-    mla_cli_app_update_and_process_input(g_main_app_cli, mla_stream_input_stdin(), mla_stream_output_stdout());
+    mla_stream_input_t input = mla_stream_input_stdin();
+    mla_stream_output_t output = mla_stream_output_stdout();
+
+    mla_cli_app_update_and_process_input(g_main_app_cli, input, output);
 
     return TASK_PROCESS_RESULT_CONTINUE;
 }
@@ -42,7 +45,9 @@ inline void main_app_cli_init() {
     mla_info("Please enter a command:");
 
     mla_cli_module_t root = __cli_build_root_module();
-    g_main_app_cli = mla_cli_app_init(root, mla_stream_output_stdout());
+
+    mla_stream_output_t output = mla_stream_output_stdout();
+    g_main_app_cli = mla_cli_app_init(root, output);
 
     mla_user_data_t app_user_data = mla_user_data_empty();
     mla_task_t task = mla_task_repeating(mla_string("cli"), __cli_task, app_user_data);

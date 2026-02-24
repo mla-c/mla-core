@@ -6,6 +6,7 @@
 #define COREOS_MLA_USER_DATA_H
 
 #include "mla_buffer.h"
+#include "mla_string.h"
 
 #define mla_user_data_name_size 8
 
@@ -17,6 +18,8 @@ struct mla_user_data_t {
 
 
 mla_user_data_t mla_user_data_empty();
+
+mla_bool_t mla_user_data_remove(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size]);
 mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = false);
 mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data);
 mla_bool_t mla_user_data_set_int8(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_int8_t data);
@@ -31,6 +34,7 @@ mla_bool_t mla_user_data_set_float(mla_user_data_t& target, const mla_char_t nam
 mla_bool_t mla_user_data_set_double(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_double_t data);
 mla_bool_t mla_user_data_set_bool(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_bool_t data);
 mla_bool_t mla_user_data_set_char(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_char_t data);
+mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_string_t& data);
 mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_buffer_cleanup_hook_t cleanup);
 
 template <typename T, typename TInit = mla_default_init_ref(T)>
@@ -74,6 +78,7 @@ mla_float_t mla_user_data_get_float(const mla_user_data_t& userData, const mla_c
 mla_double_t mla_user_data_get_double(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_double_t defaultValue = 0);
 mla_bool_t mla_user_data_get_bool(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_bool_t defaultValue = false);
 mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_char_t defaultValue = 0);
+mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_string_t defaultValue = mla_string_empty());
 mla_dynamic_data_t mla_user_data_get_native_resource(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t defaultValue = mla_dynamic_data_empty());
 
 

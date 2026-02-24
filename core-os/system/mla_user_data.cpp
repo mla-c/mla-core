@@ -160,6 +160,34 @@ void __mla_user_data_update_manage_external_resource(mla_user_data_t &target, ml
 
 }
 
+mla_bool_t mla_user_data_remove(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size]) {
+
+    if (__mla_user_data_name_equal(target.name, name)) {
+        target = mla_user_data_empty();
+        return true;
+    }
+
+    if (__mla_user_data_name_equal(target.name, mla_user_data_name_list)) {
+
+        mla_user_data_list_t* list = (mla_user_data_list_t*)target.data.asPointer;
+        if (list == nullptr) {
+            return false; // List is null, cannot remove
+        }
+
+        for (mla_size_t i = 0; i < mla_array_list_size(list->datas); ++i) {
+
+            mla_user_data_t* item = mla_array_list_get_ref_unsafe(list->datas, i);
+            if (__mla_user_data_name_equal(item->name, name)) {
+                mla_array_list_remove(list->datas, i);
+                return true;
+            }
+        }
+    }
+
+    return false; // Not found
+}
+
+
 mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, const mla_char_t name[mla_user_data_name_size],
                                      mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup_hook,
                                      mla_bool_t mangedExternalResource) {
@@ -375,6 +403,22 @@ mla_bool_t mla_user_data_set_char(mla_user_data_t& target, const mla_char_t name
 
 }
 
+mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_string_t& data) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, name);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+
+    mla_c_string_t c_string = mla_string_to_cString(data, true);
+    user_data->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_string.c_str));
+    user_data->dataOwner = mla_buffer_reference_create(c_string.c_str, false, nullptr, mla_dynamic_data_empty());
+
+}
+
 mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_buffer_cleanup_hook_t cleanup) {
 
     mla_user_data_t* user_data = __mla_user_data_get_for_update(target, name);
@@ -538,6 +582,19 @@ mla_bool_t mla_user_data_get_bool(const mla_user_data_t& userData, const mla_cha
         return defaultValue;
     }
     return found->data.asBool;
+}
+
+mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_string_t defaultValue) {
+
+    const mla_user_data_t* found = mla_user_data_get((mla_user_data_t&)userData, name);
+    if (found == nullptr) {
+        return defaultValue;
+    }
+    const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
+    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.data = c_string;
+    result.heap.length = mla_strlen(c_string);
+    return result;
 }
 
 mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, const mla_char_t name[mla_user_data_name_size], mla_char_t defaultValue) {

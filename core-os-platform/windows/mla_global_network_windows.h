@@ -85,7 +85,7 @@ mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, const mla_d
     return CLEAN_UP_SKIP;
 }
 
-mla_size_t __windows_socket_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
@@ -102,7 +102,7 @@ mla_size_t __windows_socket_read(const mla_stream_input_t& input, mla_size_t off
     return (mla_size_t)bytesRead;
 }
 
-mla_size_t __windows_socket_remaining_bytes(const mla_stream_input_t& input) {
+mla_size_t __windows_socket_remaining_bytes(mla_stream_input_t& input) {
 
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
 
@@ -122,7 +122,7 @@ mla_size_t __windows_socket_remaining_bytes(const mla_stream_input_t& input) {
     return 0;
 }
 
-mla_size_t __windows_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);

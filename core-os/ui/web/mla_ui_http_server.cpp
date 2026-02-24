@@ -54,14 +54,12 @@ mla_bool_t mla_ui_http_server_initialize(mla_http_server_t &server) {
 }
 
 struct mla_ui_http_server_web_surface_data_client_t {
-    mla_string_t connectionId;
     mla_string_t messageBuffer;
     mla_ui_control_surface_t remoteSurface;
 };
 
 mla_ui_http_server_web_surface_data_client_t mla_ui_http_server_web_surface_data_client_empty() {
     return {
-        mla_string_empty(),
         mla_string_empty(),
         mla_ui_control_surface_empty()
     };
@@ -77,7 +75,7 @@ struct mla_ui_http_server_web_surface_data_client_initializer {
 struct mla_ui_http_server_web_surface_data_t {
     mla_string_t surfaceName;
     mla_ui_control_surface_process_task_t processTask;
-    mla_array_list_t<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer> client_datas;
+    mla_http_server_t* server;
 };
 
 struct mla_ui_http_server_web_surface_data_initializer {
@@ -85,39 +83,29 @@ struct mla_ui_http_server_web_surface_data_initializer {
         return {
             mla_string_empty(),
             nullptr,
-            mla_array_list_empty<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>()
+            nullptr
         };
     }
 };
 
 #define mla_ui_http_server_web_surface_data_user_data_name "wuisd"
+#define mla_ui_http_server_web_surface_data_client_list_user_data_name "wuicld"
 
-mla_ui_http_server_web_surface_data_client_t* mla_ui_http_server_web_surface_data_get_client_data(mla_ui_http_server_web_surface_data_t* surfaceData, const mla_string_t& connectionId) {
-
-    for (mla_size_t i = 0; i < mla_array_list_size(surfaceData->client_datas); i++) {
-        mla_ui_http_server_web_surface_data_client_t& clientData = mla_array_list_get_unsafe(surfaceData->client_datas, i);
-
-        if (mla_string_equals(clientData.connectionId, connectionId)) {
-            return &clientData; // Return pointer to the existing client data
-        }
-    }
-
-    return nullptr; // Failed to add new client data
-}
 
 #define mla_web_surface_max_buffer_items 25
 
 mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment) {
 
-    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
-
-    if (task_data == nullptr)
-        return false;
-
-    mla_ui_http_server_web_surface_data_client_t* data_client = mla_ui_http_server_web_surface_data_get_client_data(task_data, connection.id);
+    mla_ui_http_server_web_surface_data_client_t* data_client = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_client_t>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name);
 
     if (data_client == nullptr) {
-        mla_warning(mla_string_concat("Failed to find client data for connection ", connection.id, " on surface ", task_data->surfaceName));
+        mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
+
+        if (task_data != nullptr) {
+            mla_warning(mla_string_concat("Failed to find client data for connection ", connection.id, " on surface ", task_data->surfaceName));
+        } else {
+            mla_warning(mla_string_concat("Failed to find client data for connection ", connection.id, " and task data on surface "));
+        }
         return false;
     }
 
@@ -172,52 +160,44 @@ mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_conne
         return false;
     }
 
-    if (mla_array_list_size(task_data->client_datas) >= mla_web_surface_max_connected_clients) {
+    mla_size_t clients_count = mla_http_server_get_websocket_connection_count(*connection.server, task_data->surfaceName);
+
+    if (clients_count >= mla_web_surface_max_connected_clients) {
         mla_warning(mla_string_concat("Maximum number of connected clients reached for surface ", task_data->surfaceName, ". Connection ", connection.id, " will be closed."));
         return false; // Reject new connection
     }
 
-    mla_ui_surface_t surface =  mla_ui_surface_invalid();//mla_ui_web_remote_surface_create(connection);
+    mla_ui_surface_t surface =  mla_ui_web_remote_surface_create(connection);
 
     if (!mla_ui_surface_is_valid(surface)) {
         mla_warning(mla_string_concat("Failed to create remote surface for connection ", connection.id, " on surface ", task_data->surfaceName));
         return false; // Failed to create remote surface
     }
 
+    mla_ui_http_server_web_surface_data_client_t* data_client = reinterpret_cast<mla_ui_http_server_web_surface_data_client_t*>(mla_malloc(sizeof(mla_ui_http_server_web_surface_data_client_t)));
+
+    if (data_client == nullptr) {
+        mla_warning(mla_string_concat("Failed to allocate memory for client data for connection ", connection.id, " on surface ", task_data->surfaceName));
+        return false; // Allocation failed
+    }
+
+    mla_memset(data_client, 0, sizeof(mla_ui_http_server_web_surface_data_client_t));
+
     mla_ui_control_surface_t remoteSurface = mla_ui_control_surface_create(surface, task_data->processTask);
 
     mla_ui_http_server_web_surface_data_client_t newClientData = {
-        connection.id,
         mla_string_empty(),
         remoteSurface
     };
 
-    if (!mla_array_list_add(task_data->client_datas, newClientData)) {
-        mla_warning(mla_string_concat("Failed to add new client data for connection ", connection.id, " on surface ", task_data->surfaceName));
-        return false; // Failed to add new client data
+
+    if (!mla_user_data_set_pointer_with_ownership<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name, data_client)) {
+        mla_free(data_client);
+        mla_warning(mla_string_concat("Failed to set client data for connection ", connection.id, " on surface ", task_data->surfaceName));
+        return false; // Failed to set client data
     }
 
     return true;
-}
-
-void __mla_ui_http_server_web_surface_closed(const mla_http_server_websocket_connection_t& connection) {
-
-    mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
-
-    if (task_data == nullptr) {
-        return;
-    }
-
-    // Remove client data for the closed connection
-    for (mla_size_t i = 0; i < mla_array_list_size(task_data->client_datas); i++) {
-        mla_ui_http_server_web_surface_data_client_t& clientData = mla_array_list_get_unsafe(task_data->client_datas, i);
-
-        if (mla_string_equals(clientData.connectionId, connection.id)) {
-            mla_array_list_remove(task_data->client_datas, i);
-            break;
-        }
-
-    }
 }
 
 mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_task(mla_user_data_t& userData) {
@@ -228,18 +208,42 @@ mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_t
         return TASK_PROCESS_RESULT_DONE;
     }
 
-    // Process each connected client
-    for (mla_size_t i = 0; i < mla_array_list_size(taskData->client_datas); i++) {
+    if (taskData->server == nullptr) {
+        return TASK_PROCESS_RESULT_DONE;
+    }
 
-        mla_ui_http_server_web_surface_data_client_t& clientData = mla_array_list_get_unsafe(taskData->client_datas, i);
-        mla_ui_control_surface_execute_render_and_draw(clientData.remoteSurface);
+    mla_http_server_t& http_server = *taskData->server;
+
+    if (!mla_http_server_running(http_server)) {
+        return TASK_PROCESS_RESULT_DONE;
+    }
+
+    mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> connections = mla_http_server_find_websocket_connections(http_server, taskData->surfaceName); // Ensure we have the latest connections for the surface
+
+    // Process each connected client
+    for (mla_size_t i = 0; i < mla_array_list_size(connections); i++) {
+
+        mla_http_server_websocket_connection_t& connection = mla_array_list_get_unsafe(connections, i);
+
+        if (!mla_http_server_is_websocket_connection_open(connection)) {
+            continue; // Skip closed connections
+        }
+
+        mla_ui_http_server_web_surface_data_client_t* clientData = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_client_t>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name);
+
+        if (clientData == nullptr) {
+            mla_warning(mla_string_concat("Failed to find client data for connection ", connection.id, " on surface ", taskData->surfaceName));
+            continue; // Skip if we can't find client data
+        }
+
+        mla_ui_control_surface_execute_render_and_draw(clientData->remoteSurface);
     }
 
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
 
-mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, mla_string_t surface_name, mla_ui_control_surface_process_task_t processTask) {
+mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t& surface_name, mla_ui_control_surface_process_task_t processTask) {
 
     mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(mla_malloc(sizeof(mla_ui_http_server_web_surface_data_t)));
 
@@ -250,7 +254,7 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, ml
     mla_memset(taskData, 0, sizeof(mla_ui_http_server_web_surface_data_t));
     taskData->surfaceName = mla_string_concat("/surface/", surface_name);
     taskData->processTask = processTask;
-    taskData->client_datas = mla_array_list_empty<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>();
+    taskData->server = &http_server;
 
     mla_user_data_t ui_http_user_data = mla_user_data_empty();
     mla_user_data_set_pointer_with_ownership_ex(ui_http_user_data, mla_ui_http_server_web_surface_data_user_data_name, taskData, __mla_ui_http_server_web_surface_cleanup, true);
@@ -261,7 +265,6 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, ml
             nullptr);
 
     handler.open_executor = __mla_ui_http_server_web_surface_open;
-    handler.close_executor = __mla_ui_http_server_web_surface_closed;
 
     // Create rendering task
     mla_task_t render_draw_task = mla_task_repeating(

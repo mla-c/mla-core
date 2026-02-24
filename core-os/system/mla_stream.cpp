@@ -23,14 +23,14 @@ struct __mla_stream_buffer_manager_initializer {
 };
 
 
-mla_size_t __mla_stream_noop_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __mla_stream_noop_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void) output;
     (void) offset;
     (void) buffer;
     return length;
 }
 
-mla_size_t __mla_steam_noop_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_steam_noop_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
     (void) input;
     (void) offset;
     (void) buffer;
@@ -56,7 +56,7 @@ mla_stream_input_t mla_stream_noop_input() {
 
 #define mla_stream_buffer_manager_userdata_name "bufMgr"
 
-mla_size_t __mla_stream_input_read_from_buffer(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_stream_input_read_from_buffer(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
 
@@ -77,7 +77,7 @@ mla_size_t __mla_stream_input_read_from_buffer(const mla_stream_input_t& input, 
     return length;
 }
 
-mla_size_t __mla_stream_input_buffer_remaining_bytes(const mla_stream_input_t& input) {
+mla_size_t __mla_stream_input_buffer_remaining_bytes(mla_stream_input_t& input) {
 
     __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
 
@@ -110,7 +110,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t s
     };
 }
 
-mla_size_t __mla_stream_output_write_to_buffer(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __mla_stream_output_write_to_buffer(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
 
@@ -131,7 +131,7 @@ mla_size_t __mla_stream_output_write_to_buffer(const mla_stream_output_t& output
     return length;
 }
 
-mla_size_t __mla_stream_output_buffer_available_bytes(const mla_stream_output_t& output) {
+mla_size_t __mla_stream_output_buffer_available_bytes(mla_stream_output_t& output) {
 
     __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
 
@@ -211,7 +211,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 
 }
 
-mla_size_t __mla_stream_std_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_stream_std_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)input;
     mla_char_t tempBuffer[mla_stream_fast_read_buffer_size] = {0};
@@ -239,7 +239,7 @@ mla_stream_input_t mla_stream_input_stdin() {
 
 }
 
-mla_size_t __mla_stream_std_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __mla_stream_std_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     (void)output;
 
@@ -281,7 +281,7 @@ struct mla_memory_stream_buffer_initializer {
 
 #define mla_memory_stream_buffer_userdata_name "memBuf"
 
-mla_size_t __mla_memory_stream_input_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_memory_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
 
@@ -299,7 +299,7 @@ mla_size_t __mla_memory_stream_input_read(const mla_stream_input_t& input, mla_s
     return length;
 }
 
-mla_size_t __mla_memory_stream_input_remaining_bytes(const mla_stream_input_t& input) {
+mla_size_t __mla_memory_stream_input_remaining_bytes(mla_stream_input_t& input) {
 
     mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
 
@@ -310,7 +310,7 @@ mla_size_t __mla_memory_stream_input_remaining_bytes(const mla_stream_input_t& i
     return memBuffer->size - memBuffer->position;
 }
 
-mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
 
@@ -377,7 +377,7 @@ mla_size_t __mla_memory_stream_output_write(const mla_stream_output_t& output, m
 
 }
 
-mla_size_t __mla_memory_stream_output_available_bytes(const mla_stream_output_t& output) {
+mla_size_t __mla_memory_stream_output_available_bytes(mla_stream_output_t& output) {
 
     mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
 
@@ -524,4 +524,34 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
 
     mla_memset(memBuffer->buffer, 0, oldSize);
 
+}
+
+#define mla_stream_output_size_calculation_user_data_name "stSizeC"
+
+mla_size_t __mla_stream_output_size_calculation_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)output;
+    (void)buffer;
+    (void)offset;
+
+    mla_size_t size = mla_user_data_get_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, length);
+    size += length;
+    mla_user_data_set_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, size);
+    return length;
+}
+
+mla_stream_output_t mla_stream_output_size_calculation() {
+
+    mla_user_data_t data = mla_user_data_empty();
+    mla_user_data_set_uint32(data, mla_stream_output_size_calculation_user_data_name, 0);
+
+    return {
+        data,
+        __mla_stream_output_size_calculation_write,
+        nullptr
+    };
+
+}
+
+mla_size_t mla_stream_output_size_calculation_get_size(const mla_stream_output_t &output) {
+    return mla_user_data_get_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, 0);
 }

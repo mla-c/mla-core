@@ -272,6 +272,38 @@ void StreamBufferedLargeDataTest() {
 
 }
 
+void StreamOutputSizeCalculationEmptyTest() {
+    mla_stream_output_t sizeStream = mla_stream_output_size_calculation();
+    assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), (mla_size_t)0, "Initial size should be 0");
+}
+
+void StreamOutputSizeCalculationSingleWriteTest() {
+    mla_stream_output_t sizeStream = mla_stream_output_size_calculation();
+
+    mla_string_t test_string = mla_string_const("hello");
+    mla_size_t test_string_length = mla_string_length(test_string);
+    const mla_char_t* test_string_data = mla_string_data(test_string);
+
+    mla_size_t written = sizeStream.write(sizeStream, 0, test_string_length, (const mla_byte_t*)test_string_data);
+
+    assert_equal(written, test_string_length, "Should return the written length");
+    assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), test_string_length, "Size should match written length");
+}
+
+void StreamOutputSizeCalculationMultipleWritesTest() {
+    mla_stream_output_t sizeStream = mla_stream_output_size_calculation();
+
+    mla_string_t data1 = mla_string_const("hello");
+    mla_string_t data2 = mla_string_const(" world");
+    mla_size_t data1_length = mla_string_length(data1);
+    mla_size_t data2_length = mla_string_length(data2);
+
+    sizeStream.write(sizeStream, 0, data1_length, (const mla_byte_t*)mla_string_data(data1));
+    sizeStream.write(sizeStream, 0, data2_length, (const mla_byte_t*)mla_string_data(data2));
+
+    assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), data1_length + data2_length, "Size should be cumulative of all writes");
+}
+
 
 void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("MemoryStreamCreateEmpty", test_category, MemoryStreamCreateEmptyTest);
@@ -308,6 +340,15 @@ void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamBufferedLargeData", test_category, StreamBufferedLargeDataTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputSizeCalculationEmpty", test_category, StreamOutputSizeCalculationEmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputSizeCalculationSingleWrite", test_category, StreamOutputSizeCalculationSingleWriteTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputSizeCalculationMultipleWrites", test_category, StreamOutputSizeCalculationMultipleWritesTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

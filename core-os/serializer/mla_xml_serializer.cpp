@@ -40,11 +40,11 @@ mla_xml_serializer_state_t *__mla_xml_ser_get_state(mla_serializer_t &inst) {
     return mla_user_data_get_pointer<mla_xml_serializer_state_t>(inst.user_data, mla_xml_serializer_state_user_data_name);
 }
 
-mla_bool_t __mla_xml_write_str(const mla_stream_output_t &out, const mla_string_t str) {
+mla_bool_t __mla_xml_write_str(mla_stream_output_t &out, const mla_string_t str) {
     return mla_stream_output_write_string(out, str);
 }
 
-mla_bool_t __mla_xml_write_escaped(const mla_stream_output_t &out, const mla_string_t &str) {
+mla_bool_t __mla_xml_write_escaped(mla_stream_output_t &out, const mla_string_t &str) {
 
     const mla_char_t* data = mla_string_data(str);
 

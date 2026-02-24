@@ -192,35 +192,39 @@ mla_bool_t __mla_ui_button_render_to_drawCommands(const mla_ui_control_context_t
         mla_double_t textHeight = 0.0;
         __mla_ui_button_calc_text_size(context, fontType, text, textWidth, textHeight);
 
-        mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
-        txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
+        if (textWidth != 0.0 && textHeight != 0.0) {
+            // Only draw text if it has measurable size (prevents issues with empty strings or zero-size fonts)
 
-        // Center text in button area
-        // X: Absolute X + (Button Width - Text Width) / 2
-        txtCmd.text.x = context.offsetX + x + (w / 2.0) - (textWidth / 2.0);
+            mla_ui_surface_draw_command_t txtCmd = mla_ui_surface_draw_command_empty();
+            txtCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT;
 
-        // Y: Absolute Y + (Button Height / 2) - (Text Height / 2) - 1 (SVG baseline adjustment)
-        txtCmd.text.y = context.offsetY + y + (h / 2.0) - (textHeight / 2.0) - 1.0;
+            // Center text in button area
+            // X: Absolute X + (Button Width - Text Width) / 2
+            txtCmd.text.x = context.offsetX + x + (w / 2.0) - (textWidth / 2.0);
 
-        txtCmd.text.content = text;
-        txtCmd.text.font_type = fontType;
-        txtCmd.text.fill = textColor;
+            // Y: Absolute Y + (Button Height / 2) - (Text Height / 2) - 1 (SVG baseline adjustment)
+            txtCmd.text.y = context.offsetY + y + (h / 2.0) - (textHeight / 2.0) - 1.0;
 
-        mla_array_list_add(drawCommands, txtCmd);
+            txtCmd.text.content = text;
+            txtCmd.text.font_type = fontType;
+            txtCmd.text.fill = textColor;
 
-        // Draw Underline for Links
-        if (style == MLA_UI_BUTTON_STYLE_LINK) {
-            mla_ui_surface_draw_command_t underscore = mla_ui_surface_draw_command_empty();
-            underscore.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE;
-            underscore.line.x1 = txtCmd.text.x;
-            // Position slightly below text baseline
-            underscore.line.y1 = txtCmd.text.y + textHeight + 2.0;
-            underscore.line.x2 = txtCmd.text.x + textWidth;
-            underscore.line.y2 = underscore.line.y1;
-            underscore.line.stroke = textColor;
-            underscore.line.stroke_width = 1.0;
+            mla_array_list_add(drawCommands, txtCmd);
 
-            mla_array_list_add(drawCommands, underscore);
+            // Draw Underline for Links
+            if (style == MLA_UI_BUTTON_STYLE_LINK) {
+                mla_ui_surface_draw_command_t underscore = mla_ui_surface_draw_command_empty();
+                underscore.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE;
+                underscore.line.x1 = txtCmd.text.x;
+                // Position slightly below text baseline
+                underscore.line.y1 = txtCmd.text.y + textHeight + 2.0;
+                underscore.line.x2 = txtCmd.text.x + textWidth;
+                underscore.line.y2 = underscore.line.y1;
+                underscore.line.stroke = textColor;
+                underscore.line.stroke_width = 1.0;
+
+                mla_array_list_add(drawCommands, underscore);
+            }
         }
     }
 

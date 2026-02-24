@@ -10,6 +10,7 @@
 #include "../network/mla_network.h"
 #include "../task/mla_mutx.h"
 #include "../task/mla_rw_lock.h"
+#include "mla_websocket_utils.h"
 
 enum mla_http_server_status_t: mla_uint8_t {
     MLA_HTTP_SERVER_STATUS_STOPPED,
@@ -64,6 +65,7 @@ struct mla_http_server_websocket_connection_t {
     mla_http_server_t* server;
     mla_network_connection_t connection;
     mla_string_t id;
+    mla_string_t endpoint;
     mla_mutex_t lock;
     mla_user_data_t userdata;
     mla_http_websocket_open_handler_t open_executor;
@@ -128,6 +130,7 @@ struct mla_http_server_t {
 // Lifecycle Methods
 mla_http_server_t mla_http_server_invalid();
 mla_http_server_t mla_http_server(const mla_network_host_t &host);
+mla_bool_t mla_http_server_running(const mla_http_server_t &server);
 mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks);
 mla_bool_t mla_http_server_stop(mla_http_server_t &server);
 
@@ -137,14 +140,18 @@ mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server,
 
 // WebSocket Methods
 mla_bool_t mla_http_server_find_websocket_connection(mla_http_server_t &server, const mla_string_t& connectionId, mla_http_server_websocket_connection_t& outConnection);
+mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> mla_http_server_find_websocket_connections(mla_http_server_t &server, const mla_string_t &path_prefix);
+mla_size_t mla_http_server_get_websocket_connection_count(mla_http_server_t &server, const mla_string_t &path_prefix);
 mla_bool_t mla_http_server_is_websocket_connection_open(const mla_http_server_websocket_connection_t& connection);
 
 mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_connection_t& connection, mla_uint16_t closeCode, const mla_string_t& reason);
 mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server, const mla_string_t& connectionId, mla_uint16_t closeCode, const mla_string_t& reason);
 
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator);
 mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final);
 mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final);
 
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator);
 mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final);
 mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final);
 

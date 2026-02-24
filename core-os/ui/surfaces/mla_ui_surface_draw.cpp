@@ -10,7 +10,7 @@ mla_ui_surface_draw_command_polygon_t mla_ui_surface_draw_command_polygon_empty(
 }
 
 mla_ui_surface_draw_command_path_t mla_ui_surface_draw_command_path_empty() {
-    return { mla_array_list_empty<mla_ui_surface_draw_path_command_t>(), {0,0,0,0}, {0,0,0,0}, 0 };
+    return { mla_array_list_empty<mla_ui_surface_draw_path_command_t, mla_ui_surface_draw_path_command_initializer_t>(), {0,0,0,0}, {0,0,0,0}, 0 };
 }
 
 mla_ui_surface_draw_command_text_t mla_ui_surface_draw_command_text_empty() {

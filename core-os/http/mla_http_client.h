@@ -35,14 +35,14 @@ struct mla_http_client_t {
 
 mla_http_client_t mla_http_client();
 
-mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, const mla_http_request_t &p_Request);
+mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, mla_http_request_t &p_Request);
 
 
 ////////////////////////////////////////////////////////////////
 /// Helpers
 ////////////////////////////////////////////////////////////////
 
-inline mla_http_client_response_t mla_http_client_send_request(const mla_http_request_t &p_Request) {
+inline mla_http_client_response_t mla_http_client_send_request(mla_http_request_t &p_Request) {
 
     mla_http_client_t client = mla_http_client();
     return mla_http_client_send_request(client, p_Request);

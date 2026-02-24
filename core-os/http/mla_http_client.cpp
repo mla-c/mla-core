@@ -65,7 +65,7 @@ mla_bool_t __mla_http_client_connect(const mla_http_client_t &client, mla_http_c
     return client.connect(client, response, host, connection);
 }
 
-mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, const mla_http_request_t & request, const mla_stream_output_t & connection) {
+mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, mla_http_request_t & request, mla_stream_output_t & connection) {
 
     if (mla_string_is_empty(request.method)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
@@ -138,7 +138,7 @@ mla_bool_t __mla_http_client_send_header(mla_http_client_response_t& response, c
 
 }
 
-mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, const mla_http_request_t & request, const mla_stream_output_t & connection) {
+mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, mla_http_request_t & request, mla_stream_output_t & connection) {
 
     if (mla_http_request_content_writer_is_valid(request.contentWriter)) {
 
@@ -157,7 +157,7 @@ mla_bool_t __mla_http_client_send_body(mla_http_client_response_t& response, con
     return true;
 }
 
-mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & inputStream, mla_http_response_t & response, mla_int32_t timeout_ms) {
+mla_bool_t __mla_http_client_parse_response_header(mla_stream_input_t & inputStream, mla_http_response_t & response, mla_int32_t timeout_ms) {
 
     mla_string_t statusLine = mla_string_empty();
 
@@ -203,7 +203,7 @@ mla_bool_t __mla_http_client_parse_response_header(const mla_stream_input_t & in
 
 }
 
-mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response, const mla_network_connection_t & connection, mla_int32_t timeout_ms) {
+mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response, mla_network_connection_t & connection, mla_int32_t timeout_ms) {
 
     // Check for Content-Length header
     mla_string_t contentLengthStr = mla_http_headers_get_value(response.headers, mla_string_const("Content-Length"));
@@ -248,7 +248,7 @@ void __mla_http_client_close_connection(mla_network_connection_t & connection) {
     mla_network_connection_disconnect(connection);
 }
 
-mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, const mla_http_request_t &p_Request) {
+mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, mla_http_request_t &p_Request) {
 
     mla_http_client_response_t response = { MLA_HTTP_CLIENT_RESPONSE_STATUS_OK, mla_string_empty(), mla_http_response_empty() };
 

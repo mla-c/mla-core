@@ -12,12 +12,13 @@
 
 static mla_http_server_t g_main_app_web_ui_http_server = mla_http_server_invalid();
 
-inline void main_app_web_ui_init() {
+inline void main_app_web_ui_init(const mla_ui_control_surface_process_task_t &processTask) {
 
     mla_info("Initializing Web UI...");
     g_main_app_web_ui_http_server = mla_http_server(mla_network_host_ip4(mla_string_const("127.0.0.1"), 8081));
     mla_rpc_http_server_initialize(g_main_app_web_ui_http_server);
     mla_ui_http_server_initialize(g_main_app_web_ui_http_server);
+    mla_ui_http_server_add_web_surface(g_main_app_web_ui_http_server, mla_string_const("test"), processTask);
     mla_http_server_start(g_main_app_web_ui_http_server, 4);
     mla_info("Web UI Initialized and running at http://127.0.0.1:8081");
 

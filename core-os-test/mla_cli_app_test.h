@@ -35,7 +35,8 @@ inline void SimpleNavigationTest() {
     mla_cli_module_t subModule2 = mla_cli_module(mla_string_const("SubModule2"));
     mla_array_list_add(root.subModules, subModule2);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
 
     if (mla_array_list_size(app.activeModules) == 1) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
@@ -45,7 +46,8 @@ inline void SimpleNavigationTest() {
     }
 
     // Process no input
-    mla_cli_app_update_and_process_input(app,mla_stream_noop_input() , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_noop_input();
+    mla_cli_app_update_and_process_input(app, input, output);
 
     if (mla_array_list_size(app.activeModules) == 1) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
@@ -54,9 +56,9 @@ inline void SimpleNavigationTest() {
         assert_fail("App should start with root module active");
     }
 
-
     mla_string_t buffer = mla_string("SubModule1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    mla_cli_app_update_and_process_input(app, input, output);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
@@ -66,7 +68,8 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("SubSubModule1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    mla_cli_app_update_and_process_input(app, input, output);
 
     if (mla_array_list_size(app.activeModules) == 3) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 2)->moduleName, mla_string("SubSubModule1"), "Active module should be SubSubModule1");
@@ -76,7 +79,9 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("SubModule1"), "Active module should be SubModule1");
@@ -86,7 +91,9 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 1) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
@@ -96,7 +103,9 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 1) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should be Root");
@@ -112,11 +121,14 @@ inline void InvalidNavigationTest() {
     mla_cli_module_t subModule = mla_cli_module(mla_string_const("ValidModule"));
     mla_array_list_add(root.subModules, subModule);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Test invalid module navigation
     mla_string_t buffer = mla_string("InvalidModule\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on invalid navigation");
 
     if (mla_array_list_size(app.activeModules) == 1) {
@@ -128,12 +140,16 @@ inline void InvalidNavigationTest() {
 
     // Test empty input
     buffer = mla_string("\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on empty input");
 
     // Test whitespace only input
     buffer = mla_string("   \n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on whitespace input");
 }
 
@@ -151,11 +167,14 @@ inline void CommandExecutionTest() {
 
     mla_array_list_add(root.availableCommands, testCommand);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Test command execution
     mla_string_t buffer = mla_string("testcmd --param1 value1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     assert_equal(test_command_executed, true, "Command should have been executed");
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in same module after command execution");
@@ -171,11 +190,14 @@ inline void MultipleModuleNavigationTest() {
     mla_array_list_add(root.subModules, module2);
     mla_array_list_add(root.subModules, module3);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Navigate to Module2
     mla_string_t buffer = mla_string("Module2\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module2"), "Active module should be Module2");
@@ -188,10 +210,14 @@ inline void MultipleModuleNavigationTest() {
 
     // Navigate back to root and then to Module1
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Module1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("Module1"), "Active module should be Module1");
@@ -214,20 +240,29 @@ inline void DeepNavigationTest() {
     mla_array_list_add(level1.subModules, level2);
     mla_array_list_add(root.subModules, level1);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Navigate deep into the hierarchy
     mla_string_t buffer = mla_string("Level1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level2\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level3\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level4\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
 
     if (mla_array_list_size(app.activeModules) == 5) {
@@ -243,9 +278,13 @@ inline void DeepNavigationTest() {
 
     // Navigate back up multiple levels
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     buffer = mla_string("exit\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 3) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Top module should be Root");
@@ -265,11 +304,14 @@ inline void EmptyModuleTest() {
     // EmptyModule has no submodules or commands
     mla_array_list_add(root.subModules, emptyModule);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Navigate to empty module
     mla_string_t buffer = mla_string("EmptyModule\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should be EmptyModule");
@@ -280,7 +322,9 @@ inline void EmptyModuleTest() {
 
     // Try to navigate to non-existent submodule
     buffer = mla_string("NonExistent\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("EmptyModule"), "Active module should still be EmptyModule");
@@ -297,11 +341,14 @@ inline void CaseSensitivityTest() {
 
     mla_array_list_add(root.subModules, testModule);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Test case sensitivity - should not navigate with wrong case
     mla_string_t buffer = mla_string("testmodule\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 1) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 0)->moduleName, mla_string("Root"), "Active module should still be Root");
@@ -312,7 +359,9 @@ inline void CaseSensitivityTest() {
 
     // Test correct case - should navigate
     buffer = mla_string("TestModule\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     if (mla_array_list_size(app.activeModules) == 2) {
         assert_struct_equal(mla_string_t, mla_array_list_get_ref(app.activeModules, 1)->moduleName, mla_string("TestModule"), "Active module should be TestModule");
@@ -329,24 +378,28 @@ inline void SpecialCharacterInputTest() {
 
     mla_array_list_add(root.subModules, normalModule);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Test special characters and symbols
     mla_string_t buffer = mla_string("@#$%^&*()\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
-
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore special character input");
 
     // Test numbers
     buffer = mla_string("12345\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
-
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore numeric input");
 
     // Test mixed alphanumeric with special chars
     buffer = mla_string("Module-123!\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
-
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore mixed special character input");
 }
 
@@ -369,22 +422,28 @@ inline void MultipleCommandsTest() {
     mla_array_list_add(root.availableCommands, cmd2);
     mla_array_list_add(root.availableCommands, cmd3);
 
-    mla_cli_app_t app = mla_cli_app_init(root, mla_stream_noop_output());
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
 
     // Execute different commands
     mla_string_t buffer = mla_string("command1\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, true, "First command should execute");
 
     test_command_executed = false;
     buffer = mla_string("help\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, true, "Help command should execute");
 
-    // Test non-existent command
     test_command_executed = false;
     buffer = mla_string("nonexistent\n");
-    mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer)) , mla_stream_noop_output());
+    input = mla_stream_input_from_buffer((mla_byte_t*)mla_string_data(buffer), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, false, "Non-existent command should not execute");
 }
 
