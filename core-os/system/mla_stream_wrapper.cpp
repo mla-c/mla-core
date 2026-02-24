@@ -439,6 +439,7 @@ struct mla_stream_input_interceptor_wrapper_data_initializer {
     static mla_stream_input_interceptor_wrapper_data_t init() {
         return {
             mla_stream_noop_input(),
+            nullptr,
             nullptr
         };
     }
