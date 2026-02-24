@@ -416,7 +416,7 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t na
     mla_c_string_t c_string = mla_string_to_cString(data, true);
     user_data->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_string.c_str));
     user_data->dataOwner = mla_buffer_reference_create(c_string.c_str, false, nullptr, mla_dynamic_data_empty());
-
+    return true;
 }
 
 mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_buffer_cleanup_hook_t cleanup) {
