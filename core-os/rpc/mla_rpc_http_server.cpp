@@ -80,8 +80,11 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
     return result;
 }
 
-mla_bool_t __mla_rpc_http_server_handler_options(const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t __mla_rpc_http_server_handler_options(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+
     (void)request;
+    (void)http_server;
+
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     mla_http_headers_add(response.headers, mla_string_const("Allow"), mla_string_const("POST, OPTIONS"));
@@ -95,7 +98,9 @@ mla_bool_t __mla_rpc_http_server_handler_options(const mla_http_request_t &reque
 
 }
 
-mla_bool_t __mla_rpc_http_server_handler(const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+
+    (void)http_server;
 
     // Remove "/rpc/" prefix
     mla_string_t procedure_name = mla_string_substr(request.url, 5, mla_string_length(request.url) - 5);

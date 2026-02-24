@@ -9,6 +9,6 @@
 #include "../controls/mla_ui_control_surface.h"
 
 mla_bool_t mla_ui_http_server_initialize(mla_http_server_t &server);
-mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t &surface_name, mla_ui_control_surface_process_task_t processTask);
+mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t& display_name, const mla_string_t &surface_name, mla_ui_control_surface_process_task_t processTask);
 
 #endif

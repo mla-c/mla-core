@@ -12,6 +12,8 @@
 #include "../task/mla_rw_lock.h"
 #include "mla_websocket_utils.h"
 
+struct mla_http_server_t;
+
 enum mla_http_server_status_t: mla_uint8_t {
     MLA_HTTP_SERVER_STATUS_STOPPED,
     MLA_HTTP_SERVER_STATUS_RUNNING,
@@ -24,7 +26,7 @@ typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &
 /// HTTP Server Handler Item
 //////////////////////////////////
 
-typedef mla_bool_t (*mla_http_request_handler_t)(const mla_http_request_t &request, mla_http_response_t &response);
+typedef mla_bool_t (*mla_http_request_handler_t)(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response);
 
 struct mla_http_server_handler_item_t {
     mla_user_data_t userdata;
@@ -143,6 +145,7 @@ mla_bool_t mla_http_server_find_websocket_connection(mla_http_server_t &server, 
 mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> mla_http_server_find_websocket_connections(mla_http_server_t &server, const mla_string_t &path_prefix);
 mla_size_t mla_http_server_get_websocket_connection_count(mla_http_server_t &server, const mla_string_t &path_prefix);
 mla_bool_t mla_http_server_is_websocket_connection_open(const mla_http_server_websocket_connection_t& connection);
+mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer> mla_http_server_get_websocket_handler_for_path(mla_http_server_t &server, const mla_string_t& path);
 
 mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_connection_t& connection, mla_uint16_t closeCode, const mla_string_t& reason);
 mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server, const mla_string_t& connectionId, mla_uint16_t closeCode, const mla_string_t& reason);

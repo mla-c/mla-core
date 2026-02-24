@@ -130,10 +130,10 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
 
 }
 
-mla_bool_t mla_websocket_transport_send_text_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
+mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &output, mla_bool_t is_text_message, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
 
     // Byte 0: FIN bit + opcode (0x01 for text)
-    mla_uint8_t fin_and_opcode = mla_websocket_fin_bit | mla_websocket_opcode_text;
+    mla_uint8_t fin_and_opcode = mla_websocket_fin_bit | (is_text_message ? mla_websocket_opcode_text : mla_websocket_opcode_binary);
 
     if (output.write(output, 0, 1, &fin_and_opcode) != 1)
         return false;
@@ -175,13 +175,30 @@ mla_bool_t mla_websocket_transport_send_text_with_generator(mla_stream_output_t 
 
     } else {
 
-        // If the generator failed, we can assume it already wrote a partial message that exceeds the small buffer size, so we need to switch to a new stream for the rest of the message
-        temp_stream = mla_memory_stream_empty();
+        mla_stream_output_t size_calculation_stream = mla_stream_output_size_calculation();
 
+        if (!message_generator(size_calculation_stream, userData))
+            return false;
+
+        mla_size_t payload_length = mla_stream_output_size_calculation_get_size(size_calculation_stream);
+
+        if (!__mla_websocket_client_write_message_length(output, payload_length))
+            return false;
+
+        // Generate and write masking key
+        mla_uint8_t masking_key[mla_websocket_masking_key_size];
+        if (!__mla_websocket_client_send_masking_key(output, masking_key))
+            return false;
+
+        // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
 
 
     }
 
+}
+
+mla_bool_t mla_websocket_transport_send_text_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
+    return __mla_websocket_transport_send_with_generator(output, true, userData, message_generator);
 }
 
 mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, const mla_string_t &message, mla_bool_t is_final) {
@@ -213,6 +230,10 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
     }
 
     return true;
+}
+
+mla_bool_t mla_websocket_transport_send_binary_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
+    return __mla_websocket_transport_send_with_generator(output, false, userData, message_generator);
 }
 
 mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output, const mla_bytes_t &message, mla_bool_t is_final) {
