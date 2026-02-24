@@ -422,4 +422,184 @@ void mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output)
     data->buffer_used = 0;
 }
 
+///////////////////////////////////////
+/// Input Interceptor Wrappers
+///////////////////////////////////////
+
+#define mla_stream_input_interceptor_wrapper_data_name "intWrap"
+
+struct mla_stream_input_interceptor_wrapper_data_t {
+    mla_stream_input_t base_input;
+    mla_stream_input_interceptor_read read;
+    mla_stream_input_interceptor_remaining_bytes remaining_bytes;
+};
+
+struct mla_stream_input_interceptor_wrapper_data_initializer {
+
+    static mla_stream_input_interceptor_wrapper_data_t init() {
+        return {
+            mla_stream_noop_input(),
+            nullptr
+        };
+    }
+};
+
+mla_size_t __mla_stream_input_interceptor_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
+
+    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
+
+    if (data == nullptr) {
+        return 0; // No data or no interceptor, return 0
+    }
+
+    if (data->read == nullptr) {
+
+        if (data->base_input.read == nullptr) {
+            return 0; // No read function to call
+        }
+
+        // No interceptor, pass through to base input
+        return data->base_input.read(data->base_input, offset, length, buffer);
+    }
+
+    return data->read(input, data->base_input, offset, length, buffer);
+
+}
+
+mla_size_t __mla_stream_input_interceptor_wrapper_remaining_bytes(mla_stream_input_t &input) {
+
+    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
+
+    if (data == nullptr) {
+        return 0; // No data or no interceptor, return 0
+    }
+
+    if (data->remaining_bytes == nullptr) {
+
+        if (data->base_input.remaining_bytes == nullptr) {
+            return mla_size_max; // No remaining bytes function, assume data is there but unknown size
+        }
+
+        // No interceptor, pass through to base input
+        return data->base_input.remaining_bytes(data->base_input);
+    }
+
+    return data->remaining_bytes(input, data->base_input);
+
+}
+
+mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &input, mla_stream_input_interceptor_read intercept_read_function, mla_stream_input_interceptor_remaining_bytes intercept_remaining_bytes_function) {
+
+    mla_stream_input_interceptor_wrapper_data_t* data = static_cast<mla_stream_input_interceptor_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_input_interceptor_wrapper_data_t)));
+
+    if (data == nullptr) {
+        return mla_stream_noop_input();
+    }
+
+    mla_memset(data, 0, sizeof(mla_stream_input_interceptor_wrapper_data_t));
+    data->base_input = input;
+    data->read = intercept_read_function;
+    data->remaining_bytes = intercept_remaining_bytes_function;
+
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_stream_input_interceptor_wrapper_data_t, mla_stream_input_interceptor_wrapper_data_initializer>(user_data, mla_stream_input_interceptor_wrapper_data_name, data);
+
+
+    return {
+        user_data,
+        input.read != nullptr ? __mla_stream_input_interceptor_wrapper_read : nullptr,
+        input.remaining_bytes != nullptr ? __mla_stream_input_interceptor_wrapper_remaining_bytes : nullptr
+    };
+
+}
+
+
+///////////////////////////////////////
+/// Output Interceptor Wrappers
+///////////////////////////////////////
+
+#define la_stream_output_interceptor_data_name "outWrap"
+
+struct mla_stream_output_interceptor_wrapper_data_t {
+    mla_stream_output_t base_output;
+    mla_stream_output_interceptor_write write;
+    mla_stream_output_interceptor_available_bytes available_bytes;
+};
+
+struct mla_stream_output_interceptor_wrapper_data_initializer {
+
+    static mla_stream_output_interceptor_wrapper_data_t init() {
+        return {
+            mla_stream_noop_output(),
+            nullptr,
+            nullptr
+        };
+    }
+};
+
+mla_size_t __mla_stream_output_interceptor_wrapper_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
+
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, la_stream_output_interceptor_data_name);
+
+    if (data == nullptr) {
+        return 0; // No data or no interceptor, return 0
+    }
+
+    if (data->write == nullptr) {
+
+        if (data->base_output.write == nullptr) {
+            return 0; // No write function to call
+        }
+
+        // No interceptor, pass through to base output
+        return data->base_output.write(data->base_output, offset, length, buffer);
+    }
+
+    return data->write(output, data->base_output, offset, length, buffer);
+}
+
+mla_size_t __mla_stream_output_interceptor_wrapper_available_bytes(mla_stream_output_t &output) {
+
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, la_stream_output_interceptor_data_name);
+
+    if (data == nullptr) {
+        return 0; // No data or no interceptor, return 0
+    }
+
+    if (data->available_bytes == nullptr) {
+
+        if (data->base_output.available_bytes == nullptr) {
+            return mla_size_max; // No available bytes function, assume space is there but unknown size
+        }
+
+        // No interceptor, pass through to base output
+        return data->base_output.available_bytes(data->base_output);
+    }
+
+    return data->available_bytes(output, data->base_output);
+
+}
+
+mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &output, mla_stream_output_interceptor_write intercept_write_function, mla_stream_output_interceptor_available_bytes intercept_available_bytes_function) {
+
+    mla_stream_output_interceptor_wrapper_data_t* data = static_cast<mla_stream_output_interceptor_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_output_interceptor_wrapper_data_t)));
+
+    if (data == nullptr) {
+        return mla_stream_noop_output();
+    }
+
+    mla_memset(data, 0, sizeof(mla_stream_output_interceptor_wrapper_data_t));
+    data->base_output = output;
+    data->write = intercept_write_function;
+    data->available_bytes = intercept_available_bytes_function;
+
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_user_data_set_pointer_with_ownership<mla_stream_output_interceptor_wrapper_data_t, mla_stream_output_interceptor_wrapper_data_initializer>(user_data, la_stream_output_interceptor_data_name, data);
+
+    return {
+        user_data,
+        output.write != nullptr ? __mla_stream_output_interceptor_wrapper_write : nullptr,
+        output.available_bytes != nullptr ? __mla_stream_output_interceptor_wrapper_available_bytes : nullptr
+    };
+}
 

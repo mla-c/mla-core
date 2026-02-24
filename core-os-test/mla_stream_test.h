@@ -304,6 +304,236 @@ void StreamOutputSizeCalculationMultipleWritesTest() {
     assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), data1_length + data2_length, "Size should be cumulative of all writes");
 }
 
+// --- Interceptor state helpers (file-scope, reset per test) ---
+static mla_bool_t g_input_interceptor_read_called = false;
+static mla_size_t g_input_interceptor_read_length = 0;
+static mla_bool_t g_input_interceptor_remaining_called = false;
+
+static mla_bool_t g_output_interceptor_write_called = false;
+static mla_size_t g_output_interceptor_write_length = 0;
+static mla_bool_t g_output_interceptor_available_called = false;
+
+// --- Input interceptor callbacks ---
+static mla_size_t test_input_intercept_read(mla_stream_input_t& wrapper, mla_stream_input_t& input, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)wrapper; (void)input; (void)offset; (void)buffer;
+    g_input_interceptor_read_called = true;
+    g_input_interceptor_read_length = length;
+    return length; // allow the read to proceed
+}
+
+static mla_size_t test_input_intercept_remaining_bytes(mla_stream_input_t& wrapper, mla_stream_input_t& input) {
+    (void)wrapper; (void)input;
+    g_input_interceptor_remaining_called = true;
+    return mla_size_max; // return sentinel to verify callback was used
+}
+
+// --- Output interceptor callbacks ---
+static mla_size_t test_output_intercept_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)wrapper; (void)output; (void)offset; (void)buffer;
+    g_output_interceptor_write_called = true;
+    g_output_interceptor_write_length = length;
+    return length; // allow the write to proceed
+}
+
+static mla_size_t test_output_intercept_available_bytes(mla_stream_output_t& wrapper, mla_stream_output_t& output) {
+    (void)wrapper; (void)output;
+    g_output_interceptor_available_called = true;
+    return 42; // return sentinel to verify callback was used
+}
+
+// --- Tests ---
+
+void StreamInputInterceptorWrapperReadCallbackTest() {
+    // Setup source memory stream
+    mla_memory_stream_t source = mla_memory_stream_empty();
+    mla_string_t test_data = mla_string_const("intercept input");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+    source.output.write(source.output, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+    mla_memory_stream_set_position(source, 0);
+
+    // Reset state
+    g_input_interceptor_read_called = false;
+    g_input_interceptor_read_length = 0;
+
+    mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, test_input_intercept_read, nullptr);
+
+    mla_byte_t read_buffer[32] = {0};
+    mla_size_t read_bytes = intercepted.read(intercepted, 0, test_data_length, read_buffer);
+
+    assert_equal(read_bytes, test_data_length, "Intercepted read should return correct byte count");
+    assert_true(g_input_interceptor_read_called, "Read interceptor callback should have been called");
+    assert_equal(g_input_interceptor_read_length, test_data_length, "Interceptor should receive correct length");
+}
+
+void StreamInputInterceptorWrapperRemainingBytesCallbackTest() {
+    mla_memory_stream_t source = mla_memory_stream_empty();
+    mla_string_t test_data = mla_string_const("hello");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+    source.output.write(source.output, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+    mla_memory_stream_set_position(source, 0);
+
+    // Reset state
+    g_input_interceptor_remaining_called = false;
+
+    mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, nullptr, test_input_intercept_remaining_bytes);
+
+    if (intercepted.remaining_bytes == nullptr) {
+        assert_fail("Remaining bytes callback should be set in interceptor");
+    } else {
+        mla_size_t remaining = intercepted.remaining_bytes(intercepted);
+
+        assert_true(g_input_interceptor_remaining_called, "Remaining bytes interceptor callback should have been called");
+        assert_equal(remaining, mla_size_max, "Interceptor remaining_bytes should return the sentinel value");
+    }
+
+}
+
+void StreamInputInterceptorWrapperNullCallbacksPassthroughTest() {
+    // When both callbacks are null the wrapper should pass through to the underlying stream
+    mla_memory_stream_t source = mla_memory_stream_empty();
+    mla_string_t test_data = mla_string_const("passthrough data");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+    source.output.write(source.output, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+    mla_memory_stream_set_position(source, 0);
+
+    mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, nullptr, nullptr);
+
+    mla_byte_t read_buffer[32] = {0};
+    mla_size_t read_bytes = intercepted.read(intercepted, 0, test_data_length, read_buffer);
+
+    assert_equal(read_bytes, test_data_length, "Passthrough interceptor should read correct byte count");
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_data_ptr, test_data_length), (mla_test_int32_t)0, "Passthrough interceptor should read correct data");
+}
+
+// --- Input interceptor callbacks ---
+static mla_size_t test_input_intercept_blocking(mla_stream_input_t& wrapper, mla_stream_input_t& input, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)wrapper; (void)input; (void)offset; (void)length; (void)buffer;
+    return 0; // block the read
+}
+
+void StreamInputInterceptorWrapperBlockReadTest() {
+    // Interceptor returning false should block / indicate no data forwarded
+    mla_memory_stream_t source = mla_memory_stream_empty();
+    mla_string_t test_data = mla_string_const("blocked data");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+    source.output.write(source.output, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+    mla_memory_stream_set_position(source, 0);
+
+    mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, test_input_intercept_blocking, nullptr);
+
+    mla_byte_t read_buffer[32] = {0};
+    mla_size_t read_bytes = intercepted.read(intercepted, 0, test_data_length, read_buffer);
+
+    assert_equal(read_bytes, (mla_size_t)0, "Blocking interceptor should return 0 bytes read");
+}
+
+void StreamOutputInterceptorWrapperWriteCallbackTest() {
+    // Setup destination memory stream
+    mla_memory_stream_t dest = mla_memory_stream_empty();
+
+    // Reset state
+    g_output_interceptor_write_called = false;
+    g_output_interceptor_write_length = 0;
+
+    mla_stream_output_t intercepted = mla_stream_output_interceptor_wrapper(dest.output, test_output_intercept_write, nullptr);
+
+    mla_string_t test_data = mla_string_const("intercept output");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+
+    assert_equal(written, test_data_length, "Intercepted write should return correct byte count");
+    assert_true(g_output_interceptor_write_called, "Write interceptor callback should have been called");
+    assert_equal(g_output_interceptor_write_length, test_data_length, "Interceptor should receive correct length");
+
+    // Verify data actually reached destination
+    mla_memory_stream_set_position(dest, 0);
+    mla_byte_t read_buffer[32] = {0};
+    dest.input.read(dest.input, 0, test_data_length, read_buffer);
+}
+
+void StreamOutputInterceptorWrapperAvailableBytesCallbackTest() {
+    mla_memory_stream_t dest = mla_memory_stream_empty();
+
+    // Reset state
+    g_output_interceptor_available_called = false;
+
+    mla_stream_output_t intercepted = mla_stream_output_interceptor_wrapper(dest.output, nullptr, test_output_intercept_available_bytes);
+
+    if (intercepted.available_bytes == nullptr) {
+        assert_fail("Available bytes callback should be set in interceptor");
+    } else {
+        mla_size_t available = intercepted.available_bytes(intercepted);
+
+        assert_true(g_output_interceptor_available_called, "Available bytes interceptor callback should have been called");
+        assert_equal(available, (mla_size_t)42, "Interceptor available_bytes should return the sentinel value");
+    }
+}
+
+void StreamOutputInterceptorWrapperNullCallbacksPassthroughTest() {
+    mla_memory_stream_t dest = mla_memory_stream_empty();
+
+    mla_stream_output_t intercepted = mla_stream_output_interceptor_wrapper(dest.output, nullptr, nullptr);
+
+    mla_string_t test_data = mla_string_const("passthrough write");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+
+    assert_equal(written, test_data_length, "Passthrough interceptor should write correct byte count");
+
+    mla_memory_stream_set_position(dest, 0);
+    mla_byte_t read_buffer[32] = {0};
+    dest.input.read(dest.input, 0, test_data_length, read_buffer);
+    assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_data_ptr, test_data_length), (mla_test_int32_t)0, "Passthrough interceptor should write correct data to destination");
+}
+
+static mla_size_t test_output_intercept_write_blocking(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)wrapper; (void)output; (void)offset; (void)length; (void)buffer;
+    return 0; // block the write
+}
+
+void StreamOutputInterceptorWrapperBlockWriteTest() {
+    mla_memory_stream_t dest = mla_memory_stream_empty();
+
+    mla_stream_output_t intercepted = mla_stream_output_interceptor_wrapper(dest.output, test_output_intercept_write_blocking, nullptr);
+
+    mla_string_t test_data = mla_string_const("should not reach dest");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+
+    assert_equal(written, (mla_size_t)0, "Blocking interceptor should return 0 bytes written");
+    assert_equal(mla_memory_stream_get_size(dest), (mla_size_t)0, "Blocked write should not reach destination");
+}
+
+void StreamInterceptorWrapperChainedTest() {
+    // Chain: input interceptor -> memory stream -> output interceptor
+    mla_memory_stream_t storage = mla_memory_stream_empty();
+
+    // Write via output interceptor
+    mla_stream_output_t out_intercepted = mla_stream_output_interceptor_wrapper(storage.output, test_output_intercept_write, nullptr);
+    mla_string_t test_data = mla_string_const("chained interceptor data");
+    mla_size_t test_data_length = mla_string_length(test_data);
+    const mla_char_t* test_data_ptr = mla_string_data(test_data);
+    out_intercepted.write(out_intercepted, 0, test_data_length, (const mla_byte_t*)test_data_ptr);
+
+    // Read back via input interceptor
+    mla_memory_stream_set_position(storage, 0);
+    mla_stream_input_t in_intercepted = mla_stream_input_interceptor_wrapper(storage.input, test_input_intercept_read, nullptr);
+
+    mla_byte_t read_buffer[32] = {0};
+    mla_size_t read_bytes = in_intercepted.read(in_intercepted, 0, test_data_length, read_buffer);
+
+    assert_equal(read_bytes, test_data_length, "Chained interceptors should read correct byte count");
+}
 
 void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("MemoryStreamCreateEmpty", test_category, MemoryStreamCreateEmptyTest);
@@ -349,6 +579,33 @@ void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamOutputSizeCalculationMultipleWrites", test_category, StreamOutputSizeCalculationMultipleWritesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputInterceptorWrapperReadCallback", test_category, StreamInputInterceptorWrapperReadCallbackTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputInterceptorWrapperRemainingBytesCallback", test_category, StreamInputInterceptorWrapperRemainingBytesCallbackTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputInterceptorWrapperNullCallbacksPassthrough", test_category, StreamInputInterceptorWrapperNullCallbacksPassthroughTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputInterceptorWrapperBlockRead", test_category, StreamInputInterceptorWrapperBlockReadTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputInterceptorWrapperWriteCallback", test_category, StreamOutputInterceptorWrapperWriteCallbackTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputInterceptorWrapperAvailableBytesCallback", test_category, StreamOutputInterceptorWrapperAvailableBytesCallbackTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputInterceptorWrapperNullCallbacksPassthrough", test_category, StreamOutputInterceptorWrapperNullCallbacksPassthroughTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputInterceptorWrapperBlockWrite", test_category, StreamOutputInterceptorWrapperBlockWriteTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInterceptorWrapperChained", test_category, StreamInterceptorWrapperChainedTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

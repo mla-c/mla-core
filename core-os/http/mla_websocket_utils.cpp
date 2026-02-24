@@ -130,6 +130,25 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
 
 }
 
+#define mla_websocket_transport_mask_user_data_name "masData"
+
+mla_size_t __mla_websocket_transport_masked_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+
+    mla_uint8_t* masking_key = mla_user_data_get_pointer<mla_uint8_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
+
+    if (masking_key == nullptr) {
+        return false; // No masking key, cannot mask
+    }
+
+    for (mla_size_t i = 0; i < length; i++) {
+        mla_uint8_t masked_byte = buffer[offset + i] ^ masking_key[i % mla_websocket_masking_key_size];
+        if (output.write(output, 0, 1, &masked_byte) != 1)
+            return i;
+    }
+
+    return length;
+}
+
 mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &output, mla_bool_t is_text_message, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
 
     // Byte 0: FIN bit + opcode (0x01 for text)
@@ -191,7 +210,14 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
             return false;
 
         // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
+        mla_stream_output_t masking_stream = mla_stream_output_interceptor_wrapper(output, __mla_websocket_transport_masked_write, nullptr);
+        mla_user_data_set_pointer_without_ownership(masking_stream.userdata, mla_websocket_transport_mask_user_data_name, &masking_key);
 
+        if (!message_generator(masking_stream, userData)) {
+            return false;
+        }
+
+        return true;
 
     }
 
