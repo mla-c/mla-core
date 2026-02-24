@@ -289,6 +289,8 @@ struct main_app_main_window_performance_t {
 
     static mla_bool_t renderer(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &root, const mla_ui_surface_size_t& surfaceSize, const mla_ui_surface_input_states_t &input_states) {
 
+        (void)input_states;
+
         if (mla_array_list_size(root) > 0) {
             return true;
         }

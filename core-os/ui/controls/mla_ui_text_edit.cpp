@@ -438,7 +438,8 @@ mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &button, mla_bool_t dis
 }
 
 mla_size_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit) {
-    return mla_ui_control_get_value_as_uint32(textEdit, mla_string_const("cursor_position"), 0);
+    mla_string_t text = mla_ui_text_edit_get_text(textEdit);
+    return mla_ui_control_get_value_as_uint32(textEdit, mla_string_const("cursor_position"), mla_string_length(text));
 }
 
 mla_bool_t mla_ui_text_edit_set_cursor_position(mla_ui_control_t &textEdit, mla_size_t position) {
