@@ -48,10 +48,10 @@ struct mla_test_print_t {
 extern mla_test_print_t g_test_print;
 
 struct mla_test_mutex_t {
-    mla_test_uint64_t (*create_mutex)();
-    mla_test_bool_t (*lock_mutex)(mla_test_uint64_t mutex_id);
-    void (*unlock_mutex)(mla_test_uint64_t mutex_id);
-    void (*destroy_mutex)(mla_test_uint64_t mutex_id);
+    mla_test_pointer_t (*create_mutex)();
+    mla_test_bool_t (*lock_mutex)(mla_test_pointer_t mutex_id);
+    void (*unlock_mutex)(mla_test_pointer_t mutex_id);
+    void (*destroy_mutex)(mla_test_pointer_t mutex_id);
 };
 
 extern mla_test_mutex_t g_test_mutex;

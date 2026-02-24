@@ -37,7 +37,7 @@ static mla_pointer_t g_mla_benchmark_memory_arena = nullptr;
 static mla_size_t g_mla_benchmark_memory_arena_size = 0;
 static mla_size_t g_mla_benchmark_memory_arena_offset = 0;
 static mla_bool_t g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
-static mla_test_uint64_t g_mla_benchmark_arena_mutex = 0;
+static mla_test_pointer_t g_mla_benchmark_arena_mutex = 0;
 
 mla_size_t mla_align_up(mla_size_t value, mla_size_t alignment) {
     return (value + (alignment - 1u)) & ~(alignment - 1u);

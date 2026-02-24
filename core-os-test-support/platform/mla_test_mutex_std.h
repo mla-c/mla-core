@@ -9,29 +9,38 @@
 #include <mutex>
 
 // Create a mutex and return its pointer value as an ID
-mla_test_uint64_t __mla_test_sdt_create_mutex() {
+mla_test_pointer_t __mla_test_sdt_create_mutex() {
     auto* mtx = new std::mutex();
-    return static_cast<mla_test_uint64_t>(reinterpret_cast<uintptr_t>(mtx));
+    return mtx;
 }
 
 // Lock the mutex identified by the pointer value
-mla_test_bool_t __mla_test_sdt_lock_mutex(mla_test_uint64_t mutex_id) {
-    auto* mtx = reinterpret_cast<std::mutex*>(static_cast<uintptr_t>(mutex_id));
-    if (!mtx) return (mla_test_bool_t)false;
+mla_test_bool_t __mla_test_sdt_lock_mutex(mla_test_pointer_t mutex_id) {
+
+    if (mutex_id == nullptr)
+        return false;
+
+    std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     mtx->lock();
-    return (mla_test_bool_t)true;
+    return true;
 }
 
 // Unlock the mutex identified by the pointer value
-void __mla_test_sdt_unlock_mutex(mla_test_uint64_t mutex_id) {
-    auto* mtx = reinterpret_cast<std::mutex*>(static_cast<uintptr_t>(mutex_id));
-    if (!mtx) return;
+void __mla_test_sdt_unlock_mutex(mla_test_pointer_t mutex_id) {
+    if (mutex_id == nullptr)
+        return;
+
+    std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     mtx->unlock();
 }
 
 // Destroy the mutex identified by the pointer value
-void __mla_test_sdt_destroy_mutex(mla_test_uint64_t mutex_id) {
-    auto* mtx = reinterpret_cast<std::mutex*>(static_cast<uintptr_t>(mutex_id));
+void __mla_test_sdt_destroy_mutex(mla_test_pointer_t mutex_id) {
+
+    if (mutex_id == nullptr)
+        return;
+
+    std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     delete mtx;
 }
 
