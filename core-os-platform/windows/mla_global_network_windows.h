@@ -224,10 +224,6 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
         }
     }
 
-    // Set socket back to blocking mode
-    mode = 0;
-    //ioctlsocket(sock, FIONBIO, &mode);
-
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     if (type == mla_connection_type_tcp) {
         BOOL nodelay = TRUE;

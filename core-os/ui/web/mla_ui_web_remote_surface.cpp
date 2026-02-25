@@ -6,6 +6,11 @@
 
 #include "../../serializer/mla_json_serializer.h"
 
+struct mla_ui_web_remote_surface_data_t {
+    mla_string_t connectionId; // We can not store the connection pointer directly in the surface resource because it may become invalid if the connection is closed. Instead, we can store the connection ID and look up the connection when needed.
+    mla_http_server_t *server; // We need a reference to the server to look up the connection
+};
+
 struct mla_ui_web_remote_surface_draw_data_t {
     const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands;
 
@@ -56,22 +61,27 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
 
     (void)eventsSinceLastFame;
 
-    mla_http_server_websocket_connection_t* connection = reinterpret_cast<mla_http_server_websocket_connection_t*>(surface.resource);
+    mla_ui_web_remote_surface_data_t* surface_data = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
 
-    if (connection == nullptr) {
+    if (surface_data == nullptr) {
         return false; // Can't render without a valid connection
     }
 
-    if (!mla_http_server_is_websocket_connection_open(*connection)){
-        return false; // Can't render if the connection is closed
+    mla_http_server_websocket_connection_t connection = mla_http_server_websocket_connection_invalid();
+
+    if (!mla_http_server_find_websocket_connection(*surface_data->server, surface_data->connectionId, connection)) {
+        return false; // Can't render if we can't find the connection
     }
 
+    if (!mla_http_server_is_websocket_connection_open(connection)){
+        return false; // Can't render if the connection is closed
+    }
 
     mla_user_data_t messageData = mla_user_data_empty();
     mla_user_data_set_pointer_without_ownership(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, &drawCommands);
 
     // Serialize the commands to JSON
-    return mla_http_server_send_websocket_text_message(*connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator);
+    return mla_http_server_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator);
 
 }
 
@@ -92,11 +102,30 @@ mla_ui_surface_input_states_t __mla_ui_web_remote_surface_get_input_states(const
     return mla_ui_surface_input_states_empty();
 }
 
+struct mla_ui_web_remote_surface_data_initializer {
+    static mla_ui_web_remote_surface_data_t init() {
+        return {
+            mla_string_empty(),
+            nullptr
+        };
+    }
+};
+
 mla_ui_surface_t mla_ui_web_remote_surface_create(const mla_http_server_websocket_connection_t& connection) {
 
+    mla_ui_web_remote_surface_data_t* surfaceData = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(mla_malloc(sizeof(mla_ui_web_remote_surface_data_t)));
+
+    if (surfaceData == nullptr) {
+        return mla_ui_surface_invalid();
+    }
+
+    mla_memset(surfaceData, 0, sizeof(mla_ui_web_remote_surface_data_t));
+    surfaceData->connectionId = connection.id;
+    surfaceData->server = connection.server;
+
     return  {
-        const_cast<mla_http_server_websocket_connection_t*>(&connection),
-        mla_buffer_reference_noOwner(),
+        surfaceData,
+        mla_buffer_reference<mla_ui_web_remote_surface_data_t, mla_ui_web_remote_surface_data_initializer>(surfaceData),
         __mla_ui_web_remote_surface_get_size,
         __mla_ui_web_remote_surface_set_size,
         __mla_ui_web_remote_surface_render_draw_commands,

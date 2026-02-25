@@ -321,7 +321,8 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
     // read first byte (fin + opcode)
     mla_uint8_t fin_and_opcode;
-    if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, timeout_ms))
+    // At the first call we dont wait for any timeouts we just look if there is something
+    if (!__mla_mla_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, 0))
         return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE;
 
     is_final = (fin_and_opcode & mla_websocket_fin_bit) != 0;

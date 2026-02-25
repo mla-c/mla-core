@@ -20,7 +20,12 @@ enum mla_http_server_status_t: mla_uint8_t {
     MLA_HTTP_SERVER_STATUS_ERROR
 };
 
-typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &userdata, const mla_string_t& url);
+enum mla_http_request_handler_checker_compare_mode_t: mla_uint8_t {
+    MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH, // Only will return ture if the handle will serve the URL
+    MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX, // Will return true if the handler can potentially serve the URL. For example, a handler with path prefix "/api/" can potentially serve the URL "/api/users/1" but not "/static/index.html"
+};
+
+typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &userdata, const mla_string_t& url, mla_http_request_handler_checker_compare_mode_t compare_mode);
 
 ///////////////////////////////////
 /// HTTP Server Handler Item
