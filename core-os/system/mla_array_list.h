@@ -42,6 +42,10 @@ mla_array_list_t<T, TInit> mla_array_list_empty() {
 template <mla_array_list_template>
 mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_array_list_default_capacity) {
 
+    if (initialCapacity == 0) {
+        return mla_array_list_empty<T, TInit>();
+    }
+
     mla_size_t size = initialCapacity * sizeof(T);
     T* items = static_cast<T*>(mla_malloc(size));
 

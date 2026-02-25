@@ -14,7 +14,7 @@ mla_int32_t mla_log_indexOf_logger(const mla_string_t& loggerName) {
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_logger_manager.loggers); ++i) {
 
-        const mla_logger_t logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
+        const mla_logger_t& logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
         if (mla_string_equals(logger.name, loggerName)) {
             return static_cast<mla_int32_t>(i);
@@ -87,7 +87,7 @@ mla_bool_t mla_log_is_active(const mla_log_level level) {
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_logger_manager.loggers); ++i) {
 
-        const mla_logger_t logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
+        const mla_logger_t& logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
         if (logger.level <= level) {
             return true;

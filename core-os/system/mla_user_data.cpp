@@ -61,6 +61,60 @@ mla_bool_t __mla_user_data_manage_external_resource(mla_user_data_list_t* list) 
     return false;
 }
 
+mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &target, mla_bool_t addNewItem) {
+
+    // Convert to list
+    mla_user_data_list_t* list = (mla_user_data_list_t*)mla_malloc(sizeof(mla_user_data_list_t));
+
+    if (list == nullptr) {
+        return nullptr;
+    }
+
+    mla_memset(list, 0, sizeof(mla_user_data_list_t));
+
+    mla_bool_t addTarget = !__mla_user_data_name_equal(target.name, mla_user_data_name_empty);
+    mla_size_t initialCapacity = 0;
+
+    if (addTarget) {
+        initialCapacity++;
+    }
+
+    if (addNewItem) {
+        initialCapacity++;
+    }
+
+    list->datas = mla_array_list<mla_user_data_t, mla_user_data_initializer>(initialCapacity);
+
+    // Add the existing item to the list
+    if (addTarget) {
+        if (!mla_array_list_add(list->datas, target)) {
+            mla_error(mla_string_concat("Failed to add existing user data to list for name: ", target.name));
+            mla_free(list);
+            return nullptr;
+        }
+    }
+
+    if (addNewItem) {
+        mla_user_data_t newItem = mla_user_data_empty();
+        if (!mla_array_list_add(list->datas, newItem)) {
+            mla_error(mla_string_const("Failed to add new user data to list"));
+            mla_free(list);
+            return nullptr;
+        }
+    }
+
+    // Determine if we need to manage external resources based on the existing items in the list
+    mla_bool_t managedExternalResources = __mla_user_data_manage_external_resource(list);
+
+    // Update the target to be the list
+    mla_memcpy(target.name, mla_user_data_name_list, mla_user_data_name_size);
+    target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
+    target.data.asPointer = list;
+
+    return list;
+}
+
+
 mla_user_data_t* __mla_user_data_get_for_update(mla_user_data_t &target, const mla_char_t name[mla_user_data_name_size]) {
 
     if (__mla_user_data_name_equal(target.name, mla_user_data_name_empty)) {
@@ -99,38 +153,11 @@ mla_user_data_t* __mla_user_data_get_for_update(mla_user_data_t &target, const m
         return &target;
     }
 
-    // Convert to list
-    mla_user_data_list_t* list = (mla_user_data_list_t*)mla_malloc(sizeof(mla_user_data_list_t));
+    mla_user_data_list_t* list = __mla_user_data_move_data_into_list(target, true);
 
     if (list == nullptr) {
-        return nullptr;
+        return nullptr; // Failed to move data into list
     }
-
-    mla_memset(list, 0, sizeof(mla_user_data_list_t));
-    list->datas = mla_array_list<mla_user_data_t, mla_user_data_initializer>(1);
-
-    // Add the existing item to the list
-    mla_user_data_t existingItem = target;
-    if (!mla_array_list_add(list->datas, existingItem)) {
-        mla_error(mla_string_concat("Failed to add existing user data to list for name: ", target.name));
-        mla_free(list);
-        return nullptr;
-    }
-
-    mla_user_data_t newItem = mla_user_data_empty();
-    if (!mla_array_list_add(list->datas, newItem)) {
-        mla_error(mla_string_concat("Failed to add user data to list for name: ", name));
-        mla_free(list);
-        return nullptr;
-    }
-
-    // Determine if we need to manage external resources based on the existing items in the list
-    mla_bool_t managedExternalResources = __mla_user_data_manage_external_resource(list);
-
-    // Update the target to be the list
-    mla_memcpy(target.name, mla_user_data_name_list, mla_user_data_name_size);
-    target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
-    target.data.asPointer = list;
 
     return mla_array_list_get_ref_unsafe(list->datas, mla_array_list_size(list->datas) - 1);
 
@@ -613,4 +640,29 @@ mla_dynamic_data_t mla_user_data_get_native_resource(const mla_user_data_t& user
         return defaultValue;
     }
     return found->data;
+}
+
+
+mla_user_data_t::mla_user_data_t(const mla_user_data_t &p_Other): dataOwner(p_Other.dataOwner) {
+
+    if (!__mla_user_data_name_equal(p_Other.name, mla_user_data_name_list)) {
+
+        // At this point we get Hack. We now modify the other and move it to the heap. To have an consistant state
+        mla_user_data_t &other = const_cast<mla_user_data_t&>(p_Other);
+
+        __mla_user_data_move_data_into_list(other, false);
+
+    }
+    mla_memcpy(this->name, p_Other.name, mla_user_data_name_size);
+    this->dataOwner = p_Other.dataOwner;
+    this->data = p_Other.data;
+
+
+}
+
+mla_user_data_t::mla_user_data_t(char name[8], mla_buffer_reference_t dataOwner, mla_dynamic_data_t data):
+    dataOwner(dataOwner),
+    data(data) {
+    mla_memcpy(this->name, name, mla_user_data_name_size);
+
 }

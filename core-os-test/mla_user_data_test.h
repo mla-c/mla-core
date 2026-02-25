@@ -269,6 +269,30 @@ inline void UserDataGetNonExistentTest() {
     assert_equal(value, -1, "Should return default value for non-existent key");
 }
 
+
+// Test getting value with different name
+inline void UserDataCopyWillMoveToHeapTest() {
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_int32(userData, "exists", 100);
+
+    mla_user_data_t copiedData = userData; // This should trigger the move to heap if it was on stack
+
+    mla_int32_t value = mla_user_data_get_int32(userData, "exists");
+    assert_equal(value, 100, "Original user data should still have the value after copy");
+
+    value = mla_user_data_get_int32(copiedData, "exists");
+    assert_equal(value, 100, "Copied user data should have the same value");
+
+    // Now we can modify the original and check if the copied data is still dependent
+    mla_user_data_set_int32(userData, "exists", 200);
+    value = mla_user_data_get_int32(userData, "exists");
+    assert_equal(value, 200, "Original user data should reflect the updated value");
+
+    value = mla_user_data_get_int32(copiedData, "exists");
+    assert_equal(value, 200, "Copied user data should reflect the updated value since it should be sharing the same underlying data");
+}
+
+
 inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("UserDataSetGetInt8", test_category, UserDataSetGetInt8Test);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -328,6 +352,9 @@ inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("UserDataGetNonExistent", test_category, UserDataGetNonExistentTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("UserDataCopyWillMoveToHeap", test_category, UserDataCopyWillMoveToHeapTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
