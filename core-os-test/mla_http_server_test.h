@@ -158,6 +158,7 @@ inline void WebSocketEchoServerTest() {
         for (mla_size_t i = 0; i < 5; ++i) {
             mla_string_t test_message = mla_string_const("Hello, WebSocket Echo!");
             assert_true(mla_websocket_client_send_text_message(client, test_message, true), "Should send text message");
+            mla_sleep(50); // Small delay to allow server to process and respond
 
             mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();

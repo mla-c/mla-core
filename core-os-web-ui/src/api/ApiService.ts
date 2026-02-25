@@ -1,6 +1,6 @@
 export class ApiService {
-    static BASE_URL = '../rpc/';
-    //static BASE_URL = 'http://localhost:8081/rpc/';
+    //static BASE_URL = '../rpc/';
+    static BASE_URL = 'http://localhost:8081/rpc/';
 
     public static async call<T>(method: string, params?: any): Promise<T> {
         const response = await fetch(ApiService.BASE_URL + method, {

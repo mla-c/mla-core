@@ -1,6 +1,9 @@
-import {useCallback, useContext, useMemo, useState} from "preact/hooks";
+import {useCallback, useContext, useState} from "preact/hooks";
 import HomePage from "../pages/HomePage";
 import {createContext, JSX} from "preact";
+import useAsyncEffect from "../hooks/useCancellableEffect";
+import {SurfaceService} from "../api/SurfaceService";
+import SurfaceUIPage from "../pages/SurfaceUIPage";
 
 export interface NavigationPage {
     name: string
@@ -10,6 +13,7 @@ export interface NavigationPage {
 }
 
 interface NavigationContext {
+    allPages: NavigationPage[]
     currentPage: NavigationPage
     changePage: (page: NavigationPage) => void
     blockNavigation: () => () => void;
@@ -21,6 +25,7 @@ const pages: NavigationPage[] = [
 ]
 
 const context = createContext<NavigationContext>({
+    allPages: pages,
     currentPage: pages[0],
     changePage: () => {
     },
@@ -43,7 +48,7 @@ export function useNavigateToPage(pageName: string) {
 
     const changePage = useCallback(() => {
 
-        navigationContext.changePage(pages.find(page => page.name === pageName) || pages[0]);
+        navigationContext.changePage(navigationContext.allPages.find(page => page.name === pageName) || navigationContext.allPages[0]);
 
     }, [pageName]);
 
@@ -64,9 +69,8 @@ export function usePageRenderer() {
 
 export function useGetPageDescriptors() {
 
-    return useMemo(() => {
-        return pages.map(page => ({name: page.name, displayName: page.displayName, isVisible: page.isVisible || (() => true)}));
-    }, []);
+    const navigationContext = useContext(context);
+    return navigationContext.allPages.map(page => ({name: page.name, displayName: page.displayName, isVisible: page.isVisible || (() => true)}));
 }
 
 export function useIsNavigationBlocked() {
@@ -86,6 +90,7 @@ export function NavigationProvider({children}: { children: any }) {
     const blockNavigation = useCallback(() => {
 
         setContextValue((prevState) => ({
+            allPages: prevState.allPages,
             currentPage: prevState.currentPage,
             changePage: prevState.changePage,
             blockNavigation: prevState.blockNavigation,
@@ -94,6 +99,7 @@ export function NavigationProvider({children}: { children: any }) {
 
         return () => {
             setContextValue((prevState) => ({
+                allPages: prevState.allPages,
                 currentPage: prevState.currentPage,
                 changePage: prevState.changePage,
                 blockNavigation: prevState.blockNavigation,
@@ -111,6 +117,7 @@ export function NavigationProvider({children}: { children: any }) {
             }
 
             return {
+                allPages: prevState.allPages,
                 currentPage: page,
                 changePage: prevState.changePage,
                 blockNavigation: prevState.blockNavigation,
@@ -120,7 +127,49 @@ export function NavigationProvider({children}: { children: any }) {
         });
     }, []);
 
+    const loadDynamicPages = useCallback(async () => {
+
+        const allPages = [...pages];
+        const surfaces = await SurfaceService.getSurfaces();
+
+        surfaces?.surfaces.forEach(surface => {
+            allPages.push({
+                name: `surface-${surface.surfaceName}`,
+                displayName: surface.displayName,
+                createRenderer: <SurfaceUIPage surface={surface}></SurfaceUIPage>
+            });
+        });
+
+        return allPages;
+    }, []);
+
+    const updatePages = useCallback((allPages: NavigationPage[]) => {
+
+        setContextValue((prevState) => {
+
+            if (prevState.navigationBlockedCount > 0) {
+                return prevState;
+            }
+
+            // Find the current page in the new list of pages, if it doesn't exist, fallback to the first page
+            const currentPage = allPages.find(page => page.name === prevState.currentPage.name) || allPages[0];
+
+            return {
+                allPages: allPages,
+                currentPage: currentPage,
+                changePage: prevState.changePage,
+                blockNavigation: prevState.blockNavigation,
+                navigationBlockedCount: prevState.navigationBlockedCount
+            }
+
+        });
+
+    }, []);
+
+    useAsyncEffect(loadDynamicPages, updatePages);
+
     const [contextValue, setContextValue] = useState<NavigationContext>({
+        allPages: pages,
         currentPage: pages[0],
         changePage: changePage,
         blockNavigation: blockNavigation,

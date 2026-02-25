@@ -224,10 +224,6 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
         }
     }
 
-    // Set socket back to blocking mode
-    mode = 0;
-    //ioctlsocket(sock, FIONBIO, &mode);
-
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     if (type == mla_connection_type_tcp) {
         BOOL nodelay = TRUE;
@@ -281,11 +277,9 @@ mla_bool_t __windows_accept_connection(const mla_network_listener_t& listener, m
         return false;
     }
 
-    // Optional: return accepted socket to blocking mode for normal I/O
-    {
-        u_long blocking = 0;
-        ioctlsocket(clientSock, FIONBIO, &blocking);
-    }
+    // Set socket to non-blocking mode for timeout support
+    u_long blocking = 1;
+    ioctlsocket(clientSock, FIONBIO, &blocking);
 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     {

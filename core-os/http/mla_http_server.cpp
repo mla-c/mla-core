@@ -47,7 +47,7 @@ struct mla_http_server_path_checker_userdata_initializer {
 #define mla_http_server_handler_path_data_user_data_name "httphpd"
 
 mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
-                                                         const mla_string_t &url) {
+                                                         const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_http_server_path_checker_userdata_t *checker_userdata = mla_user_data_get_pointer<mla_http_server_path_checker_userdata_t>(userdata, mla_http_server_handler_path_data_user_data_name);
 
@@ -55,12 +55,20 @@ mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_user_data_t& 
         return false;
     }
 
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
+        return mla_string_starts_with(url, checker_userdata->path_data);
+    }
 
-    return mla_string_starts_with(url, checker_userdata->path_data);
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
+        return mla_string_starts_with(checker_userdata->path_data, url);
+    }
+
+    return false;
+
 }
 
 mla_bool_t __mla_http_server_handler_equals_checker(const mla_user_data_t &userdata,
-                                                    const mla_string_t &url) {
+                                                    const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_http_server_path_checker_userdata_t *checker_userdata = mla_user_data_get_pointer<mla_http_server_path_checker_userdata_t>(userdata, mla_http_server_handler_path_data_user_data_name);
 
@@ -68,7 +76,15 @@ mla_bool_t __mla_http_server_handler_equals_checker(const mla_user_data_t &userd
         return false;
     }
 
-    return mla_string_equals(url, checker_userdata->path_data);
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
+        return mla_string_equals(url, checker_userdata->path_data);
+    }
+
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
+        return mla_string_starts_with(url, checker_userdata->path_data);
+    }
+
+    return false;
 }
 
 mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method,
@@ -96,9 +112,10 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
     };
 }
 
-mla_bool_t __mla_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_string_t &url) {
+mla_bool_t __mla_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
     (void) userdata;
     (void) url;
+    (void) compare_mode;
     return true;
 }
 
@@ -501,7 +518,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             continue;
         }
 
-        if (!handlerItem.checker(handlerItem.userdata, request.url)) {
+        if (!handlerItem.checker(handlerItem.userdata, request.url, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
             continue; // Checker returned false, skip
         }
 
@@ -537,7 +554,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
                 continue; // No checker function, skip
             }
 
-            if (!handlerItem.checker(handlerItem.userdata, request.url)) {
+            if (!handlerItem.checker(handlerItem.userdata, request.url, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
                 continue; // Checker returned false, skip
             }
 
@@ -564,6 +581,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             // 3) Register the WebSocket connection and keep it open
             mla_http_server_websocket_connection_t ws_connection = mla_http_server_websocket_connection(server, clientConnection, handlerItem, request.url);
 
+
             if (ws_connection.open_executor != nullptr) {
                 if (!ws_connection.open_executor(ws_connection)) {
                     ws_connection = mla_http_server_websocket_connection_invalid();
@@ -574,6 +592,8 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             if (mla_rw_lock_write(server.websocketConnectionsLock)) {
                 mla_array_list_add(server.websocketConnections, ws_connection);
                 mla_rw_unlock_write(server.websocketConnectionsLock);
+            } else {
+                ws_connection = mla_http_server_websocket_connection_invalid(); // Mark as invalid to avoid processing
             }
 
             processed = true;
@@ -669,7 +689,7 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_u
         mla_string_t textMessage = mla_string_empty();
         mla_bytes_t binaryMessage = mla_bytes_empty();
 
-        mla_websocket_transport_message_receive_type_t receive_type = mla_websocket_transport_receive_message(connection.connection, server.timeout_ms, textMessage, binaryMessage, final);
+        mla_websocket_transport_message_receive_type_t receive_type = mla_websocket_transport_receive_message(connection.connection, server.timeout_ms, textMessage, binaryMessage, final, false);
 
         mla_mutex_unlock(connection.lock);
 
@@ -885,7 +905,7 @@ mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
         mla_http_server_websocket_connection_t &connection = mla_array_list_get_unsafe(server.websocketConnections, i);
 
         if (mla_http_server_is_websocket_connection_open(connection)) {
-            mla_websocket_transport_send_close_frame(connection.connection.outputStream, mla_websocket_close_normal, mla_string_const("Server shutting down"));
+            mla_websocket_transport_send_close_frame(connection.connection.outputStream, mla_websocket_close_normal, mla_string_const("Server shutting down"), false);
         }
     }
 
@@ -990,7 +1010,7 @@ mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_webso
 
         mla_http_server_websocket_handler_item_t &handlerItem = mla_array_list_get_unsafe(server.websocketHandlers, i);
 
-        if (handlerItem.checker != nullptr && handlerItem.checker(handlerItem.userdata, path)) {
+        if (handlerItem.checker != nullptr && handlerItem.checker(handlerItem.userdata, path, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX)) {
             mla_array_list_add(result, handlerItem);
         }
     }
@@ -1005,7 +1025,7 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_
 
         if (mla_mutex_lock(connection.lock)) {
 
-            mla_websocket_transport_send_close_frame(connection.connection.outputStream, closeCode, reason);
+            mla_websocket_transport_send_close_frame(connection.connection.outputStream, closeCode, reason, false);
             mla_mutex_unlock(connection.lock);
         }
 
@@ -1040,7 +1060,7 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket
     if (!mla_mutex_lock(connection.lock))
         return false;
 
-    if (mla_websocket_transport_send_text_with_generator(connection.connection.outputStream, userData, message_generator)) {
+    if (mla_websocket_transport_send_text_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
         mla_mutex_unlock(connection.lock);
         return true;
     }
@@ -1064,7 +1084,7 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket
     if (!mla_mutex_lock(connection.lock))
         return false;
 
-    if (mla_websocket_transport_send_text_frame(connection.connection.outputStream, message, is_final)) {
+    if (mla_websocket_transport_send_text_frame(connection.connection.outputStream, message, is_final, false)) {
         mla_mutex_unlock(connection.lock);
         return true;
     }
@@ -1097,7 +1117,7 @@ mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websock
     if (!mla_mutex_lock(connection.lock))
         return false;
 
-    if (mla_websocket_transport_send_binary_with_generator(connection.connection.outputStream, userData, message_generator)) {
+    if (mla_websocket_transport_send_binary_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
         mla_mutex_unlock(connection.lock);
         return true;
     }
@@ -1120,7 +1140,7 @@ mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websock
     if (!mla_mutex_lock(connection.lock))
         return false;
 
-    if (mla_websocket_transport_send_binary_frame(connection.connection.outputStream, message, is_final)) {
+    if (mla_websocket_transport_send_binary_frame(connection.connection.outputStream, message, is_final, false)) {
         mla_mutex_unlock(connection.lock);
         return true;
     }

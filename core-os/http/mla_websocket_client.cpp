@@ -182,7 +182,7 @@ mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_u
 
     mla_stream_output_t &output = client.connection.outputStream;
     // We dont cate about the result of sending the close frame, we are disconnecting anyway
-    mla_websocket_transport_send_close_frame(output, status_code, reason);
+    mla_websocket_transport_send_close_frame(output, status_code, reason, true);
     client = mla_websocket_client_invalid();
     return true;
 }
@@ -197,7 +197,7 @@ mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client
     // Sending the text message
 
     mla_stream_output_t &output = client.connection.outputStream;
-    return mla_websocket_transport_send_text_frame(output, message, is_final);
+    return mla_websocket_transport_send_text_frame(output, message, is_final, true);
 }
 
 mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message,
@@ -207,7 +207,7 @@ mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &clie
 
     mla_stream_output_t &output = client.connection.outputStream;
 
-    return mla_websocket_transport_send_binary_frame(output, message, is_final);
+    return mla_websocket_transport_send_binary_frame(output, message, is_final, true);
 }
 
 mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message(mla_websocket_client_t &client, mla_size_t timeout_ms, mla_websocket_text_message_t &textMessage, mla_websocket_binary_message_t &binaryMessage) {
@@ -219,7 +219,7 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
             return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED;
 
         mla_bool_t is_final = true;
-        mla_websocket_transport_message_receive_type_t result = mla_websocket_transport_receive_message(client.connection, timeout_ms, textMessage.message, binaryMessage.message, is_final);
+        mla_websocket_transport_message_receive_type_t result = mla_websocket_transport_receive_message(client.connection, timeout_ms, textMessage.message, binaryMessage.message, is_final, true);
 
         if (result == MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TEXT) {
             textMessage.is_final = is_final;
