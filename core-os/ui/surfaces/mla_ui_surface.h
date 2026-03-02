@@ -13,6 +13,24 @@
 struct mla_ui_surface_size_t {
     mla_uint32_t width;
     mla_uint32_t height;
+
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+        const mla_ui_surface_size_t* self = static_cast<const mla_ui_surface_size_t*>(obj);
+        mla_serializer_write_uint32(serializer, mla_string_const("width"),  self->width);
+        mla_serializer_write_uint32(serializer, mla_string_const("height"), self->height);
+        return true;
+    }
+
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+        mla_ui_surface_size_t* self = static_cast<mla_ui_surface_size_t*>(obj);
+        if (mla_string_equals_const(property_name, "width")) {
+            mla_deserializer_read_uint32(deserializer, self->width);
+        } else if (mla_string_equals_const(property_name, "height")) {
+            mla_deserializer_read_uint32(deserializer, self->height);
+        } else {
+            return MLA_DESERIALIZER_READ_SKIPPED;
+        }
+    }
 };
 
 struct mla_ui_surface_t {

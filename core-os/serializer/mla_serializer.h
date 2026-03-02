@@ -185,6 +185,27 @@ mla_bool_t mla_serializer_write_list(mla_serializer_t& serializer, const mla_str
 
 }
 
+template <mla_array_list_template>
+mla_bool_t mla_serializer_write_list_fixed_size(mla_serializer_t& serializer, const mla_string_t& name, const T* data, const mla_serialize_definition_write_function_t& write_function, mla_size_t size) {
+
+    if (!serializer.write_property_name(serializer, name))
+        return false;
+
+    if (!serializer.write_start_list(serializer))
+        return false;
+
+    for (size_t i = 0; i < size; ++i) {
+        if (!mla_serializer_write_data_struct(serializer, &data[i], write_function))
+            return false;
+    }
+
+    if (!serializer.write_end_list(serializer))
+        return false;
+
+    return true;
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 /// Meta Definitions Helpers
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,6 +230,11 @@ mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer
 //////////////////////////////////////////////////////////////////////////////////
 
 mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_serialize_definition_read_function_t& read_function);
+
+template <typename T>
+mla_bool_t mla_serializer_read_data_struct(mla_deserializer_t& deserializer, T &value) {
+    return mla_deserializer_read_struct_read_function(deserializer, &value, T::deserialize);
+}
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_list_t<mla_bool_t>& list);
 mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_list_t<mla_uint8_t>& list);
@@ -243,6 +269,51 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_
             T item = TInit::init();
             if (mla_deserializer_read_struct_read_function(deserializer, &item, read_function)) {
                 mla_array_list_add(list, item);
+            } else {
+                // Error reading struct
+                return false;
+            }
+
+        }
+    }
+
+    if (deserializer.current_token.type != MLA_DESERIALIZER_LIST_END) {
+        // Expected LIST_END
+        return false;
+    }
+
+    return true;
+}
+
+template <mla_array_list_template>
+mla_bool_t mla_serializer_read_list_fixed_size(mla_deserializer_t& deserializer, T* data, const mla_serialize_definition_read_function_t& read_function, mla_size_t size) {
+
+    if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
+
+        mla_size_t index = 0;
+
+        while (deserializer.read_next(deserializer)) {
+
+            if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_END) {
+                // We are done
+                return true;
+            }
+
+            if (deserializer.current_token.type != MLA_DESERIALIZER_STRUCT_START) {
+                // Wrong struct ure
+                return false;
+            }
+
+            T item = TInit::init();
+            if (mla_deserializer_read_struct_read_function(deserializer, &item, read_function)) {
+
+                if (index >= size) {
+                    // Too many items in the list
+                    return false;
+                }
+
+                data[index] = item;
+                index++;
             } else {
                 // Error reading struct
                 return false;
@@ -448,6 +519,14 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     }\
     }
 
+#define mla_deserializer_read_list_struct_fixed_size(instance, setter, struct_data)\
+    {\
+    if (mla_serializer_read_list_fixed_size<struct_data>(instance, setter, struct_data::deserialize, sizeof(setter))) {\
+        return MLA_DESERIALIZER_READ_HANDLED;\
+    } else {\
+        return MLA_DESERIALIZER_READ_ERROR;\
+    }\
+    }
 
 #define mla_deserializer_read_struct(instance, setter, struct_data)\
     {\
@@ -581,6 +660,11 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 
 #define mla_serializer_write_list_struct(instance, name, list, struct_data)\
     if (!mla_serializer_write_list<struct_data>(instance, name, list, struct_data::serialize)) {\
+        return false;\
+    }
+
+#define mla_serializer_write_list_struct_fixed_size(instance, name, list, struct_data)\
+    if (!mla_serializer_write_list_fixed_size<struct_data>(instance, name, list, struct_data::serialize, sizeof(list))) {\
         return false;\
     }
 

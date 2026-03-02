@@ -1005,13 +1005,13 @@ struct mla_ui_surface_input_event_char_input_t {
         if (mla_string_equals_const(property_name, "kind")) {
             mla_deserializer_read_enum(mla_ui_surface_input_event_char_input_kind, deserializer, self->kind);
         } else if (mla_string_equals_const(property_name, "character0")) {
-            mla_uint8_t tmp = 0; mla_deserializer_read_uint8(deserializer, tmp); self->character[0] = static_cast<mla_char_t>(tmp);
+            mla_deserializer_read_uint8(deserializer, self->character[0]);
         } else if (mla_string_equals_const(property_name, "character1")) {
-            mla_uint8_t tmp = 0; mla_deserializer_read_uint8(deserializer, tmp); self->character[1] = static_cast<mla_char_t>(tmp);
+            mla_deserializer_read_uint8(deserializer, self->character[1]);
         } else if (mla_string_equals_const(property_name, "character2")) {
-            mla_uint8_t tmp = 0; mla_deserializer_read_uint8(deserializer, tmp); self->character[2] = static_cast<mla_char_t>(tmp);
+            mla_deserializer_read_uint8(deserializer, self->character[2]);
         } else if (mla_string_equals_const(property_name, "character3")) {
-            mla_uint8_t tmp = 0; mla_deserializer_read_uint8(deserializer, tmp); self->character[3] = static_cast<mla_char_t>(tmp);
+            mla_deserializer_read_uint8(deserializer, self->character[3]);
         } else if (mla_string_equals_const(property_name, "pressedControlKeys")) {
             mla_deserializer_read_enum(surface_input_event_spical_control_char_kind, deserializer, self->pressedControlKeys);
         } else {

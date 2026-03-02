@@ -22,6 +22,14 @@ struct mla_stream_input_timeout_wrapper_data_initializer {
     }
 };
 
+mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string) {
+    if (mla_string_is_empty(string)) {
+        return mla_stream_noop_input();
+    }
+
+    return mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(string))), mla_string_length(string));
+}
+
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms) {
 
     mla_int32_t remaining_timeout = timeout_ms;

@@ -272,6 +272,18 @@ export interface InputEvent {
     charInput?: InputEventCharInput;
 }
 
+export interface ClientTextSizeEntry {
+    fontType: FontType;
+    size_per_char: Size[];
+}
+
+export interface ClientMessage {
+    surface_size: Size;
+    inputEvents: InputEvent[];
+    inputStates: InputStates;
+    textSize: ClientTextSizeEntry;
+}
+
 
 export class SurfaceService {
     //static BASE_URL = './';

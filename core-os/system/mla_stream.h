@@ -53,6 +53,10 @@ mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla
 /// Wrapper and Helpers
 ///////////////////////////////////////////////////////////////////
 
+
+// From String not (Owing)
+mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string);
+
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
 
 mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_int32_t timeout_ms);
