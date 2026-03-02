@@ -45,7 +45,7 @@ struct mla_ui_web_remote_surface_client_message_t {
     mla_ui_surface_size_t surface_size;
     mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> inputEvents;
     mla_ui_surface_input_states_t inputStates;
-    mla_ui_web_remote_surface_client_text_size_t textSize;
+    mla_array_list_t<mla_ui_web_remote_surface_client_text_size_t, mla_ui_web_remote_surface_client_text_size_initializer> textSize;
 
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
@@ -53,7 +53,7 @@ struct mla_ui_web_remote_surface_client_message_t {
         mla_serializer_write_struct(serializer, mla_string_const("surface_size"), self->surface_size, mla_ui_surface_draw_size_t);
         mla_serializer_write_list_struct(serializer, mla_string_const("inputEvents"),   self->inputEvents,   mla_ui_surface_input_event_t);
         mla_serializer_write_struct(serializer, mla_string_const("inputStates"),  self->inputStates,  mla_ui_surface_input_states_t);
-        mla_serializer_write_struct(serializer, mla_string_const("textSize"),     self->textSize,     mla_ui_web_remote_surface_client_text_size_t);
+        mla_serializer_write_list_struct(serializer, mla_string_const("textSize"),     self->textSize,     mla_ui_web_remote_surface_client_text_size_t);
         return true;
     }
 
@@ -66,7 +66,7 @@ struct mla_ui_web_remote_surface_client_message_t {
         } else if (mla_string_equals_const(property_name, "inputStates")) {
             mla_deserializer_read_struct(deserializer, self->inputStates, mla_ui_surface_input_states_t);
         } else if (mla_string_equals_const(property_name, "textSize")) {
-            mla_deserializer_read_struct(deserializer, self->textSize, mla_ui_web_remote_surface_client_text_size_t);
+            mla_deserializer_read_list_struct(deserializer, self->textSize, mla_ui_web_remote_surface_client_text_size_t);
         } else {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
@@ -79,7 +79,7 @@ mla_ui_web_remote_surface_client_message_t mla_ui_web_remote_surface_client_mess
         {0, 0},
         mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>(),
         mla_ui_surface_input_states_empty(),
-        mla_ui_web_remote_surface_client_text_size_initializer::init()
+        mla_array_list_empty<mla_ui_web_remote_surface_client_text_size_t, mla_ui_web_remote_surface_client_text_size_initializer>()
     };
 }
 
@@ -270,20 +270,24 @@ mla_ui_web_remote_surface_message_result_t __mla_ui_web_remote_surface_handle_cl
     data_client->lastInputStates = clientMessage.inputStates;
     data_client->lastSurfaceSize = clientMessage.surface_size;
 
-    // Update the text size cache with the new text size from the client message if it's not already in the cache
-    bool foundFontTypeInCache = false;
-    for (mla_size_t i = 0; i < mla_array_list_size(data_client->textSizeCache); i++) {
-        const mla_ui_web_remote_surface_client_text_size_t& cachedSize = mla_array_list_get_unsafe(data_client->textSizeCache, i);
-        if (mla_ui_surface_font_type_equals(cachedSize.fontType, clientMessage.textSize.fontType)) {
-            foundFontTypeInCache = true;
-            break;
+
+    for (mla_size_t j = 0; j < mla_array_list_size(clientMessage.textSize); j++) {
+        const mla_ui_web_remote_surface_client_text_size_t& textSize = mla_array_list_get_unsafe(clientMessage.textSize, j);
+
+        // Update the text size cache with the new text size from the client message if it's not already in the cache
+        bool foundFontTypeInCache = false;
+        for (mla_size_t i = 0; i < mla_array_list_size(data_client->textSizeCache); i++) {
+            const mla_ui_web_remote_surface_client_text_size_t& cachedSize = mla_array_list_get_unsafe(data_client->textSizeCache, i);
+            if (mla_ui_surface_font_type_equals(cachedSize.fontType, textSize.fontType)) {
+                foundFontTypeInCache = true;
+                break;
+            }
+        }
+
+        if (!foundFontTypeInCache) {
+            mla_array_list_add(data_client->textSizeCache, textSize);
         }
     }
-
-    if (!foundFontTypeInCache) {
-        mla_array_list_add(data_client->textSizeCache, clientMessage.textSize);
-    }
-
 
     return result;
 }

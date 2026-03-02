@@ -233,6 +233,9 @@ mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deseri
 
 template <typename T>
 mla_bool_t mla_serializer_read_data_struct(mla_deserializer_t& deserializer, T &value) {
+    if (!deserializer.read_next(deserializer)) {
+        return false;
+    }
     return mla_deserializer_read_struct_read_function(deserializer, &value, T::deserialize);
 }
 
@@ -251,6 +254,10 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_
 
 template <mla_array_list_template>
 mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_list_t<T, TInit>& list, const mla_serialize_definition_read_function_t& read_function) {
+
+    if (deserializer.current_token.type == MLA_DESERIALIZER_NULL) {
+        return true;
+    }
 
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 
@@ -287,6 +294,10 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_
 
 template <mla_array_list_template>
 mla_bool_t mla_serializer_read_list_fixed_size(mla_deserializer_t& deserializer, T* data, const mla_serialize_definition_read_function_t& read_function, mla_size_t size) {
+
+    if (deserializer.current_token.type == MLA_DESERIALIZER_NULL) {
+        return true;
+    }
 
     if (deserializer.current_token.type == MLA_DESERIALIZER_LIST_START) {
 

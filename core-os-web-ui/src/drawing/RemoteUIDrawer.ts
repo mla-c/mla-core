@@ -1,10 +1,14 @@
 import {
     ClientMessage,
+    ClientTextSizeEntry,
     Color,
     DrawCommand,
     DrawCommandKind,
     DrawCommands,
+    FontType,
+    InputStates,
     PathCommandKind,
+    Size,
     SurfaceService
 } from "../api/SurfaceService";
 
@@ -30,10 +34,97 @@ export class RemoteUIDrawer {
     private _serverFpsWindowStart: number = 0;
     private _serverFpsCurrentValue: number = 0;
 
+    // Input state tracking
+    private _cursorX: number = 0;
+    private _cursorY: number = 0;
+    private _leftMouseDown: boolean = false;
+    private _rightMouseDown: boolean = false;
+    private _middleMouseDown: boolean = false;
+    private _shiftKeyDown: boolean = false;
+    private _ctrlKeyDown: boolean = false;
+    private _altKeyDown: boolean = false;
+    private _metaKeyDown: boolean = false;
+    private _keyCodeDown: number = 0;
+
+    // Tracks font keys already sent to the server since last connect
+    private _sentFontKeys: Set<string> = new Set();
+
+    // Bound event handler references (needed for removeEventListener)
+    private _onMouseMove: (e: MouseEvent) => void;
+    private _onMouseDown: (e: MouseEvent) => void;
+    private _onMouseUp: (e: MouseEvent) => void;
+    private _onMouseLeave: () => void;
+    private _onKeyDown: (e: KeyboardEvent) => void;
+    private _onKeyUp: (e: KeyboardEvent) => void;
+
     constructor(surfaceName: string, ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
         this.surfaceName = surfaceName;
         this.ctx = ctx;
         this.canvas = canvas;
+        this._onMouseMove = (e: MouseEvent) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this._cursorX = e.clientX - rect.left;
+            this._cursorY = e.clientY - rect.top;
+            this._shiftKeyDown = e.shiftKey;
+            this._ctrlKeyDown = e.ctrlKey;
+            this._altKeyDown = e.altKey;
+            this._metaKeyDown = e.metaKey;
+        };
+        this._onMouseDown = (e: MouseEvent) => {
+            if (e.button === 0) this._leftMouseDown = true;
+            if (e.button === 1) this._middleMouseDown = true;
+            if (e.button === 2) this._rightMouseDown = true;
+            this._shiftKeyDown = e.shiftKey;
+            this._ctrlKeyDown = e.ctrlKey;
+            this._altKeyDown = e.altKey;
+            this._metaKeyDown = e.metaKey;
+        };
+        this._onMouseUp = (e: MouseEvent) => {
+            if (e.button === 0) this._leftMouseDown = false;
+            if (e.button === 1) this._middleMouseDown = false;
+            if (e.button === 2) this._rightMouseDown = false;
+            this._shiftKeyDown = e.shiftKey;
+            this._ctrlKeyDown = e.ctrlKey;
+            this._altKeyDown = e.altKey;
+            this._metaKeyDown = e.metaKey;
+        };
+        this._onMouseLeave = () => {
+            this._leftMouseDown = false;
+            this._rightMouseDown = false;
+            this._middleMouseDown = false;
+        };
+        this._onKeyDown = (e: KeyboardEvent) => {
+            this._shiftKeyDown = e.shiftKey;
+            this._ctrlKeyDown = e.ctrlKey;
+            this._altKeyDown = e.altKey;
+            this._metaKeyDown = e.metaKey;
+            this._keyCodeDown = e.keyCode;
+        };
+        this._onKeyUp = (e: KeyboardEvent) => {
+            this._shiftKeyDown = e.shiftKey;
+            this._ctrlKeyDown = e.ctrlKey;
+            this._altKeyDown = e.altKey;
+            this._metaKeyDown = e.metaKey;
+            this._keyCodeDown = 0;
+        };
+    }
+
+    private registerInputListeners(): void {
+        this.canvas.addEventListener('mousemove', this._onMouseMove);
+        this.canvas.addEventListener('mousedown', this._onMouseDown);
+        this.canvas.addEventListener('mouseup', this._onMouseUp);
+        this.canvas.addEventListener('mouseleave', this._onMouseLeave);
+        window.addEventListener('keydown', this._onKeyDown);
+        window.addEventListener('keyup', this._onKeyUp);
+    }
+
+    private unregisterInputListeners(): void {
+        this.canvas.removeEventListener('mousemove', this._onMouseMove);
+        this.canvas.removeEventListener('mousedown', this._onMouseDown);
+        this.canvas.removeEventListener('mouseup', this._onMouseUp);
+        this.canvas.removeEventListener('mouseleave', this._onMouseLeave);
+        window.removeEventListener('keydown', this._onKeyDown);
+        window.removeEventListener('keyup', this._onKeyUp);
     }
 
     public forceRedraw() {
@@ -45,13 +136,15 @@ export class RemoteUIDrawer {
             console.warn('WebSocket already connected');
             return;
         }
+        this._sentFontKeys.clear();
+        this.registerInputListeners();
+
         this.webSocket = SurfaceService.createWebSocket(this.surfaceName);
         this.webSocket.onopen = () => {
             this.isConnectedFlag = true;
             console.log('WebSocket connected');
         };
         this.webSocket.onmessage = (event) => {
-            // Assuming the server sends JSON-encoded draw commands
             const data = JSON.parse(event.data) as DrawCommands;
             this.lastServerFrameTime = new Date().getTime();
             this.lastServerFrameData = data.drawCommands;
@@ -62,6 +155,7 @@ export class RemoteUIDrawer {
             this.isConnectedFlag = false;
             console.log('WebSocket disconnected');
             this.webSocket = null;
+            this.unregisterInputListeners();
         };
         this.webSocket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -73,6 +167,7 @@ export class RemoteUIDrawer {
             this.isConnectedFlag = false;
             this.webSocket.close();
             this.webSocket = null;
+            this.unregisterInputListeners();
         }
     }
 
@@ -397,15 +492,109 @@ export class RemoteUIDrawer {
             this.nextClientStateMessage = {}
         }
 
-        this.nextClientStateMessage.inputStates = buildInputStates();
-        this.nextClientStateMessage.textSize = buildNeedTextSize()
+        this.nextClientStateMessage.inputStates = this.buildInputStates();
+        this.nextClientStateMessage.textSize = this.buildNeedTextSize();
         this.nextClientStateMessage.surface_size = { width, height };
         const message = JSON.stringify(this.nextClientStateMessage);
         this.webSocket.send(message);
 
         // Clear the message after sending to avoid resending the same state repeatedly
         this.nextClientStateMessage = {};
+    }
 
+    /**
+     * Builds the current input states from tracked mouse/keyboard state.
+     */
+    private buildInputStates(): InputStates {
+        return {
+            cursorPosition: { x: this._cursorX, y: this._cursorY },
+            leftMouseButtonDown: this._leftMouseDown,
+            rightMouseButtonDown: this._rightMouseDown,
+            middleMouseButtonDown: this._middleMouseDown,
+            shiftKeyDown: this._shiftKeyDown,
+            ctrlKeyDown: this._ctrlKeyDown,
+            altKeyDown: this._altKeyDown,
+            metaKeyDown: this._metaKeyDown,
+            keyCodeDown: this._keyCodeDown,
+        };
+    }
+
+    /**
+     * Measures text sizes for all unique fonts found across ALL text commands in
+     * the current frame. Fonts that have already been sent to the server since
+     * the last connect are skipped. Returns null when there is nothing new to send.
+     */
+    private buildNeedTextSize(): ClientTextSizeEntry[] | null {
+        if (!this.lastServerFrameData || this.lastServerFrameData.length === 0) {
+            return null;
+        }
+
+        // Collect all unique fonts from every text command in the current frame
+        const fontMap = new Map<string, FontType>();
+        for (const cmd of this.lastServerFrameData) {
+            if (cmd.kind === DrawCommandKind.Text && cmd.text && cmd.text.font_type) {
+                const ft = cmd.text.font_type;
+                const key = `${ft.family}|${ft.size}|${ft.bold ? 1 : 0}|${ft.italic ? 1 : 0}`;
+                if (!fontMap.has(key)) {
+                    fontMap.set(key, ft);
+                }
+            }
+        }
+
+        if (fontMap.size === 0) {
+            return null;
+        }
+
+        // Filter out fonts already reported to the server since the last connect
+        const newFonts: Array<{ key: string; fontType: FontType }> = [];
+        for (const [key, fontType] of fontMap) {
+            if (!this._sentFontKeys.has(key)) {
+                newFonts.push({ key, fontType });
+            }
+        }
+
+        if (newFonts.length === 0) {
+            return null;
+        }
+
+        const ctx = this.ctx;
+        const ASCII_START = 32;
+        const ASCII_END = 126;
+        const entries: ClientTextSizeEntry[] = [];
+
+        for (const { key, fontType } of newFonts) {
+            ctx.save();
+            ctx.font = `${fontType.italic ? 'italic ' : ''}${fontType.bold ? 'bold ' : ''}${fontType.size}px ${fontType.family}`;
+
+            const fallbackMetrics = ctx.measureText('M');
+            const fallbackSize: Size = {
+                width: fallbackMetrics.width,
+                height: fontType.size,
+            };
+
+            const size_per_char: Size[] = [];
+            for (let code = ASCII_START; code <= ASCII_END; code++) {
+                const char = String.fromCharCode(code);
+                const metrics = ctx.measureText(char);
+                const charHeight =
+                    metrics.actualBoundingBoxAscent !== undefined && metrics.actualBoundingBoxDescent !== undefined
+                        ? metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+                        : fontType.size;
+                size_per_char.push({ width: metrics.width, height: charHeight });
+            }
+
+            // Fallback entry for characters outside ASCII 32–126
+            size_per_char.push(fallbackSize);
+
+            ctx.restore();
+
+            // Mark this font as sent so we don't measure and re-send it again
+            this._sentFontKeys.add(key);
+
+            entries.push({ fontType, size_per_char });
+        }
+
+        return entries;
     }
 
     // -------------------------------------------------------------------------
@@ -437,7 +626,6 @@ export class RemoteUIDrawer {
             gradient = ctx.createLinearGradient(g.x1, g.y1, g.x2, g.y2);
         } else if (gradCmd.kind === DrawCommandKind.RadialGradient && gradCmd.radialGradient) {
             const g = gradCmd.radialGradient;
-            // focal point (fx,fy) → inner circle with radius 0; outer circle at (cx,cy) with radius r
             gradient = ctx.createRadialGradient(g.fx, g.fy, 0, g.cx, g.cy, g.r);
         }
 
@@ -637,3 +825,4 @@ export class RemoteUIDrawer {
     private _currentPathX: number = 0;
     private _currentPathY: number = 0;
 }
+

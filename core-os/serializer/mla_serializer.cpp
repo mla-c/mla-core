@@ -4,6 +4,9 @@
 
 #include "mla_serializer.h"
 
+#include "../log/mla_logging.h"
+#include "../system/mla_string_concat.h"
+
 mla_serializer_t mla_serializer_invalid() {
     return {
         mla_stream_noop_output(),
@@ -343,6 +346,7 @@ mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t &deseri
             mla_deserializer_read_result_t result = read_function(deserializer, data, property_name);
 
             if (result == MLA_DESERIALIZER_READ_ERROR) {
+                mla_warning(mla_string_concat("Error deserializing property ", property_name));
                 return false;
             } else if (result == MLA_DESERIALIZER_READ_SKIPPED) {
                 mla_deserializer_skip_property_value(deserializer);

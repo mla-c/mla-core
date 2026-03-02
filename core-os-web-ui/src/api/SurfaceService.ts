@@ -283,7 +283,7 @@ export interface ClientMessage {
     surface_size?: Size;
     inputEvents?: InputEvent[];
     inputStates?: InputStates;
-    textSize?: ClientTextSizeEntry;
+    textSize?: ClientTextSizeEntry[];
 }
 
 
