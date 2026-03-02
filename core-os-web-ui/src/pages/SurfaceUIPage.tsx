@@ -3,6 +3,7 @@ import {Surface} from "../api/SurfaceService";
 import {useEffect, useRef} from "preact/hooks";
 import {LoadingDrawer} from "../drawing/LoadingDrawer";
 import {RemoteUIDrawer} from "../drawing/RemoteUIDrawer";
+import {Utils} from "../utils/Utils";
 
 type SurfaceUIPageProps = {
     surface: Surface
@@ -25,22 +26,38 @@ export default function SurfaceUIPage({surface}: SurfaceUIPageProps) {
 
         let animationFrameId: number;
 
+        const remoteUIDrawer = new RemoteUIDrawer(surface.surfaceName, ctx, canvas);
+
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * dpr;
-            canvas.height = canvas.offsetHeight * dpr;
-            ctx.scale(dpr, dpr);
+
+            // Round the DPI-scaled size to integers so comparisons with
+            // canvas.width / canvas.height (which are integers) are consistent.
+            const newWidth = Math.round(canvas.offsetWidth * dpr);
+            const newHeight = Math.round(canvas.offsetHeight * dpr);
+            if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                // Reset any existing transform then apply the DPR scale once.
+                // Using setTransform avoids accumulating scales when resize is
+                // called repeatedly.
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                remoteUIDrawer.forceRedraw();
+            }
         };
 
-        resize();
-        window.addEventListener('resize', resize);
+        const resizeDebounced = Utils.debounce(resize, 100);
 
-        const remoteUIDrawer = new RemoteUIDrawer(surface.surfaceName, ctx, canvas);
+        // Keep the resize listener so the canvas updates immediately on window resize
+        window.addEventListener('resize', resizeDebounced);
+
         remoteUIDrawer.connect();
+
 
         const draw = () => {
 
             if (remoteUIDrawer.isConnected()) {
+                resize();
                 remoteUIDrawer.drawFrame();
             } else {
                 LoadingDrawer.drawLoadingIndicator(ctx, canvas, 'Loading');
@@ -49,7 +66,8 @@ export default function SurfaceUIPage({surface}: SurfaceUIPageProps) {
             animationFrameId = requestAnimationFrame(draw);
         };
 
-        draw();
+        LoadingDrawer.drawLoadingIndicator(ctx, canvas, 'Loading');
+        animationFrameId = requestAnimationFrame(draw);
 
         return () => {
             cancelAnimationFrame(animationFrameId);

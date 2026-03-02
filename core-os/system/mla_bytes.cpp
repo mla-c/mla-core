@@ -14,6 +14,10 @@ mla_bytes_t mla_bytes_empty() {
 
 mla_bytes_t mla_bytes(mla_size_t p_Length) {
 
+    if (p_Length == 0) {
+        return mla_bytes_empty();
+    }
+
     mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_malloc(p_Length));
 
     if (buffer == nullptr) {
