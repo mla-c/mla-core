@@ -1,4 +1,5 @@
 import {
+    ClientMessage,
     Color,
     DrawCommand,
     DrawCommandKind,
@@ -17,6 +18,7 @@ export class RemoteUIDrawer {
     private lastServerFrameTime: number = 0;
     private lastServerFrameData: DrawCommand[] = null;
     private needRedraw: boolean = false;
+    private nextClientStateMessage: ClientMessage
 
     // FPS counter state (render loop)
     private _fpsFrameCount: number = 0;
@@ -78,67 +80,12 @@ export class RemoteUIDrawer {
         return this.webSocket !== null && this.isConnectedFlag;
     }
 
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-
-    /** Convert an MLA Color (0-255 channels) to a CSS rgba() string. */
-    private colorToCss(color: Color): string {
-        return `rgba(${color.r},${color.g},${color.b},${color.a / 255})`;
-    }
-
-    /**
-     * Build a CanvasGradient from consecutive LinearGradient / RadialGradient +
-     * Stop commands that appear before the current index.
-     *
-     * Returns null when no gradient is pending.
-     */
-    private buildPendingGradient(
-        commands: DrawCommand[],
-        gradientCmdIndex: number
-    ): CanvasGradient | null {
-        const gradCmd = commands[gradientCmdIndex];
-        const ctx = this.ctx;
-
-        let gradient: CanvasGradient | null = null;
-
-        if (gradCmd.kind === DrawCommandKind.LinearGradient && gradCmd.linearGradient) {
-            const g = gradCmd.linearGradient;
-            gradient = ctx.createLinearGradient(g.x1, g.y1, g.x2, g.y2);
-        } else if (gradCmd.kind === DrawCommandKind.RadialGradient && gradCmd.radialGradient) {
-            const g = gradCmd.radialGradient;
-            // focal point (fx,fy) → inner circle with radius 0; outer circle at (cx,cy) with radius r
-            gradient = ctx.createRadialGradient(g.fx, g.fy, 0, g.cx, g.cy, g.r);
-        }
-
-        if (!gradient) return null;
-
-        // Collect the Stop commands that immediately follow
-        for (let k = gradientCmdIndex + 1; k < commands.length; k++) {
-            const next = commands[k];
-            if (next.kind === DrawCommandKind.Stop && next.stop) {
-                const s = next.stop;
-                const alpha = Math.max(0, Math.min(1, s.stop_opacity));
-                gradient.addColorStop(
-                    s.offset,
-                    `rgba(${s.stop_color.r},${s.stop_color.g},${s.stop_color.b},${alpha})`
-                );
-            } else {
-                break;
-            }
-        }
-
-        return gradient;
-    }
-
-    // -------------------------------------------------------------------------
-    // Public draw entry-point
-    // -------------------------------------------------------------------------
-
     public drawFrame() {
 
         const w = this.canvas.offsetWidth;
         const h = this.canvas.offsetHeight;
+
+        this.sendClientState(w, h);
 
         if (!this.needRedraw) {
             // Still draw the FPS overlay even when no new frame data, to keep it updated
@@ -439,6 +386,85 @@ export class RemoteUIDrawer {
         this.drawFpsOverlay(w, h);
         this.needRedraw = false;
     }
+
+    private sendClientState(width: number, height: number) {
+
+        if (!this.isConnected()) {
+            return;
+        }
+
+        if (this.nextClientStateMessage == null) {
+            this.nextClientStateMessage = {}
+        }
+
+        this.nextClientStateMessage.inputStates = buildInputStates();
+        this.nextClientStateMessage.textSize = buildNeedTextSize()
+        this.nextClientStateMessage.surface_size = { width, height };
+        const message = JSON.stringify(this.nextClientStateMessage);
+        this.webSocket.send(message);
+
+        // Clear the message after sending to avoid resending the same state repeatedly
+        this.nextClientStateMessage = {};
+
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /** Convert an MLA Color (0-255 channels) to a CSS rgba() string. */
+    private colorToCss(color: Color): string {
+        return `rgba(${color.r},${color.g},${color.b},${color.a / 255})`;
+    }
+
+    /**
+     * Build a CanvasGradient from consecutive LinearGradient / RadialGradient +
+     * Stop commands that appear before the current index.
+     *
+     * Returns null when no gradient is pending.
+     */
+    private buildPendingGradient(
+        commands: DrawCommand[],
+        gradientCmdIndex: number
+    ): CanvasGradient | null {
+        const gradCmd = commands[gradientCmdIndex];
+        const ctx = this.ctx;
+
+        let gradient: CanvasGradient | null = null;
+
+        if (gradCmd.kind === DrawCommandKind.LinearGradient && gradCmd.linearGradient) {
+            const g = gradCmd.linearGradient;
+            gradient = ctx.createLinearGradient(g.x1, g.y1, g.x2, g.y2);
+        } else if (gradCmd.kind === DrawCommandKind.RadialGradient && gradCmd.radialGradient) {
+            const g = gradCmd.radialGradient;
+            // focal point (fx,fy) → inner circle with radius 0; outer circle at (cx,cy) with radius r
+            gradient = ctx.createRadialGradient(g.fx, g.fy, 0, g.cx, g.cy, g.r);
+        }
+
+        if (!gradient) return null;
+
+        // Collect the Stop commands that immediately follow
+        for (let k = gradientCmdIndex + 1; k < commands.length; k++) {
+            const next = commands[k];
+            if (next.kind === DrawCommandKind.Stop && next.stop) {
+                const s = next.stop;
+                const alpha = Math.max(0, Math.min(1, s.stop_opacity));
+                gradient.addColorStop(
+                    s.offset,
+                    `rgba(${s.stop_color.r},${s.stop_color.g},${s.stop_color.b},${alpha})`
+                );
+            } else {
+                break;
+            }
+        }
+
+        return gradient;
+    }
+
+    // -------------------------------------------------------------------------
+    // Public draw entry-point
+    // -------------------------------------------------------------------------
+
 
     // -------------------------------------------------------------------------
     // FPS overlay

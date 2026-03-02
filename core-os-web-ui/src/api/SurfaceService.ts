@@ -274,14 +274,16 @@ export interface InputEvent {
 
 export interface ClientTextSizeEntry {
     fontType: FontType;
+    // each element contains the size of the corresponding UTF-8 character we only handle the printable ASCII characters for now, so this will be the size of each character in the input text. We start the array at index 32 (space character) and end at index 126 (~ character).
+    // Characters outside this range will use the 128th element as a fallback size.
     size_per_char: Size[];
 }
 
 export interface ClientMessage {
-    surface_size: Size;
-    inputEvents: InputEvent[];
-    inputStates: InputStates;
-    textSize: ClientTextSizeEntry;
+    surface_size?: Size;
+    inputEvents?: InputEvent[];
+    inputStates?: InputStates;
+    textSize?: ClientTextSizeEntry;
 }
 
 
