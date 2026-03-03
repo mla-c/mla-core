@@ -20,6 +20,9 @@ struct mla_user_data_t {
 
     // Default Constructor
     mla_user_data_t(mla_char_t name[mla_user_data_name_size], mla_buffer_reference_t dataOwner, mla_dynamic_data_t data);
+
+    // Assignment operator
+    mla_user_data_t& operator=(const mla_user_data_t& p_Other);
 };
 
 

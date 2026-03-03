@@ -194,7 +194,7 @@ mla_bool_t mla_serializer_write_list_fixed_size(mla_serializer_t& serializer, co
     if (!serializer.write_start_list(serializer))
         return false;
 
-    for (size_t i = 0; i < size; ++i) {
+    for (mla_size_t i = 0; i < size; ++i) {
         if (!mla_serializer_write_data_struct(serializer, &data[i], write_function))
             return false;
     }

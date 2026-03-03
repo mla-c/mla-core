@@ -23,11 +23,13 @@ struct mla_user_data_list_initializer {
 };
 
 mla_user_data_t mla_user_data_empty() {
-    return {
-        mla_user_data_name_empty,
+    mla_user_data_t data = {
+        {},
         mla_buffer_reference_noOwner(),
         mla_dynamic_data_empty()
     };
+
+    return data;
 }
 
 mla_bool_t __mla_user_data_name_equal(const mla_char_t a[mla_user_data_name_size],
@@ -660,10 +662,27 @@ mla_user_data_t::mla_user_data_t(const mla_user_data_t &p_Other): dataOwner(p_Ot
 
 }
 
+mla_user_data_t& mla_user_data_t::operator=(const mla_user_data_t& p_Other) {
+
+    if (this != &p_Other) {
+
+        mla_memcpy(this->name, p_Other.name, mla_user_data_name_size);
+        this->dataOwner = p_Other.dataOwner;
+        this->data = p_Other.data;
+    }
+    return *this;
+
+}
+
 mla_user_data_t::mla_user_data_t(char name[8], mla_buffer_reference_t dataOwner, mla_dynamic_data_t data):
     dataOwner(dataOwner),
     data(data) {
-    mla_memcpy(this->name, name, mla_user_data_name_size);
+
+    if (name == nullptr) {
+        mla_memcpy(this->name, mla_user_data_name_empty, mla_user_data_name_size);
+    } else {
+        mla_memcpy(this->name, name, mla_user_data_name_size);
+    }
 
 }
 
