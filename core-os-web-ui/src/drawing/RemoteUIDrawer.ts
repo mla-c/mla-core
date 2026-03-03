@@ -223,8 +223,8 @@ export class RemoteUIDrawer {
 
     public drawFrame() {
 
-        const w = this.canvas.width;
-        const h = this.canvas.height;
+        const w = this.canvas.offsetWidth;
+        const h = this.canvas.offsetHeight;
 
         if (this._inputStateDirty || this._hasMissingFontMetrics) {
 
@@ -665,25 +665,11 @@ export class RemoteUIDrawer {
     // Private helpers
     // -------------------------------------------------------------------------
 
-    /**
-     * Maps a viewport-space mouse position (clientX / clientY) into the canvas's
-     * own coordinate space. This correctly handles:
-     *  - CSS transforms on the canvas or any ancestor (getBoundingClientRect
-     *    already accounts for all of these)
-     *  - A difference between the canvas's CSS display size and its internal
-     *    pixel resolution (e.g. when width/height attributes differ from the
-     *    CSS width/height, or when a devicePixelRatio scaling is applied)
-     */
     private clientToCanvasCoords(clientX: number, clientY: number): { x: number; y: number } {
         const rect = this.canvas.getBoundingClientRect();
-        // rect.width / rect.height is the CSS display size (already includes all
-        // ancestor transforms).  canvas.width / canvas.height is the actual pixel
-        // resolution of the drawing buffer.
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
         return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY,
+            x: clientX - rect.left,
+            y: clientY - rect.top,
         };
     }
 

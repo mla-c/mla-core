@@ -38,6 +38,8 @@ export default function SurfaceUIPage({surface}: SurfaceUIPageProps) {
             if (canvas.width !== newWidth || canvas.height !== newHeight) {
                 canvas.width = newWidth;
                 canvas.height = newHeight;
+                ctx.reset();
+                ctx.scale(dpr, dpr);
                 remoteUIDrawer.forceRedraw();
             }
         };
