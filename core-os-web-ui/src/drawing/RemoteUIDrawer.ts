@@ -6,6 +6,11 @@ import {
     DrawCommandKind,
     DrawCommands,
     FontType,
+    InputEvent,
+    InputEventCharInputKind,
+    InputEventClickButton,
+    InputEventControlCharKind,
+    InputEventKind,
     InputStates,
     PathCommandKind,
     Size,
@@ -46,6 +51,9 @@ export class RemoteUIDrawer {
     private _metaKeyDown: boolean = false;
     private _keyCodeDown: number = 0;
     private _inputStateDirty: boolean = false;
+
+    // Queue of discrete input events (clicks, key presses) to send with the next client state
+    private _pendingInputEvents: InputEvent[] = [];
 
     // Tracks font keys already sent to the server since last connect
     private _sentFontKeys: Set<string> = new Set();
@@ -120,6 +128,23 @@ export class RemoteUIDrawer {
                 this._metaKeyDown = e.metaKey;
                 this._inputStateDirty = true;
             }
+
+            // Enqueue a click event for the released button
+            let clickButton = InputEventClickButton.None;
+            if (e.button === 0) clickButton = InputEventClickButton.Left;
+            else if (e.button === 2) clickButton = InputEventClickButton.Right;
+            else if (e.button === 1) clickButton = InputEventClickButton.Middle;
+
+            if (clickButton !== InputEventClickButton.None) {
+                this._pendingInputEvents.push({
+                    kind: InputEventKind.Click,
+                    click: {
+                        position: { x, y },
+                        button: clickButton,
+                    },
+                });
+                this._inputStateDirty = true;
+            }
         };
         this._onMouseLeave = () => {
             if (this._leftMouseDown || this._rightMouseDown || this._middleMouseDown) {
@@ -139,6 +164,59 @@ export class RemoteUIDrawer {
                 this._metaKeyDown = e.metaKey;
                 this._keyCodeDown = e.keyCode;
                 this._inputStateDirty = true;
+            }
+
+            // Build pressed control-key bitmask (mirrors the C OR logic)
+            let pressedControlKeys: number = InputEventControlCharKind.None;
+            if (e.shiftKey) pressedControlKeys |= InputEventControlCharKind.Shift;
+            if (e.ctrlKey)  pressedControlKeys |= InputEventControlCharKind.Ctrl;
+            if (e.altKey)   pressedControlKeys |= InputEventControlCharKind.Alt;
+
+            // Map special keys to their InputEventCharInputKind equivalents
+            const specialKeyMap: { [key: string]: InputEventCharInputKind } = {
+                'Enter':      InputEventCharInputKind.Enter,
+                'Backspace':  InputEventCharInputKind.Backspace,
+                'Delete':     InputEventCharInputKind.Delete,
+                'Tab':        InputEventCharInputKind.Tab,
+                'Escape':     InputEventCharInputKind.Escape,
+                'ArrowUp':    InputEventCharInputKind.ArrowUp,
+                'ArrowDown':  InputEventCharInputKind.ArrowDown,
+                'ArrowLeft':  InputEventCharInputKind.ArrowLeft,
+                'ArrowRight': InputEventCharInputKind.ArrowRight,
+            };
+
+            const specialKind = specialKeyMap[e.key];
+            if (specialKind !== undefined) {
+                // Special key — enqueue with empty character bytes
+                this._pendingInputEvents.push({
+                    kind: InputEventKind.Char,
+                    charInput: {
+                        kind: specialKind,
+                        character0: 0,
+                        character1: 0,
+                        character2: 0,
+                        character3: 0,
+                        pressedControlKeys,
+                    },
+                });
+                this._inputStateDirty = true;
+            } else if (e.key.length === 1) {
+                // Printable character — encode as UTF-8 bytes (up to 4)
+                const bytes = RemoteUIDrawer.encodeUtf8Bytes(e.key);
+                if (bytes !== null) {
+                    this._pendingInputEvents.push({
+                        kind: InputEventKind.Char,
+                        charInput: {
+                            kind: InputEventCharInputKind.CharInput,
+                            character0: bytes[0] ?? 0,
+                            character1: bytes[1] ?? 0,
+                            character2: bytes[2] ?? 0,
+                            character3: bytes[3] ?? 0,
+                            pressedControlKeys,
+                        },
+                    });
+                    this._inputStateDirty = true;
+                }
             }
         };
         this._onKeyUp = (e: KeyboardEvent) => {
@@ -171,6 +249,7 @@ export class RemoteUIDrawer {
         this.canvas.removeEventListener('mouseleave', this._onMouseLeave);
         window.removeEventListener('keydown', this._onKeyDown);
         window.removeEventListener('keyup', this._onKeyUp);
+        this._pendingInputEvents = [];
     }
 
     public forceRedraw() {
@@ -558,6 +637,13 @@ export class RemoteUIDrawer {
         this.nextClientStateMessage.inputStates = this.buildInputStates();
         this.nextClientStateMessage.textSize = this.buildNeedTextSize();
         this.nextClientStateMessage.surface_size = { width, height };
+
+        // Attach any queued discrete input events and flush the queue
+        if (this._pendingInputEvents.length > 0) {
+            this.nextClientStateMessage.inputEvents = this._pendingInputEvents.slice();
+            this._pendingInputEvents = [];
+        }
+
         const message = JSON.stringify(this.nextClientStateMessage);
         this.webSocket.send(message);
 
@@ -671,6 +757,16 @@ export class RemoteUIDrawer {
             x: clientX - rect.left,
             y: clientY - rect.top,
         };
+    }
+
+    /**
+     * Encodes a single character into up to 4 UTF-8 bytes.
+     * Returns a number[] of length 1–4, or null if encoding failed or exceeded 4 bytes.
+     */
+    private static encodeUtf8Bytes(char: string): number[] | null {
+        const encoded = new TextEncoder().encode(char);
+        if (encoded.length === 0 || encoded.length > 4) return null;
+        return Array.from(encoded);
     }
 
     /** Convert an MLA Color (0-255 channels) to a CSS rgba() string. */

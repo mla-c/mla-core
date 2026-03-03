@@ -50,7 +50,7 @@ struct mla_ui_web_remote_surface_client_message_t {
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
         const auto* self = static_cast<const mla_ui_web_remote_surface_client_message_t*>(obj);
-        mla_serializer_write_struct(serializer, mla_string_const("surface_size"), self->surface_size, mla_ui_surface_draw_size_t);
+        mla_serializer_write_struct(serializer, mla_string_const("surface_size"), self->surface_size, mla_ui_surface_size_t);
         mla_serializer_write_list_struct(serializer, mla_string_const("inputEvents"),   self->inputEvents,   mla_ui_surface_input_event_t);
         mla_serializer_write_struct(serializer, mla_string_const("inputStates"),  self->inputStates,  mla_ui_surface_input_states_t);
         mla_serializer_write_list_struct(serializer, mla_string_const("textSize"),     self->textSize,     mla_ui_web_remote_surface_client_text_size_t);
@@ -60,7 +60,7 @@ struct mla_ui_web_remote_surface_client_message_t {
     static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
         auto* self = static_cast<mla_ui_web_remote_surface_client_message_t*>(obj);
         if (mla_string_equals_const(property_name, "surface_size")) {
-            mla_deserializer_read_struct(deserializer, self->surface_size, mla_ui_surface_draw_size_t);
+            mla_deserializer_read_struct(deserializer, self->surface_size, mla_ui_surface_size_t);
         } else if (mla_string_equals_const(property_name, "inputEvents")) {
             mla_deserializer_read_list_struct(deserializer, self->inputEvents, mla_ui_surface_input_event_t);
         } else if (mla_string_equals_const(property_name, "inputStates")) {

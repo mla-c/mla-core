@@ -221,7 +221,7 @@ mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websock
                     mla_warning(mla_string_concat("Dropped ", mla_string_from_uint32(droppedEventsCount), " input events from connection ", connection.id, " due to buffer limit."));
                 }
             } else {
-                mla_warning(mla_string_concat("Received unhandled message from client on connection ", connection.id, " on surface : ", data_client->messageBuffer));
+                mla_warning(mla_string_concat("Received unhandled message from webRemoteSurface on connection ", connection.id, " on surface : ", data_client->messageBuffer));
             }
         }
 
