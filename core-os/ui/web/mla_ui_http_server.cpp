@@ -209,9 +209,16 @@ mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websock
             if (result.handled) {
                 mla_array_list_add_all(data_client->remoteSurface.drawing.unprocessedInputEvents, result.inputEvents);
 
+                mla_size_t droppedEventsCount = 0;
+
                 // Limit the number of complete messages stored in the buffer to prevent memory issues
                 if (mla_array_list_size(data_client->remoteSurface.drawing.unprocessedInputEvents) >= mla_web_surface_max_buffer_items) {
                     mla_array_list_remove(data_client->remoteSurface.drawing.unprocessedInputEvents, 0);
+                    droppedEventsCount++;
+                }
+
+                if (droppedEventsCount > 0) {
+                    mla_warning(mla_string_concat("Dropped ", mla_string_from_uint32(droppedEventsCount), " input events from connection ", connection.id, " due to buffer limit."));
                 }
             } else {
                 mla_warning(mla_string_concat("Received unhandled message from client on connection ", connection.id, " on surface : ", data_client->messageBuffer));

@@ -38,10 +38,6 @@ export default function SurfaceUIPage({surface}: SurfaceUIPageProps) {
             if (canvas.width !== newWidth || canvas.height !== newHeight) {
                 canvas.width = newWidth;
                 canvas.height = newHeight;
-                // Reset any existing transform then apply the DPR scale once.
-                // Using setTransform avoids accumulating scales when resize is
-                // called repeatedly.
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 remoteUIDrawer.forceRedraw();
             }
         };

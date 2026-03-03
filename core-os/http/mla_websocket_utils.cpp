@@ -498,7 +498,6 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
             if (mask_message) {
                 // if the ping frame is not masked we need to mask the pong frame according to the websocket spec
-                mla_uint8_t masking_key[mla_websocket_masking_key_size];
                 for (int i = 0; i < mla_websocket_masking_key_size; i++) {
                     masking_key[i] = mla_random_uint32() & 0xFF;
                 }

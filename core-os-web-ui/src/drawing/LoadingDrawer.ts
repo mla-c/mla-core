@@ -5,8 +5,9 @@ export class LoadingDrawer {
 
     public static drawLoadingIndicator(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, label: string) {
 
-        const w = canvas.offsetWidth
-        const h = canvas.offsetHeight
+        const w = canvas.width
+        const h = canvas.height
+
 
         ctx.clearRect(0, 0, w, h);
 

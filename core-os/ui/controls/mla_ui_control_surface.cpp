@@ -123,11 +123,11 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_point
     return CLEAN_UP_SKIP;
 }
 
-#define mla_ui_control_surface_connector_user_data_name "uics"
+#define mla_ui_control_surface_text_size_user_data_name "uist"
 
 mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
-    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(context.userData, mla_ui_control_surface_connector_user_data_name);
+    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(context.userData, mla_ui_control_surface_text_size_user_data_name);
 
     if (connector == nullptr || connector->surface.calc_text_size == nullptr) {
         return {0, 0};
@@ -149,6 +149,8 @@ mla_ui_control_t __mla_ui_control_surface_build_loading_indicator(const mla_ui_c
     return loadingPanel;
 
 }
+
+#define mla_ui_control_surface_connector_user_data_name "uics"
 
 mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data_t& userData) {
 
@@ -186,7 +188,10 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
     mla_uint64_t currentTimeMs = mla_system_time_ms();
     mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->drawing.lastFrameTimeMs);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, userData);
+    mla_user_data_t context_user_data = mla_user_data_copy(connector->userData);
+    mla_user_data_set_pointer_without_ownership(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector);
+
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas = mla_array_list<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
 
@@ -384,7 +389,10 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
     mla_uint64_t currentTimeMs = mla_system_time_ms();
     mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector.drawing.lastFrameTimeMs);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, connector.userData);
+    mla_user_data_t context_user_data = mla_user_data_copy(connector.userData);
+    mla_user_data_set_pointer_without_ownership(context_user_data, mla_ui_control_surface_text_size_user_data_name, &connector);
+
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
 
     mla_array_list_clear(connector.drawing.drawCommands);
     mla_array_list_clear(connector.rendering.inputAreas);

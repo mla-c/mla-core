@@ -666,3 +666,46 @@ mla_user_data_t::mla_user_data_t(char name[8], mla_buffer_reference_t dataOwner,
     mla_memcpy(this->name, name, mla_user_data_name_size);
 
 }
+
+mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
+    mla_user_data_t copy = mla_user_data_empty();
+
+    if (__mla_user_data_name_equal(other.name, mla_user_data_name_empty)) {
+        return copy; // No data to copy
+    }
+
+    if (__mla_user_data_name_equal(other.name, mla_user_data_name_list)) {
+
+        mla_user_data_list_t* otherList = (mla_user_data_list_t*)other.data.asPointer;
+        if (otherList == nullptr) {
+            return copy; // No data to copy
+        }
+
+        mla_user_data_list_t* newList = (mla_user_data_list_t*)mla_malloc(sizeof(mla_user_data_list_t));
+        if (newList == nullptr) {
+            return copy;
+        }
+
+        mla_memset(newList, 0, sizeof(mla_user_data_list_t));
+
+        newList->datas = mla_array_list<mla_user_data_t, mla_user_data_initializer>(mla_array_list_size(otherList->datas));
+        mla_array_list_add_all(newList->datas, otherList->datas);
+
+        // Determine if we need to manage external resources based on the existing items in the list
+        mla_bool_t managedExternalResources = __mla_user_data_manage_external_resource(newList);
+
+        // Update the target to be the list
+        mla_memcpy(copy.name, mla_user_data_name_list, mla_user_data_name_size);
+        copy.dataOwner = mla_buffer_reference_create(newList, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
+        copy.data.asPointer = newList;
+
+        return copy;
+    }
+
+    // For other types of data, we can just copy the reference and name
+    copy.dataOwner = other.dataOwner;
+    copy.data = other.data;
+    mla_memcpy(copy.name, other.name, mla_user_data_name_size);
+
+    return copy;
+}

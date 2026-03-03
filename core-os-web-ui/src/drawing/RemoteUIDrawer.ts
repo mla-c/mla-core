@@ -45,9 +45,11 @@ export class RemoteUIDrawer {
     private _altKeyDown: boolean = false;
     private _metaKeyDown: boolean = false;
     private _keyCodeDown: number = 0;
+    private _inputStateDirty: boolean = false;
 
     // Tracks font keys already sent to the server since last connect
     private _sentFontKeys: Set<string> = new Set();
+    private _hasMissingFontMetrics: boolean = false;
 
     // Bound event handler references (needed for removeEventListener)
     private _onMouseMove: (e: MouseEvent) => void;
@@ -62,50 +64,94 @@ export class RemoteUIDrawer {
         this.ctx = ctx;
         this.canvas = canvas;
         this._onMouseMove = (e: MouseEvent) => {
-            const rect = this.canvas.getBoundingClientRect();
-            this._cursorX = e.clientX - rect.left;
-            this._cursorY = e.clientY - rect.top;
-            this._shiftKeyDown = e.shiftKey;
-            this._ctrlKeyDown = e.ctrlKey;
-            this._altKeyDown = e.altKey;
-            this._metaKeyDown = e.metaKey;
+
+            const { x, y } = this.clientToCanvasCoords(e.clientX, e.clientY);
+            if (this._cursorX !== x || this._cursorY !== y ||
+                this._shiftKeyDown !== e.shiftKey || this._ctrlKeyDown !== e.ctrlKey ||
+                this._altKeyDown !== e.altKey || this._metaKeyDown !== e.metaKey) {
+                this._cursorX = x;
+                this._cursorY = y;
+                this._shiftKeyDown = e.shiftKey;
+                this._ctrlKeyDown = e.ctrlKey;
+                this._altKeyDown = e.altKey;
+                this._metaKeyDown = e.metaKey;
+                this._inputStateDirty = true;
+            }
         };
         this._onMouseDown = (e: MouseEvent) => {
-            if (e.button === 0) this._leftMouseDown = true;
-            if (e.button === 1) this._middleMouseDown = true;
-            if (e.button === 2) this._rightMouseDown = true;
-            this._shiftKeyDown = e.shiftKey;
-            this._ctrlKeyDown = e.ctrlKey;
-            this._altKeyDown = e.altKey;
-            this._metaKeyDown = e.metaKey;
+
+            const { x, y } = this.clientToCanvasCoords(e.clientX, e.clientY);
+            const newLeft = e.button === 0 ? true : this._leftMouseDown;
+            const newMiddle = e.button === 1 ? true : this._middleMouseDown;
+            const newRight = e.button === 2 ? true : this._rightMouseDown;
+            if (this._cursorX !== x || this._cursorY !== y ||
+                this._leftMouseDown !== newLeft || this._middleMouseDown !== newMiddle || this._rightMouseDown !== newRight ||
+                this._shiftKeyDown !== e.shiftKey || this._ctrlKeyDown !== e.ctrlKey ||
+                this._altKeyDown !== e.altKey || this._metaKeyDown !== e.metaKey) {
+                this._leftMouseDown = newLeft;
+                this._middleMouseDown = newMiddle;
+                this._rightMouseDown = newRight;
+                this._cursorX = x;
+                this._cursorY = y;
+                this._shiftKeyDown = e.shiftKey;
+                this._ctrlKeyDown = e.ctrlKey;
+                this._altKeyDown = e.altKey;
+                this._metaKeyDown = e.metaKey;
+                this._inputStateDirty = true;
+            }
         };
         this._onMouseUp = (e: MouseEvent) => {
-            if (e.button === 0) this._leftMouseDown = false;
-            if (e.button === 1) this._middleMouseDown = false;
-            if (e.button === 2) this._rightMouseDown = false;
-            this._shiftKeyDown = e.shiftKey;
-            this._ctrlKeyDown = e.ctrlKey;
-            this._altKeyDown = e.altKey;
-            this._metaKeyDown = e.metaKey;
+            const { x, y } = this.clientToCanvasCoords(e.clientX, e.clientY);
+            const newLeft = e.button === 0 ? false : this._leftMouseDown;
+            const newMiddle = e.button === 1 ? false : this._middleMouseDown;
+            const newRight = e.button === 2 ? false : this._rightMouseDown;
+            if (this._cursorX !== x || this._cursorY !== y ||
+                this._leftMouseDown !== newLeft || this._middleMouseDown !== newMiddle || this._rightMouseDown !== newRight ||
+                this._shiftKeyDown !== e.shiftKey || this._ctrlKeyDown !== e.ctrlKey ||
+                this._altKeyDown !== e.altKey || this._metaKeyDown !== e.metaKey) {
+                this._leftMouseDown = newLeft;
+                this._middleMouseDown = newMiddle;
+                this._rightMouseDown = newRight;
+                this._cursorX = x;
+                this._cursorY = y;
+                this._shiftKeyDown = e.shiftKey;
+                this._ctrlKeyDown = e.ctrlKey;
+                this._altKeyDown = e.altKey;
+                this._metaKeyDown = e.metaKey;
+                this._inputStateDirty = true;
+            }
         };
         this._onMouseLeave = () => {
-            this._leftMouseDown = false;
-            this._rightMouseDown = false;
-            this._middleMouseDown = false;
+            if (this._leftMouseDown || this._rightMouseDown || this._middleMouseDown) {
+                this._leftMouseDown = false;
+                this._rightMouseDown = false;
+                this._middleMouseDown = false;
+                this._inputStateDirty = true;
+            }
         };
         this._onKeyDown = (e: KeyboardEvent) => {
-            this._shiftKeyDown = e.shiftKey;
-            this._ctrlKeyDown = e.ctrlKey;
-            this._altKeyDown = e.altKey;
-            this._metaKeyDown = e.metaKey;
-            this._keyCodeDown = e.keyCode;
+            if (this._shiftKeyDown !== e.shiftKey || this._ctrlKeyDown !== e.ctrlKey ||
+                this._altKeyDown !== e.altKey || this._metaKeyDown !== e.metaKey ||
+                this._keyCodeDown !== e.keyCode) {
+                this._shiftKeyDown = e.shiftKey;
+                this._ctrlKeyDown = e.ctrlKey;
+                this._altKeyDown = e.altKey;
+                this._metaKeyDown = e.metaKey;
+                this._keyCodeDown = e.keyCode;
+                this._inputStateDirty = true;
+            }
         };
         this._onKeyUp = (e: KeyboardEvent) => {
-            this._shiftKeyDown = e.shiftKey;
-            this._ctrlKeyDown = e.ctrlKey;
-            this._altKeyDown = e.altKey;
-            this._metaKeyDown = e.metaKey;
-            this._keyCodeDown = 0;
+            if (this._shiftKeyDown !== e.shiftKey || this._ctrlKeyDown !== e.ctrlKey ||
+                this._altKeyDown !== e.altKey || this._metaKeyDown !== e.metaKey ||
+                this._keyCodeDown !== 0) {
+                this._shiftKeyDown = e.shiftKey;
+                this._ctrlKeyDown = e.ctrlKey;
+                this._altKeyDown = e.altKey;
+                this._metaKeyDown = e.metaKey;
+                this._keyCodeDown = 0;
+                this._inputStateDirty = true;
+            }
         };
     }
 
@@ -177,10 +223,18 @@ export class RemoteUIDrawer {
 
     public drawFrame() {
 
-        const w = this.canvas.offsetWidth;
-        const h = this.canvas.offsetHeight;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
 
-        this.sendClientState(w, h);
+        if (this._inputStateDirty || this._hasMissingFontMetrics) {
+
+            // Send an updated client state to the server whenever we detect a change in input state
+            this.sendClientState(w, h);
+
+            this._inputStateDirty = false;
+            this._hasMissingFontMetrics = false;
+        }
+
 
         if (!this.needRedraw) {
             // Still draw the FPS overlay even when no new frame data, to keep it updated
@@ -462,6 +516,15 @@ export class RemoteUIDrawer {
                     if (!cmd.text || !cmd.text.content) break;
                     const t = cmd.text;
                     const ft = t.font_type;
+
+                    // Detect unseen fonts while rendering — cheaper than scanning the whole frame on every message
+                    if (!this._hasMissingFontMetrics) {
+                        const key = `${ft.family}|${ft.size}|${ft.bold ? 1 : 0}|${ft.italic ? 1 : 0}`;
+                        if (!this._sentFontKeys.has(key)) {
+                            this._hasMissingFontMetrics = true;
+                        }
+                    }
+
                     ctx.font = `${ft.italic ? 'italic ' : ''}${ft.bold ? 'bold ' : ''}${ft.size}px ${ft.family}`;
                     ctx.fillStyle = this.colorToCss(t.fill);
                     ctx.textBaseline = 'top';
@@ -518,6 +581,7 @@ export class RemoteUIDrawer {
             keyCodeDown: this._keyCodeDown,
         };
     }
+
 
     /**
      * Measures text sizes for all unique fonts found across ALL text commands in
@@ -600,6 +664,28 @@ export class RemoteUIDrawer {
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Maps a viewport-space mouse position (clientX / clientY) into the canvas's
+     * own coordinate space. This correctly handles:
+     *  - CSS transforms on the canvas or any ancestor (getBoundingClientRect
+     *    already accounts for all of these)
+     *  - A difference between the canvas's CSS display size and its internal
+     *    pixel resolution (e.g. when width/height attributes differ from the
+     *    CSS width/height, or when a devicePixelRatio scaling is applied)
+     */
+    private clientToCanvasCoords(clientX: number, clientY: number): { x: number; y: number } {
+        const rect = this.canvas.getBoundingClientRect();
+        // rect.width / rect.height is the CSS display size (already includes all
+        // ancestor transforms).  canvas.width / canvas.height is the actual pixel
+        // resolution of the drawing buffer.
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY,
+        };
+    }
 
     /** Convert an MLA Color (0-255 channels) to a CSS rgba() string. */
     private colorToCss(color: Color): string {

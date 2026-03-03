@@ -24,6 +24,7 @@ struct mla_user_data_t {
 
 
 mla_user_data_t mla_user_data_empty();
+mla_user_data_t mla_user_data_copy(const mla_user_data_t& other);
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size]);
 mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = false);
