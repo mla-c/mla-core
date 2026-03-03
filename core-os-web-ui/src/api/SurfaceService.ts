@@ -288,8 +288,8 @@ export interface ClientMessage {
 
 
 export class SurfaceService {
-    //static BASE_URL = './';
-    static BASE_URL = 'http://localhost:8081/ui/';
+    static BASE_URL = './';
+    //static BASE_URL = 'http://localhost:8081/ui/';
 
     static async getSurfaces(): Promise<Surfaces> {
         const response = await fetch(this.BASE_URL+ 'surfaces.json');
