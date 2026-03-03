@@ -32,6 +32,28 @@ mla_user_data_t mla_user_data_empty() {
     return data;
 }
 
+void __mla_user_data_set_name(mla_char_t name[mla_user_data_name_size], const mla_char_t newName[mla_user_data_name_size]) {
+
+    mla_bool_t foundNullTerminator = false;
+
+    // Copy by loop to have the best performance
+    for (mla_size_t i = 0; i < mla_user_data_name_size; ++i) {
+
+        if (foundNullTerminator) {
+            name[i] =  '\0';  // Fill remaining with null terminators
+        } else {
+
+            name[i] = newName[i];
+
+            if (name[i] == '\0') {
+                foundNullTerminator = true;
+            }
+
+        }
+
+    }
+}
+
 mla_bool_t __mla_user_data_name_equal(const mla_char_t a[mla_user_data_name_size],
                                       const mla_char_t b[mla_user_data_name_size]) {
 
@@ -109,7 +131,7 @@ mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &targe
     mla_bool_t managedExternalResources = __mla_user_data_manage_external_resource(list);
 
     // Update the target to be the list
-    mla_memcpy(target.name, mla_user_data_name_list, mla_user_data_name_size);
+    __mla_user_data_set_name(target.name, mla_user_data_name_list);
     target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
     target.data.asPointer = list;
 
@@ -227,7 +249,7 @@ mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, 
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_create(data, mangedExternalResource, cleanup_hook,mla_dynamic_data_empty());
     user_data->data.asPointer = data;
 
@@ -244,7 +266,7 @@ mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& targe
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asPointer = data;
     return true;
@@ -260,7 +282,7 @@ mla_bool_t mla_user_data_set_int8(mla_user_data_t &target, const mla_char_t name
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asInt8 = data;
     return true;
@@ -275,7 +297,7 @@ mla_bool_t mla_user_data_set_uint8(mla_user_data_t& target, const mla_char_t nam
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asUint8 = data;
     return true;
@@ -290,7 +312,7 @@ mla_bool_t mla_user_data_set_int16(mla_user_data_t& target, const mla_char_t nam
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asInt16 = data;
     return true;
@@ -305,7 +327,7 @@ mla_bool_t mla_user_data_set_uint16(mla_user_data_t& target, const mla_char_t na
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asUint16 = data;
     return true;
@@ -320,7 +342,7 @@ mla_bool_t mla_user_data_set_int32(mla_user_data_t& target, const mla_char_t nam
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asInt32 = data;
     return true;
@@ -335,7 +357,7 @@ mla_bool_t mla_user_data_set_uint32(mla_user_data_t& target, const mla_char_t na
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asUint32 = data;
     return true;
@@ -350,7 +372,7 @@ mla_bool_t mla_user_data_set_int64(mla_user_data_t& target, const mla_char_t nam
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asInt64 = data;
     return true;
@@ -365,7 +387,7 @@ mla_bool_t mla_user_data_set_uint64(mla_user_data_t& target, const mla_char_t na
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asUint64 = data;
     return true;
@@ -380,7 +402,7 @@ mla_bool_t mla_user_data_set_float(mla_user_data_t& target, const mla_char_t nam
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asFloat = data;
     return true;
@@ -395,7 +417,7 @@ mla_bool_t mla_user_data_set_double(mla_user_data_t& target, const mla_char_t na
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asDouble = data;
     return true;
@@ -410,7 +432,7 @@ mla_bool_t mla_user_data_set_bool(mla_user_data_t& target, const mla_char_t name
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asBool = data;
     return true;
@@ -425,7 +447,7 @@ mla_bool_t mla_user_data_set_char(mla_user_data_t& target, const mla_char_t name
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_noOwner();
     user_data->data.asChar = data;
     return true;
@@ -440,7 +462,7 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t na
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
 
     mla_c_string_t c_string = mla_string_to_cString(data, true);
     user_data->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_string.c_str));
@@ -456,7 +478,7 @@ mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_
         return false;
     }
 
-    mla_memcpy(user_data->name, name, mla_user_data_name_size);
+    __mla_user_data_set_name(user_data->name, name);
     user_data->dataOwner = mla_buffer_reference_create(data.asPointer, true, cleanup, data);
     user_data->data = data;
 
@@ -655,7 +677,7 @@ mla_user_data_t::mla_user_data_t(const mla_user_data_t &p_Other): dataOwner(p_Ot
         __mla_user_data_move_data_into_list(other, false);
 
     }
-    mla_memcpy(this->name, p_Other.name, mla_user_data_name_size);
+    __mla_user_data_set_name(this->name, p_Other.name);
     this->dataOwner = p_Other.dataOwner;
     this->data = p_Other.data;
 
@@ -666,7 +688,7 @@ mla_user_data_t& mla_user_data_t::operator=(const mla_user_data_t& p_Other) {
 
     if (this != &p_Other) {
 
-        mla_memcpy(this->name, p_Other.name, mla_user_data_name_size);
+        __mla_user_data_set_name(this->name, p_Other.name);
         this->dataOwner = p_Other.dataOwner;
         this->data = p_Other.data;
     }
@@ -674,14 +696,14 @@ mla_user_data_t& mla_user_data_t::operator=(const mla_user_data_t& p_Other) {
 
 }
 
-mla_user_data_t::mla_user_data_t(char name[8], mla_buffer_reference_t dataOwner, mla_dynamic_data_t data):
+mla_user_data_t::mla_user_data_t(mla_char_t name[mla_user_data_name_size], mla_buffer_reference_t dataOwner, mla_dynamic_data_t data):
     dataOwner(dataOwner),
     data(data) {
 
     if (name == nullptr) {
-        mla_memcpy(this->name, mla_user_data_name_empty, mla_user_data_name_size);
+        __mla_user_data_set_name(this->name, mla_user_data_name_empty);
     } else {
-        mla_memcpy(this->name, name, mla_user_data_name_size);
+        __mla_user_data_set_name(this->name, name);
     }
 
 }
@@ -714,7 +736,7 @@ mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
         mla_bool_t managedExternalResources = __mla_user_data_manage_external_resource(newList);
 
         // Update the target to be the list
-        mla_memcpy(copy.name, mla_user_data_name_list, mla_user_data_name_size);
+        __mla_user_data_set_name(copy.name, mla_user_data_name_list);
         copy.dataOwner = mla_buffer_reference_create(newList, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
         copy.data.asPointer = newList;
 
@@ -724,7 +746,7 @@ mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
     // For other types of data, we can just copy the reference and name
     copy.dataOwner = other.dataOwner;
     copy.data = other.data;
-    mla_memcpy(copy.name, other.name, mla_user_data_name_size);
+    __mla_user_data_set_name(copy.name, other.name);
 
     return copy;
 }
