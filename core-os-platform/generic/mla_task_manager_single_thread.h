@@ -39,10 +39,15 @@ mla_bool_t mla_task_manager_single_thread_create_task(
 // it just handles the double lock that can happen in single-threaded mode.
 // an resource should never be locked twice in single-threaded mode, but we handle it gracefully.
 struct mla_task_manager_single_thread_mutex {
-    mla_bool_t locked;
+    mla_volatile mla_bool_t locked;
 };
 
-mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex) {
+mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+
+    if (supports_recursive_locking) {
+        // If recursive locking is supported, we can just return a dummy mutex that is always unlocked.
+        return true;
+    }
 
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mla_malloc(sizeof(mla_task_manager_single_thread_mutex)));
 
@@ -64,7 +69,8 @@ mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_pointer_t mutexResource
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
 
     if (mutex == nullptr) {
-        return false;
+        // If the mutex is null, we return true because we support recursive locking and this is a dummy mutex that is always unlocked.
+        return true;
     }
 
     if (mutex->locked) {
@@ -82,7 +88,7 @@ mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_pointer_t mutexResour
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
 
     if (mutex == nullptr) {
-        return false;
+        return true;
     }
 
     if (!mutex->locked) {

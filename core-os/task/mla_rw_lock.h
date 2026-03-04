@@ -19,7 +19,7 @@ struct mla_rw_lock_t {
 };
 
 mla_rw_lock_t mla_rw_lock_invalid();
-mla_rw_lock_t mla_rw_lock(const mla_string_t &name);
+mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive);
 mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
 mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
 mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
@@ -38,6 +38,7 @@ mla_bool_t mla_rw_lock_try_unlock_write(mla_rw_lock_t &lock, const char *source,
 
 #define mla_rw_unlock_write(lock) mla_rw_lock_try_unlock_write(lock, __FILE__, __LINE__)
 
-#define mla_rw_lock_create(name) mla_rw_lock(mla_string_const(name))
+#define mla_rw_lock_create(name) mla_rw_lock(mla_string_const(name), true)
+#define mla_rw_lock_create_non_recursive(name) mla_rw_lock(mla_string_const(name), false)
 
 #endif

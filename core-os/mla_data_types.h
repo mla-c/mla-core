@@ -125,12 +125,8 @@ struct mla_atomic_int32_t {
 // Methode Visibility
 #define mla_global extern
 
-// Template Style macros
-#include "stdarg.h"
-
-#define mla_va_list va_list
-#define mla_va_start(v, l) va_start(v, l)
-#define mla_va_end(v) va_end(v)
+// Volatile qualifier for memory operations that require it
+#define mla_volatile volatile
 
 /////////////////////////////////////////////////
 // Commonly used macros for memory operations and type limits

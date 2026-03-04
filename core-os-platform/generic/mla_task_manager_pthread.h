@@ -175,7 +175,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
 }
 
-mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex) {
+mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
     pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mla_malloc(sizeof(pthread_mutex_t)));
     if (mutex == nullptr) {
@@ -183,8 +183,18 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex) {
     }
     mla_memset(mutex, 0, sizeof(pthread_mutex_t));
 
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+
+    if (supports_recursive_locking) {
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    }
+
     // Initialize the mutex
-    int result = pthread_mutex_init(mutex, nullptr);
+    int result = pthread_mutex_init(mutex, &attr);
+
+    pthread_mutexattr_destroy(&attr);
+
     if (result != 0) {
         mla_free(mutex);
         return false;

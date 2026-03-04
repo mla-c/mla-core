@@ -13,7 +13,7 @@ mla_rw_lock_t mla_rw_lock_invalid() {
     };
 }
 
-mla_rw_lock_t mla_rw_lock(const mla_string_t &name) {
+mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive) {
 
     mla_rw_lock_state_t* state_info = static_cast<mla_rw_lock_state_t*>(mla_malloc(sizeof(mla_rw_lock_state_t)));
 
@@ -23,8 +23,8 @@ mla_rw_lock_t mla_rw_lock(const mla_string_t &name) {
     mla_memset(state_info, 0, sizeof(mla_rw_lock_state_t));
 
     mla_rw_lock_t lock = {
-        mla_mutex(mla_string_concat(name, " writer lock")),
-        mla_mutex(mla_string_concat(name, " reader lock")),
+        mla_mutex(mla_string_concat(name, " writer lock"), support_recursive),
+        mla_mutex(mla_string_concat(name, " reader lock"), support_recursive),
         state_info,
         mla_buffer_reference(state_info)
     };

@@ -35,7 +35,7 @@ struct mla_file_system_manager_t {
 
 static mla_file_system_manager_t file_system_manager = {
     false,
-    mla_mutex(mla_string_const("file_system_manager")),
+    mla_mutex_create("file_system_manager"),
     mla_array_list_empty<mla_file_system_mount_t, mla_file_system_mount_initializer>()
 };
 

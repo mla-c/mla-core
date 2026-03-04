@@ -29,7 +29,7 @@ mla_mutex_t mla_mutex_invalid() {
     };
 }
 
-mla_mutex_t mla_mutex(const mla_string_t& name) {
+mla_mutex_t mla_mutex(const mla_string_t& name, mla_bool_t support_recursive) {
 
     mla_mutex_t mutex = {
         name,
@@ -39,7 +39,7 @@ mla_mutex_t mla_mutex(const mla_string_t& name) {
 
     // Create the native mutex
     mla_pointer_t outResource = nullptr;
-    mla_bool_t success = g_task_low_level_access.create_mutex(&outResource);
+    mla_bool_t success = g_task_low_level_access.create_mutex(&outResource, support_recursive);
 
     if (!success) {
         mla_string_t message = mla_string_concat("Failed to create mutex: ", name);
@@ -51,9 +51,9 @@ mla_mutex_t mla_mutex(const mla_string_t& name) {
     return mutex;
 }
 
-mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size) {
+mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size, mla_bool_t support_recursive) {
 
-    return  mla_mutex(mla_string(name, size));
+    return  mla_mutex(mla_string(name, size), support_recursive);
 }
 
 mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, mla_bool_t silent, const mla_char_t* source, mla_uint32_t line) {
