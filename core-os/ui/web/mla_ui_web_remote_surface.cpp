@@ -7,6 +7,8 @@
 #include "../../serializer/mla_json_serializer.h"
 
 #define mla_ui_web_remote_surface_client_text_max_characters (128 + 1)
+#define mla_ui_web_remote_surface_client_fps_target 30
+
 
 struct mla_ui_web_remote_surface_client_text_size_t {
     mla_ui_surface_font_type_t fontType;
@@ -168,7 +170,7 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
     mla_user_data_set_pointer_without_ownership(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, &drawCommands);
 
     // Serialize the commands to JSON
-    return mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, 50);
+    return mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
 
 }
 

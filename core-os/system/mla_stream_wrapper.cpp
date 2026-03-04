@@ -293,7 +293,7 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
 
     if (mla_bytes_is_empty(data->buffer)) {
         mla_free(data);
-        return mla_stream_noop_input();
+        return input;
     }
 
     data->base_input = input;
@@ -388,7 +388,7 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
     mla_stream_output_buffered_wrapper_data_t *data = static_cast<mla_stream_output_buffered_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_output_buffered_wrapper_data_t)));
 
     if (data == nullptr) {
-        return mla_stream_noop_output();
+        return output;
     }
 
     mla_memset(data, 0, sizeof(mla_stream_output_buffered_wrapper_data_t));
