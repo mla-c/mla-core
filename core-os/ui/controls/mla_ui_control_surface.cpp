@@ -223,7 +223,6 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
     // Update drawing data
     connector->drawing.drawCommands = drawCommands;
     connector->rendering.inputAreas = inputAreas;
-    connector->drawing.lastFrameTimeMs = currentTimeMs;
 
     mla_mutex_unlock(connector->lock);
 
@@ -246,11 +245,14 @@ mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_user_dat
     mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> newUnprocessedInputEvents = mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>();
 
     // Render to surface
-    mla_ui_surface_render_draw_commands(
+    if (mla_ui_surface_render_draw_commands(
         connector->surface,
         drawCommands,
-        newUnprocessedInputEvents
-    );
+        newUnprocessedInputEvents, connector->drawing.lastFrameTimeMs
+    )) {
+        // If the frame was rendered successfully, update last frame time
+        connector->drawing.lastFrameTimeMs = mla_system_time_ms();
+    }
 
     if (!mla_mutex_lock(connector->lock)) {
         mla_warning(mla_string_const("Unable to lock mutex to update input events"));
@@ -417,9 +419,12 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
     }
 
     // Render to surface
-    mla_ui_surface_render_draw_commands(connector.surface, connector.drawing.drawCommands, connector.drawing.unprocessedInputEvents);
+    if (mla_ui_surface_render_draw_commands(connector.surface, connector.drawing.drawCommands, connector.drawing.unprocessedInputEvents, timeSinceLastFrameMs)) {
+        // If the frame was rendered successfully, update last frame time
+        connector.drawing.lastFrameTimeMs = currentTimeMs;
+    }
 
-    connector.drawing.lastFrameTimeMs = currentTimeMs;
+
 
     return true;
 

@@ -13,6 +13,7 @@
 #include <wincodec.h>
 
 #define mla_global_ui_surface_windows_direct2d_font_cache_size 16
+#define mla_global_ui_surface_windows_direct2d_fps_target 60
 
 // Global Direct2D factories
 static ID2D1Factory *g_pD2DFactory = nullptr;
@@ -449,7 +450,8 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                                                   const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                       mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                   mla_array_list_t<mla_ui_surface_input_event_t,
-                                                      mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame) {
+                                                      mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs) {
+
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
@@ -622,6 +624,12 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
             window_surface->renderTarget->Resize(windowSize);
         }
     }
+
+    if (timeSinceLastFrameMs < (mla_uint64_t)(1000 * 0.75 / mla_global_ui_surface_windows_direct2d_fps_target)) {
+        // Skip rendering to maintain target FPS
+        return false;
+    }
+
 
     ID2D1HwndRenderTarget *renderTarget = window_surface->renderTarget;
     la_global_ui_surface_windows_direct2d_Cache cache = window_surface->renderCache;

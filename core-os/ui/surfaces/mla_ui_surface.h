@@ -42,7 +42,7 @@ struct mla_ui_surface_t {
     mla_bool_t (*set_size)(const mla_ui_surface_t& surface, mla_ui_surface_size_t size);
 
     // Render draw commands
-    mla_bool_t (*render_draw_commands)(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame);
+    mla_bool_t (*render_draw_commands)(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs);
 
     // Text size calculation
     mla_ui_surface_draw_size_t (*calc_text_size)(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text);
@@ -60,6 +60,6 @@ mla_bool_t mla_ui_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surfa
 
 mla_ui_surface_input_states_t mla_ui_surface_get_input_states(const mla_ui_surface_t &surface);
 
-mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame);
+mla_bool_t mla_ui_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs);
 
 #endif

@@ -146,9 +146,13 @@ mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_genera
 
 }
 
-mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
+mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs) {
 
     (void)eventsSinceLastFame;
+
+    if (timeSinceLastFrameMs < (mla_uint64_t)(1000 * 0.75 / mla_ui_web_remote_surface_client_fps_target)) {
+        return false; // Skip rendering to maintain target FPS
+    }
 
     mla_ui_web_remote_surface_data_t* surface_data = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
 
