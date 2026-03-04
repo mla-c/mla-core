@@ -148,9 +148,10 @@ mla_bool_t mla_task_manager_windows_native_create_task(
 struct mla_task_manager_windows_native_mutex_t {
     CRITICAL_SECTION section;
     mla_bool_t locked; // already locked by the current thread
+    mla_bool_t supports_recursive_locking; // whether the mutex supports recursive locking
 };
 
-mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex) {
+mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
     mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_windows_native_mutex_t)));
 
@@ -161,6 +162,7 @@ mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex)
 
     InitializeCriticalSection(&mutex->section);
     mutex->locked = false; // Initially not locked
+    mutex->supports_recursive_locking = supports_recursive_locking;
 
     *outMutex = static_cast<mla_pointer_t>(mutex);
     return true; // Successfully created the mutex
@@ -180,6 +182,10 @@ mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_pointer_t mutexResourc
     for (int i = 0; i < timeoutms / 10; ++i) {
 
         if (TryEnterCriticalSection(&mutex->section)) {
+
+            if (mutex->supports_recursive_locking) {
+                return true; // Successfully locked the mutex
+            }
 
             if (mutex->locked) {
                 LeaveCriticalSection(&mutex->section); // Leave the critical section if it was already locked
@@ -201,18 +207,22 @@ mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_pointer_t mutexResou
         return false; // Mutex resource is null
     }
 
-    if (TryEnterCriticalSection(&mutex->section)) {
+    if (!mutex->supports_recursive_locking) {
 
-        if (!mutex->locked) {
-            LeaveCriticalSection(&mutex->section); // Leave the critical section if it was not locked
+        if (TryEnterCriticalSection(&mutex->section)) {
+
+            if (!mutex->locked) {
+                LeaveCriticalSection(&mutex->section); // Leave the critical section if it was not locked
+                return false; // Mutex was not locked by this thread
+            }
+
+            // Locked by this thread, so we can unlock it
+            mutex->locked = false; // Mark as unlocked
+            LeaveCriticalSection(&mutex->section); // Leave the critical section
+        } else {
             return false; // Mutex was not locked by this thread
         }
 
-        // Locked by this thread, so we can unlock it
-        mutex->locked = false; // Mark as unlocked
-        LeaveCriticalSection(&mutex->section); // Leave the critical section
-    } else {
-        return false; // Mutex was not locked by this thread
     }
 
     LeaveCriticalSection(&mutex->section); // Leave the critical section
