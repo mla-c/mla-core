@@ -6,20 +6,40 @@
 #define COREOS_MLA_GLOBAL_NETWORK_ESP32_H
 
 #include "../../core-os/network/mla_network.h"
+#include "../../core-os/lifecycle/mla_lifecycle_events.h"
 
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
 #include <lwip/tcp.h>
+#include <lwip/inet.h>
 #include <sys/select.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
 #include <net/if.h>
+#include <fcntl.h>
+
+#include <esp_netif.h>
+#include <esp_event.h>
+
+#define mla_network_connection_user_data_name "nwconn"
+
+//////////////////////////////////////////////////////////////////
+/// ESP32 lwIP TCP/IP Stack Initialization
+/// Must be called before any socket operations.
+/// Initializes esp_netif and the default event loop which in turn
+//////////////////////////////////////////////////////////////////
+void __esp32_network_stack_init() {
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+}
+
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_preSetup, __esp32_network_stack_init)
 
 mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints;
     mla_memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;    // IPv4 or IPv6
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
@@ -43,7 +63,7 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     // Extract IP address from first result
     if (result->ai_family == AF_INET) {
         struct sockaddr_in *addr = (struct sockaddr_in *) result->ai_addr;
-        char ip[INET_ADDRSTRLEN];
+        mla_char_t ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
 
         host.address.address = mla_string_copy(ip, mla_strlen(ip));
@@ -51,38 +71,36 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
         host.port = port;
     } else if (result->ai_family == AF_INET6) {
         struct sockaddr_in6 *addr = (struct sockaddr_in6 *) result->ai_addr;
-        char ip[INET6_ADDRSTRLEN];
+        mla_char_t ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
 
         host.address.address = mla_string_copy(ip, mla_strlen(ip));
         host.address.is_ipv6 = true;
         host.port = port;
-    } else {
-        // Unsupported address family
-        freeaddrinfo(result);
-        return false;
     }
 
     freeaddrinfo(result);
     return true;
 }
 
-mla_buffer_cleanup_mode __esp32_socket_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __esp32_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
-    int sock = (int)(intptr_t)data;
+    mla_int32_t sock = (mla_int32_t)(intptr_t)data;
     if (sock >= 0) {
-        close(sock);
+        lwip_close(sock);
     }
     return CLEAN_UP_SKIP;
 }
 
-mla_size_t __esp32_socket_read(const mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
-    int sock = (int)(intptr_t)input.userdata;
+mla_size_t __esp32_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+    (void)offset;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
 
-    ssize_t bytesRead = recv(sock, (char*)buffer + offset, length, 0);
+    mla_int32_t bytesRead = lwip_recv(sock, (mla_char_t*)buffer + offset, length, 0);
     if (bytesRead <= 0) {
         return 0;
     }
@@ -90,14 +108,15 @@ mla_size_t __esp32_socket_read(const mla_stream_input_t& input, mla_size_t offse
     return (mla_size_t)bytesRead;
 }
 
-mla_size_t __esp32_socket_remaining_bytes(const mla_stream_input_t& input) {
-    int sock = (int)(intptr_t)input.userdata;
+mla_size_t __esp32_socket_remaining_bytes(mla_stream_input_t& input) {
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
 
-    int pending = 0;
-    if (ioctl(sock, FIONREAD, &pending) == 0) {
+    mla_int32_t pending = 0;
+    if (lwip_ioctl(sock, FIONREAD, &pending) == 0) {
         if (pending > 0) {
             return mla_size_max;
         }
@@ -106,13 +125,15 @@ mla_size_t __esp32_socket_remaining_bytes(const mla_stream_input_t& input) {
     return 0;
 }
 
-mla_size_t __esp32_socket_write(const mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
-    int sock = (int)(intptr_t)output.userdata;
+mla_size_t __esp32_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)offset;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
+    mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
 
-    ssize_t bytesSent = send(sock, (const char*)buffer + offset, length, 0);
+    mla_int32_t bytesSent = lwip_send(sock, (const mla_char_t*)buffer + offset, length, 0);
     if (bytesSent <= 0) {
         return 0;
     }
@@ -125,27 +146,27 @@ mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_netwo
     connection.host = host;
 
     // Create socket
-    int sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
-    int protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
-    int family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
+    mla_int32_t sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    mla_int32_t protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
+    mla_int32_t family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
 
-    int sock = socket(family, sockType, protocol);
+    mla_int32_t sock = lwip_socket(family, sockType, protocol);
     if (sock < 0) {
         return false;
     }
 
     // Set socket to non-blocking mode for timeout support
-    int flags = fcntl(sock, F_GETFL, 0);
-    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+    mla_int32_t flags = lwip_fcntl(sock, F_GETFL, 0);
+    lwip_fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
     // Prepare address structure
     struct sockaddr_storage addr;
-    memset(&addr, 0, sizeof(addr));
+    mla_memset(&addr, 0, sizeof(addr));
     socklen_t addrLen;
 
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
     if (cAddress.c_str == nullptr) {
-        close(sock);
+        lwip_close(sock);
         return false;
     }
 
@@ -168,7 +189,7 @@ mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_netwo
     }
 
     // Attempt connection
-    int result = connect(sock, (struct sockaddr*)&addr, addrLen);
+    mla_int32_t result = lwip_connect(sock, (struct sockaddr*)&addr, addrLen);
 
     if (result < 0) {
         if (errno == EINPROGRESS) {
@@ -181,69 +202,66 @@ mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_netwo
             timeout.tv_sec = timeout_ms / 1000;
             timeout.tv_usec = (timeout_ms % 1000) * 1000;
 
-            result = select(sock + 1, nullptr, &writeSet, nullptr, &timeout);
+            result = lwip_select(sock + 1, nullptr, &writeSet, nullptr, &timeout);
             if (result <= 0) {
-                close(sock);
+                lwip_close(sock);
                 return false;
             }
 
             // Check if connection was successful
-            int error = 0;
+            mla_int32_t error = 0;
             socklen_t len = sizeof(error);
-            if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0 || error != 0) {
-                close(sock);
+            if (lwip_getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0 || error != 0) {
+                lwip_close(sock);
                 return false;
             }
         } else {
-            close(sock);
+            lwip_close(sock);
             return false;
         }
     }
 
-    // Set socket back to blocking mode
-    fcntl(sock, F_SETFL, flags);
-
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     if (type == mla_connection_type_tcp) {
-        int nodelay = 1;
-        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
+        mla_int32_t nodelay = 1;
+        lwip_setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
     }
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __esp32_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __esp32_socket_cleanup);
 
     connection.inputStream = {
-        (mla_callback_userdata)sock,
+        userData,
         __esp32_socket_read,
-        __esp32_socket_remaining_bytes,
-        ref
+        __esp32_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        (mla_callback_userdata)sock,
+        userData,
         __esp32_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
 }
 
 mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
-    int listenSock = (int)(intptr_t)listener.userdata;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
+    mla_int32_t listenSock = socket_data.asInt32;
     if (listenSock < 0) {
         return false;
     }
 
-    int sockType = 0;
+    mla_int32_t sockType = 0;
     socklen_t optLen = sizeof(sockType);
-    if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, &sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
+    if (lwip_getsockopt(listenSock, SOL_SOCKET, SO_TYPE, &sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
         return false;
     }
 
     struct sockaddr_storage clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
 
-    int clientSock = accept(listenSock, (struct sockaddr*)&clientAddr, &clientLen);
+    mla_int32_t clientSock = lwip_accept(listenSock, (struct sockaddr*)&clientAddr, &clientLen);
     if (clientSock < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             // No pending connection; non-blocking accept
@@ -253,17 +271,17 @@ mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla
     }
 
     // Set accepted socket to blocking mode for normal I/O
-    int flags = fcntl(clientSock, F_GETFL, 0);
-    fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
+    mla_int32_t flags = lwip_fcntl(clientSock, F_GETFL, 0);
+    lwip_fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
-    int nodelay = 1;
-    setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
+    mla_int32_t nodelay = 1;
+    lwip_setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
 
     // Fill connection.host from peer address
     mla_network_host_t peer = mla_network_host_invalid();
-    char ip4[INET_ADDRSTRLEN] = {0};
-    char ip6[INET6_ADDRSTRLEN] = {0};
+    mla_char_t ip4[INET_ADDRSTRLEN] = {0};
+    mla_char_t ip6[INET6_ADDRSTRLEN] = {0};
 
     if (clientAddr.ss_family == AF_INET) {
         struct sockaddr_in* a4 = (struct sockaddr_in*)&clientAddr;
@@ -278,26 +296,25 @@ mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla
         peer.address.is_ipv6 = true;
         peer.port = ntohs(a6->sin6_port);
     } else {
-        close(clientSock);
+        lwip_close(clientSock);
         return false;
     }
 
     connection.host = peer;
 
-    mla_buffer_reference_t ref = mla_buffer_reference((mla_pointer_t)(intptr_t)clientSock, true, __esp32_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(clientSock), __esp32_socket_cleanup);
 
     connection.inputStream = {
-        (mla_callback_userdata)clientSock,
+        userData,
         __esp32_socket_read,
-        __esp32_socket_remaining_bytes,
-        ref
+        __esp32_socket_remaining_bytes
     };
 
     connection.outputStream = {
-        (mla_callback_userdata)clientSock,
+        userData,
         __esp32_socket_write,
-        nullptr,
-        ref
+        nullptr
     };
 
     return true;
@@ -306,23 +323,23 @@ mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla
 mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
     listener.host = host;
 
-    int family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
-    int sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
-    int protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
+    mla_int32_t family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
+    mla_int32_t sockType = (type == mla_connection_type_tcp) ? SOCK_STREAM : SOCK_DGRAM;
+    mla_int32_t protocol = (type == mla_connection_type_tcp) ? IPPROTO_TCP : IPPROTO_UDP;
 
-    int sock = socket(family, sockType, protocol);
+    mla_int32_t sock = lwip_socket(family, sockType, protocol);
     if (sock < 0) {
         return false;
     }
 
     // Enable address reuse
-    int reuseAddr = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr));
+    mla_int32_t reuseAddr = 1;
+    lwip_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr));
 
     // Allow dual-stack for IPv6
     if (family == AF_INET6) {
-        int v6only = 0;
-        setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only));
+        mla_int32_t v6only = 0;
+        lwip_setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only));
     }
 
     struct sockaddr_storage ss;
@@ -331,7 +348,7 @@ mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_n
 
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
     if (cAddress.c_str == nullptr) {
-        close(sock);
+        lwip_close(sock);
         return false;
     }
 
@@ -359,25 +376,27 @@ mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_n
         mla_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
-    if (bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {
-        close(sock);
+    if (lwip_bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {
+        lwip_close(sock);
         return false;
     }
 
     if (type == mla_connection_type_tcp) {
-        if (listen(sock, SOMAXCONN) < 0) {
-            close(sock);
+        if (lwip_listen(sock, SOMAXCONN) < 0) {
+            lwip_close(sock);
             return false;
         }
 
         // Make the listening socket non-blocking so accept() will not block
-        int flags = fcntl(sock, F_GETFL, 0);
-        fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+        mla_int32_t flags = lwip_fcntl(sock, F_GETFL, 0);
+        lwip_fcntl(sock, F_SETFL, flags | O_NONBLOCK);
     }
 
-    listener.listenerOwner = mla_buffer_reference((mla_pointer_t)(intptr_t)sock, true, __esp32_socket_cleanup, 0);
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __esp32_socket_cleanup);
+
     listener.accept_connection = __esp32_accept_connection;
-    listener.userdata = (mla_callback_userdata)sock;
+    listener.userdata = userData;
 
     return true;
 }

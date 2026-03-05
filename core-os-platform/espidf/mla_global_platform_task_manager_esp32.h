@@ -16,8 +16,7 @@
 
 struct mla_task_manager_esp32_native_data_t {
     TaskHandle_t hThread;
-    mla_callback_userdata userData;
-    mla_callback_userdata userData2;
+    mla_user_data_t userData;
     mla_task_worker_t worker;
     mla_task_shared_states* sharedStates;
 };
@@ -56,7 +55,7 @@ UBaseType_t mla_task_manager_esp32_native_get_priority(const mla_task_priority p
     }
 }
 
-mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
     mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(data);
 
@@ -104,7 +103,7 @@ void __mla_task_manager_esp32_native_worker(void * param) {
             }
 
             shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
-            mla_task_process_result_state result_state = thread_data->worker(thread_data->userData, thread_data->userData2); // Call the worker function
+            mla_task_process_result_state result_state = thread_data->worker(thread_data->userData); // Call the worker function
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
                 shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
@@ -124,8 +123,7 @@ void __mla_task_manager_esp32_native_worker(void * param) {
 
 mla_bool_t mla_task_manager_esp32_native_create_task(
         const mla_task_worker_t worker,
-        mla_callback_userdata userData,
-        mla_callback_userdata userData2,
+        mla_user_data_t& user_data,
         const mla_task_stack_size stackSize,
         const mla_task_priority priority,
         mla_buffer_reference_t* outTaskResourceOwner,
@@ -139,8 +137,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
 
     mla_memset(thread_data, 0, sizeof(mla_task_manager_esp32_native_data_t));
     thread_data->worker = worker;
-    thread_data->userData = userData;
-    thread_data->userData2 = userData2;
+    thread_data->userData = user_data;
     thread_data->sharedStates = shared_states;
 
     configSTACK_DEPTH_TYPE stackSizeInBytes = mla_task_manager_esp32_native_get_stack_size(stackSize);
@@ -153,7 +150,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
     }
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference(thread_data, true, __mla_task_manager_esp32_native_cleanup);
+    *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_esp32_native_cleanup, mla_dynamic_data_empty());
     return true; // Successfully created the task
 }
 
@@ -179,26 +176,36 @@ void mla_task_manager_esp32_native_run() {
 
 struct mla_task_manager_esp32_native_mutex_t {
     SemaphoreHandle_t semaphore;
+    mla_bool_t recursive;
 };
 
-mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t* outMutex) {
-
-    mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_esp32_native_mutex_t)));
-
-    if (mutex == nullptr) {
-        return false; // Failed to allocate memory for mutex
+mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+    if (outMutex == nullptr) {
+        return false;
     }
 
-    mutex->semaphore = xSemaphoreCreateMutex();
+    mla_task_manager_esp32_native_mutex_t* mutex =
+    static_cast<mla_task_manager_esp32_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_esp32_native_mutex_t)));
+
+    if (mutex == nullptr) {
+        return false;
+    }
+
+    mutex->recursive = supports_recursive_locking;
+
+    if (supports_recursive_locking) {
+        mutex->semaphore = xSemaphoreCreateRecursiveMutex();
+    } else {
+        mutex->semaphore = xSemaphoreCreateMutex();
+    }
 
     if (mutex->semaphore == nullptr) {
         mla_free(mutex);
-        return false; // Failed to create the mutex
+        return false;
     }
 
     *outMutex = static_cast<mla_pointer_t>(mutex);
-    return true; // Successfully created the mutex
-
+    return true;
 }
 
 mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_pointer_t mutexResource) {
@@ -220,21 +227,30 @@ mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_pointer_t mutexResour
 mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_pointer_t mutexResource, mla_int32_t timeoutms) {
 
     mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
-        return false; // Mutex resource is null
+
+    if (mutex == nullptr || mutex->semaphore == nullptr) {
+        return false;
     }
 
-    return xSemaphoreTake(mutex->semaphore, timeoutms / portTICK_PERIOD_MS) == pdTRUE;
+    if (mutex->recursive) {
+        return xSemaphoreTakeRecursive(mutex->semaphore, timeoutms / portTICK_PERIOD_MS) == pdTRUE;
+    } else {
+        return xSemaphoreTake(mutex->semaphore, timeoutms / portTICK_PERIOD_MS) == pdTRUE;
+    }
 }
 
 mla_bool_t mla_task_manager_esp32_native_unlock_mutex(mla_pointer_t mutexResource) {
 
     mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
+    if (mutex == nullptr || mutex->semaphore == nullptr) {
         return false; // Mutex resource is null
     }
 
-    return xSemaphoreGive(mutex->semaphore) == pdTRUE;
+    if (mutex->recursive) {
+        return xSemaphoreGiveRecursive(mutex->semaphore) == pdTRUE;
+    } else {
+        return xSemaphoreGive(mutex->semaphore) == pdTRUE;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -322,6 +338,7 @@ mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_pointer_t taskLocal) {
     }
 
     g_esp32_task_local_slots_used[local->index] = false;
+    vTaskSetThreadLocalStoragePointer(nullptr, local->index, nullptr);
     mla_free(local);
     return true;
 }
