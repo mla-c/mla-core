@@ -30,8 +30,23 @@
 /// Initializes esp_netif and the default event loop which in turn
 //////////////////////////////////////////////////////////////////
 void __esp32_network_stack_init() {
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    static bool initialized = false;
+    if (initialized) {
+        return;
+    }
+
+    esp_err_t err = esp_netif_init();
+    if (err != ESP_OK) {
+        ESP_ERROR_CHECK(err);
+    }
+
+    err = esp_event_loop_create_default();
+    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+        ESP_ERROR_CHECK(err);
+    }
+
+    initialized = true;
 }
 
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_preSetup, __esp32_network_stack_init)
