@@ -6,23 +6,38 @@
 
 mla_global mla_network_low_level_operations_t g_network_low_level_operations;
 
+mla_network_ip_address_t mla_network_ip_address_invalid() {
+    return {
+        mla_string_empty(),
+        false
+    };
+}
+
+mla_network_ip_address_t mla_network_ip_address_ip4(const mla_string_t &address) {
+    return {
+                address,
+                false
+            };
+}
+
+mla_network_ip_address_t mla_network_ip_address_ip6(const mla_string_t &address) {
+    return {
+            address,
+            true
+        };
+}
+
 mla_network_host_t mla_network_host_ip4(const mla_string_t &address, mla_uint16_t port) {
 
     return {
-                {
-                    address,
-                false,
-                }, port
+            mla_network_ip_address_ip4(address), port
             };
 }
 
 mla_network_host_t mla_network_host_ip6(const mla_string_t &address, mla_uint16_t port) {
 
     return {
-            {
-                address,
-            true,
-            }, port
+            mla_network_ip_address_ip6(address), port
         };
 }
 
@@ -43,6 +58,16 @@ mla_network_connection_t mla_network_connection_disconnected() {
         mla_stream_noop_input(),
         mla_stream_noop_output()
     };
+}
+
+
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_network_get_local_ip_addresses() {
+
+    if (g_network_low_level_operations.get_local_ip_addresses == nullptr) {
+        return mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+    }
+
+    return g_network_low_level_operations.get_local_ip_addresses();
 }
 
 

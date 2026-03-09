@@ -20,8 +20,20 @@ inline void main_app_web_ui_init(const mla_ui_control_surface_process_task_t &pr
     mla_ui_http_server_initialize(g_main_app_web_ui_http_server);
     mla_ui_http_server_add_web_surface(g_main_app_web_ui_http_server, mla_string_const("Test UI"), mla_string_const("test"), processTask);
     mla_http_server_start(g_main_app_web_ui_http_server, 4);
-    mla_info("Web UI Initialized and running at http://127.0.0.1:8081");
 
+    mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> local_ips = mla_network_get_local_ip_addresses();
+
+    if (mla_array_list_size(local_ips) == 0) {
+        mla_warning("No local IP addresses found. Web UI may not be accessible.");
+    } else {
+        for (mla_size_t i = 0; i < mla_array_list_size(local_ips); i++) {
+
+            mla_network_ip_address_t& address = mla_array_list_get_unsafe(local_ips, i);
+
+            mla_info(mla_string_concat("Web UI accessible at http://", address.address, ":8081"));
+
+        }
+    }
 }
 
 #endif

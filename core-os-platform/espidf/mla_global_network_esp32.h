@@ -416,10 +416,66 @@ mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_n
     return true;
 }
 
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __esp32_get_local_ip_addresses() {
+    mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> ipAddresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+
+    esp_netif_t *netif = nullptr;
+    // Use the unsafe variant as esp_netif_next is deprecated
+    while ((netif = esp_netif_next_unsafe(netif)) != nullptr) {
+        if (!esp_netif_is_netif_up(netif)) {
+            continue;
+        }
+
+        // Handle IPv4
+        esp_netif_ip_info_t ip_info;
+        if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+            if (ip_info.ip.addr != 0) {
+
+                mla_char_t ipStr[INET_ADDRSTRLEN] = {0};
+                struct in_addr ip4_addr;
+                ip4_addr.s_addr = ip_info.ip.addr;
+
+                if (inet_ntop(AF_INET, &ip4_addr, ipStr, sizeof(ipStr))) {
+                    mla_network_ip_address_t addr = mla_network_ip_address_invalid();
+                    addr.address = mla_string_copy(ipStr, mla_strlen(ipStr));
+                    addr.is_ipv6 = false;
+                    mla_array_list_add(ipAddresses, addr);
+                }
+            }
+        }
+
+        // Handle IPv6 (Link Local and Global)
+        esp_ip6_addr_t ip6_addr;
+
+        if (esp_netif_get_ip6_linklocal(netif, &ip6_addr) == ESP_OK) {
+             mla_char_t ipStr[INET6_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET6, &ip6_addr.addr, ipStr, sizeof(ipStr))) {
+                 mla_network_ip_address_t addr = mla_network_ip_address_invalid();
+                 addr.address = mla_string_copy(ipStr, mla_strlen(ipStr));
+                 addr.is_ipv6 = true;
+                 mla_array_list_add(ipAddresses, addr);
+             }
+        }
+
+        if (esp_netif_get_ip6_global(netif, &ip6_addr) == ESP_OK) {
+             mla_char_t ipStr[INET6_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET6, &ip6_addr.addr, ipStr, sizeof(ipStr))) {
+                 mla_network_ip_address_t addr = mla_network_ip_address_invalid();
+                 addr.address = mla_string_copy(ipStr, mla_strlen(ipStr));
+                 addr.is_ipv6 = true;
+                 mla_array_list_add(ipAddresses, addr);
+             }
+        }
+    }
+
+    return ipAddresses;
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __esp32_resolve_host,
     __esp32_connect,
-    __esp32_bind_and_listen
+    __esp32_bind_and_listen,
+    __esp32_get_local_ip_addresses
 };
 
 #endif
