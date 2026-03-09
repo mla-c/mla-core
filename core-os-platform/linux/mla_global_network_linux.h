@@ -17,6 +17,8 @@
 #include <errno.h>
 #include <string.h>
 #include <netinet/tcp.h>
+#include <ifaddrs.h>
+#include <net/if.h>
 
 #define mla_network_connection_user_data_name "nwconn"
 
@@ -393,10 +395,56 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
     return true;
 }
 
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __linux_get_local_ip_addresses() {
+    mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> local_ip_addresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+
+    struct ifaddrs *ifaddr, *ifa;
+    if (getifaddrs(&ifaddr) == -1) {
+        return local_ip_addresses;
+    }
+
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr) {
+            continue;
+        }
+
+        // Skip loopback interfaces and those that are down to match Windows behavior
+        if ((ifa->ifa_flags & IFF_LOOPBACK) || !(ifa->ifa_flags & IFF_UP)) {
+            continue;
+        }
+
+        int family = ifa->ifa_addr->sa_family;
+        if (family == AF_INET) {
+            struct sockaddr_in *addr = (struct sockaddr_in *)ifa->ifa_addr;
+            char ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
+
+            mla_network_ip_address_t ip_address = mla_network_ip_address_invalid();
+            ip_address.address = mla_string_copy(ip, mla_strlen(ip));
+            ip_address.is_ipv6 = false;
+            mla_array_list_add(local_ip_addresses, ip_address);
+
+        } else if (family == AF_INET6) {
+            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)ifa->ifa_addr;
+            char ip[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
+
+            mla_network_ip_address_t ip_address = mla_network_ip_address_invalid();
+            ip_address.address = mla_string_copy(ip, mla_strlen(ip));
+            ip_address.is_ipv6 = true;
+            mla_array_list_add(local_ip_addresses, ip_address);
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return local_ip_addresses;
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __linux_resolve_host,
     __linux_connect,
-    __linux_bind_and_listen
+    __linux_bind_and_listen,
+    __linux_get_local_ip_addresses
 };
 
 

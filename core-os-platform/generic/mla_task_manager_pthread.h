@@ -8,6 +8,8 @@
 #include "../../core-os/task/mla_task_manager.h"
 #include <pthread.h>
 
+#define mla_task_manager_pthread_thread_name_max_length 16
+
 struct mla_task_manager_pthread_data_t {
     pthread_t thread;
     mla_user_data_t userData;
@@ -92,6 +94,7 @@ mla_size_t mla_task_manager_pthread_get_stack_size(mla_task_stack_size stackSize
 
 mla_bool_t mla_task_manager_pthread_create_task(
     const mla_task_worker_t worker,
+    const mla_string_t& task_name,
     mla_user_data_t& user_data,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
@@ -167,6 +170,10 @@ mla_bool_t mla_task_manager_pthread_create_task(
         mla_free(thread_data);
         return false;
     }
+
+    mla_char_t thread_name[mla_task_manager_pthread_thread_name_max_length] = {0};
+    mla_memcpy(thread_name, mla_string_data(task_name), mla_min(mla_string_length(task_name), mla_task_manager_pthread_thread_name_max_length - 1));
+    pthread_setname_np(thread_data->thread, thread_name);
 
     // Return the thread handle through outTaskResourceOwner
     *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_pthread_cleanup, mla_dynamic_data_empty());

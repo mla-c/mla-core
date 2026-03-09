@@ -144,7 +144,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
     configSTACK_DEPTH_TYPE stackSizeInBytes = mla_task_manager_esp32_native_get_stack_size(stackSize);
     UBaseType_t prio = mla_task_manager_esp32_native_get_priority(priority);
 
-    mla_char_t taskNameBuffer[configMAX_TASK_NAME_LEN];
+    mla_char_t taskNameBuffer[configMAX_TASK_NAME_LEN] = {0};
     mla_memcpy(taskNameBuffer, mla_string_data(task_name), mla_min(mla_string_length(task_name), configMAX_TASK_NAME_LEN - 1));
 
     mla_bool_t success = xTaskCreate(__mla_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
