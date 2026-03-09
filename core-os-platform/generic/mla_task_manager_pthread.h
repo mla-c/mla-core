@@ -219,6 +219,17 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(mla_pointer_t mutexResource, mla_
         return false;
     }
 
+    // 1. FAST PATH: Attempt to lock immediately without expensive time calculations
+    if (pthread_mutex_trylock(mutex) == 0) {
+        return true;
+    }
+
+    // This avoids overhead of clock_gettime and potential math errors for infinite waits.
+    if (timeoutms < 0) {
+        return pthread_mutex_lock(mutex) == 0;
+    }
+
+    // 2. SLOW PATH: Lock is busy, calculate timeout and wait
     struct timespec timeout;
     clock_gettime(CLOCK_REALTIME, &timeout);
 
