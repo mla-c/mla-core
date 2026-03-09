@@ -22,6 +22,8 @@ enum mla_task_priority: mla_uint8_t {
     TASK_PRIO_HIGH,
 };
 
+mla_string_t mla_task_priority_to_string(mla_task_priority priority);
+
 enum mla_task_stack_size: mla_uint8_t {
     TASK_STACK_SIZE_DEFAULT,
     TASK_STACK_SIZE_TINY,
@@ -32,6 +34,8 @@ enum mla_task_stack_size: mla_uint8_t {
     TASK_STACK_SIZE_XXLARGE,
 };
 
+mla_string_t mla_task_stack_size_to_string(mla_task_stack_size stack_size);
+
 enum mla_task_state: mla_uint8_t {
     TASK_STATE_STARTING, // Task is pending execution
     TASK_STATE_RUNNING, // Task is currently running
@@ -40,6 +44,8 @@ enum mla_task_state: mla_uint8_t {
     TASK_STATE_ABORTED, // Task has been aborted
     TASK_STATE_UNKNOWN // Task state is unknown or not set
 };
+
+mla_string_t mla_task_state_to_string(mla_task_state state);
 
 enum mla_multi_task_mode: mla_uint8_t {
     MULTI_TASK_MODE_SIMULATED, // Not real Multi Tasking, but simulates it in single thread
@@ -54,8 +60,7 @@ struct mla_task_shared_states {
 #define mla_task_is_done(state) (state == TASK_STATE_COMPLETED || state == TASK_STATE_ABORTED)
 
 struct mla_task_manager_low_level_access {
-
-    mla_bool_t (*create_task)(const mla_task_worker_t worker, mla_user_data_t& user_data, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);
+    mla_bool_t (*create_task)(const mla_task_worker_t worker, const mla_string_t& task_name, mla_user_data_t& user_data, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);
     void (*run_tasks)();
     mla_bool_t (*create_mutex)(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking);
     mla_bool_t (*lock_mutex)(mla_pointer_t mutex, mla_int32_t timeout);

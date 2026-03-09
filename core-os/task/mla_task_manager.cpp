@@ -82,7 +82,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     /////////////////////////////
 
     mla_buffer_reference_t outTaskResourceOwner = mla_buffer_reference_noOwner();
-    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.userData, task.stack_size, task.priority, &outTaskResourceOwner, sharedStates);
+    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.name, task.userData, task.stack_size, task.priority, &outTaskResourceOwner, sharedStates);
 
 
     // Update the task resource in the task manager if the task was created successfully or remove the task if it failed to create
@@ -109,7 +109,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     mla_rw_unlock_write(g_TaskManager.taskLock);
 
     if (success) {
-        mla_debug(mla_string_concat("Task ", task.name, " registered."));
+        mla_debug(mla_string_concat("Task ", task.name, " registered. StackSize:" , mla_task_stack_size_to_string(task.stack_size), " Priority:", mla_task_priority_to_string(task.priority)));
         return true;
     } else {
         mla_error(mla_string_concat("Task ", task.name, " could not be created."));

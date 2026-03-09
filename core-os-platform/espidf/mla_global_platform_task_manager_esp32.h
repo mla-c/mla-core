@@ -25,19 +25,19 @@ configSTACK_DEPTH_TYPE mla_task_manager_esp32_native_get_stack_size(const mla_ta
 
     switch (stackSize) {
         case TASK_STACK_SIZE_TINY:
-            return 1024; // 1024 Bytes
-        case TASK_STACK_SIZE_SMALL:
             return 2048; // 2 KB  (ESP32 minimum stack size is 2KB)
+        case TASK_STACK_SIZE_SMALL:
+            return 4096; // 4 KB
         case TASK_STACK_SIZE_MEDIUM:
-            return 4096; // 4069 KB
-        case TASK_STACK_SIZE_LARGE:
             return 8192; // 8 KB
+        case TASK_STACK_SIZE_LARGE:
+            return 12288; // 16 KB
         case TASK_STACK_SIZE_XLARGE:
-            return 12288; // 12 KB
-        case TASK_STACK_SIZE_XXLARGE:
             return 16384; // 16 KB
+        case TASK_STACK_SIZE_XXLARGE:
+            return 24576; // 24 KB
         default:
-            return 4048;
+            return 8192;
     }
 }
 
@@ -123,6 +123,7 @@ void __mla_task_manager_esp32_native_worker(void * param) {
 
 mla_bool_t mla_task_manager_esp32_native_create_task(
         const mla_task_worker_t worker,
+        const mla_string_t& task_name,
         mla_user_data_t& user_data,
         const mla_task_stack_size stackSize,
         const mla_task_priority priority,
@@ -142,7 +143,11 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
 
     configSTACK_DEPTH_TYPE stackSizeInBytes = mla_task_manager_esp32_native_get_stack_size(stackSize);
     UBaseType_t prio = mla_task_manager_esp32_native_get_priority(priority);
-    mla_bool_t success = xTaskCreate(__mla_task_manager_esp32_native_worker, "MLATask", stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
+
+    mla_char_t taskNameBuffer[configMAX_TASK_NAME_LEN];
+    mla_memcpy(taskNameBuffer, mla_string_data(task_name), mla_min(mla_string_length(task_name), configMAX_TASK_NAME_LEN - 1));
+
+    mla_bool_t success = xTaskCreate(__mla_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
 
     if (!success) {
         mla_free(thread_data);

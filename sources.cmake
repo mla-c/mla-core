@@ -23,6 +23,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_local.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_cli_module.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/task/mla_task_manager_data_types.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/cli/mla_cli_parser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/cli/mla_cli_app.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_stream.cpp

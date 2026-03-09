@@ -825,3 +825,69 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
     result.heap.length = newLength;
     return result;
 }
+
+mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& p_String2, const mla_char_t* p_String3, const mla_string_t& p_String4, const mla_char_t* p_String5, const mla_string_t& p_String6, const mla_char_t* p_String7,  const mla_string_t& p_String8, const mla_char_t* p_String9) {
+
+    mla_size_t size1 = mla_strlen(p_String1);
+    mla_size_t length2 = mla_string_length(p_String2);
+    mla_size_t size3 = mla_strlen(p_String3);
+    mla_size_t length4 = mla_string_length(p_String4);
+    mla_size_t size5 = mla_strlen(p_String5);
+    mla_size_t length6 = mla_string_length(p_String6);
+    mla_size_t size7 = mla_strlen(p_String7);
+    mla_size_t length8 = mla_string_length(p_String8);
+    mla_size_t size9 = mla_strlen(p_String9);
+    mla_size_t newLength = size1 + length2 + size3 + length4 + size5 + length6 + size7 + length8 + size9;
+
+    // Use small string optimization if the result fits
+    if (newLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+
+        const mla_char_t* data2 = mla_string_data(p_String2);
+        const mla_char_t* data4 = mla_string_data(p_String4);
+        const mla_char_t* data6 = mla_string_data(p_String6);
+        const mla_char_t* data8 = mla_string_data(p_String8);
+
+        mla_memcpy(result.embedded.data, p_String1, size1);
+        mla_memcpy(result.embedded.data + size1, data2, length2);
+        mla_memcpy(result.embedded.data + size1 + length2, p_String3, size3);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3, data4, length4);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3 + length4, p_String5, size5);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3 + length4 + size5, data6, length6);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3 + length4 + size5 + length6, p_String7, size7);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3 + length4 + size5 + length6 + size7, data8, length8);
+        mla_memcpy(result.embedded.data + size1 + length2 + size3 + length4 + size5 + length6 + size7 + length8, p_String9, size9);
+
+        return result;
+    }
+
+    // Fall back to heap allocation for larger strings
+    mla_char_t *newData = mla_create_char_array(newLength + 1);
+    if (newData == nullptr) {
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
+
+    const mla_char_t* data2 = mla_string_data(p_String2);
+    const mla_char_t* data4 = mla_string_data(p_String4);
+    const mla_char_t* data6 = mla_string_data(p_String6);
+    const mla_char_t* data8 = mla_string_data(p_String8);
+
+    mla_memcpy(newData, p_String1, size1);
+    mla_memcpy(newData + size1, data2, length2);
+    mla_memcpy(newData + size1 + length2, p_String3, size3);
+    mla_memcpy(newData + size1 + length2 + size3, data4, length4);
+    mla_memcpy(newData + size1 + length2 + size3 + length4, p_String5, size5);
+    mla_memcpy(newData + size1 + length2 + size3 + length4 + size5, data6, length6);
+    mla_memcpy(newData + size1 + length2 + size3 + length4 + size5 + length6, p_String7, size7);
+    mla_memcpy(newData + size1 + length2 + size3 + length4 + size5 + length6 + size7, data8, length8);
+    mla_memcpy(newData + size1 + length2 + size3 + length4 + size5 + length6 + size7 + length8, p_String9, size9);
+    newData[newLength] = '\0';
+
+    mla_string_t result = {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.data = newData;
+    result.heap.length = newLength;
+    return result;
+
+
+}
