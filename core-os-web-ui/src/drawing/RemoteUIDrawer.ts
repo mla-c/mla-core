@@ -28,6 +28,7 @@ export class RemoteUIDrawer {
     private lastServerFrameData: DrawCommand[] = null;
     private needRedraw: boolean = false;
     private nextClientStateMessage: ClientMessage
+    private lastClientStateSentTime: number = 0;
 
     // FPS counter state (render loop)
     private _fpsFrameCount: number = 0;
@@ -305,14 +306,16 @@ export class RemoteUIDrawer {
 
         const w = this.canvas.offsetWidth;
         const h = this.canvas.offsetHeight;
+        const now = Date.now();
 
-        if (this._inputStateDirty || this._hasMissingFontMetrics) {
+        if ((this._inputStateDirty || this._hasMissingFontMetrics) && (now - this.lastClientStateSentTime > 250)) {
 
             // Send an updated client state to the server whenever we detect a change in input state
             this.sendClientState(w, h);
 
             this._inputStateDirty = false;
             this._hasMissingFontMetrics = false;
+            this.lastClientStateSentTime = now;
         }
 
 

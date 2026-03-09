@@ -335,8 +335,6 @@ mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_t
         return TASK_PROCESS_RESULT_CONTINUE;
     }
 
-
-
     mla_string_t final_url = __mla_ui_http_server_web_surface_path_from_surface_name(taskData->surfaceName);
     mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> connections = mla_http_server_find_websocket_connections(http_server, final_url);
 
@@ -389,7 +387,7 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, co
 
     // Create rendering task
     mla_task_t render_draw_task = mla_task_repeating(
-            taskData->surfaceName,
+            mla_string_concat(mla_string_const("web_ui_sf_"), taskData->surfaceName),
             __mla_ui_http_server_web_surface_render_and_draw_task,
             ui_http_user_data
         );
