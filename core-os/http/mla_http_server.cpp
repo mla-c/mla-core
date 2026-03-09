@@ -1107,6 +1107,7 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
         return false;
     }
 
+    // Something is wrong with the connection, close it to avoid further issues
     mla_http_server_close_websocket_connection(connection, mla_websocket_close_abnormal, mla_string_const("Failed to send text message"));
     return false;
 

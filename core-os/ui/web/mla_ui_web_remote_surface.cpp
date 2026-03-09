@@ -174,7 +174,8 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
     mla_user_data_set_pointer_without_ownership(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, &drawCommands);
 
     // Serialize the commands to JSON
-    return mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
+    mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
+    return sended;
 
 }
 
