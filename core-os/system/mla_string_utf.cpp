@@ -286,7 +286,10 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 
 void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer) {
 
-    mla_free(p_Buffer.data); // Clean up allocated memory
+    if (p_Buffer.data != nullptr) {
+        mla_free(p_Buffer.data); // Clean up allocated memory
+    }
+
     p_Buffer.data = nullptr;
     p_Buffer.charCount = 0;
 }
@@ -460,7 +463,10 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 }
 
 void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer) {
-    mla_free(p_Buffer.data); // Clean up allocated memory
+
+    if (p_Buffer.data != nullptr) {
+        mla_free(p_Buffer.data); // Clean up allocated memory
+    }
     p_Buffer.data = nullptr;
     p_Buffer.charCount = 0;
 }

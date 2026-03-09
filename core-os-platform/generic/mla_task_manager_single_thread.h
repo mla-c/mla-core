@@ -16,6 +16,7 @@ extern mla_task_manager_t g_TaskManager;
 
 mla_bool_t mla_task_manager_single_thread_create_task(
     const mla_task_worker_t worker,
+    const mla_string_t& taskName,
     mla_user_data_t& userData,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
@@ -23,6 +24,7 @@ mla_bool_t mla_task_manager_single_thread_create_task(
     mla_task_shared_states* shared_states
 ) {
     (void)worker; // Silences the unused parameter warning
+    (void)taskName; // Silences the unused parameter warning
     (void)userData; // Silences the unused parameter warning
     (void)stackSize; // Silences the unused parameter warning
     (void)priority; // Silences the unused parameter warning

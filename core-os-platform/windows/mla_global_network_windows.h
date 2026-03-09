@@ -8,6 +8,7 @@
 #include "../../core-os/network/mla_network.h"
 #include "winsock2.h"
 #include "ws2tcpip.h"
+#include "iphlpapi.h"
 #include <cstdio>
 
 #define mla_network_connection_user_data_name "nwconn"
@@ -417,10 +418,82 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
     return true;
 }
 
+
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __windows_get_local_ip_addresses() {
+    mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> ipAddresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+
+    ULONG bufferSize = 15000;
+    IP_ADAPTER_ADDRESSES* adapterAddresses = nullptr;
+    ULONG result = ERROR_BUFFER_OVERFLOW;
+
+    // Retry with increasing buffer size (Microsoft recommended pattern)
+    for (mla_int32_t attempt = 0; attempt < 3 && result == ERROR_BUFFER_OVERFLOW; ++attempt) {
+        adapterAddresses = (IP_ADAPTER_ADDRESSES*)mla_malloc(bufferSize);
+        if (adapterAddresses == nullptr) {
+            return ipAddresses;
+        }
+
+        result = GetAdaptersAddresses(
+            AF_UNSPEC,
+            GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER,
+            nullptr,
+            adapterAddresses,
+            &bufferSize
+        );
+
+        if (result == ERROR_BUFFER_OVERFLOW) {
+            mla_free(adapterAddresses);
+            adapterAddresses = nullptr;
+        }
+    }
+
+    if (result != NO_ERROR || adapterAddresses == nullptr) {
+        if (adapterAddresses != nullptr) {
+            mla_free(adapterAddresses);
+        }
+        return ipAddresses;
+    }
+
+    for (IP_ADAPTER_ADDRESSES* adapter = adapterAddresses; adapter != nullptr; adapter = adapter->Next) {
+        // Skip loopback and non-operational adapters
+        if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK) {
+            continue;
+        }
+        if (adapter->OperStatus != IfOperStatusUp) {
+            continue;
+        }
+
+        for (IP_ADAPTER_UNICAST_ADDRESS* unicast = adapter->FirstUnicastAddress; unicast != nullptr; unicast = unicast->Next) {
+            mla_network_ip_address_t ipAddress = mla_network_ip_address_invalid();
+
+            if (unicast->Address.lpSockaddr->sa_family == AF_INET) {
+                sockaddr_in* addr4 = (sockaddr_in*)unicast->Address.lpSockaddr;
+                char ip[INET_ADDRSTRLEN] = {0};
+                inet_ntop(AF_INET, &addr4->sin_addr, ip, INET_ADDRSTRLEN);
+                ipAddress.address = mla_string_copy(ip, mla_strlen(ip));
+                ipAddress.is_ipv6 = false;
+                mla_array_list_add(ipAddresses, ipAddress);
+
+            } else if (unicast->Address.lpSockaddr->sa_family == AF_INET6) {
+                sockaddr_in6* addr6 = (sockaddr_in6*)unicast->Address.lpSockaddr;
+                char ip[INET6_ADDRSTRLEN] = {0};
+                inet_ntop(AF_INET6, &addr6->sin6_addr, ip, INET6_ADDRSTRLEN);
+                ipAddress.address = mla_string_copy(ip, mla_strlen(ip));
+                ipAddress.is_ipv6 = true;
+                mla_array_list_add(ipAddresses, ipAddress);
+            }
+        }
+    }
+
+    mla_free(adapterAddresses);
+    return ipAddresses;
+}
+
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __windows_resolve_host,
     __windows_connect,
-    __windows_bind_and_listen
+    __windows_bind_and_listen,
+    __windows_get_local_ip_addresses
 };
 
 

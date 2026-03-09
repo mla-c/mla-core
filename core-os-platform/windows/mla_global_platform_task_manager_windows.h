@@ -96,6 +96,7 @@ SIZE_T mla_task_manager_windows_native_get_stack_size(const mla_task_stack_size 
 
 mla_bool_t mla_task_manager_windows_native_create_task(
         const mla_task_worker_t worker,
+        const mla_string_t& task_name,
         mla_user_data_t& user_data,
         const mla_task_stack_size stackSize,
         const mla_task_priority priority,
@@ -137,6 +138,15 @@ mla_bool_t mla_task_manager_windows_native_create_task(
             winPriority = THREAD_PRIORITY_NORMAL; // Default to normal priority
     }
     SetThreadPriority(thread_data->hThread, winPriority);
+
+
+    if (!mla_string_is_empty(task_name)) {
+        mla_string_utf16_buffer_t utf16 = mla_string_to_utf16_buffer(task_name);
+        if (utf16.data != nullptr) {
+            SetThreadDescription(thread_data->hThread, reinterpret_cast<PCWSTR>(utf16.data));
+        }
+        mla_string_utf16_buffer_destroy(utf16);
+    }
 
     // Return the thread handle through outTaskResourceOwner
     *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_windows_native_cleanup, mla_dynamic_data_empty());

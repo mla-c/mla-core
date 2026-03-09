@@ -74,6 +74,19 @@ mla_bool_t __disabled_bind_and_listen(mla_network_listener_t &listener, const ml
 }
 
 /**
+ * Disabled local IP address retrieval.
+ *
+ * This function is a stub that does not query any network interfaces or
+ * return any IP addresses. It always returns an empty list, indicating that
+ * no local IP addresses are available.
+ *
+ * @return An empty array list of local IP addresses.
+ */
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __disabled_get_local_ip_addresses() {
+    return mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+}
+
+/**
  * Global table of low-level network operations.
  *
  * When networking is globally disabled this table is populated with the
@@ -84,7 +97,8 @@ mla_bool_t __disabled_bind_and_listen(mla_network_listener_t &listener, const ml
 mla_network_low_level_operations_t g_network_low_level_operations = {
     __disabled_resolve_host,
     __disabled_connect,
-    __disabled_bind_and_listen
+    __disabled_bind_and_listen,
+    __disabled_get_local_ip_addresses
 };
 
 #endif
