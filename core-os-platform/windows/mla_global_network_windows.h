@@ -73,6 +73,57 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     return true;
 }
 
+mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+    (void)data;
+    SOCKET sock = (SOCKET)userData.asUint64;
+    if (sock != INVALID_SOCKET) {
+
+        // Flush before closing
+        shutdown(sock, SD_SEND);
+        closesocket(sock);
+    }
+
+    return CLEAN_UP_SKIP;
+}
+
+
+mla_size_t __windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    (void)offset;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+    SOCKET sock = (SOCKET)socket_data.asUint64;
+    if (sock == INVALID_SOCKET) {
+        return 0;
+    }
+
+    int bytesRead = recv(sock, (char*)buffer + offset, (int)length, 0);
+    if (bytesRead == SOCKET_ERROR || bytesRead == 0) {
+        return 0;
+    }
+
+    return (mla_size_t)bytesRead;
+}
+
+mla_size_t __windows_socket_remaining_bytes(mla_stream_input_t& input) {
+
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
+
+    SOCKET sock = (SOCKET)socket_data.asUint64;
+    if (sock == INVALID_SOCKET) {
+        return 0;
+    }
+
+    u_long pending = 0;
+    if (ioctlsocket(sock, FIONREAD, &pending) == 0) {
+        // Exact bytes currently queued for TCP; 0 means closed or none
+        if (pending > 0) {
+            return mla_size_max;
+        }
+    }
+
+    return 0;
+}
+
 mla_size_t __windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
@@ -121,61 +172,6 @@ mla_size_t __windows_socket_write(mla_stream_output_t& output, mla_size_t offset
     }
 
     return total_sent;
-}
-
-mla_size_t __windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
-
-    (void)offset;
-    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
-    SOCKET sock = (SOCKET)socket_data.asUint64;
-    if (sock == INVALID_SOCKET) {
-        return 0;
-    }
-
-    int bytesRead = recv(sock, (char*)buffer + offset, (int)length, 0);
-    if (bytesRead == SOCKET_ERROR || bytesRead == 0) {
-        return 0;
-    }
-
-    return (mla_size_t)bytesRead;
-}
-
-mla_size_t __windows_socket_remaining_bytes(mla_stream_input_t& input) {
-
-    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
-
-    SOCKET sock = (SOCKET)socket_data.asUint64;
-    if (sock == INVALID_SOCKET) {
-        return 0;
-    }
-
-    u_long pending = 0;
-    if (ioctlsocket(sock, FIONREAD, &pending) == 0) {
-        // Exact bytes currently queued for TCP; 0 means closed or none
-        if (pending > 0) {
-            return mla_size_max;
-        }
-    }
-
-    return 0;
-}
-
-mla_size_t __windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
-
-    (void)offset;
-    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
-
-    SOCKET sock = (SOCKET)socket_data.asUint64;
-    if (sock == INVALID_SOCKET) {
-        return 0;
-    }
-
-    int bytesSent = send(sock, (const char*)buffer + offset, (int)length, 0);
-    if (bytesSent == SOCKET_ERROR || bytesSent == 0) {
-        return 0;
-    }
-
-    return (mla_size_t)bytesSent;
 }
 
 

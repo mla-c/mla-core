@@ -100,7 +100,8 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
 
 mla_buffer_cleanup_mode __esp32_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
-    mla_int32_t sock = (mla_int32_t)(intptr_t)data;
+    (void)data;
+    mla_int32_t sock = userData.asInt32;
     if (sock >= 0) {
         lwip_close(sock);
     }

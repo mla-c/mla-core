@@ -76,7 +76,8 @@ mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &ho
 
 mla_buffer_cleanup_mode __linux_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
-    int sock = (int)(intptr_t)data;
+    (void)data;
+    int sock = (int)userData.asInt32;
     if (sock >= 0) {
         close(sock);
     }
