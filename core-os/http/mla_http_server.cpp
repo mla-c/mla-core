@@ -659,7 +659,7 @@ mla_bool_t __http_server_remove_websocket_connection(mla_http_server_t &server,
     }
 
     // Hot Path
-    if (index < mla_array_list_size(server.websocketConnections)) {
+    if ((mla_size_t)index < mla_array_list_size(server.websocketConnections)) {
 
         mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, index);
 
@@ -717,17 +717,18 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_u
         return TASK_PROCESS_RESULT_DONE; // Server is not running, exit task
     }
 
-    mla_array_list_t<mla_websocket_connection_array_param> copyConnections = mla_array_list_empty<mla_websocket_connection_array_param>();
-
     if (!mla_rw_lock_read(server.websocketConnectionsLock)) {
         return TASK_PROCESS_RESULT_CONTINUE;
     }
+
+    mla_size_t connectionCount = mla_array_list_size(server.websocketConnections);
 
     if (mla_array_list_size(server.websocketConnections) == 0) {
         mla_rw_unlock_read(server.websocketConnectionsLock);
         return TASK_PROCESS_RESULT_CONTINUE; // No connections, yield and try again
     }
 
+    mla_array_list_t<mla_websocket_connection_array_param> copyConnections = mla_array_list<mla_websocket_connection_array_param>(connectionCount);
     mla_array_list_add_all(copyConnections, server.websocketConnections);
 
     mla_rw_unlock_read(server.websocketConnectionsLock);
@@ -1103,7 +1104,6 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_
             mla_mutex_unlock(connection.lock);
         }
 
-        connection = mla_http_server_websocket_connection_invalid();
     }
 
     if (connection.server == nullptr) {
@@ -1111,6 +1111,7 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_
     }
 
     __http_server_remove_websocket_connection(*connection.server, connection);
+    connection = mla_http_server_websocket_connection_invalid();
 
     return true;
 }

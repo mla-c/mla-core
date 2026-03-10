@@ -34,7 +34,7 @@ inline void main_app_web_ui_init(const mla_ui_control_surface_process_task_t &pr
 
             mla_network_ip_address_t& address = mla_array_list_get_unsafe(local_ips, i);
 
-            mla_info(mla_string_concat("Web UI accessible at http://", address.address, ":8081"));
+            mla_info(mla_string_concat("Web UI accessible at http://", address.address, ":8081/ui/"));
 
         }
     }
