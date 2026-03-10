@@ -264,9 +264,9 @@ mla_bool_t __linux_accept_connection(const mla_network_listener_t& listener, mla
         return false;
     }
 
-    // Set accepted socket to blocking mode for normal I/O
+    // Set accepted socket to non blocking mode
     int flags = fcntl(clientSock, F_GETFL, 0);
-    fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
+    fcntl(clientSock, F_SETFL, flags | O_NONBLOCK);
 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     int nodelay = 1;

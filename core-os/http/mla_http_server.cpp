@@ -1091,7 +1091,7 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
         if (!mla_mutex_lock(connection.lock))
             return false;
     } else {
-        if (!mla_mutex_trylock(connection.lock, ((mla_int32_t)connection_lock_timeout / 2))) {
+        if (!mla_mutex_trylock(connection.lock, ((mla_int32_t)connection_lock_timeout))) {
             return false;
         }
     }
