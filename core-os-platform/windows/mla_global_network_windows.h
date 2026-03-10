@@ -73,17 +73,54 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void)data;
-    SOCKET sock = (SOCKET)userData.asUint64;
-    if (sock != INVALID_SOCKET) {
+mla_size_t __windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+    (void)offset;
+    mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
 
-        // Flush before closing
-        shutdown(sock, SD_SEND);
-        closesocket(sock);
+    SOCKET sock = (SOCKET)socket_data.asUint64;
+    if (sock == INVALID_SOCKET) {
+        return 0;
     }
 
-    return CLEAN_UP_SKIP;
+    mla_size_t total_sent = 0;
+    mla_size_t bytes_remaining = length;
+    const char* ptr = (const char*)buffer + offset;
+
+    while (bytes_remaining > 0) {
+        int bytesSent = send(sock, ptr + total_sent, (int)bytes_remaining, 0);
+
+        if (bytesSent != SOCKET_ERROR && bytesSent > 0) {
+            total_sent += (mla_size_t)bytesSent;
+            bytes_remaining -= (mla_size_t)bytesSent;
+        } else {
+            if (bytesSent == SOCKET_ERROR) {
+                int error = WSAGetLastError();
+                // WSAEWOULDBLOCK: Resource temporarily unavailable
+                // WSAENOBUFS: No buffer space available (less common on TCP send, but possible)
+                if (error == WSAEWOULDBLOCK || error == WSAENOBUFS) {
+                    fd_set write_set;
+                    FD_ZERO(&write_set);
+                    FD_SET(sock, &write_set);
+
+                    // On Windows, the first argument to select is ignored but included for compatibility
+                    int result = select(0, nullptr, &write_set, nullptr, nullptr);
+
+                    if (result == SOCKET_ERROR) {
+                        break; // Select failed
+                    }
+                    continue; // Socket is writable again, retry send
+                }
+
+                // Real error happened
+                break;
+            } else {
+                // bytesSent == 0 means graceful shutdown from other side (unlikely during send, but possible)
+                break;
+            }
+        }
+    }
+
+    return total_sent;
 }
 
 mla_size_t __windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {

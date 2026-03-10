@@ -124,12 +124,40 @@ mla_size_t __linux_socket_write(mla_stream_output_t& output, mla_size_t offset, 
         return 0;
     }
 
-    ssize_t bytesSent = send(sock, (const char*)buffer + offset, length, MSG_NOSIGNAL);
-    if (bytesSent <= 0) {
-        return 0;
+    mla_size_t total_sent = 0;
+    mla_size_t bytes_remaining = length;
+    const char* ptr = (const char*)buffer + offset;
+
+    while (bytes_remaining > 0) {
+        // MSG_NOSIGNAL prevents SIGPIPE if the other end closes the connection
+        ssize_t sent = send(sock, ptr + total_sent, bytes_remaining, MSG_NOSIGNAL);
+
+        if (sent > 0) {
+            total_sent += (mla_size_t)sent;
+            bytes_remaining -= (mla_size_t)sent;
+        } else {
+            if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                // Socket buffer is full; wait for it to become writable
+                fd_set write_set;
+                FD_ZERO(&write_set);
+                FD_SET(sock, &write_set);
+
+                // Select waits until the socket is writable again
+                if (select(sock + 1, nullptr, &write_set, nullptr, nullptr) < 0) {
+                    if (errno == EINTR) continue;
+                    break; // Select error
+                }
+                continue;
+            } else if (sent < 0 && errno == EINTR) {
+                continue; // Interrupted by signal, retry
+            }
+
+            // Fatal error (e.g., connection reset, pipe broken)
+            break;
+        }
     }
 
-    return (mla_size_t)bytesSent;
+    return total_sent;
 }
 
 mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_network_host_t &host,

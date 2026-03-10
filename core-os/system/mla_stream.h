@@ -70,7 +70,7 @@ typedef mla_size_t (*mla_stream_input_interceptor_remaining_bytes)(mla_stream_in
 mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &input, mla_stream_input_interceptor_read intercept_read_function, mla_stream_input_interceptor_remaining_bytes intercept_remaining_bytes_function);
 
 mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &output, mla_size_t buffer_size);
-void mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output);
+mla_bool_t mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output);
 
 typedef mla_size_t (*mla_stream_output_interceptor_write)(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer);
 typedef mla_size_t (*mla_stream_output_interceptor_available_bytes)(mla_stream_output_t& wrapper, mla_stream_output_t& output);

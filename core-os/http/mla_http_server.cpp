@@ -426,7 +426,10 @@ mla_bool_t __mla_http_server_response_send(mla_network_connection_t &connection,
         }
     }
 
-    mla_stream_output_flush_buffered_wrapper(connection.outputStream);
+    if (!mla_stream_output_flush_buffered_wrapper(connection.outputStream)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -592,7 +595,11 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             }
 
             if (mla_rw_lock_write(server.websocketConnectionsLock)) {
-                mla_array_list_add(server.websocketConnections, ws_connection);
+                if (mla_array_list_add(server.websocketConnections, ws_connection)) {
+                    mla_info(mla_string_concat("Registered new WebSocket connection with id ", ws_connection.id, " for endpoint ", request.url));
+                } else {
+                    ws_connection = mla_http_server_websocket_connection_invalid(); // Mark as invalid to avoid processing
+                }
                 mla_rw_unlock_write(server.websocketConnectionsLock);
             } else {
                 ws_connection = mla_http_server_websocket_connection_invalid(); // Mark as invalid to avoid processing
@@ -647,10 +654,53 @@ mla_bool_t __http_server_remove_websocket_connection(mla_http_server_t &server,
         return false;
     }
 
-    mla_rw_lock_write(server.websocketConnectionsLock);
-    mla_bool_t removed = mla_array_list_remove(server.websocketConnections, index);
+    if (!mla_rw_lock_write(server.websocketConnectionsLock)) {
+        return false;
+    }
+
+    // Hot Path
+    if (index < mla_array_list_size(server.websocketConnections)) {
+
+        mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, index);
+
+        if (mla_string_equals(current_connection.id, connection.id)) {
+
+            if (mla_array_list_remove(server.websocketConnections, index)) {
+                mla_rw_unlock_write(server.websocketConnectionsLock);
+                mla_info(mla_string_concat("Removed WebSocket connection with id ", connection.id, " from server "));
+                return true;
+            }
+        }
+
+    }
+
+    // Fallback to linear search remove if the index is out of bounds or the id doesn't match (concurrent modification case)
+    index = -1;
+
+    for (mla_size_t i = 0; i < mla_array_list_size(server.websocketConnections); ++i) {
+
+        mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, i);
+
+        if (mla_string_equals(current_connection.id, connection.id)) {
+            index = static_cast<mla_int32_t>(i);
+            break;
+        }
+
+    }
+
+    if (index < 0) {
+        mla_rw_unlock_write(server.websocketConnectionsLock);
+        return false;
+    }
+
+    if (mla_array_list_remove(server.websocketConnections, index)) {
+        mla_rw_unlock_write(server.websocketConnectionsLock);
+        mla_info(mla_string_concat("Removed WebSocket connection with id ", connection.id, " from server "));
+        return true;
+    }
     mla_rw_unlock_write(server.websocketConnectionsLock);
-    return removed;
+    mla_error(mla_string_concat("Failed to remove WebSocket connection with id ", connection.id, " from server "));
+    return false;
 }
 
 mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_user_data_t& userData) {
@@ -673,7 +723,12 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_u
         return TASK_PROCESS_RESULT_CONTINUE;
     }
 
-    copyConnections = server.websocketConnections;
+    if (mla_array_list_size(server.websocketConnections) == 0) {
+        mla_rw_unlock_read(server.websocketConnectionsLock);
+        return TASK_PROCESS_RESULT_CONTINUE; // No connections, yield and try again
+    }
+
+    mla_array_list_add_all(copyConnections, server.websocketConnections);
 
     mla_rw_unlock_read(server.websocketConnectionsLock);
 
@@ -684,6 +739,9 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_u
         }
 
         mla_http_server_websocket_connection_t connection = mla_array_list_get_unsafe(copyConnections, i);
+
+        if (!mla_http_server_is_websocket_connection_open(connection))
+            continue;
 
         // We lock the connection for the whole processing time because
         // if multiple task are processing messages for the same connection at the same time,
@@ -743,7 +801,13 @@ mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_u
                 break;
         }
 
-        mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
+        if (action == MLA_WEBSOCKET_CONNECTION_NONE) {
+
+            if (!mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream)) {
+                mla_warning(mla_string_concat("Failed to flush WebSocket connection ", connection.id, " output stream. Closing connection."));
+                action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+            }
+        }
         mla_mutex_unlock(connection.lock);
 
         if (action == MLA_WEBSOCKET_CONNECTION_CLOSE) {
@@ -1097,9 +1161,10 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
     }
 
     if (mla_websocket_transport_send_text_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
-        mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
+
+        mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
-        return true;
+        return flush_successful;
     }
     mla_mutex_unlock(connection.lock);
 
@@ -1128,9 +1193,10 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
     }
 
     if (mla_websocket_transport_send_text_frame(connection.connection.outputStream, message, is_final, false)) {
-        mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
+
+        mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
-        return true;
+        return flush_successful;
     }
     mla_mutex_unlock(connection.lock);
 
@@ -1192,9 +1258,9 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
     }
 
     if (mla_websocket_transport_send_binary_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
-        mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
+        mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
-        return true;
+        return flush_successful;
     }
     mla_mutex_unlock(connection.lock);
 
@@ -1222,9 +1288,9 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
     }
 
     if (mla_websocket_transport_send_binary_frame(connection.connection.outputStream, message, is_final, false)) {
-        mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
+        mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
-        return true;
+        return flush_successful;
     }
 
     mla_mutex_unlock(connection.lock);

@@ -357,7 +357,8 @@ mla_size_t __mla_stream_output_buffered_wrapper_write(mla_stream_output_t &outpu
             mla_size_t written = data->base_output.write(data->base_output, 0, data->buffer_used, buffer_data);
 
             if (written != data->buffer_used) {
-                mla_error(mla_string_const("Failed to write all buffered data to base output stream"));
+                mla_debug(mla_string_const("Failed to write all buffered data to base output stream"));
+                return bytes_written - (data->buffer_used - written); // Return the actual bytes written before the error
             }
             data->buffer_used = 0;
         }
@@ -412,12 +413,12 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
     };
 }
 
-void mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output) {
+mla_bool_t mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output) {
 
     mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
 
     if (data == nullptr || data->buffer_used == 0) {
-        return;
+        return true; // Nothing to flush
     }
 
     mla_byte_t* buffer_data = mla_bytes_get_data_for_writing(data->buffer);
@@ -425,9 +426,11 @@ void mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output)
 
     if (written != data->buffer_used) {
         mla_error(mla_string_const("Failed to write all buffered data to base output stream during flush"));
+        return false;
     }
 
     data->buffer_used = 0;
+    return true;
 }
 
 ///////////////////////////////////////

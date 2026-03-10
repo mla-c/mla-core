@@ -297,7 +297,10 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     }
 
     // Close and Flush
-    mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
+    if (!mla_stream_output_flush_buffered_wrapper(bufferedOutputStream)) {
+        __mla_http_client_close_connection(connection);
+        return response;
+    }
     bufferedOutputStream = mla_stream_noop_output();
 
     ///////////

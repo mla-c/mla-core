@@ -141,19 +141,44 @@ mla_size_t __esp32_socket_remaining_bytes(mla_stream_input_t& input) {
 }
 
 mla_size_t __esp32_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
-    (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
     mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
         return 0;
     }
 
-    mla_int32_t bytesSent = lwip_send(sock, (const mla_char_t*)buffer + offset, length, 0);
-    if (bytesSent <= 0) {
-        return 0;
+    mla_size_t total_sent = 0;
+    mla_size_t bytes_remaining = length;
+    const mla_char_t* ptr = (const mla_char_t*)buffer + offset;
+
+    while (bytes_remaining > 0) {
+        mla_int32_t sent = lwip_send(sock, ptr + total_sent, bytes_remaining, 0);
+
+        if (sent > 0) {
+            total_sent += sent;
+            bytes_remaining -= sent;
+        } else {
+            if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                // Socket buffer is full; wait for it to become writable
+                fd_set write_set;
+                FD_ZERO(&write_set);
+                FD_SET(sock, &write_set);
+
+                // Select treats the socket as non-blocking just for this wait
+                if (select(sock + 1, nullptr, &write_set, nullptr, nullptr) < 0) {
+                    break; // Select error
+                }
+                continue;
+            } else if (sent < 0 && errno == EINTR) {
+                continue; // Interrupted by signal, retry
+            }
+
+            // Fatal error (e.g., connection reset)
+            break;
+        }
     }
 
-    return (mla_size_t)bytesSent;
+    return total_sent;
 }
 
 mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
@@ -285,9 +310,9 @@ mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla
         return false;
     }
 
-    // Set accepted socket to blocking mode for normal I/O
+    // Set accepted socket to non blocking mode
     mla_int32_t flags = lwip_fcntl(clientSock, F_GETFL, 0);
-    lwip_fcntl(clientSock, F_SETFL, flags & ~O_NONBLOCK);
+    lwip_fcntl(clientSock, F_SETFL, flags | O_NONBLOCK);
 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     mla_int32_t nodelay = 1;
