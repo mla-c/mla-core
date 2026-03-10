@@ -229,6 +229,7 @@ mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_pointer_t mutexResou
             // Locked by this thread, so we can unlock it
             mutex->locked = false; // Mark as unlocked
             LeaveCriticalSection(&mutex->section); // Leave the critical section
+            return true; // Successfully unlocked the mutex
         } else {
             return false; // Mutex was not locked by this thread
         }
