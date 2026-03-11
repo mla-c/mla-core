@@ -28,7 +28,7 @@ mla_user_data_id_init(mla_json_serializer_element_type_user_data_name)
 mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
                                                  mla_json_serializer_element_type_t new_type) {
 
-    mla_json_serializer_element_type_t last_type = (mla_json_serializer_element_type_t)mla_user_data_get_uint8(instance.user_data, mla_json_serializer_element_type_user_data_name, MLA_JSON_SERIALIZER_ELEMENT_NONE);
+    mla_json_serializer_element_type_t last_type = (mla_json_serializer_element_type_t)mla_user_data_get_and_replace_int8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type, MLA_JSON_SERIALIZER_ELEMENT_NONE);
 
 
     switch (new_type) {
@@ -74,7 +74,6 @@ mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instanc
             break;
     }
 
-    mla_user_data_set_uint8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type);
     return true;
 }
 

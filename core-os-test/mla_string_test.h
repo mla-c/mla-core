@@ -634,12 +634,12 @@ void StringFromUInt64Test() {
 }
 
 void StringFromFloatTest() {
-    // Test with 2 decimal places
+    // Test with 2 decimal places (Short result - likely SSO)
     mla_string_t str = mla_string_from_float(3.14f, 2);
     assert_true(mla_string_equals(str, mla_string("3.14")), "float(3.14, 2) should equal '3.14'");
     mla_string_destroy(str);
 
-    // Test negative with 3 decimal places
+    // Test negative with 3 decimal places (Short result - likely SSO)
     str = mla_string_from_float(-123.456f, 3);
     assert_true(mla_string_equals(str, mla_string("-123.456")), "float(-123.456, 3) should equal '-123.456'");
     mla_string_destroy(str);
@@ -653,15 +653,22 @@ void StringFromFloatTest() {
     str = mla_string_from_float(42.789f, 0);
     assert_true(mla_string_equals(str, mla_string("43")), "float(42.789, 0) should round to '43'");
     mla_string_destroy(str);
+
+    // Test long string (Heap allocation > 14 chars)
+    // 333333.34375 is perfectly representable in float (exact binary fraction)
+    str = mla_string_from_float(333333.34375f, 10);
+    // Expected length is 17 chars: "333333.3437500000"
+    assert_true(mla_string_equals(str, mla_string("333333.3437500000")), "float(333333.34375, 10) should equal '333333.3437500000'");
+    mla_string_destroy(str);
 }
 
 void StringFromDoubleTest() {
-    // Test with 2 decimal places
+    // Test with 2 decimal places (Short result - likely SSO)
     mla_string_t str = mla_string_from_double(3.14159265358979, 2);
     assert_true(mla_string_equals(str, mla_string("3.14")), "double(pi, 2) should equal '3.14'");
     mla_string_destroy(str);
 
-    // Test negative with 5 decimal places
+    // Test negative with 5 decimal places (Short result - likely SSO)
     str = mla_string_from_double(-123.456789, 5);
     assert_true(mla_string_equals(str, mla_string("-123.45679")), "double(-123.456789, 5) should equal '-123.45679'");
     mla_string_destroy(str);
@@ -674,6 +681,13 @@ void StringFromDoubleTest() {
     // Test with 0 decimal places
     str = mla_string_from_double(42.789, 0);
     assert_true(mla_string_equals(str, mla_string("43")), "double(42.789, 0) should round to '43'");
+    mla_string_destroy(str);
+
+    // Test long string (Heap allocation > 14 chars)
+    // 123456.789012345 is safely representable in double
+    str = mla_string_from_double(123456.789012345, 9);
+    // Expected length 16 chars: "123456.789012345"
+    assert_true(mla_string_equals(str, mla_string("123456.789012345")), "double(large, 9) should equal '123456.789012345'");
     mla_string_destroy(str);
 }
 
@@ -1316,14 +1330,27 @@ void StringFromUInt64Benchmark() {
 }
 
 void StringFromFloatBenchmark() {
+    mla_float_t value = 9995555553.14159f;
+    mla_string_t str = mla_string_from_float(value, 5);
+    mla_string_destroy(str);
+}
+
+void StringFromFloatEmbeddedBenchmark() {
     mla_float_t value = 3.14159f;
     mla_string_t str = mla_string_from_float(value, 5);
     mla_string_destroy(str);
 }
 
+
 void StringFromDoubleBenchmark() {
-    mla_double_t value = 3.14159265358979;
+    mla_double_t value = 8888883.14159265358979;
     mla_string_t str = mla_string_from_double(value, 10);
+    mla_string_destroy(str);
+}
+
+void StringFromDoubleEmbeddedBenchmark() {
+    mla_double_t value = 3.141592;
+    mla_string_t str = mla_string_from_double(value, 6);
     mla_string_destroy(str);
 }
 
@@ -1530,6 +1557,12 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("FromDouble", benchmark_category, StringFromDoubleBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("FromFloatEmbedded", benchmark_category, StringFromFloatEmbeddedBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("FromDoubleEmbedded", benchmark_category, StringFromDoubleEmbeddedBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("FromBool", benchmark_category, StringFromBoolBenchmark);

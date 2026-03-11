@@ -581,18 +581,10 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         return result;
     }
 
-    const mla_size_t bufferSize = 64;
-    mla_char_t* buffer = mla_create_char_array(bufferSize);
-
-    if (buffer == nullptr) {
-        return mla_string_empty();
-    }
-
-    mla_size_t index = 0;
-
-    // Handle negative values
+    // 1. Determine size requirements
+    mla_bool_t isNegative = false;
     if (p_Value < 0) {
-        buffer[index++] = '-';
+        isNegative = true;
         p_Value = -p_Value;
     }
 
@@ -603,53 +595,88 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     }
     p_Value += roundingFactor;
 
-    // Extract integer part
+    // Split parts
     mla_uint64_t integerPart = static_cast<mla_uint64_t>(p_Value);
     mla_float_t fractionalPart = p_Value - static_cast<mla_float_t>(integerPart);
 
-    // Convert integer part
-    if (integerPart == 0) {
-        buffer[index++] = '0';
+    // Count integer digits
+    mla_size_t intDigits = 0;
+    mla_uint64_t tempInt = integerPart;
+    if (tempInt == 0) {
+        intDigits = 1;
     } else {
-        mla_size_t intStartIndex = index;
-        do {
-            buffer[index++] = '0' + (integerPart % 10);
-            integerPart /= 10;
-        } while (integerPart > 0);
-
-        // Reverse integer digits
-        mla_size_t intEndIndex = index - 1;
-        while (intStartIndex < intEndIndex) {
-            mla_char_t temp = buffer[intStartIndex];
-            buffer[intStartIndex] = buffer[intEndIndex];
-            buffer[intEndIndex] = temp;
-            intStartIndex++;
-            intEndIndex--;
+        while (tempInt > 0) {
+            tempInt /= 10;
+            intDigits++;
         }
     }
 
-    // Add decimal point and fractional part if needed
-    if (p_DecimalPlaces > 0) {
-        buffer[index++] = '.';
+    // Calculate total length
+    mla_size_t totalLength = intDigits;
+    if (isNegative) totalLength++;
+    if (p_DecimalPlaces > 0) totalLength += (1 + p_DecimalPlaces); // +1 for dot
 
-        // Convert fractional part
+    // 2. Prepare destination
+    mla_string_t result = mla_string_empty();
+    mla_char_t* dest;
+
+    if (totalLength <= mla_string_sso_max_length) {
+        // Initialize for SSO
+        result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        dest = result.embedded.data;
+    } else {
+        // Initialize for Heap
+        const mla_size_t bufferSize = totalLength + 1;
+        dest = mla_create_char_array(bufferSize);
+        if (dest == nullptr) {
+            return mla_string_empty();
+        }
+        dest[totalLength] = '\0'; // Null terminator
+
+        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = dest;
+        result.heap.length = totalLength;
+    }
+
+    // 3. Write Data
+    mla_size_t index = 0;
+
+    // Sign
+    if (isNegative) {
+        dest[index++] = '-';
+    }
+
+    // Integer Part (Write backwards from end of int segment)
+    mla_size_t intEndIndex = index + intDigits;
+    mla_size_t writerPos = intEndIndex - 1;
+
+    if (integerPart == 0) {
+        dest[writerPos] = '0';
+    } else {
+        while (integerPart > 0) {
+            dest[writerPos--] = '0' + (integerPart % 10);
+            integerPart /= 10;
+        }
+    }
+    index = intEndIndex;
+
+    // Decimal Point and Fraction
+    if (p_DecimalPlaces > 0) {
+        dest[index++] = '.';
+
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0f;
             mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            buffer[index++] = '0' + digit;
+            dest[index++] = '0' + digit;
             fractionalPart -= static_cast<mla_float_t>(digit);
         }
     }
 
-    buffer[index] = '\0';
-    mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-    result.heap.data = buffer;
-    result.heap.length = index;
     return result;
 }
 
 mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces) {
-
 
     // Handle special cases
     if (p_Value != p_Value) { // NaN
@@ -660,7 +687,6 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         result.embedded.length = 3;
         return result;
     }
-
     if (p_Value == mla_infinity_pos) { // +Infinity
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = 'i';
@@ -669,7 +695,6 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         result.embedded.length = 3;
         return result;
     }
-
     if (p_Value == mla_infinity_neg) { // -Infinity
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.data[0] = '-';
@@ -680,18 +705,10 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         return result;
     }
 
-    const mla_size_t bufferSize = 128;
-    mla_char_t* buffer = mla_create_char_array(bufferSize);
-
-    if (buffer == nullptr) {
-        return mla_string_empty();
-    }
-
-    mla_size_t index = 0;
-
-    // Handle negative values
+    // 1. Determine size requirements
+    mla_bool_t isNegative = false;
     if (p_Value < 0) {
-        buffer[index++] = '-';
+        isNegative = true;
         p_Value = -p_Value;
     }
 
@@ -702,48 +719,84 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     }
     p_Value += roundingFactor;
 
-    // Extract integer part
+    // Split parts
     mla_uint64_t integerPart = static_cast<mla_uint64_t>(p_Value);
     mla_double_t fractionalPart = p_Value - static_cast<mla_double_t>(integerPart);
 
-    // Convert integer part
-    if (integerPart == 0) {
-        buffer[index++] = '0';
+    // Count integer digits
+    mla_size_t intDigits = 0;
+    mla_uint64_t tempInt = integerPart;
+    if (tempInt == 0) {
+        intDigits = 1;
     } else {
-        mla_size_t intStartIndex = index;
-        do {
-            buffer[index++] = '0' + (integerPart % 10);
-            integerPart /= 10;
-        } while (integerPart > 0);
-
-        // Reverse integer digits
-        mla_size_t intEndIndex = index - 1;
-        while (intStartIndex < intEndIndex) {
-            mla_char_t temp = buffer[intStartIndex];
-            buffer[intStartIndex] = buffer[intEndIndex];
-            buffer[intEndIndex] = temp;
-            intStartIndex++;
-            intEndIndex--;
+        while (tempInt > 0) {
+            tempInt /= 10;
+            intDigits++;
         }
     }
 
-    // Add decimal point and fractional part if needed
-    if (p_DecimalPlaces > 0) {
-        buffer[index++] = '.';
+    // Calculate total length
+    mla_size_t totalLength = intDigits;
+    if (isNegative) totalLength++;
+    if (p_DecimalPlaces > 0) totalLength += (1 + p_DecimalPlaces); // +1 for dot
 
-        // Convert fractional part
+    // 2. Prepare destination
+    mla_string_t result = mla_string_empty();
+    mla_char_t* dest;
+
+    if (totalLength <= mla_string_sso_max_length) {
+        // Initialize for SSO
+        result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        dest = result.embedded.data;
+    } else {
+        // Initialize for Heap
+        const mla_size_t bufferSize = totalLength + 1;
+        dest = mla_create_char_array(bufferSize);
+        if (dest == nullptr) {
+            return mla_string_empty();
+        }
+        dest[totalLength] = '\0'; // Null terminator
+
+        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = dest;
+        result.heap.length = totalLength;
+    }
+
+    // 3. Write Data
+    mla_size_t index = 0;
+
+    // Sign
+    if (isNegative) {
+        dest[index++] = '-';
+    }
+
+    // Integer Part (Write backwards from end of int segment)
+    mla_size_t intEndIndex = index + intDigits;
+    mla_size_t writerPos = intEndIndex - 1;
+
+    if (integerPart == 0) {
+        dest[writerPos] = '0';
+    } else {
+        while (integerPart > 0) {
+            dest[writerPos--] = '0' + (integerPart % 10);
+            integerPart /= 10;
+        }
+    }
+    index = intEndIndex;
+
+    // Decimal Point and Fraction
+    if (p_DecimalPlaces > 0) {
+        dest[index++] = '.';
+
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0;
             mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            buffer[index++] = '0' + digit;
+            dest[index++] = '0' + digit;
             fractionalPart -= static_cast<mla_double_t>(digit);
         }
     }
 
-    buffer[index] = '\0';
-    mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-    result.heap.data = buffer;
-    result.heap.length = index;
     return result;
 }
 

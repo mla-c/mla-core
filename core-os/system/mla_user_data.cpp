@@ -466,6 +466,404 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, mla_user_data_id id
     return true;
 }
 
+mla_bool_t mla_user_data_inc_int8(mla_user_data_t& target, mla_user_data_id id, mla_int8_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt8 = user_data->data.asInt8 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt8 = step;
+    }
+
+    return true;
+
+}
+mla_bool_t mla_user_data_inc_uint8(mla_user_data_t& target, mla_user_data_id id, mla_uint8_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint8 = user_data->data.asUint8 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint8 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_int16(mla_user_data_t& target, mla_user_data_id id, mla_int16_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt16 = user_data->data.asInt16 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt16 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_uint16(mla_user_data_t& target, mla_user_data_id id, mla_uint16_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint16 = user_data->data.asUint16 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint16 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_int32(mla_user_data_t& target, mla_user_data_id id, mla_int32_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt32 = user_data->data.asInt32 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt32 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_uint32(mla_user_data_t& target, mla_user_data_id id, mla_uint32_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint32 = user_data->data.asUint32 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint32 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_int64(mla_user_data_t& target, mla_user_data_id id, mla_int64_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt64 = user_data->data.asInt64 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt64 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_uint64(mla_user_data_t& target, mla_user_data_id id, mla_uint64_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint64 = user_data->data.asUint64 + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint64 = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_float(mla_user_data_t& target, mla_user_data_id id, mla_float_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asFloat = user_data->data.asFloat + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asFloat = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_inc_double(mla_user_data_t& target, mla_user_data_id id, mla_double_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asDouble = user_data->data.asDouble + step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asDouble = step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_int8(mla_user_data_t& target, mla_user_data_id id, mla_int8_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt8 = user_data->data.asInt8 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt8 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_uint8(mla_user_data_t& target, mla_user_data_id id, mla_uint8_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint8 = user_data->data.asUint8 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint8 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_int16(mla_user_data_t& target, mla_user_data_id id, mla_int16_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt16 = user_data->data.asInt16 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt16 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_uint16(mla_user_data_t& target, mla_user_data_id id, mla_uint16_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint16 = user_data->data.asUint16 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint16 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_int32(mla_user_data_t& target, mla_user_data_id id, mla_int32_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt32 = user_data->data.asInt32 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt32 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_uint32(mla_user_data_t& target, mla_user_data_id id, mla_uint32_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint32 = user_data->data.asUint32 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint32 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_int64(mla_user_data_t& target, mla_user_data_id id, mla_int64_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asInt64 = user_data->data.asInt64 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asInt64 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_uint64(mla_user_data_t& target, mla_user_data_id id, mla_uint64_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asUint64 = user_data->data.asUint64 - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asUint64 = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_float(mla_user_data_t& target, mla_user_data_id id, mla_float_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asFloat = user_data->data.asFloat - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asFloat = -step;
+    }
+
+    return true;
+
+}
+
+mla_bool_t mla_user_data_dec_double(mla_user_data_t& target, mla_user_data_id id, mla_double_t step) {
+
+    mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
+
+    if (user_data == nullptr) {
+        return false;
+    }
+
+    if (user_data->id == id) {
+        user_data->data.asDouble = user_data->data.asDouble - step;
+    } else {
+        user_data->id = id;
+        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->data.asDouble = -step;
+    }
+
+    return true;
+
+}
 
 mla_buffer_cleanup_mode __mla_user_data_set_native_resource_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
 
@@ -667,6 +1065,299 @@ mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, mla_user_data
     }
     return found->data.asChar;
 }
+
+mla_int8_t mla_user_data_get_and_replace_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t newValue, mla_int8_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_int8_t result;
+
+    if (found->id == id) {
+        result = found->data.asInt8;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asInt8 = newValue;
+    return result;
+
+}
+
+mla_uint8_t mla_user_data_get_and_replace_uint8(const mla_user_data_t& userData, mla_user_data_id id, mla_uint8_t newValue, mla_uint8_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_uint8_t result;
+
+    if (found->id == id) {
+        result = found->data.asUint8;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asUint8 = newValue;
+    return result;
+
+}
+
+mla_int16_t mla_user_data_get_and_replace_int16(const mla_user_data_t& userData, mla_user_data_id id, mla_int16_t newValue, mla_int16_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_int16_t result;
+
+    if (found->id == id) {
+        result = found->data.asInt16;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asInt16 = newValue;
+    return result;
+
+}
+
+mla_uint16_t mla_user_data_get_and_replace_uint16(const mla_user_data_t& userData, mla_user_data_id id, mla_uint16_t newValue, mla_uint16_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_uint16_t result;
+
+    if (found->id == id) {
+        result = found->data.asUint16;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asUint16 = newValue;
+    return result;
+
+}
+
+mla_int32_t mla_user_data_get_and_replace_int32(const mla_user_data_t& userData, mla_user_data_id id, mla_int32_t newValue, mla_int32_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_int32_t result;
+
+    if (found->id == id) {
+        result = found->data.asInt32;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asInt32 = newValue;
+    return result;
+
+}
+
+mla_uint32_t mla_user_data_get_and_replace_uint32(const mla_user_data_t& userData, mla_user_data_id id, mla_uint32_t newValue, mla_uint32_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_uint32_t result;
+
+    if (found->id == id) {
+        result = found->data.asUint32;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asUint32 = newValue;
+    return result;
+
+}
+
+mla_int64_t mla_user_data_get_and_replace_int64(const mla_user_data_t& userData, mla_user_data_id id, mla_int64_t newValue, mla_int64_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_int64_t result;
+
+    if (found->id == id) {
+        result = found->data.asInt64;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asInt64 = newValue;
+    return result;
+
+}
+
+mla_uint64_t mla_user_data_get_and_replace_uint64(const mla_user_data_t& userData, mla_user_data_id id, mla_uint64_t newValue, mla_uint64_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_uint64_t result;
+
+    if (found->id == id) {
+        result = found->data.asUint64;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asUint64 = newValue;
+    return result;
+
+}
+mla_float_t mla_user_data_get_and_replace_float(const mla_user_data_t& userData, mla_user_data_id id, mla_float_t newValue, mla_float_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_float_t result;
+
+    if (found->id == id) {
+        result = found->data.asFloat;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asFloat = newValue;
+    return result;
+
+}
+
+mla_double_t mla_user_data_get_and_replace_double(const mla_user_data_t& userData, mla_user_data_id id, mla_double_t newValue, mla_double_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_double_t result;
+
+    if (found->id == id) {
+        result = found->data.asDouble;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asDouble = newValue;
+    return result;
+
+}
+
+mla_bool_t mla_user_data_get_and_replace_bool(const mla_user_data_t& userData, mla_user_data_id id, mla_bool_t newValue, mla_bool_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_bool_t result;
+
+    if (found->id == id) {
+        result = found->data.asBool;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asBool = newValue;
+    return result;
+
+}
+
+mla_char_t mla_user_data_get_and_replace_char(const mla_user_data_t& userData, mla_user_data_id id, mla_char_t newValue, mla_char_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+    mla_char_t result;
+
+    if (found->id == id) {
+        result = found->data.asChar;
+    } else {
+        found->id = id;
+        found->dataOwner = mla_buffer_reference_noOwner();
+        result = defaultValue;
+    }
+
+    found->data.asChar = newValue;
+    return result;
+
+}
+
+mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userData, mla_user_data_id id, mla_string_t newValue, mla_string_t defaultValue) {
+
+    mla_user_data_t* found = __mla_user_data_get_for_update((mla_user_data_t&)userData, id);
+    if (found == nullptr) {
+        // Update failed, return default value
+        return defaultValue;
+    }
+
+    mla_string_t result = mla_string_empty();
+
+    if (found->id == id) {
+        const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
+        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = c_string;
+        result.heap.length = mla_strlen(c_string);
+    } else {
+        found->id = id;
+        result = defaultValue;
+    }
+
+    // Now replace with new value
+    mla_c_string_t c_new_string = mla_string_to_cString(newValue, true);
+    found->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_new_string.c_str));
+    found->dataOwner = mla_buffer_reference_create(c_new_string.c_str, false, nullptr, mla_dynamic_data_empty());
+
+    return result;
+
+}
+
 
 mla_dynamic_data_t mla_user_data_get_native_resource(const mla_user_data_t& userData, mla_user_data_id id, mla_dynamic_data_t defaultValue) {
 

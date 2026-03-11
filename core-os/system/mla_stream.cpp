@@ -533,9 +533,7 @@ mla_size_t __mla_stream_output_size_calculation_write(mla_stream_output_t& outpu
     (void)buffer;
     (void)offset;
 
-    mla_size_t size = mla_user_data_get_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, length);
-    size += length;
-    mla_user_data_set_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, size);
+    mla_user_data_inc_uint32(output.userdata, mla_stream_output_size_calculation_user_data_name, length);
     return length;
 }
 
