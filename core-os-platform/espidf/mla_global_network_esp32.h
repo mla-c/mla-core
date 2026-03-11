@@ -22,7 +22,7 @@
 #include <esp_netif.h>
 #include <esp_event.h>
 
-#define mla_network_connection_user_data_name "nwconn"
+mla_user_data_id_init(mla_network_connection_user_data_name)
 
 //////////////////////////////////////////////////////////////////
 /// ESP32 lwIP TCP/IP Stack Initialization
@@ -98,14 +98,12 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     return true;
 }
 
-mla_buffer_cleanup_mode __esp32_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void)userData;
-    (void)data;
+void __esp32_socket_cleanup(const mla_dynamic_data_t& userData) {
+
     mla_int32_t sock = userData.asInt32;
     if (sock >= 0) {
         lwip_close(sock);
     }
-    return CLEAN_UP_SKIP;
 }
 
 mla_size_t __esp32_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
