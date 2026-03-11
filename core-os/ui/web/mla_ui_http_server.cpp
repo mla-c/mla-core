@@ -57,7 +57,7 @@ mla_ui_rpc_surface_infos_t mla_ui_rpc_surface_infos_empty() {
     };
 }
 
-#define mla_ui_http_server_web_surface_data_user_data_name "wuisd"
+mla_user_data_id_init(mla_ui_http_server_web_surface_data_user_data_name)
 
 struct mla_ui_http_server_web_surface_data_t {
     mla_string_t displayName;
@@ -179,7 +179,7 @@ struct mla_ui_http_server_web_surface_data_client_initializer {
     }
 };
 
-#define mla_ui_http_server_web_surface_data_client_list_user_data_name "wuicld"
+mla_user_data_id_init(mla_ui_http_server_web_surface_data_client_list_user_data_name)
 
 #define mla_web_surface_max_buffer_items 25
 

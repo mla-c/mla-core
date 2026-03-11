@@ -26,7 +26,7 @@ struct mla_http_chunked_stream_input_userdata_initializer {
 
 };
 
-#define mla_http_chunked_stream_input_user_data_name "httpci"
+mla_user_data_id_init(mla_http_chunked_stream_input_user_data_name)
 
 
 mla_size_t __mla_http_chunked_stream_input_available_bytes(mla_stream_input_t& input) {
@@ -168,7 +168,7 @@ struct mla_http_chunked_stream_output_userdata_initializer {
 
 };
 
-#define mla_http_chunked_stream_output_user_data_name "httpco"
+mla_user_data_id_init(mla_http_chunked_stream_output_user_data_name)
 
 mla_size_t __mla_http_chunked_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 

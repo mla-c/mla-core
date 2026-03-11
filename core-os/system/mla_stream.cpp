@@ -54,7 +54,7 @@ mla_stream_input_t mla_stream_noop_input() {
     };
 }
 
-#define mla_stream_buffer_manager_userdata_name "bufMgr"
+mla_user_data_id_init(mla_stream_buffer_manager_userdata_name)
 
 mla_size_t __mla_stream_input_read_from_buffer(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
@@ -279,7 +279,7 @@ struct mla_memory_stream_buffer_initializer {
 
 };
 
-#define mla_memory_stream_buffer_userdata_name "memBuf"
+mla_user_data_id_init(mla_memory_stream_buffer_userdata_name)
 
 mla_size_t __mla_memory_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
@@ -526,7 +526,7 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
 
 }
 
-#define mla_stream_output_size_calculation_user_data_name "stSizeC"
+mla_user_data_id_init(mla_stream_output_size_calculation_user_data_name)
 
 mla_size_t __mla_stream_output_size_calculation_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void)output;

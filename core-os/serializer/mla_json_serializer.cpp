@@ -23,7 +23,7 @@ enum mla_json_serializer_element_type_t: mla_uint8_t {
     MLA_JSON_SERIALIZER_ELEMENT_VALUE = 6
 };
 
-#define mla_json_serializer_element_type_user_data_name "jsonEl"
+mla_user_data_id_init(mla_json_serializer_element_type_user_data_name)
 
 mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
                                                  mla_json_serializer_element_type_t new_type) {
@@ -334,7 +334,7 @@ mla_serializer_t mla_json_serializer(const mla_stream_output_t &output) {
 }
 
 
-#define mla_json_deserializer_char_buffer_user_data_name "jsonChr"
+mla_user_data_id_init(mla_json_deserializer_char_buffer_user_data_name)
 
 mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserializer_t &instance, mla_char_t &out_char) {
     // Check if there is something in buffer

@@ -126,7 +126,7 @@ mla_bool_t __mla_ui_web_remote_surface_set_size(const mla_ui_surface_t& surface,
     return false;
 }
 
-#define mla_ui_web_remote_surface_draw_commands_message_user_data_name "drdata"
+mla_user_data_id_init(mla_ui_web_remote_surface_draw_commands_message_user_data_name)
 
 mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator(mla_stream_output_t& output, mla_user_data_t& user_data) {
 

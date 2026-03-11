@@ -234,7 +234,7 @@ struct mla_rpc_remote_endpoint_start_with_user_data_initializer {
     }
 };
 
-#define mla_rpc_endpoint_start_with_user_data_name "rpcstar"
+mla_user_data_id_init(mla_rpc_endpoint_start_with_user_data_name)
 
 mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& user_data,
                                                     const mla_string_t &procedure_name) {

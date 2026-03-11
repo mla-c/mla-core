@@ -4,8 +4,8 @@
 
 #include "mla_task.h"
 
-#define mla_user_data_name_task_rep_worker "tskRep"
-#define mla_user_data_name_task_one_worker "tskOne"
+mla_user_data_id_init(mla_user_data_name_task_rep_worker)
+mla_user_data_id_init(mla_user_data_name_task_one_worker)
 
 mla_task_process_result_state __mla_task_worker_repeating(mla_user_data_t& userData) {
 

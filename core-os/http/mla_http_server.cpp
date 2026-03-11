@@ -17,7 +17,7 @@
 #define mla_websocket_handler_item_array_param mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer
 #define mla_websocket_connection_array_param mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer
 
-#define mla_http_task_user_data_server_name "hserver"
+mla_user_data_id_init(mla_http_task_user_data_server_name)
 
 #define mla_http_server_connection_input_buffer_size mla_stream_fast_read_buffer_size
 #define mla_http_server_connection_output_buffer_size mla_stream_fast_read_buffer_size
@@ -47,7 +47,7 @@ struct mla_http_server_path_checker_userdata_initializer {
     }
 };
 
-#define mla_http_server_handler_path_data_user_data_name "httphpd"
+mla_user_data_id_init(mla_http_server_handler_path_data_user_data_name)
 
 mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
                                                          const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {

@@ -11,7 +11,7 @@
 #include "mla_rpc_http_data_types.h"
 #include "../http/mla_http_chunked_stream.h"
 
-#define mla_rpc_http_server_writer_output_buffer_user_data "rpcHoB"
+mla_user_data_id_init(mla_rpc_http_server_writer_output_buffer_user_data)
 
 mla_http_rpc_content_type __mla_rpc_http_server_get_content_type(const mla_http_request_t& request) {
 

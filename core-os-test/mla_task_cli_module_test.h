@@ -16,7 +16,7 @@ struct TestOutputData {
     mla_size_t position;
 };
 
-#define mla_cli_module_TestOutputData_user_data_name "cliTOD"
+mla_user_data_id_init(mla_cli_module_TestOutputData_user_data_name)
 
 inline void test_output_write(const mla_user_data_t& userdata, const mla_string_t &data) {
     auto* output = mla_user_data_get_pointer<TestOutputData>(userdata, mla_cli_module_TestOutputData_user_data_name);

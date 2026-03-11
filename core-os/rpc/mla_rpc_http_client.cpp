@@ -79,7 +79,7 @@ mla_bool_t __mla_http_rpc_request_content_write(mla_http_rpc_content_type conten
 
 }
 
-#define mla_http_rpc_request_content_writer_body_config_user_data_name "rpcHbc"
+mla_user_data_id_init(mla_http_rpc_request_content_writer_body_config_user_data_name)
 
 mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
@@ -102,7 +102,7 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
 
 }
 
-#define mla_rpc_http_client_config_user_data_name "rpcHCC"
+mla_user_data_id_init(mla_rpc_http_client_config_user_data_name)
 
 mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t input_data, mla_pointer_t output_data) {
 

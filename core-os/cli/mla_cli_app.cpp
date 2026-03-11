@@ -7,9 +7,9 @@
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 
-#define mla_stream_output_user_data_name "cliout"
-#define mla_cli_app_user_data_name "cliapp"
-#define mla_cli_submodule_user_data_name "clisub"
+mla_user_data_id_init(mla_stream_output_user_data_name)
+mla_user_data_id_init(mla_cli_app_user_data_name)
+mla_user_data_id_init(mla_cli_submodule_user_data_name)
 
 void __mla_cli_write_string(mla_stream_output_t &outputStream, mla_string_t str) {
     outputStream.write(outputStream, 0, mla_string_length(str), (mla_byte_t*)mla_string_data(str));

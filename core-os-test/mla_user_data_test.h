@@ -8,144 +8,151 @@
 #include "../core-os/system/mla_user_data.h"
 #include "../core-os-test-support/mla_test_executor.h"
 
+
+mla_user_data_id_init(mla_user_data_test_id)
+mla_user_data_id_init(mla_user_data_test_id_2)
+mla_user_data_id_init(mla_user_data_test_id_3)
+mla_user_data_id_init(mla_user_data_test_id_4)
+mla_user_data_id_init(mla_user_data_test_missing)
+
 // Test setting and getting int8 values
 inline void UserDataSetGetInt8Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_int8(userData, "test", 42);
+    mla_bool_t success = mla_user_data_set_int8(userData, mla_user_data_test_id, 42);
 
     assert_true(success, "Should successfully set int8 value");
 
-    mla_int8_t value = mla_user_data_get_int8(userData, "test");
+    mla_int8_t value = mla_user_data_get_int8(userData, mla_user_data_test_id);
     assert_equal(value, (mla_int8_t)42, "Should retrieve correct int8 value");
 
-    mla_int8_t defaultValue = mla_user_data_get_int8(userData, "missing", -1);
+    mla_int8_t defaultValue = mla_user_data_get_int8(userData, mla_user_data_test_missing, -1);
     assert_equal(defaultValue, (mla_int8_t)-1, "Should return default value for missing key");
 }
 
 // Test setting and getting uint8 values
 inline void UserDataSetGetUint8Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_uint8(userData, "test", 255);
+    mla_bool_t success = mla_user_data_set_uint8(userData, mla_user_data_test_id, 255);
 
     assert_true(success, "Should successfully set uint8 value");
 
-    mla_uint8_t value = mla_user_data_get_uint8(userData, "test");
+    mla_uint8_t value = mla_user_data_get_uint8(userData, mla_user_data_test_id);
     assert_equal(value, (mla_uint8_t)255, "Should retrieve correct uint8 value");
 }
 
 // Test setting and getting int16 values
 inline void UserDataSetGetInt16Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_int16(userData, "test", -1000);
+    mla_bool_t success = mla_user_data_set_int16(userData, mla_user_data_test_id, -1000);
 
     assert_true(success, "Should successfully set int16 value");
 
-    mla_int16_t value = mla_user_data_get_int16(userData, "test");
+    mla_int16_t value = mla_user_data_get_int16(userData, mla_user_data_test_id);
     assert_equal(value, (mla_int16_t)-1000, "Should retrieve correct int16 value");
 }
 
 // Test setting and getting uint16 values
 inline void UserDataSetGetUint16Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_uint16(userData, "test", 50000);
+    mla_bool_t success = mla_user_data_set_uint16(userData, mla_user_data_test_id, 50000);
 
     assert_true(success, "Should successfully set uint16 value");
 
-    mla_uint16_t value = mla_user_data_get_uint16(userData, "test");
+    mla_uint16_t value = mla_user_data_get_uint16(userData, mla_user_data_test_id);
     assert_equal(value, (mla_uint16_t)50000, "Should retrieve correct uint16 value");
 }
 
 // Test setting and getting int32 values
 inline void UserDataSetGetInt32Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_int32(userData, "test", -100000);
+    mla_bool_t success = mla_user_data_set_int32(userData, mla_user_data_test_id, -100000);
 
     assert_true(success, "Should successfully set int32 value");
 
-    mla_int32_t value = mla_user_data_get_int32(userData, "test");
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     assert_equal(value, (mla_int32_t)-100000, "Should retrieve correct int32 value");
 }
 
 // Test setting and getting uint32 values
 inline void UserDataSetGetUint32Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_uint32(userData, "test", 4000000);
+    mla_bool_t success = mla_user_data_set_uint32(userData, mla_user_data_test_id, 4000000);
 
     assert_true(success, "Should successfully set uint32 value");
 
-    mla_uint32_t value = mla_user_data_get_uint32(userData, "test");
+    mla_uint32_t value = mla_user_data_get_uint32(userData, mla_user_data_test_id);
     assert_equal(value, (mla_uint32_t)4000000, "Should retrieve correct uint32 value");
 }
 
 // Test setting and getting int64 values
 inline void UserDataSetGetInt64Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_int64(userData, "test", -9000000000);
+    mla_bool_t success = mla_user_data_set_int64(userData, mla_user_data_test_id, -9000000000);
 
     assert_true(success, "Should successfully set int64 value");
 
-    mla_int64_t value = mla_user_data_get_int64(userData, "test");
+    mla_int64_t value = mla_user_data_get_int64(userData, mla_user_data_test_id);
     assert_equal(value, (mla_int64_t)-9000000000, "Should retrieve correct int64 value");
 }
 
 // Test setting and getting uint64 values
 inline void UserDataSetGetUint64Test() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_uint64(userData, "test", 9000000000);
+    mla_bool_t success = mla_user_data_set_uint64(userData, mla_user_data_test_id, 9000000000);
 
     assert_true(success, "Should successfully set uint64 value");
 
-    mla_uint64_t value = mla_user_data_get_uint64(userData, "test");
+    mla_uint64_t value = mla_user_data_get_uint64(userData, mla_user_data_test_id);
     assert_equal(value, (mla_uint64_t)9000000000, "Should retrieve correct uint64 value");
 }
 
 // Test setting and getting float values
 inline void UserDataSetGetFloatTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_float(userData, "test", 3.14f);
+    mla_bool_t success = mla_user_data_set_float(userData, mla_user_data_test_id, 3.14f);
 
     assert_true(success, "Should successfully set float value");
 
-    mla_float_t value = mla_user_data_get_float(userData, "test");
+    mla_float_t value = mla_user_data_get_float(userData, mla_user_data_test_id);
     assert_true(value > 3.13999f && value < 3.14001f, "Should retrieve correct float value");
 }
 
 // Test setting and getting double values
 inline void UserDataSetGetDoubleTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_double(userData, "test", 3.14159265359);
+    mla_bool_t success = mla_user_data_set_double(userData, mla_user_data_test_id, 3.14159265359);
 
     assert_true(success, "Should successfully set double value");
 
-    mla_double_t value = mla_user_data_get_double(userData, "test");
+    mla_double_t value = mla_user_data_get_double(userData, mla_user_data_test_id);
     assert_true(value > 3.14159265358 && value < 3.14159265360, "Should retrieve correct double value");
 }
 
 // Test setting and getting bool values
 inline void UserDataSetGetBoolTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_bool(userData, "test", true);
+    mla_bool_t success = mla_user_data_set_bool(userData, mla_user_data_test_id, true);
 
     assert_true(success, "Should successfully set bool value");
 
-    mla_bool_t value = mla_user_data_get_bool(userData, "test");
+    mla_bool_t value = mla_user_data_get_bool(userData, mla_user_data_test_id);
     assert_true(value, "Should retrieve correct bool value (true)");
 
-    success = mla_user_data_set_bool(userData, "test2", false);
+    success = mla_user_data_set_bool(userData, mla_user_data_test_id_2, false);
     assert_true(success, "Should successfully set bool value to false");
 
-    value = mla_user_data_get_bool(userData, "test2");
+    value = mla_user_data_get_bool(userData, mla_user_data_test_id_2);
     assert_false(value, "Should retrieve correct bool value (false)");
 }
 
 // Test setting and getting char values
 inline void UserDataSetGetCharTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_char(userData, "test", 'A');
+    mla_bool_t success = mla_user_data_set_char(userData, mla_user_data_test_id, 'A');
 
     assert_true(success, "Should successfully set char value");
 
-    mla_char_t value = mla_user_data_get_char(userData, "test");
+    mla_char_t value = mla_user_data_get_char(userData, mla_user_data_test_id);
     assert_equal(value, 'A', "Should retrieve correct char value");
 }
 
@@ -154,10 +161,10 @@ inline void UserDataSetGetPointerWithoutOwnershipTest() {
     mla_user_data_t userData = mla_user_data_empty();
     mla_int32_t testData = 12345;
 
-    mla_bool_t success = mla_user_data_set_pointer_without_ownership(userData, "test", &testData);
+    mla_bool_t success = mla_user_data_set_pointer_without_ownership(userData, mla_user_data_test_id, &testData);
     assert_true(success, "Should successfully set pointer without ownership");
 
-    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, "test");
+    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, mla_user_data_test_id);
     assert_not_null(value, "Should retrieve non-null pointer");
     assert_equal(*value, 12345, "Should retrieve correct pointer value");
 }
@@ -174,10 +181,10 @@ inline void UserDataSetGetPointerWithOwnershipTest() {
 
     *testData = 54321;
 
-    mla_bool_t success = mla_user_data_set_pointer_with_ownership<mla_int32_t, mla_default_init(mla_int32_t)>(userData, "test", testData);
+    mla_bool_t success = mla_user_data_set_pointer_with_ownership<mla_int32_t, mla_default_init(mla_int32_t)>(userData, mla_user_data_test_id, testData);
     assert_true(success, "Should successfully set pointer with ownership");
 
-    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, "test");
+    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, mla_user_data_test_id);
     assert_not_null(value, "Should retrieve non-null pointer");
     assert_equal(*value, 54321, "Should retrieve correct pointer value");
 }
@@ -186,18 +193,18 @@ inline void UserDataSetGetPointerWithOwnershipTest() {
 inline void UserDataMultipleValuesTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
-    mla_bool_t success = mla_user_data_set_int32(userData, "value1", 100);
+    mla_bool_t success = mla_user_data_set_int32(userData, mla_user_data_test_id, 100);
     assert_true(success, "Should successfully set first value");
 
-    success = mla_user_data_set_int32(userData, "value2", 200);
+    success = mla_user_data_set_int32(userData, mla_user_data_test_id_2, 200);
     assert_true(success, "Should successfully set second value");
 
-    success = mla_user_data_set_int32(userData, "value3", 300);
+    success = mla_user_data_set_int32(userData, mla_user_data_test_id_3, 300);
     assert_true(success, "Should successfully set third value");
 
-    mla_int32_t val1 = mla_user_data_get_int32(userData, "value1");
-    mla_int32_t val2 = mla_user_data_get_int32(userData, "value2");
-    mla_int32_t val3 = mla_user_data_get_int32(userData, "value3");
+    mla_int32_t val1 = mla_user_data_get_int32(userData, mla_user_data_test_id);
+    mla_int32_t val2 = mla_user_data_get_int32(userData, mla_user_data_test_id_2);
+    mla_int32_t val3 = mla_user_data_get_int32(userData, mla_user_data_test_id_3);
 
     assert_equal(val1, 100, "Should retrieve correct first value");
     assert_equal(val2, 200, "Should retrieve correct second value");
@@ -208,16 +215,16 @@ inline void UserDataMultipleValuesTest() {
 inline void UserDataOverwriteValueTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
-    mla_bool_t success = mla_user_data_set_int32(userData, "test", 100);
+    mla_bool_t success = mla_user_data_set_int32(userData, mla_user_data_test_id, 100);
     assert_true(success, "Should successfully set initial value");
 
-    mla_int32_t value = mla_user_data_get_int32(userData, "test");
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     assert_equal(value, 100, "Should retrieve correct initial value");
 
-    success = mla_user_data_set_int32(userData, "test", 200);
+    success = mla_user_data_set_int32(userData, mla_user_data_test_id, 200);
     assert_true(success, "Should successfully overwrite value");
 
-    value = mla_user_data_get_int32(userData, "test");
+    value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     assert_equal(value, 200, "Should retrieve correct overwritten value");
 }
 
@@ -225,47 +232,36 @@ inline void UserDataOverwriteValueTest() {
 inline void UserDataMixedTypesTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
-    mla_user_data_set_int32(userData, "int", 42);
-    mla_user_data_set_float(userData, "float", 3.14f);
-    mla_user_data_set_bool(userData, "bool", true);
-    mla_user_data_set_char(userData, "char", 'X');
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 42);
+    mla_user_data_set_float(userData, mla_user_data_test_id_2, 3.14f);
+    mla_user_data_set_bool(userData, mla_user_data_test_id_3, true);
+    mla_user_data_set_char(userData, mla_user_data_test_id_4, 'X');
 
-    assert_equal(mla_user_data_get_int32(userData, "int"), 42, "Should retrieve int32");
-    assert_true(mla_user_data_get_float(userData, "float") > 3.13f, "Should retrieve float");
-    assert_true(mla_user_data_get_bool(userData, "bool"), "Should retrieve bool");
-    assert_equal(mla_user_data_get_char(userData, "char"), 'X', "Should retrieve char");
+    assert_equal(mla_user_data_get_int32(userData, mla_user_data_test_id), 42, "Should retrieve int32");
+    assert_true(mla_user_data_get_float(userData, mla_user_data_test_id_2) > 3.13f, "Should retrieve float");
+    assert_true(mla_user_data_get_bool(userData, mla_user_data_test_id_3), "Should retrieve bool");
+    assert_equal(mla_user_data_get_char(userData, mla_user_data_test_id_4), 'X', "Should retrieve char");
 }
 
 // Test empty user data
 inline void UserDataEmptyTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
-    mla_int32_t value = mla_user_data_get_int32(userData, "missing", 999);
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_missing, 999);
     assert_equal(value, 999, "Should return default value for missing key in empty user data");
 
-    mla_pointer_t ptr = mla_user_data_get_mla_pointer(userData, "missing");
+    mla_pointer_t ptr = mla_user_data_get_mla_pointer(userData, mla_user_data_test_missing);
     assert_null(ptr, "Should return null pointer for missing key in empty user data");
 }
 
-// Test name size limit (8 characters)
-inline void UserDataNameSizeLimitTest() {
-    mla_user_data_t userData = mla_user_data_empty();
-
-    // Test with maximum size name (7 chars + null terminator)
-    mla_bool_t success = mla_user_data_set_int32(userData, "maxname", 123);
-    assert_true(success, "Should successfully set value with 7-char name");
-
-    mla_int32_t value = mla_user_data_get_int32(userData, "maxname");
-    assert_equal(value, 123, "Should retrieve value with 7-char name");
-}
 
 // Test getting value with different name
 inline void UserDataGetNonExistentTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
-    mla_user_data_set_int32(userData, "exists", 100);
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 100);
 
-    mla_int32_t value = mla_user_data_get_int32(userData, "missing", -1);
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_missing, -1);
     assert_equal(value, -1, "Should return default value for non-existent key");
 }
 
@@ -273,22 +269,22 @@ inline void UserDataGetNonExistentTest() {
 // Test getting value with different name
 inline void UserDataCopyWillMoveToHeapTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_int32(userData, "exists", 100);
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 100);
 
     mla_user_data_t copiedData = userData; // This should trigger the move to heap if it was on stack
 
-    mla_int32_t value = mla_user_data_get_int32(userData, "exists");
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     assert_equal(value, 100, "Original user data should still have the value after copy");
 
-    value = mla_user_data_get_int32(copiedData, "exists");
+    value = mla_user_data_get_int32(copiedData, mla_user_data_test_id);
     assert_equal(value, 100, "Copied user data should have the same value");
 
     // Now we can modify the original and check if the copied data is still dependent
-    mla_user_data_set_int32(userData, "exists", 200);
-    value = mla_user_data_get_int32(userData, "exists");
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 200);
+    value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     assert_equal(value, 200, "Original user data should reflect the updated value");
 
-    value = mla_user_data_get_int32(copiedData, "exists");
+    value = mla_user_data_get_int32(copiedData, mla_user_data_test_id);
     assert_equal(value, 200, "Copied user data should reflect the updated value since it should be sharing the same underlying data");
 }
 
@@ -348,9 +344,6 @@ inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("UserDataEmpty", test_category, UserDataEmptyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("UserDataNameSizeLimit", test_category, UserDataNameSizeLimitTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
     test = mla_test("UserDataGetNonExistent", test_category, UserDataGetNonExistentTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -364,7 +357,7 @@ inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
 // ---------------------------------------------------------------------------
 inline void UserDataWriteInt32Benchmark() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_int32(userData, "value", 42);
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 42);
     (void)userData;
 }
 
@@ -375,11 +368,11 @@ static mla_user_data_t bench_userData_read = mla_user_data_empty();
 
 inline void SetupUserDataReadInt32Benchmark() {
     bench_userData_read = mla_user_data_empty();
-    mla_user_data_set_int32(bench_userData_read, "value", 12345);
+    mla_user_data_set_int32(bench_userData_read, mla_user_data_test_id, 12345);
 }
 
 inline void UserDataReadInt32Benchmark() {
-    mla_int32_t value = mla_user_data_get_int32(bench_userData_read, "value");
+    mla_int32_t value = mla_user_data_get_int32(bench_userData_read, mla_user_data_test_id);
     (void)value;
 }
 
@@ -392,8 +385,8 @@ inline void TearDownUserDataReadInt32Benchmark() {
 // ---------------------------------------------------------------------------
 inline void UserDataReadWriteInt32Benchmark() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_int32(userData, "value", 99);
-    mla_int32_t value = mla_user_data_get_int32(userData, "value");
+    mla_user_data_set_int32(userData, mla_user_data_test_id, 99);
+    mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_id);
     (void)value;
 }
 

@@ -20,7 +20,7 @@
 #include <ifaddrs.h>
 #include <net/if.h>
 
-#define mla_network_connection_user_data_name "nwconn"
+mla_user_data_id_init(mla_network_connection_user_data_name)
 
 mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints = {

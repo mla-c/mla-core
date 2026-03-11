@@ -18,7 +18,7 @@
 
 #define mla_bytes_prefix "mla_bytes:"
 
-#define mla_xml_serializer_state_user_data_name "xmlSt"
+mla_user_data_id_init(mla_xml_serializer_state_user_data_name)
 
 struct mla_xml_serializer_state_t {
     mla_bool_t in_open_tag;
@@ -672,7 +672,7 @@ struct mla_xml_deser_state_initializer {
     }
 };
 
-#define mla_deserializer_state_user_data_name "xmlDeSt"
+mla_user_data_id_init(mla_deserializer_state_user_data_name)
 
 static mla_xml_deser_state_t *__mla_xml_deser_get_state(mla_deserializer_t &inst) {
     return mla_user_data_get_pointer<mla_xml_deser_state_t>(inst.user_data, mla_deserializer_state_user_data_name);

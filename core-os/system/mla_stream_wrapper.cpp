@@ -5,7 +5,7 @@
 #include "mla_stream.h"
 #include "../log/mla_logging.h"
 
-#define mla_stream_input_timeout_wrapper_data_userdata_name "noTWrap"
+mla_user_data_id_init(mla_stream_input_timeout_wrapper_data_userdata_name)
 
 struct mla_stream_input_timeout_wrapper_data_t {
     mla_stream_input_t base_input;
@@ -126,7 +126,7 @@ mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, m
 }
 
 
-#define mla_stream_input_limited_wrapper_data_name "limWrap"
+mla_user_data_id_init(mla_stream_input_limited_wrapper_data_name)
 
 struct mla_stream_input_limited_wrapper_data_t {
     mla_stream_input_t base_input;
@@ -210,7 +210,7 @@ mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, m
 /// Input Buffered Wrapper
 //////////////////////////////////////////////////////////////////////////////
 
-#define mla_stream_input_buffered_wrapper_data_name "bufWrap"
+mla_user_data_id_init(mla_stream_input_buffered_wrapper_data_name)
 
 struct mla_stream_input_buffered_wrapper_data_t {
     mla_stream_input_t base_input;
@@ -314,7 +314,7 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
 /// Output Buffered Wrapper
 //////////////////////////////////////////////////////////////////////////////
 
-#define mla_stream_output_buffered_wrapper_data_name "bfoWrap"
+mla_user_data_id_init(mla_stream_output_buffered_wrapper_data_name)
 
 struct mla_stream_output_buffered_wrapper_data_t {
     mla_stream_output_t base_output;
@@ -437,7 +437,7 @@ mla_bool_t mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &o
 /// Input Interceptor Wrappers
 ///////////////////////////////////////
 
-#define mla_stream_input_interceptor_wrapper_data_name "intWrap"
+mla_user_data_id_init(mla_stream_input_interceptor_wrapper_data_name)
 
 struct mla_stream_input_interceptor_wrapper_data_t {
     mla_stream_input_t base_input;
@@ -530,7 +530,7 @@ mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &inpu
 /// Output Interceptor Wrappers
 ///////////////////////////////////////
 
-#define la_stream_output_interceptor_data_name "outWrap"
+mla_user_data_id_init(mla_stream_output_interceptor_data_name)
 
 struct mla_stream_output_interceptor_wrapper_data_t {
     mla_stream_output_t base_output;
@@ -551,7 +551,7 @@ struct mla_stream_output_interceptor_wrapper_data_initializer {
 
 mla_size_t __mla_stream_output_interceptor_wrapper_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, la_stream_output_interceptor_data_name);
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -572,7 +572,7 @@ mla_size_t __mla_stream_output_interceptor_wrapper_write(mla_stream_output_t &ou
 
 mla_size_t __mla_stream_output_interceptor_wrapper_available_bytes(mla_stream_output_t &output) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, la_stream_output_interceptor_data_name);
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -606,7 +606,7 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
     data->available_bytes = intercept_available_bytes_function;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_output_interceptor_wrapper_data_t, mla_stream_output_interceptor_wrapper_data_initializer>(user_data, la_stream_output_interceptor_data_name, data);
+    mla_user_data_set_pointer_with_ownership<mla_stream_output_interceptor_wrapper_data_t, mla_stream_output_interceptor_wrapper_data_initializer>(user_data, mla_stream_output_interceptor_data_name, data);
 
     return {
         user_data,

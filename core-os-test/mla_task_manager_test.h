@@ -46,7 +46,7 @@ void OneTimeTaskTest() {
 
 static mla_size_t RepeatingTaskTestWorkerCount = 0;
 
-#define mla_RepeatingTaskTestWorker_call_count_user_data_name "callCnt"
+mla_user_data_id_init(mla_RepeatingTaskTestWorker_call_count_user_data_name)
 
 mla_task_process_result_state RepeatingTaskTestWorker(mla_user_data_t& userData) {
 

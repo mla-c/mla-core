@@ -12,7 +12,7 @@
 #define mla_ui_control_surface_drawing_lock_timeout_ms 100
 #define mla_ui_control_surface_rendering_lock_timeout_ms 50
 
-#define mla_ui_control_surface_task_id_user_data_name "uictId"
+mla_user_data_id_init(mla_ui_control_surface_task_id_user_data_name)
 
 mla_ui_control_surface_drawing_t mla_ui_control_surface_drawing_empty() {
     return {
@@ -123,7 +123,7 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_point
     return CLEAN_UP_SKIP;
 }
 
-#define mla_ui_control_surface_text_size_user_data_name "uist"
+mla_user_data_id_init(mla_ui_control_surface_text_size_user_data_name)
 
 mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
@@ -150,7 +150,7 @@ mla_ui_control_t __mla_ui_control_surface_build_loading_indicator(const mla_ui_c
 
 }
 
-#define mla_ui_control_surface_connector_user_data_name "uics"
+mla_user_data_id_init(mla_ui_control_surface_connector_user_data_name)
 
 mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data_t& userData) {
 
