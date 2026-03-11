@@ -11,7 +11,7 @@
 #include "iphlpapi.h"
 #include <cstdio>
 
-#define mla_network_connection_user_data_name "nwconn"
+mla_user_data_id_init(mla_network_connection_user_data_name)
 
 mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     WSADATA wsaData;
@@ -74,7 +74,6 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
 }
 
 void __windows_socket_cleanup(const mla_dynamic_data_t& userData) {
-    (void)data;
     SOCKET sock = (SOCKET)userData.asUint64;
     if (sock != INVALID_SOCKET) {
 
@@ -82,8 +81,6 @@ void __windows_socket_cleanup(const mla_dynamic_data_t& userData) {
         shutdown(sock, SD_SEND);
         closesocket(sock);
     }
-
-    return CLEAN_UP_SKIP;
 }
 
 

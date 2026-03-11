@@ -17,6 +17,8 @@ import {
     SurfaceService
 } from "../api/SurfaceService";
 
+const CONST_SEND_CLIENT_MESSAGE_EVERY_MS = 100;
+
 export class RemoteUIDrawer {
 
     private ctx: CanvasRenderingContext2D;
@@ -308,7 +310,7 @@ export class RemoteUIDrawer {
         const h = this.canvas.offsetHeight;
         const now = Date.now();
 
-        if ((this._inputStateDirty || this._hasMissingFontMetrics) && (now - this.lastClientStateSentTime > 250)) {
+        if ((this._inputStateDirty || this._hasMissingFontMetrics) && (now - this.lastClientStateSentTime > CONST_SEND_CLIENT_MESSAGE_EVERY_MS)) {
 
             // Send an updated client state to the server whenever we detect a change in input state
             this.sendClientState(w, h);
