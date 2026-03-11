@@ -452,7 +452,7 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_gr
     memBuffer->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership_ex(user_data, mla_memory_stream_buffer_userdata_name, memBuffer, __mla_memory_stream_cleanup_hook);
+    mla_user_data_set_pointer_with_ownership_ex(user_data, mla_memory_stream_buffer_userdata_name, memBuffer, __mla_memory_stream_cleanup_hook, false);
 
     return {
         {

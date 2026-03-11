@@ -73,7 +73,7 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+void __windows_socket_cleanup(const mla_dynamic_data_t& userData) {
     (void)data;
     SOCKET sock = (SOCKET)userData.asUint64;
     if (sock != INVALID_SOCKET) {

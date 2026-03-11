@@ -235,7 +235,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 mla_http_headers_add(response.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
 
                 mla_user_data_t writer_user_data = mla_user_data_empty();
-                mla_user_data_set_pointer_with_ownership_ex(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output, nullptr);
+                mla_user_data_set_pointer_with_ownership_ex(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output, nullptr, false);
 
                 response.contentWriter = mla_http_response_content_writer(writer_user_data, __mla_rpc_http_server_handler_content_writer);
             }

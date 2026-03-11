@@ -74,14 +74,12 @@ mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     return true;
 }
 
-mla_buffer_cleanup_mode __linux_socket_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void)userData;
-    (void)data;
+void __linux_socket_cleanup(const mla_dynamic_data_t& userData) {
+
     int sock = (int)userData.asInt32;
     if (sock >= 0) {
         close(sock);
     }
-    return CLEAN_UP_SKIP;
 }
 
 mla_size_t __linux_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {

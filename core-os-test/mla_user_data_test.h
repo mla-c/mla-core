@@ -358,4 +358,59 @@ inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
+
+// ---------------------------------------------------------------------------
+// Write benchmark – set a single int32 value into a fresh user_data each call
+// ---------------------------------------------------------------------------
+inline void UserDataWriteInt32Benchmark() {
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_int32(userData, "value", 42);
+    (void)userData;
+}
+
+// ---------------------------------------------------------------------------
+// Read benchmark – read a pre-populated int32 value each call
+// ---------------------------------------------------------------------------
+static mla_user_data_t bench_userData_read = mla_user_data_empty();
+
+inline void SetupUserDataReadInt32Benchmark() {
+    bench_userData_read = mla_user_data_empty();
+    mla_user_data_set_int32(bench_userData_read, "value", 12345);
+}
+
+inline void UserDataReadInt32Benchmark() {
+    mla_int32_t value = mla_user_data_get_int32(bench_userData_read, "value");
+    (void)value;
+}
+
+inline void TearDownUserDataReadInt32Benchmark() {
+    bench_userData_read = mla_user_data_empty();
+}
+
+// ---------------------------------------------------------------------------
+// Read+Write benchmark – set then immediately read back a single int32 value
+// ---------------------------------------------------------------------------
+inline void UserDataReadWriteInt32Benchmark() {
+    mla_user_data_t userData = mla_user_data_empty();
+    mla_user_data_set_int32(userData, "value", 99);
+    mla_int32_t value = mla_user_data_get_int32(userData, "value");
+    (void)value;
+}
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+inline void RegisterUserDataBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+    mla_benchmark_t benchmark = mla_benchmark("WriteInt32", benchmark_category, UserDataWriteInt32Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ReadInt32", benchmark_category, UserDataReadInt32Benchmark,
+                              SetupUserDataReadInt32Benchmark, TearDownUserDataReadInt32Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ReadWriteInt32", benchmark_category, UserDataReadWriteInt32Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+}
+
+
 #endif // COREOS_MLA_USER_DATA_TEST_H

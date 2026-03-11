@@ -85,6 +85,25 @@ mla_bool_t __mla_user_data_manage_external_resource(mla_user_data_list_t* list) 
     return false;
 }
 
+mla_buffer_cleanup_mode __mla_ser_data_data_into_list_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+
+    (void)userData;
+
+    mla_user_data_list_t* l_Data = reinterpret_cast<mla_user_data_list_t*>(data);
+
+    if (l_Data == nullptr) {
+        return CLEAN_UP_SKIP; // No data to clean up
+    }
+
+    // Its pretty important to clear the arry to tirgger the cleanup for the items
+    // even if the array is not cleaned up
+    mla_array_list_clear(l_Data->datas);
+    l_Data->datas = mla_array_list_empty<mla_user_data_t, mla_user_data_initializer>();
+    return CLEAN_UP_NEEDED;
+
+}
+
+
 mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &target, mla_bool_t addNewItem) {
 
     // Convert to list
@@ -132,7 +151,9 @@ mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &targe
 
     // Update the target to be the list
     __mla_user_data_set_name(target.name, mla_user_data_name_list);
-    target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
+    // should be look like the comment part but we need to make sure that we clean up the list all the time even we are in arena mode if we have external resources
+    //target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, mla_buffer_default_cleanup<mla_user_data_list_t, mla_user_data_list_initializer>, mla_dynamic_data_empty());
+    target.dataOwner = mla_buffer_reference_create(list, managedExternalResources, __mla_ser_data_data_into_list_cleanup, mla_dynamic_data_empty());
     target.data.asPointer = list;
 
     return list;
@@ -470,7 +491,22 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t na
     return true;
 }
 
-mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_buffer_cleanup_hook_t cleanup) {
+
+mla_buffer_cleanup_mode __mla_user_data_set_native_resource_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+
+    mla_user_data_set_native_resource_hook_t orginal_cleanup_function = reinterpret_cast<mla_user_data_set_native_resource_hook_t>(data);
+
+    if (orginal_cleanup_function != nullptr) {
+        orginal_cleanup_function(userData);
+    }
+
+    // We return CLEAN_UP_SKIP here because the cleanup function is responsible for cleaning up the resource,
+    // and we don't want to perform any additional cleanup in this function.
+    return CLEAN_UP_SKIP;
+}
+
+
+mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_user_data_set_native_resource_hook_t cleanup) {
 
     mla_user_data_t* user_data = __mla_user_data_get_for_update(target, name);
 
@@ -479,7 +515,7 @@ mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_
     }
 
     __mla_user_data_set_name(user_data->name, name);
-    user_data->dataOwner = mla_buffer_reference_create(data.asPointer, true, cleanup, data);
+    user_data->dataOwner = mla_buffer_reference_create(reinterpret_cast<mla_pointer_t>(cleanup), true, __mla_user_data_set_native_resource_cleanup, data);
     user_data->data = data;
 
     __mla_user_data_update_manage_external_resource(target, user_data);

@@ -25,12 +25,11 @@ struct mla_user_data_t {
     mla_user_data_t& operator=(const mla_user_data_t& p_Other);
 };
 
-
 mla_user_data_t mla_user_data_empty();
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other);
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size]);
-mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = false);
+mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = true /** for now true because in Area We can not control 100% if the inner suff need to be maintained, like wrapped sockeds **/);
 mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_pointer_t data);
 mla_bool_t mla_user_data_set_int8(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_int8_t data);
 mla_bool_t mla_user_data_set_uint8(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_uint8_t data);
@@ -45,7 +44,10 @@ mla_bool_t mla_user_data_set_double(mla_user_data_t& target, const mla_char_t na
 mla_bool_t mla_user_data_set_bool(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_bool_t data);
 mla_bool_t mla_user_data_set_char(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_char_t data);
 mla_bool_t mla_user_data_set_string(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_string_t& data);
-mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_buffer_cleanup_hook_t cleanup);
+
+typedef void(*mla_user_data_set_native_resource_hook_t)(const mla_dynamic_data_t& userData);
+
+mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], mla_dynamic_data_t data, mla_user_data_set_native_resource_hook_t);
 
 template <typename T, typename TInit = mla_default_init_ref(T)>
 mla_bool_t mla_user_data_set_pointer_with_ownership(mla_user_data_t& target, const mla_char_t name[mla_user_data_name_size], T* data) {
