@@ -105,4 +105,17 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream);
 mla_stream_output_t mla_stream_output_size_calculation();
 mla_size_t mla_stream_output_size_calculation_get_size(const mla_stream_output_t &output);
 
+//////////////////////////////////////////////////////////////////
+/// Deflate Stream Wrappers (zlib deflate/inflate)
+/// Compression output wrapper: compresses data written to it and
+/// writes compressed data to the underlying output stream.
+/// Decompression input wrapper: reads compressed data from the
+/// underlying input stream and returns decompressed data.
+/////////////////////////////////////////////////////////////////
+
+mla_stream_output_t mla_stream_output_deflate_wrapper(mla_stream_output_t &output);
+mla_bool_t mla_stream_output_deflate_finish(const mla_stream_output_t &output);
+
+mla_stream_input_t mla_stream_input_inflate_wrapper(mla_stream_input_t &input);
+
 #endif
