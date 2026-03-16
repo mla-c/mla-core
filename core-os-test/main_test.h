@@ -180,7 +180,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 74, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 82, benchmarkOutputFormat);
 
         if (benchmarkOutputFormat == mla_test_output_format_text) {
             mla_test_print("\nBenchmarks completed\n", 22);

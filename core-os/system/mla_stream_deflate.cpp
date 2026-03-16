@@ -21,16 +21,67 @@
 #define mla_deflate_max_cl_codes        19
 #define mla_deflate_max_codes           (mla_deflate_max_lit_codes + mla_deflate_max_dist_codes)
 #define mla_deflate_end_of_block        256
-#define mla_deflate_window_size         32768
+
+///////////////////////////////////////////////////////////////////
+/// Memory Usage Profiles
+///
+/// Control RAM vs compression-ratio trade-off by defining
+/// mla_deflate_memory_usage before including this file or by
+/// passing -Dmla_deflate_memory_usage=<profile> to the compiler.
+///
+///   mla_deflate_memory_small  (default)
+///       Lowest possible footprint – ideal for ESP32 and other
+///       MCUs with limited SRAM.
+///       Compress context : ~9 KB    Decompress context : ~3 KB
+///
+///   mla_deflate_memory_medium
+///       Balanced trade-off between memory and compression ratio –
+///       suitable for desktop / server systems.
+///       Compress context : ~36 KB   Decompress context : ~13 KB
+///
+///   mla_deflate_memory_high
+///       Best compression ratio – maximum window and hash table,
+///       deep chain search. Use on server / high-end systems where
+///       RAM is plentiful and output size matters most.
+///       Compress context : ~130 KB  Decompress context : ~50 KB
+///////////////////////////////////////////////////////////////////
+#define mla_deflate_memory_small   1
+#define mla_deflate_memory_medium  2
+#define mla_deflate_memory_high    3
+
+#if !defined(mla_deflate_memory_usage)
+    #define mla_deflate_memory_usage mla_deflate_memory_small
+#endif
+
+#if mla_deflate_memory_usage == mla_deflate_memory_small
+    // --- small: ESP32 / low-RAM embedded targets ---
+    #define mla_deflate_window_size       2048   // LZ77 sliding window (bytes)
+    #define mla_deflate_hash_bits         10     // hash table =  1 024 entries
+    #define mla_deflate_compress_buf_size 512    // output write buffer (bytes)
+    #define mla_deflate_chain_limit       16     // max hash-chain steps per byte
+#elif mla_deflate_memory_usage == mla_deflate_memory_medium
+    // --- medium: desktop / server ---
+    #define mla_deflate_window_size       8192   // LZ77 sliding window (bytes)
+    #define mla_deflate_hash_bits         12     // hash table =  4 096 entries
+    #define mla_deflate_compress_buf_size 4096   // output write buffer (bytes)
+    #define mla_deflate_chain_limit       64     // max hash-chain steps per byte
+#elif mla_deflate_memory_usage == mla_deflate_memory_high
+    // --- high: best compression, server / high-end systems ---
+    #define mla_deflate_window_size       32768  // LZ77 sliding window (bytes) – DEFLATE max
+    #define mla_deflate_hash_bits         14     // hash table = 16 384 entries
+    #define mla_deflate_compress_buf_size 16384  // output write buffer (bytes)
+    #define mla_deflate_chain_limit       256    // max hash-chain steps per byte
+#else
+    #error "Unknown mla_deflate_memory_usage value. Use mla_deflate_memory_small, mla_deflate_memory_medium or mla_deflate_memory_high."
+#endif
+
+// Derived constants – do not edit these directly
 #define mla_deflate_window_mask         (mla_deflate_window_size - 1)
 #define mla_deflate_min_match           3
 #define mla_deflate_max_match           258
-#define mla_deflate_hash_bits           15
 #define mla_deflate_hash_size           (1 << mla_deflate_hash_bits)
 #define mla_deflate_hash_mask           (mla_deflate_hash_size - 1)
 
-// Compression output buffer size
-#define mla_deflate_compress_buf_size   4096
 
 // Code length alphabet order (RFC 1951 section 3.2.7)
 static const mla_uint8_t __mla_deflate_cl_order[mla_deflate_max_cl_codes] = {
@@ -69,41 +120,46 @@ static const mla_uint8_t __mla_deflate_dist_extra[30] = {
 /// Huffman Decode Table
 ///////////////////////////////////////////////////////////////////
 
+template<mla_uint16_t TSymbolCapacity>
 struct __mla_deflate_huffman_t {
     mla_uint16_t counts[mla_deflate_max_bits + 1]; // Number of symbols per bit length
-    mla_uint16_t symbols[mla_deflate_max_codes];   // Sorted symbols
+    mla_uint16_t symbols[TSymbolCapacity];   // Sorted symbols
     mla_uint32_t first_code[mla_deflate_max_bits + 1];  // Pre-computed first canonical code per bit length
     mla_uint16_t first_index[mla_deflate_max_bits + 1];  // Pre-computed symbol index offset per bit length
     mla_uint16_t num_symbols;
 };
 
-__mla_deflate_huffman_t __mla_deflate_huffman_empty() {
+template<mla_uint16_t TSymbolCapacity>
+__mla_deflate_huffman_t<TSymbolCapacity> __mla_deflate_huffman_empty() {
     return { {}, {}, {}, {}, 0 };
 }
 
-static void __mla_deflate_huffman_init(__mla_deflate_huffman_t &table) {
-    mla_memset(&table, 0, sizeof(__mla_deflate_huffman_t));
+template<mla_uint16_t TSymbolCapacity>
+static void __mla_deflate_huffman_init(__mla_deflate_huffman_t<TSymbolCapacity> &table) {
+    mla_memset(&table, 0, sizeof(__mla_deflate_huffman_t<TSymbolCapacity>));
 }
 
 // Build a Huffman decode table from code lengths
-static mla_bool_t __mla_deflate_huffman_build(__mla_deflate_huffman_t &table, const mla_uint8_t *lengths, mla_uint16_t num_symbols) {
-
-    mla_memset(table.counts, 0, sizeof(table.counts));
-    mla_memset(table.symbols, 0, sizeof(table.symbols));
+template<mla_uint16_t TSymbolCapacity>
+static mla_bool_t __mla_deflate_huffman_build(
+    __mla_deflate_huffman_t<TSymbolCapacity> &table,
+    const mla_uint8_t *lengths,
+    mla_uint16_t num_symbols)
+{
+    mla_memset(table.counts,     0, sizeof(table.counts));
+    mla_memset(table.symbols,    0, sizeof(table.symbols));
     mla_memset(table.first_code, 0, sizeof(table.first_code));
-    mla_memset(table.first_index, 0, sizeof(table.first_index));
+    mla_memset(table.first_index,0, sizeof(table.first_index));
     table.num_symbols = num_symbols;
 
     // Count the number of codes for each bit length
     for (mla_uint16_t i = 0; i < num_symbols; i++) {
-        if (lengths[i] > mla_deflate_max_bits) {
-            return false;
-        }
+        if (lengths[i] > mla_deflate_max_bits) return false;
         table.counts[lengths[i]]++;
     }
-    table.counts[0] = 0; // Codes of length 0 are not used
+    table.counts[0] = 0;
 
-    // Compute offset table for sorting symbols
+    // ── Compute offset table for sorting symbols ─────────────────────────
     mla_uint16_t offsets[mla_deflate_max_bits + 1];
     offsets[0] = 0;
     offsets[1] = 0;
@@ -111,22 +167,27 @@ static mla_bool_t __mla_deflate_huffman_build(__mla_deflate_huffman_t &table, co
         offsets[i + 1] = offsets[i] + table.counts[i];
     }
 
-    // Sort symbols by their code length, then by symbol value
+    // ── Sort symbols by code length, then by symbol value ────────────────
     for (mla_uint16_t i = 0; i < num_symbols; i++) {
         if (lengths[i] != 0) {
-            table.symbols[offsets[lengths[i]]++] = i;
+            mla_uint16_t slot = offsets[lengths[i]];
+            if (slot < TSymbolCapacity) {          // compile-time guard
+                table.symbols[slot] = i;
+            }
+            offsets[lengths[i]]++;
         }
     }
+    // ─────────────────────────────────────────────────────────────────────
 
     // Pre-compute first canonical code and symbol index for each bit length
     // This avoids per-bit reversal during decoding
     mla_uint32_t code = 0;
     mla_uint16_t index = 0;
     for (mla_uint8_t len = 1; len <= mla_deflate_max_bits; len++) {
-        table.first_code[len] = code;
+        table.first_code[len]  = code;
         table.first_index[len] = index;
         index += table.counts[len];
-        code = (code + table.counts[len]) << 1;
+        code   = (code + table.counts[len]) << 1;
     }
 
     return true;
@@ -179,7 +240,9 @@ static mla_uint32_t __mla_deflate_bit_reader_read(__mla_deflate_bit_reader_t &re
 
 // Decode a Huffman code from the bit stream using pre-computed first codes
 // Reads bits one at a time and builds the canonical code directly without bit reversal
-static mla_int32_t __mla_deflate_huffman_decode(__mla_deflate_bit_reader_t &reader, const __mla_deflate_huffman_t &table) {
+template<mla_uint16_t TSymbolCapacity>
+static mla_int32_t __mla_deflate_huffman_decode(__mla_deflate_bit_reader_t &reader, const __mla_deflate_huffman_t<TSymbolCapacity> &table)
+{
     mla_uint32_t code = 0;
 
     for (mla_uint8_t len = 1; len <= mla_deflate_max_bits; len++) {
@@ -194,10 +257,15 @@ static mla_int32_t __mla_deflate_huffman_decode(__mla_deflate_bit_reader_t &read
         // Use pre-computed first_code and first_index for direct lookup
         mla_uint32_t count = table.counts[len];
         if (count > 0 && code >= table.first_code[len] && code - table.first_code[len] < count) {
+            mla_uint16_t sym_index = table.first_index[len] + (mla_uint16_t)(code - table.first_code[len]);
+            if (sym_index >= TSymbolCapacity) {   // bounds guard
+                reader.error = true;
+                return -1;
+            }
             // Consume the bits
             reader.bit_buffer >>= len;
             reader.bit_count -= len;
-            return (mla_int32_t)table.symbols[table.first_index[len] + (code - table.first_code[len])];
+            return (mla_int32_t)table.symbols[sym_index];
         }
     }
 
@@ -291,12 +359,10 @@ static void __mla_deflate_bit_writer_finish(__mla_deflate_bit_writer_t &writer) 
 struct __mla_deflate_fixed_tables_t {
     mla_uint16_t lit_code[mla_deflate_max_lit_codes];
     mla_uint8_t lit_length[mla_deflate_max_lit_codes];
-    mla_uint16_t dist_code[mla_deflate_max_dist_codes];
-    mla_uint8_t dist_length[mla_deflate_max_dist_codes];
     mla_bool_t initialized;
 };
 
-static __mla_deflate_fixed_tables_t __mla_deflate_fixed_tables = { {}, {}, {}, {}, false };
+static __mla_deflate_fixed_tables_t __mla_deflate_fixed_tables = { {}, {}, false };
 
 static void __mla_deflate_build_fixed_tables() {
 
@@ -336,12 +402,6 @@ static void __mla_deflate_build_fixed_tables() {
         if (len != 0) {
             __mla_deflate_fixed_tables.lit_code[i] = next_code[len]++;
         }
-    }
-
-    // Distance codes: all 5 bits (codes 0..29)
-    for (i = 0; i < mla_deflate_max_dist_codes; i++) {
-        __mla_deflate_fixed_tables.dist_length[i] = 5;
-        __mla_deflate_fixed_tables.dist_code[i] = i;
     }
 
     __mla_deflate_fixed_tables.initialized = true;
@@ -433,7 +493,7 @@ static void __mla_deflate_emit_match(__mla_deflate_bit_writer_t &writer, mla_uin
 
     // Emit distance code (fixed: 5 bits, reversed)
     mla_uint16_t dist_idx = __mla_deflate_dist_code(match_dist);
-    __mla_deflate_bit_writer_write_reversed(writer, __mla_deflate_fixed_tables.dist_code[dist_idx], 5);
+    __mla_deflate_bit_writer_write_reversed(writer, (mla_uint32_t)dist_idx, 5);
 
     // Emit distance extra bits
     mla_uint8_t dist_extra = __mla_deflate_dist_extra[dist_idx];
@@ -462,7 +522,7 @@ static mla_bool_t __mla_deflate_find_match(__mla_deflate_compress_state_t &state
 
     mla_uint16_t hash = __mla_deflate_hash3(data + pos);
     mla_uint16_t chain = state.hash_head[hash];
-    mla_uint16_t chain_limit = 64; // Limit chain traversal for speed
+    mla_uint16_t chain_limit = mla_deflate_chain_limit;
 
     while (chain != 0xFFFF && chain_limit > 0) {
         chain_limit--;
@@ -686,14 +746,19 @@ struct __mla_deflate_decompress_state_t {
     mla_size_t output_buf_len;   // amount of decoded data in buffer
 
     // Huffman tables for current block
-    __mla_deflate_huffman_t lit_table;
-    __mla_deflate_huffman_t dist_table;
+    __mla_deflate_huffman_t<mla_deflate_max_lit_codes> lit_table;
+    __mla_deflate_huffman_t<mla_deflate_max_dist_codes> dist_table;
 
     // Block state
     mla_bool_t block_final;
     mla_bool_t block_active;
     mla_uint8_t block_type;
     mla_size_t uncompressed_remaining; // for uncompressed blocks
+
+    // Pending back-reference copy: set when a match copy was interrupted by a full
+    // output buffer so it can be resumed on the next fill call.
+    mla_uint16_t pending_match_remaining; // bytes still to copy from the back-reference
+    mla_uint16_t pending_match_dist;      // distance of the interrupted back-reference
 
     mla_bool_t finished;
     mla_bool_t error;
@@ -708,9 +773,10 @@ struct __mla_deflate_decompress_state_initializer {
             {nullptr, 0, 0, false},        // reader
             {}, 0,                         // window, window_pos
             mla_bytes_empty(), 0, 0,             // output_buf, output_buf_size, output_buf_pos, output_buf_len
-            __mla_deflate_huffman_empty(),                   // lit_table
-            __mla_deflate_huffman_empty(),                   // dist_table
+            __mla_deflate_huffman_empty<mla_deflate_max_lit_codes>(),                   // lit_table
+            __mla_deflate_huffman_empty<mla_deflate_max_dist_codes>(),                   // dist_table
             false, false, 0, 0,           // block_final, block_active, block_type, uncompressed_remaining
+            0, 0,                          // pending_match_remaining, pending_match_dist
             false, false                   // finished, error
         };
         return result;
@@ -719,8 +785,15 @@ struct __mla_deflate_decompress_state_initializer {
 
 mla_user_data_id_init(__mla_stream_deflate_decompress_data_name)
 
-// Build fixed Huffman tables for decompression
-static void __mla_deflate_build_fixed_decode_tables(__mla_deflate_huffman_t &lit_table, __mla_deflate_huffman_t &dist_table) {
+
+static __mla_deflate_huffman_t<mla_deflate_max_lit_codes> __mla_deflate_fixed_lit_decode_table;
+static __mla_deflate_huffman_t<mla_deflate_max_dist_codes> __mla_deflate_fixed_dist_decode_table;
+static mla_bool_t __mla_deflate_fixed_decode_tables_initialized = false;
+
+static void __mla_deflate_build_fixed_decode_tables_once() {
+    if (__mla_deflate_fixed_decode_tables_initialized)
+        return;
+
     mla_uint8_t lengths[mla_deflate_max_lit_codes];
     mla_uint16_t i;
 
@@ -730,12 +803,13 @@ static void __mla_deflate_build_fixed_decode_tables(__mla_deflate_huffman_t &lit
     for (i = 256; i <= 279; i++) lengths[i] = 7;
     for (i = 280; i <= 285; i++) lengths[i] = 8;
 
-    __mla_deflate_huffman_build(lit_table, lengths, mla_deflate_max_lit_codes);
+    __mla_deflate_huffman_build(__mla_deflate_fixed_lit_decode_table, lengths, mla_deflate_max_lit_codes);
 
     // Distance: all 5 bits
     mla_uint8_t dist_lengths[mla_deflate_max_dist_codes];
     for (i = 0; i < mla_deflate_max_dist_codes; i++) dist_lengths[i] = 5;
-    __mla_deflate_huffman_build(dist_table, dist_lengths, mla_deflate_max_dist_codes);
+    __mla_deflate_huffman_build(__mla_deflate_fixed_dist_decode_table, dist_lengths, mla_deflate_max_dist_codes);
+    __mla_deflate_fixed_decode_tables_initialized = true;
 }
 
 // Decode dynamic Huffman tables from the stream
@@ -763,7 +837,7 @@ static mla_bool_t __mla_deflate_decode_dynamic_tables(__mla_deflate_decompress_s
     }
 
     // Build the code length Huffman table
-    __mla_deflate_huffman_t cl_table;
+    __mla_deflate_huffman_t<mla_deflate_max_cl_codes> cl_table = __mla_deflate_huffman_empty<mla_deflate_max_cl_codes>();
     __mla_deflate_huffman_init(cl_table);
     if (!__mla_deflate_huffman_build(cl_table, cl_lengths, mla_deflate_max_cl_codes)) {
         state.error = true;
@@ -838,6 +912,21 @@ static mla_bool_t __mla_deflate_decode_huffman_block(__mla_deflate_decompress_st
     mla_byte_t* output_buf = mla_bytes_get_data_for_writing(state.output_buf);
 
     while (state.output_buf_len < output_buf_size) {
+
+        // Resume a back-reference copy that was interrupted by a full output buffer
+        // on the previous fill call. Must be drained before decoding new symbols.
+        if (state.pending_match_remaining > 0) {
+            while (state.pending_match_remaining > 0 && state.output_buf_len < output_buf_size) {
+                mla_size_t src_pos = (mla_deflate_window_size + state.window_pos - (mla_size_t)state.pending_match_dist) & mla_deflate_window_mask;
+                mla_byte_t byte_val = state.window[src_pos];
+                output_buf[state.output_buf_len++] = byte_val;
+                state.window[state.window_pos] = byte_val;
+                state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
+                state.pending_match_remaining--;
+            }
+            continue; // re-check outer while condition before decoding a new symbol
+        }
+
         mla_int32_t symbol = __mla_deflate_huffman_decode(reader, state.lit_table);
 
         if (symbol < 0) {
@@ -896,9 +985,10 @@ static mla_bool_t __mla_deflate_decode_huffman_block(__mla_deflate_decompress_st
                 state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
 
                 if (state.output_buf_len >= output_buf_size) {
-                    // Output buffer full but match not complete - this is OK,
-                    // we'll pick it up on the next call. However, for simplicity,
-                    // we just let it fill up and stop here.
+                    // Output buffer full mid-match — save the remainder so the next
+                    // fill call can resume from here without losing any bytes.
+                    state.pending_match_remaining = match_len - (mla_uint16_t)(i + 1);
+                    state.pending_match_dist      = match_dist;
                     break;
                 }
             }
@@ -978,7 +1068,9 @@ static mla_bool_t __mla_deflate_decompress_fill(__mla_deflate_decompress_state_t
 
                 state.uncompressed_remaining = len;
             } else if (btype == mla_deflate_block_fixed) {
-                __mla_deflate_build_fixed_decode_tables(state.lit_table, state.dist_table);
+                __mla_deflate_build_fixed_decode_tables_once();
+                state.lit_table = __mla_deflate_fixed_lit_decode_table;
+                state.dist_table = __mla_deflate_fixed_dist_decode_table;
             } else if (btype == mla_deflate_block_dynamic) {
                 if (!__mla_deflate_decode_dynamic_tables(state)) {
                     return false;
@@ -1098,6 +1190,8 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
     }
     state->output_buf_pos = 0;
     state->output_buf_len = 0;
+    state->pending_match_remaining = 0;
+    state->pending_match_dist      = 0;
 
     __mla_deflate_huffman_init(state->lit_table);
     __mla_deflate_huffman_init(state->dist_table);
