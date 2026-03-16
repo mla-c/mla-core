@@ -124,6 +124,7 @@ mla_bool_t mla_string_is_empty(const mla_string_t &p_String);
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t &p_Substring);
+mla_bool_t mla_string_contains_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t &p_OldSubstring, const mla_string_t &p_NewSubstring);
 mla_bool_t mla_string_starts_with(const mla_string_t &p_String, const mla_string_t &p_Prefix);
