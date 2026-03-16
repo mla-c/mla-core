@@ -72,6 +72,8 @@ static const mla_uint8_t __mla_deflate_dist_extra[30] = {
 struct __mla_deflate_huffman_t {
     mla_uint16_t counts[MLA_DEFLATE_MAX_BITS + 1]; // Number of symbols per bit length
     mla_uint16_t symbols[MLA_DEFLATE_MAX_CODES];   // Sorted symbols
+    mla_uint32_t first_code[MLA_DEFLATE_MAX_BITS + 1];  // Pre-computed first canonical code per bit length
+    mla_uint16_t first_index[MLA_DEFLATE_MAX_BITS + 1];  // Pre-computed symbol index offset per bit length
     mla_uint16_t num_symbols;
 };
 
@@ -84,6 +86,8 @@ static mla_bool_t __mla_deflate_huffman_build(__mla_deflate_huffman_t &table, co
 
     mla_memset(table.counts, 0, sizeof(table.counts));
     mla_memset(table.symbols, 0, sizeof(table.symbols));
+    mla_memset(table.first_code, 0, sizeof(table.first_code));
+    mla_memset(table.first_index, 0, sizeof(table.first_index));
     table.num_symbols = num_symbols;
 
     // Count the number of codes for each bit length
@@ -108,6 +112,17 @@ static mla_bool_t __mla_deflate_huffman_build(__mla_deflate_huffman_t &table, co
         if (lengths[i] != 0) {
             table.symbols[offsets[lengths[i]]++] = i;
         }
+    }
+
+    // Pre-compute first canonical code and symbol index for each bit length
+    // This avoids per-bit reversal during decoding
+    mla_uint32_t code = 0;
+    mla_uint16_t index = 0;
+    for (mla_uint8_t len = 1; len <= MLA_DEFLATE_MAX_BITS; len++) {
+        table.first_code[len] = code;
+        table.first_index[len] = index;
+        index += table.counts[len];
+        code = (code + table.counts[len]) << 1;
     }
 
     return true;
@@ -158,35 +173,28 @@ static mla_uint32_t __mla_deflate_bit_reader_read(__mla_deflate_bit_reader_t &re
     return value;
 }
 
-// Decode a Huffman code from the bit stream
+// Decode a Huffman code from the bit stream using pre-computed first codes
+// Reads bits one at a time and builds the canonical code directly without bit reversal
 static mla_int32_t __mla_deflate_huffman_decode(__mla_deflate_bit_reader_t &reader, const __mla_deflate_huffman_t &table) {
     mla_uint32_t code = 0;
-    mla_uint32_t first = 0;
-    mla_uint32_t index = 0;
 
     for (mla_uint8_t len = 1; len <= MLA_DEFLATE_MAX_BITS; len++) {
         if (!__mla_deflate_bit_reader_ensure(reader, len)) {
             return -1;
         }
 
-        // Read one bit
-        code |= ((reader.bit_buffer >> (len - 1)) & 1) << (len - 1);
+        // Read next bit from LSB of bit_buffer and build canonical (MSB-first) code directly
+        mla_uint32_t bit = (reader.bit_buffer >> (len - 1)) & 1;
+        code = (code << 1) | bit;
 
-        // Get the reversed version of the code (DEFLATE stores bits LSB first)
-        mla_uint32_t reversed = 0;
-        for (mla_uint8_t b = 0; b < len; b++) {
-            reversed = (reversed << 1) | ((code >> b) & 1);
-        }
-
+        // Use pre-computed first_code and first_index for direct lookup
         mla_uint32_t count = table.counts[len];
-        if (reversed - first < count) {
+        if (count > 0 && code >= table.first_code[len] && code - table.first_code[len] < count) {
             // Consume the bits
             reader.bit_buffer >>= len;
             reader.bit_count -= len;
-            return (mla_int32_t)table.symbols[index + (reversed - first)];
+            return (mla_int32_t)table.symbols[table.first_index[len] + (code - table.first_code[len])];
         }
-        index += count;
-        first = (first + count) << 1;
     }
 
     reader.error = true;
