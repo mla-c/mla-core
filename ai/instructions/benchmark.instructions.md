@@ -154,4 +154,5 @@ volatile mla_byte_t temp = buffer[0];
 - Use `mla_benchmark_set_iteration_division` when the benchmark body loops internally to keep reported per-iteration times accurate.
 - Follow all [data type rules](project_and_data_type_rules.instructions.md) — use MLA types, MLA memory functions, and no standard library headers in MLA benchmarks. Native comparison benchmarks are the only exception.
 - Register new benchmarks in `main_test.h` inside the benchmark executor section.
+- Benchmarks for a module must live in the **same file** as the module's tests (e.g., `mla_my_module_test.h`). Place all benchmark functions and the `Register<Module>Benchmarks` function at the **end of the file**, after all test functions and the `Register<Module>Tests` function.
 

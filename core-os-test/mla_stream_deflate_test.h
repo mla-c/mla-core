@@ -100,10 +100,13 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_malloc(data_size));
     assert_not_null(test_data, "Should allocate test data");
 
-    // Fill with pattern
-    for (mla_size_t i = 0; i < data_size; i++) {
-        test_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+    if (test_data != nullptr) {
+        // Fill with pattern
+        for (mla_size_t i = 0; i < data_size; i++) {
+            test_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+        }
     }
+
 
     // Compress
     mla_memory_stream_t compressed = mla_memory_stream_empty();
@@ -124,7 +127,9 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
 
     mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_malloc(data_size + 64));
     assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
-    mla_memset(decompressed_buf, 0, data_size + 64);
+
+    if (decompressed_buf != nullptr)
+        mla_memset(decompressed_buf, 0, data_size + 64);
 
     mla_size_t total_read = 0;
     while (total_read < data_size) {
@@ -134,7 +139,8 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     }
 
     assert_equal(total_read, data_size, "Should decompress to original length");
-    assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Decompressed data should match original");
+    if (decompressed_buf != nullptr && test_data != nullptr)
+        assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Decompressed data should match original");
 
     mla_free(test_data);
     mla_free(decompressed_buf);
@@ -309,7 +315,14 @@ inline void StreamDeflateDecompressRemainingBytesTest() {
     mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
 
     // Before any reads, remaining_bytes should indicate data is available
-    mla_size_t remaining = decompress_in.remaining_bytes(decompress_in);
+    mla_size_t remaining = 0;
+
+    if (decompress_in.remaining_bytes != nullptr) {
+        remaining = decompress_in.remaining_bytes(decompress_in);
+    } else {
+        assert_fail("remaining_bytes function should not be null");
+    }
+
     assert_true(remaining > 0 || remaining == mla_size_max, "Should indicate data is available before reading");
 
     // Read all data
@@ -334,12 +347,23 @@ inline void StreamDeflateCompressAvailableBytesTest() {
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
 
     assert_true(compress_out.available_bytes != nullptr, "available_bytes should not be null");
-    mla_size_t available = compress_out.available_bytes(compress_out);
-    assert_equal(available, mla_size_max, "Should report max available space");
+
+    if (compress_out.available_bytes != nullptr) {
+        mla_size_t available = compress_out.available_bytes(compress_out);
+        assert_equal(available, mla_size_max, "Should report max available space");
+    } else {
+        assert_fail("available_bytes function should not be null");
+    }
+
 
     mla_stream_output_deflate_finish(compress_out);
-    available = compress_out.available_bytes(compress_out);
-    assert_equal(available, (mla_size_t)0, "Should report 0 available after finish");
+
+    if (compress_out.available_bytes != nullptr) {
+        mla_size_t available = compress_out.available_bytes(compress_out);
+        assert_equal(available, (mla_size_t)0, "Should report 0 available after finish");
+    } else {
+        assert_fail("available_bytes function should not be null");
+    }
 }
 
 inline void StreamDeflateCompressWithOffsetTest() {
@@ -476,5 +500,233 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("StreamDeflateNullOutput", test_category, StreamDeflateNullOutputTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
+
+
+///////////////////////////////////////////////////////////////////
+/// Static buffers and data shared across benchmarks
+///////////////////////////////////////////////////////////////////
+
+// Output buffer used by all compress benchmarks (avoids per-iteration heap allocation)
+static mla_byte_t bench_deflate_compress_out_buf[8192];
+
+// Small input: 15 bytes
+static const mla_char_t *bench_deflate_small_data = "Hello, DEFLATE!";
+static const mla_size_t  bench_deflate_small_len   = 15;
+
+// Medium input: 512 bytes of repeating pattern (highly compressible)
+static mla_byte_t bench_deflate_medium_data[512];
+
+// Large input: 4096 bytes of a pseudo-random byte pattern
+static mla_byte_t bench_deflate_large_data[4096];
+
+// Pre-compressed memory streams used by the decompress benchmarks
+static mla_memory_stream_t bench_deflate_pre_small = mla_memory_stream_empty();
+static mla_memory_stream_t bench_deflate_pre_medium = mla_memory_stream_empty();
+static mla_memory_stream_t bench_deflate_pre_large = mla_memory_stream_empty();
+
+///////////////////////////////////////////////////////////////////
+/// Helpers
+///////////////////////////////////////////////////////////////////
+
+static void bench_deflate_fill_medium_data() {
+    for (mla_size_t i = 0; i < 512; i++) {
+        bench_deflate_medium_data[i] = (mla_byte_t)(i % 10);
+    }
+}
+
+static void bench_deflate_fill_large_data() {
+    for (mla_size_t i = 0; i < 4096; i++) {
+        bench_deflate_large_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+    }
+}
+
+///////////////////////////////////////////////////////////////////
+/// Compress Benchmarks
+/// Each iteration: create wrapper → write data → finish
+/// A static output buffer is reused so no heap allocation per call.
+///////////////////////////////////////////////////////////////////
+
+inline void DeflateCompressSmallBenchmark() {
+    mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, sizeof(bench_deflate_compress_out_buf));
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
+    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+inline void SetupDeflateCompressMediumBenchmark() {
+    bench_deflate_fill_medium_data();
+}
+
+inline void DeflateCompressMediumBenchmark() {
+    mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, sizeof(bench_deflate_compress_out_buf));
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
+    comp.write(comp, 0, sizeof(bench_deflate_medium_data), bench_deflate_medium_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+inline void SetupDeflateCompressLargeBenchmark() {
+    bench_deflate_fill_large_data();
+}
+
+inline void DeflateCompressLargeBenchmark() {
+    mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, sizeof(bench_deflate_compress_out_buf));
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
+    comp.write(comp, 0, sizeof(bench_deflate_large_data), bench_deflate_large_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+///////////////////////////////////////////////////////////////////
+/// Decompress Benchmarks
+/// setUp: compress the reference data once into a memory stream.
+/// Each iteration: reset position → create decompress wrapper → read all bytes.
+/// tearDown: reset memory stream to free internal storage.
+///////////////////////////////////////////////////////////////////
+
+// --- Small ---
+
+inline void SetupDeflateDecompressSmallBenchmark() {
+    bench_deflate_pre_small = mla_memory_stream_empty();
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(bench_deflate_pre_small.output);
+    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+inline void TearDownDeflateDecompressSmallBenchmark() {
+    bench_deflate_pre_small = mla_memory_stream_empty();
+}
+
+inline void DeflateDecompressSmallBenchmark() {
+    mla_memory_stream_set_position(bench_deflate_pre_small, 0);
+    mla_stream_input_t decomp = mla_stream_input_deflate_decompress_wrapper(bench_deflate_pre_small.input);
+    mla_byte_t buf[32];
+    mla_size_t total = 0;
+    while (total < bench_deflate_small_len) {
+        mla_size_t r = decomp.read(decomp, 0, bench_deflate_small_len - total, buf + total);
+        if (r == 0) break;
+        total += r;
+    }
+    (void)total;
+}
+
+// --- Medium (repeating, highly compressible) ---
+
+inline void SetupDeflateDecompressMediumBenchmark() {
+    bench_deflate_fill_medium_data();
+    bench_deflate_pre_medium = mla_memory_stream_empty();
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(bench_deflate_pre_medium.output);
+    comp.write(comp, 0, 512, bench_deflate_medium_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+inline void TearDownDeflateDecompressMediumBenchmark() {
+    bench_deflate_pre_medium = mla_memory_stream_empty();
+}
+
+inline void DeflateDecompressMediumBenchmark() {
+    mla_memory_stream_set_position(bench_deflate_pre_medium, 0);
+    mla_stream_input_t decomp = mla_stream_input_deflate_decompress_wrapper(bench_deflate_pre_medium.input);
+    mla_byte_t buf[512];
+    mla_size_t total = 0;
+    while (total < 512) {
+        mla_size_t r = decomp.read(decomp, 0, 512 - total, buf + total);
+        if (r == 0) break;
+        total += r;
+    }
+    (void)total;
+}
+
+// --- Large (varied byte pattern) ---
+
+inline void SetupDeflateDecompressLargeBenchmark() {
+    bench_deflate_fill_large_data();
+    bench_deflate_pre_large = mla_memory_stream_empty();
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(bench_deflate_pre_large.output);
+    comp.write(comp, 0, sizeof(bench_deflate_large_data), bench_deflate_large_data);
+    mla_stream_output_deflate_finish(comp);
+}
+
+inline void TearDownDeflateDecompressLargeBenchmark() {
+    bench_deflate_pre_large = mla_memory_stream_empty();
+}
+
+inline void DeflateDecompressLargeBenchmark() {
+    mla_memory_stream_set_position(bench_deflate_pre_large, 0);
+    mla_stream_input_t decomp = mla_stream_input_deflate_decompress_wrapper(bench_deflate_pre_large.input);
+    mla_byte_t buf[4096];
+    mla_size_t total = 0;
+    while (total < 4096) {
+        mla_size_t r = decomp.read(decomp, 0, 4096 - total, buf + total);
+        if (r == 0) break;
+        total += r;
+    }
+    (void)total;
+}
+
+///////////////////////////////////////////////////////////////////
+/// Round-trip Benchmark (compress + decompress in one iteration)
+///////////////////////////////////////////////////////////////////
+
+inline void DeflateRoundTripSmallBenchmark() {
+    // Compress
+    mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, 8192);
+    mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
+    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    mla_stream_output_deflate_finish(comp);
+
+    // Decompress from the static buffer using memory stream
+    mla_memory_stream_t tmp = mla_memory_stream_empty();
+    mla_stream_output_t comp2 = mla_stream_output_deflate_compress_wrapper(tmp.output);
+    comp2.write(comp2, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    mla_stream_output_deflate_finish(comp2);
+
+    mla_memory_stream_set_position(tmp, 0);
+    mla_stream_input_t decomp = mla_stream_input_deflate_decompress_wrapper(tmp.input);
+    mla_byte_t result[32];
+    mla_size_t total = 0;
+    while (total < bench_deflate_small_len) {
+        mla_size_t r = decomp.read(decomp, 0, bench_deflate_small_len - total, result + total);
+        if (r == 0) break;
+        total += r;
+    }
+    (void)total;
+    mla_memory_stream_reset(tmp);
+}
+
+///////////////////////////////////////////////////////////////////
+/// Benchmark Registration
+///////////////////////////////////////////////////////////////////
+
+inline void RegisterStreamDeflateBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    // Compress benchmarks
+    mla_benchmark_t benchmark = mla_benchmark("CompressSmall", benchmark_category, DeflateCompressSmallBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("CompressMedium", benchmark_category, DeflateCompressMediumBenchmark,
+                              SetupDeflateCompressMediumBenchmark, nullptr);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("CompressLarge", benchmark_category, DeflateCompressLargeBenchmark,
+                              SetupDeflateCompressLargeBenchmark, nullptr);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    // Decompress benchmarks
+    benchmark = mla_benchmark("DecompressSmall", benchmark_category, DeflateDecompressSmallBenchmark,
+                              SetupDeflateDecompressSmallBenchmark, TearDownDeflateDecompressSmallBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("DecompressMedium", benchmark_category, DeflateDecompressMediumBenchmark,
+                              SetupDeflateDecompressMediumBenchmark, TearDownDeflateDecompressMediumBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("DecompressLarge", benchmark_category, DeflateDecompressLargeBenchmark,
+                              SetupDeflateDecompressLargeBenchmark, TearDownDeflateDecompressLargeBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    // Round-trip benchmark
+    benchmark = mla_benchmark("RoundTripSmall", benchmark_category, DeflateRoundTripSmallBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+}
+
 
 #endif //COREOS_MLA_STREAM_DEFLATE_TEST_H

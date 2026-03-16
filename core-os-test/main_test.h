@@ -64,7 +64,7 @@
 
 int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat) {
 
-    mla_test_executor_t l_TestExecutor = mla_test_executor(325);
+    mla_test_executor_t l_TestExecutor = mla_test_executor(375);
     RegisterDataTypesTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -129,6 +129,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHashBenchmarks(l_BenchmarkExecutor);
     RegisterTaskLocalBenchmarks(l_BenchmarkExecutor);
     RegisterUserDataBenchmarks(l_BenchmarkExecutor);
+    RegisterStreamDeflateBenchmarks(l_BenchmarkExecutor);
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Benchmarks
@@ -179,7 +180,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 72, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 74, benchmarkOutputFormat);
 
         if (benchmarkOutputFormat == mla_test_output_format_text) {
             mla_test_print("\nBenchmarks completed\n", 22);
