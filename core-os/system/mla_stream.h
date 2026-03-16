@@ -77,6 +77,21 @@ typedef mla_size_t (*mla_stream_output_interceptor_available_bytes)(mla_stream_o
 
 mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &output, mla_stream_output_interceptor_write intercept_write_function, mla_stream_output_interceptor_available_bytes intercept_available_bytes_function);
 
+///////////////////////////////////////////////////////////////////
+/// Deflate Compression/Decompression Wrappers
+///////////////////////////////////////////////////////////////////
+
+// Deflate compression output wrapper
+// Wraps an output stream to compress data written to it using the DEFLATE algorithm.
+// Data written to the returned stream is compressed and forwarded to the base output stream.
+// Call mla_stream_output_deflate_finish() when done writing to flush remaining compressed data.
+mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output);
+mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
+
+// Deflate decompression input wrapper
+// Wraps an input stream to decompress DEFLATE-compressed data read from it.
+// Data read from the returned stream is decompressed from the base input stream.
+mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
 
 //////////////////////////////////////////////////////////////////
 // Memory Stream

@@ -29,6 +29,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_stream.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_stream_helper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_stream_wrapper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_stream_deflate.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/config/mla_config.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/serializer/mla_serializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/serializer/mla_binary_serializer.cpp
