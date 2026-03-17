@@ -37,5 +37,7 @@ mla_array_list_t<mla_string_t, mla_string_initializer> mla_http_headers_get_valu
 
 mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value);
 
+mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value, const mla_string_t &value_seperator);
+
 
 #endif

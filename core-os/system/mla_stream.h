@@ -81,6 +81,9 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
 /// Deflate Compression/Decompression Wrappers
 ///////////////////////////////////////////////////////////////////
 
+// It the min size where the compression make sense, for smaller data the compressed output can be bigger than the input and it will be slower to compress than just writing the data
+#define mla_stream_output_deflate_min_compression_data_size 1024
+
 // Deflate compression output wrapper
 // Wraps an output stream to compress data written to it using the DEFLATE algorithm.
 // Data written to the returned stream is compressed and forwarded to the base output stream.
@@ -92,6 +95,8 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 // Wraps an input stream to decompress DEFLATE-compressed data read from it.
 // Data read from the returned stream is decompressed from the base input stream.
 mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
+
+mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input);
 
 //////////////////////////////////////////////////////////////////
 // Memory Stream

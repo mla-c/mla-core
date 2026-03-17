@@ -226,7 +226,13 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
         mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
-        response.content = mla_http_chunked_stream_input(buffered_stream, timeout_ms);
+
+        if (mla_http_headers_has_header_value(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"))) {
+            response.content = mla_http_chunked_stream_input_deflate(buffered_stream, timeout_ms);
+        } else {
+            response.content = mla_http_chunked_stream_input(buffered_stream, timeout_ms);
+        }
+
         return true;
     }
 

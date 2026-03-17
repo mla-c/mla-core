@@ -351,7 +351,14 @@ mla_bool_t __mla_http_server_request_read(mla_network_connection_t &connection, 
     mla_string_t transferEncoding = mla_http_headers_get_value(request.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        request.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+
+        // Check if we need switch to deflate
+        if (mla_http_headers_has_header_value(request.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"))) {
+            request.content = mla_http_chunked_stream_input_deflate(connection.inputStream, timeout_ms);
+        } else {
+            request.content = mla_http_chunked_stream_input(connection.inputStream, timeout_ms);
+        }
+
         return true;
     }
 

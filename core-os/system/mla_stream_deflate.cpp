@@ -1205,3 +1205,15 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         __mla_stream_deflate_decompress_remaining_bytes
     };
 }
+
+
+mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input) {
+
+    // Calc the compressed content size
+    mla_stream_output_t size_compression_stream = mla_stream_output_size_calculation();
+    mla_stream_output_t deflate_stream = mla_stream_output_deflate_compress_wrapper(size_compression_stream);
+    mla_stream_copy(input, deflate_stream);
+    mla_stream_output_deflate_finish(deflate_stream);
+    return mla_stream_output_size_calculation_get_size(size_compression_stream);
+
+}

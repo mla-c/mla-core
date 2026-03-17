@@ -176,10 +176,17 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
 mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_bool(mla_bool_t p_Value);
 
+// Create string in format 0x0000...
 mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value);
 mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value);
 mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value);
 mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value);
+
+// Create string in format FF
+mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value);
+mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value);
+mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value);
+mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value);
 
 
 struct mla_string_hash_t {

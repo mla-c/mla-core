@@ -44,6 +44,7 @@
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
+#include "mla_http_chunked_stream_test.h"
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
 #include "mla_http_client_test.h"
@@ -99,6 +100,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Tests
+    RegisterHttpChunkedStreamTests(l_TestExecutor);
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
     RegisterHttpClientTests(l_TestExecutor);

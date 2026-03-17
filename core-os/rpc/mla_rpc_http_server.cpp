@@ -11,6 +11,10 @@
 #include "mla_rpc_http_data_types.h"
 #include "../http/mla_http_chunked_stream.h"
 
+#ifndef mla_rpc_http_server_use_deflate_compression
+#define mla_rpc_http_server_use_deflate_compression 1
+#endif
+
 mla_user_data_id_init(mla_rpc_http_server_writer_output_buffer_user_data)
 
 mla_http_rpc_content_type __mla_rpc_http_server_get_content_type(const mla_http_request_t& request) {
@@ -29,8 +33,18 @@ mla_http_rpc_content_type __mla_rpc_http_server_get_content_type(const mla_http_
 struct mla_rpc_http_server_handler_content_writer_header_t {
     mla_http_rpc_content_type contentType;
     mla_serialize_definition_write_function_t write_function;
+    mla_bool_t support_deflate_compression;
 };
 
+mla_bool_t __mla_rpc_http_server_support_deflate_compression(const mla_rpc_http_server_handler_content_writer_header_t& header) {
+
+#if (mla_rpc_http_server_use_deflate_compression == 1)
+    return header.support_deflate_compression;
+#else
+    (void)header;
+    return false;
+#endif
+}
 
 mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t outputData, const mla_serialize_definition_write_function_t &write_function) {
 
@@ -69,7 +83,14 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
     // Store content type and write function at the beginning of output buffer
     mla_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
 
-    mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output(outputStream);
+    mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output_invalid();
+
+    if (__mla_rpc_http_server_support_deflate_compression(*header)) {
+        chunked_output = mla_http_chunked_stream_output_deflate(outputStream);
+    } else {
+        chunked_output = mla_http_chunked_stream_output(outputStream);
+    }
+
     mla_bool_t result = __mla_rpc_http_server_handler_content_write(header->contentType, chunked_output.output, outputData, header->write_function);
 
     // Finalize chunked output
@@ -177,6 +198,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
         header->contentType = contentType;
         header->write_function = procedure.outputDefinition.write_function;
+        header->support_deflate_compression = mla_http_headers_has_header_value(request.headers, mla_string_const("Accept-Encoding"), mla_string_const("deflate"), mla_string_const(","));
     }
 
     if (input != nullptr && procedure.inputDefinition.read_function != nullptr) {
@@ -225,12 +247,43 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
             mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, false);
 
             if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, outputData, procedure.outputDefinition.write_function)) {
-                // If serialization was successful we can use the memory stream as content
-                mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_int32(static_cast<mla_int32_t>(mla_memory_stream_get_size(temp_stream))));
+
+                mla_size_t content_size = mla_memory_stream_get_size(temp_stream);
+
                 mla_memory_stream_set_position(temp_stream, 0);
-                response.content = temp_stream.input;
+                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+
+                if (__mla_rpc_http_server_support_deflate_compression(*header) && content_size > mla_stream_output_deflate_min_compression_data_size) {
+
+                    mla_memory_stream_t temp_compressed_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, true);
+                    mla_stream_output_t mla_deflate_stream = mla_stream_output_deflate_compress_wrapper(temp_compressed_stream.output);
+                    mla_stream_copy(temp_stream.input, mla_deflate_stream);
+                    mla_stream_output_deflate_finish(mla_deflate_stream);
+
+                    mla_memory_stream_set_position(temp_compressed_stream, 0);
+
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_uint32(mla_memory_stream_get_size(temp_compressed_stream)));
+
+                    response.content = temp_compressed_stream.input;
+
+
+                } else {
+                    // Content is small or client does not support deflate compression, we can write it directly with known content length
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_uint32(content_size));
+                    response.content = temp_stream.input;
+                }
+
+
+
                 mla_free(output);
             } else {
+
+                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+
+                if (__mla_rpc_http_server_support_deflate_compression(*header)) {
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
+                }
 
                 mla_http_headers_add(response.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
 

@@ -992,3 +992,273 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
         return result;
     }
 }
+
+mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
+    const mla_size_t maxLength = 2; // Max: "FF"
+
+    if (maxLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+
+        if (p_Value == 0) {
+            result.embedded.data[0] = '0';
+            result.embedded.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint8_t value = p_Value;
+
+        while (value > 0) {
+            result.embedded.data[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        result.embedded.length = static_cast<mla_uint8_t>(index);
+
+        // Reverse in place
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = result.embedded.data[i];
+            result.embedded.data[i] = result.embedded.data[index - 1 - i];
+            result.embedded.data[index - 1 - i] = temp;
+        }
+
+        return result;
+    } else {
+        const mla_size_t bufferSize = maxLength + 1;
+        mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+        if (buffer == nullptr) {
+            return mla_string_empty();
+        }
+
+        if (p_Value == 0) {
+            buffer[0] = '0';
+            buffer[1] = '\0';
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            result.heap.data = buffer;
+            result.heap.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint8_t value = p_Value;
+
+        while (value > 0) {
+            buffer[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        buffer[index] = '\0';
+
+        // Reverse in place
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = buffer[i];
+            buffer[i] = buffer[index - 1 - i];
+            buffer[index - 1 - i] = temp;
+        }
+
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = buffer;
+        result.heap.length = index;
+        return result;
+    }
+}
+
+mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
+    const mla_size_t maxLength = 4; // Max: "FFFF"
+
+    if (maxLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+
+        if (p_Value == 0) {
+            result.embedded.data[0] = '0';
+            result.embedded.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint16_t value = p_Value;
+
+        while (value > 0) {
+            result.embedded.data[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        result.embedded.length = static_cast<mla_uint8_t>(index);
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = result.embedded.data[i];
+            result.embedded.data[i] = result.embedded.data[index - 1 - i];
+            result.embedded.data[index - 1 - i] = temp;
+        }
+
+        return result;
+    } else {
+        const mla_size_t bufferSize = maxLength + 1;
+        mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+        if (buffer == nullptr) {
+            return mla_string_empty();
+        }
+
+        if (p_Value == 0) {
+            buffer[0] = '0';
+            buffer[1] = '\0';
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            result.heap.data = buffer;
+            result.heap.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint16_t value = p_Value;
+
+        while (value > 0) {
+            buffer[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        buffer[index] = '\0';
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = buffer[i];
+            buffer[i] = buffer[index - 1 - i];
+            buffer[index - 1 - i] = temp;
+        }
+
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = buffer;
+        result.heap.length = index;
+        return result;
+    }
+}
+
+mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
+    const mla_size_t maxLength = 8; // Max: "FFFFFFFF"
+
+    if (maxLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+
+        if (p_Value == 0) {
+            result.embedded.data[0] = '0';
+            result.embedded.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint32_t value = p_Value;
+
+        while (value > 0) {
+            result.embedded.data[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        result.embedded.length = static_cast<mla_uint8_t>(index);
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = result.embedded.data[i];
+            result.embedded.data[i] = result.embedded.data[index - 1 - i];
+            result.embedded.data[index - 1 - i] = temp;
+        }
+
+        return result;
+    } else {
+        const mla_size_t bufferSize = maxLength + 1;
+        mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+        if (buffer == nullptr) {
+            return mla_string_empty();
+        }
+
+        if (p_Value == 0) {
+            buffer[0] = '0';
+            buffer[1] = '\0';
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            result.heap.data = buffer;
+            result.heap.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint32_t value = p_Value;
+
+        while (value > 0) {
+            buffer[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        buffer[index] = '\0';
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = buffer[i];
+            buffer[i] = buffer[index - 1 - i];
+            buffer[index - 1 - i] = temp;
+        }
+
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = buffer;
+        result.heap.length = index;
+        return result;
+    }
+}
+
+mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
+    const mla_size_t maxLength = 16; // Max: "FFFFFFFFFFFFFFFF"
+
+    if (maxLength <= mla_string_sso_max_length) {
+        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+
+        if (p_Value == 0) {
+            result.embedded.data[0] = '0';
+            result.embedded.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint64_t value = p_Value;
+
+        while (value > 0) {
+            result.embedded.data[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        result.embedded.length = static_cast<mla_uint8_t>(index);
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = result.embedded.data[i];
+            result.embedded.data[i] = result.embedded.data[index - 1 - i];
+            result.embedded.data[index - 1 - i] = temp;
+        }
+
+        return result;
+    } else {
+        const mla_size_t bufferSize = maxLength + 1;
+        mla_char_t* buffer = mla_create_char_array(bufferSize);
+
+        if (buffer == nullptr) {
+            return mla_string_empty();
+        }
+
+        if (p_Value == 0) {
+            buffer[0] = '0';
+            buffer[1] = '\0';
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            result.heap.data = buffer;
+            result.heap.length = 1;
+            return result;
+        }
+
+        mla_size_t index = 0;
+        mla_uint64_t value = p_Value;
+
+        while (value > 0) {
+            buffer[index++] = hexDigits[value & 0xF];
+            value >>= 4;
+        }
+        buffer[index] = '\0';
+
+        for (mla_size_t i = 0; i < index / 2; ++i) {
+            mla_char_t temp = buffer[i];
+            buffer[i] = buffer[index - 1 - i];
+            buffer[index - 1 - i] = temp;
+        }
+
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result.heap.data = buffer;
+        result.heap.length = index;
+        return result;
+    }
+}
