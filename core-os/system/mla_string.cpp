@@ -326,12 +326,28 @@ mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const ml
     mla_size_t length1 = mla_string_length(p_String1);
     mla_size_t length2 = mla_string_length(p_String2);
 
+    if (length1 == 0 && length2 == 0) {
+        return true; // Both strings are empty
+    }
+
     if (length1 != length2) {
         return false; // Lengths differ, cannot be equal
     }
 
     const mla_char_t* data1 = mla_string_data(p_String1);
     const mla_char_t* data2 = mla_string_data(p_String2);
+
+    if (data1 == data2) {
+        return true; // Same pointer, same string
+    }
+
+    if (data1 == nullptr) {
+        return false;
+    }
+
+    if (data2 == nullptr) {
+        return false;
+    }
 
     for (mla_size_t i = 0; i < length1; ++i) {
         if (mla_char_toLower(data1[i]) != mla_char_toLower(data2[i])) {
@@ -364,6 +380,34 @@ mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0)
             return true;
 
+    }
+    return false; // Substring not found
+}
+
+mla_bool_t mla_string_contains_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2) {
+
+    mla_size_t length1 = mla_string_length(p_String1);
+    mla_size_t length2 = mla_string_length(p_String2);
+
+    if (length2 > length1) {
+        return false; // Substring cannot be longer than the string
+    }
+
+    const mla_char_t* data1 = mla_string_data(p_String1);
+    const mla_char_t* data2 = mla_string_data(p_String2);
+
+    for (mla_size_t i = 0; i <= length1 - length2; ++i) {
+
+        mla_bool_t match = true;
+        for (mla_size_t j = 0; j < length2; ++j) {
+            if (mla_char_toLower(data1[i + j]) != mla_char_toLower(data2[j])) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            return true; // Substring found ignoring case
+        }
     }
     return false; // Substring not found
 }

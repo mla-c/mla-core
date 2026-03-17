@@ -16,7 +16,7 @@ mla_http_header_t mla_http_header_empty() {
 void mla_http_headers_add(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value) {
 
     // Check if header already exists
-    for (mla_size_t i = 0; i < p_Headers.size; i++) {
+    for (mla_size_t i = 0; i < mla_array_list_size(p_Headers); i++) {
 
         mla_http_header_t* header = mla_array_list_get_ref(p_Headers, i);
 
@@ -53,7 +53,7 @@ void mla_http_headers_add(mla_array_list_t<mla_http_header_t, mla_http_header_in
 mla_string_t mla_http_headers_get_value(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name) {
 
     // Check if header already exists
-    for (mla_size_t i = 0; i < p_Headers.size; i++) {
+    for (mla_size_t i = 0; i < mla_array_list_size(p_Headers); i++) {
 
         mla_http_header_t* header = mla_array_list_get_ref(p_Headers, i);
 
@@ -79,7 +79,7 @@ mla_string_t mla_http_headers_get_value(const mla_array_list_t<mla_http_header_t
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_http_headers_get_values(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name) {
 
     // Check if header already exists
-    for (mla_size_t i = 0; i < p_Headers.size; i++) {
+    for (mla_size_t i = 0; i < mla_array_list_size(p_Headers); i++) {
 
         mla_http_header_t* header = mla_array_list_get_ref(p_Headers, i);
 
@@ -98,4 +98,32 @@ mla_array_list_t<mla_string_t, mla_string_initializer> mla_http_headers_get_valu
     }
 
     return mla_array_list_empty<mla_string_t, mla_string_initializer>();
+}
+
+mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value) {
+
+    for (mla_size_t i = 0; i < mla_array_list_size(p_Headers); i++) {
+        mla_http_header_t* header = mla_array_list_get_ref(p_Headers, i);
+
+        if (mla_string_equals_ignore_case(header->name, p_Name)) {
+            if (header->type == MLA_HTTP_HEADER_TYPE_SINGLE) {
+
+                if (mla_string_equals_ignore_case(header->value, p_Value)) {
+                    return true;
+                }
+
+            } else {
+
+                for (mla_size_t j = 0; j < mla_array_list_size(header->values); j++) {
+
+                    if (mla_string_equals_ignore_case(mla_array_list_get_unsafe(header->values, j), p_Value)) {
+                        return true;
+                    }
+
+                }
+            }
+        }
+    }
+
+    return false;
 }
