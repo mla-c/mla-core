@@ -12,6 +12,7 @@
 #include "main_app_web_ui.h"
 #include "main_app_window_ui.h"
 #include "main_app_main_window.h"
+#include "main_app_background_task.h"
 
 int run() {
 
@@ -27,6 +28,9 @@ int run() {
 
     main_app_web_ui_init(task);
     main_app_window_ui_init(task);
+
+    // Setup Background Tasks
+    main_app_background_tasks_init();
 
     mla_task_manager_process_all_tasks();
 
