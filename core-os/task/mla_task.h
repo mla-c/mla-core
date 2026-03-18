@@ -47,4 +47,6 @@ mla_task_process_result_state __mla_task_worker_one_time(mla_user_data_t& userDa
 mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_t worker, mla_user_data_t& userData);
 mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, mla_user_data_t& userData);
 
+void mla_task_update_stack_size(mla_task_t& task, mla_task_stack_size new_stack_size);
+
 #endif

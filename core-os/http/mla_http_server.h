@@ -138,7 +138,7 @@ struct mla_http_server_t {
 mla_http_server_t mla_http_server_invalid();
 mla_http_server_t mla_http_server(const mla_network_host_t &host);
 mla_bool_t mla_http_server_running(const mla_http_server_t &server);
-mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks);
+mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks, mla_task_stack_size task_stack_size = TASK_STACK_SIZE_DEFAULT);
 mla_bool_t mla_http_server_stop(mla_http_server_t &server);
 
 // Registration Methods

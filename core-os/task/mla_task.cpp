@@ -71,3 +71,7 @@ mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, m
         mla_buffer_reference_noOwner(),
     };
 }
+
+void mla_task_update_stack_size(mla_task_t& task, mla_task_stack_size new_stack_size) {
+    task.stack_size = new_stack_size;
+}

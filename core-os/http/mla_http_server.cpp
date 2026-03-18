@@ -865,7 +865,7 @@ mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_pointer_t data, const
     return CLEAN_UP_NEEDED;
 }
 
-mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks) {
+mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks, mla_task_stack_size task_stack_size) {
     if (!mla_mutex_lock(server.listenerLock)) {
         return false;
     }
@@ -930,6 +930,8 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
             __mla_http_server_handler_task,
             taskUserData
         );
+
+        mla_task_update_stack_size(http_task, task_stack_size);
 
         if (!mla_task_manager_register_task(http_task)) {
             server.status = MLA_HTTP_SERVER_STATUS_ERROR;

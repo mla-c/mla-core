@@ -31,7 +31,7 @@ configSTACK_DEPTH_TYPE mla_task_manager_esp32_native_get_stack_size(const mla_ta
         case TASK_STACK_SIZE_MEDIUM:
             return 8192; // 8 KB
         case TASK_STACK_SIZE_LARGE:
-            return 12288; // 16 KB
+            return 12288; // 12 KB
         case TASK_STACK_SIZE_XLARGE:
             return 16384; // 16 KB
         case TASK_STACK_SIZE_XXLARGE:

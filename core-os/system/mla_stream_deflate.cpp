@@ -154,7 +154,8 @@ static mla_bool_t __mla_deflate_huffman_build(
 
     // Count the number of codes for each bit length
     for (mla_uint16_t i = 0; i < num_symbols; i++) {
-        if (lengths[i] > mla_deflate_max_bits) return false;
+        if (lengths[i] > mla_deflate_max_bits)
+            return false;
         table.counts[lengths[i]]++;
     }
     table.counts[0] = 0;
@@ -366,7 +367,8 @@ static __mla_deflate_fixed_tables_t __mla_deflate_fixed_tables = { {}, {}, false
 
 static void __mla_deflate_build_fixed_tables() {
 
-    if (__mla_deflate_fixed_tables.initialized) return;
+    if (__mla_deflate_fixed_tables.initialized)
+        return;
 
     // Build literal/length code lengths per RFC 1951 3.2.6:
     //   0..143   -> 8 bits
@@ -807,7 +809,9 @@ static void __mla_deflate_build_fixed_decode_tables_once() {
 
     // Distance: all 5 bits
     mla_uint8_t dist_lengths[mla_deflate_max_dist_codes];
-    for (i = 0; i < mla_deflate_max_dist_codes; i++) dist_lengths[i] = 5;
+    for (i = 0; i < mla_deflate_max_dist_codes; i++)
+        dist_lengths[i] = 5;
+
     __mla_deflate_huffman_build(__mla_deflate_fixed_dist_decode_table, dist_lengths, mla_deflate_max_dist_codes);
     __mla_deflate_fixed_decode_tables_initialized = true;
 }
