@@ -12,7 +12,7 @@
 #include "../http/mla_http_chunked_stream.h"
 
 #ifndef mla_rpc_http_server_use_deflate_compression
-#define mla_rpc_http_server_use_deflate_compression 1
+#define mla_rpc_http_server_use_deflate_compression mla_http_server_use_deflate_compression
 #endif
 
 mla_user_data_id_init(mla_rpc_http_server_writer_output_buffer_user_data)

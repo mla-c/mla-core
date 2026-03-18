@@ -31,6 +31,7 @@ mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String);
 
 mla_bytes_t mla_bytes_copy(const mla_bytes_t& p_Bytes);
 
+const mla_byte_t* mla_bytes_get_data_readonly(const mla_bytes_t& p_Bytes);
 mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes);
 mla_size_t mla_bytes_length(const mla_bytes_t& p_Bytes);
 

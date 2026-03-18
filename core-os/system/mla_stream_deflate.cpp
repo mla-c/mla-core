@@ -1221,3 +1221,15 @@ mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input)
     return mla_stream_output_size_calculation_get_size(size_compression_stream);
 
 }
+
+mla_size_t mla_stream_output_deflate_window_bits(mla_stream_output_t &output) {
+    (void)output; // window bits depend only on the compile-time window size
+
+    mla_size_t windowSize = (mla_size_t)mla_deflate_window_size;
+    mla_size_t bits = 0;
+    while (windowSize > 1) {
+        windowSize >>= 1;
+        bits++;
+    }
+    return bits;
+}

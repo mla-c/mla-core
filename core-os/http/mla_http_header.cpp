@@ -4,6 +4,8 @@
 
 #include "mla_http_header.h"
 
+#include "../system/mla_string_concat.h"
+
 mla_http_header_t mla_http_header_empty() {
     return {
         mla_string_empty(),
@@ -138,7 +140,14 @@ mla_bool_t __mla_http_headers_has_value(const mla_string_t &headerValue, const m
         mla_string_t value = mla_array_list_get_unsafe(splittedValues, i);
         value = mla_string_trim(value);
 
+        // check if there is a 100% match
         if (mla_string_equals_ignore_case(value, valueToCheck)) {
+            return true;
+        }
+
+        // check if its a sub category which the most time
+        // sec-websocket-extensions: permessage-deflate; client_max_window_bits
+        if (mla_string_starts_with(mla_string_concat(value, ";"), valueToCheck)) {
             return true;
         }
     }

@@ -49,6 +49,7 @@ struct mla_websocket_binary_message_t {
 struct mla_websocket_client_t {
     mla_network_connection_t connection;  ///< Underlying network connection
     mla_user_data_t userdata;       ///< User-defined data for callbacks
+    mla_bool_t supports_deflate_compression; ///< Indicates if the connection supports deflate compression
 };
 
 /**
@@ -81,7 +82,7 @@ mla_websocket_text_message_t mla_websocket_text_message_empty();
  * @param timeout_ms Connection timeout in milliseconds.
  * @return True if connection successful, false otherwise.
  */
-mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url, mla_size_t timeout_ms);
+mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url, mla_size_t timeout_ms, mla_bool_t supports_deflate_compression = true);
 
 
 mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &client);

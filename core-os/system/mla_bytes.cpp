@@ -85,6 +85,10 @@ mla_bytes_t mla_bytes_copy(const mla_bytes_t& p_Bytes) {
 
 }
 
+const mla_byte_t* mla_bytes_get_data_readonly(const mla_bytes_t& p_Bytes) {
+    return p_Bytes.data;
+}
+
 mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes) {
 
     return const_cast<mla_byte_t*>(p_Bytes.data);

@@ -18,7 +18,8 @@
 mla_websocket_client_t mla_websocket_client_invalid() {
     return {
         mla_network_connection_disconnected(),
-        mla_user_data_empty()
+        mla_user_data_empty(),
+         false
     };
 }
 
@@ -53,7 +54,7 @@ mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &clien
 }
 
 mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url,
-                                        mla_size_t timeout_ms) {
+                                        mla_size_t timeout_ms, mla_bool_t supports_deflate_compression) {
 
     mla_url_t parsed_url = mla_url_empty();
 
@@ -120,6 +121,12 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
     if (!mla_stream_output_write_string(output, mla_string_const("Sec-WebSocket-Version: 13\r\n"))) {
         return false;
     }
+    if (supports_deflate_compression) {
+        // Send Sec-WebSocket-Extensions header to indicate support for permessage-deflate compression
+        if (!mla_stream_output_write_string(output, mla_string_const("Sec-WebSocket-Extensions: permessage-deflate\r\n"))) {
+            return false;
+        }
+    }
     if (!mla_stream_output_write_string(output, mla_string_const("\r\n"))) {
         return false;
     }
@@ -147,6 +154,7 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
         return false;
     }
 
+    client.supports_deflate_compression = mla_http_headers_has_header_value(headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"), mla_string_const(","));
 
 
     // Verify Sec-WebSocket-Accept header
@@ -197,7 +205,7 @@ mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client
     // Sending the text message
 
     mla_stream_output_t &output = client.connection.outputStream;
-    return mla_websocket_transport_send_text_frame(output, message, is_final, true);
+    return mla_websocket_transport_send_text_frame(output, message, is_final, true, client.supports_deflate_compression);
 }
 
 mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message,
@@ -207,7 +215,7 @@ mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &clie
 
     mla_stream_output_t &output = client.connection.outputStream;
 
-    return mla_websocket_transport_send_binary_frame(output, message, is_final, true);
+    return mla_websocket_transport_send_binary_frame(output, message, is_final, true, client.supports_deflate_compression);
 }
 
 mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message(mla_websocket_client_t &client, mla_size_t timeout_ms, mla_websocket_text_message_t &textMessage, mla_websocket_binary_message_t &binaryMessage) {

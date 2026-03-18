@@ -529,6 +529,26 @@ mla_bool_t mla_string_starts_with(const mla_string_t &p_String, const mla_string
 
 }
 
+mla_bool_t mla_string_starts_with_ignore_case(const mla_string_t &p_String, const mla_string_t &p_Prefix) {
+
+    mla_size_t length = mla_string_length(p_String);
+    mla_size_t lengthPrefix = mla_string_length(p_Prefix);
+
+    if (lengthPrefix > length) {
+        return false; // Prefix cannot be longer than the string
+    }
+
+    const mla_char_t* data = mla_string_data(p_String);
+    const mla_char_t* dataPrefix = mla_string_data(p_Prefix);
+
+    for (mla_size_t i = 0; i < lengthPrefix; ++i) {
+        if (mla_char_toLower(data[i]) != mla_char_toLower(dataPrefix[i])) {
+            return false; // Characters differ, not a match
+        }
+    }
+    return true; // All characters match ignoring case
+}
+
 mla_bool_t mla_string_ends_with(const mla_string_t &p_String, const mla_string_t &p_Suffix) {
 
     mla_size_t length = mla_string_length(p_String);
@@ -543,6 +563,26 @@ mla_bool_t mla_string_ends_with(const mla_string_t &p_String, const mla_string_t
 
     return mla_memcmp(data + length - lengthSufix, dataSufix, lengthSufix) == 0; // Compare the suffix
 
+}
+
+mla_bool_t mla_string_ends_with_ignore_case(const mla_string_t &p_String, const mla_string_t &p_Suffix) {
+
+    mla_size_t length = mla_string_length(p_String);
+    mla_size_t lengthSufix = mla_string_length(p_Suffix);
+
+    if (lengthSufix > length) {
+        return false; // Suffix cannot be longer than the string
+    }
+
+    const mla_char_t* data = mla_string_data(p_String);
+    const mla_char_t* dataSufix = mla_string_data(p_Suffix);
+
+    for (mla_size_t i = 0; i < lengthSufix; ++i) {
+        if (mla_char_toLower(data[length - lengthSufix + i]) != mla_char_toLower(dataSufix[i])) {
+            return false; // Characters differ, not a match
+        }
+    }
+    return true; // All characters match ignoring case
 }
 
 mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring) {

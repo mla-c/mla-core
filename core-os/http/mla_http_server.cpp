@@ -149,6 +149,7 @@ mla_http_server_websocket_connection_t mla_http_server_websocket_connection_inva
         mla_string_empty(),
         mla_mutex_invalid(),
         mla_user_data_empty(),
+        false,
         nullptr,
         nullptr,
         nullptr,
@@ -156,9 +157,17 @@ mla_http_server_websocket_connection_t mla_http_server_websocket_connection_inva
     };
 }
 
-mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_http_server_t& http_server, mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem, const mla_string_t& endpoint) {
+mla_http_server_websocket_connection_t __mla_http_server_websocket_connection(mla_http_server_t& http_server, mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem, const mla_string_t& endpoint, mla_bool_t supports_deflate_compression) {
 
     const mla_string_t id = mla_generate_runtime_id();
+
+#if mla_http_server_use_deflate_compression == 1
+    mla_bool_t final_supports_deflate_compression = supports_deflate_compression;
+#else
+    (void)supports_deflate_compression;
+    mla_bool_t final_supports_deflate_compression = false;
+#endif
+
 
     return {
         &http_server,
@@ -167,6 +176,7 @@ mla_http_server_websocket_connection_t mla_http_server_websocket_connection(mla_
         endpoint,
         mla_mutex(mla_string_concat("WebSocketConn_", id), true),
         handlerItem.userdata,
+        final_supports_deflate_compression,
         handlerItem.open_executor,
         handlerItem.text_executor,
         handlerItem.binary_executor,
@@ -582,16 +592,27 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
 
             mla_string_t accept = __mla_http_server_compute_websocket_accept(wsKey);
 
+            mla_bool_t supports_deflate_compression = mla_http_headers_has_header_value(request.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"), mla_string_const(","));
+
             // 2) Build 101 response (no body)
             response.statusCode = mla_http_status_switching_protocols; // 101
             response.statusMessage = mla_string_const("Switching Protocols");
             mla_http_headers_add(response.headers, mla_string_const("Connection"), mla_string_const("Upgrade"));
             mla_http_headers_add(response.headers, mla_string_const("Upgrade"), mla_string_const("websocket"));
             mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Accept"), accept);
+
+            if (supports_deflate_compression) {
+                mla_stream_output_t dummy = mla_stream_noop_output();
+                mla_size_t bits = mla_stream_output_deflate_window_bits(dummy);
+                // Accept the compression protocol
+                mla_string_t bits_as_string = mla_string_from_uint32(bits);
+                mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_concat("permessage-deflate; client_max_window_bits=", bits_as_string, "; server_max_window_bits=", bits_as_string));
+            }
+
             response.content = mla_stream_noop_input(); // ensure no body
 
             // 3) Register the WebSocket connection and keep it open
-            mla_http_server_websocket_connection_t ws_connection = mla_http_server_websocket_connection(server, clientConnection, handlerItem, request.url);
+            mla_http_server_websocket_connection_t ws_connection = __mla_http_server_websocket_connection(server, clientConnection, handlerItem, request.url, supports_deflate_compression);
 
 
             if (ws_connection.open_executor != nullptr) {
@@ -1136,27 +1157,25 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server,
     return mla_http_server_close_websocket_connection(connection, closeCode, reason);
 }
 
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
-    return mla_http_server_try_send_websocket_text_message(connection, userData, message_generator, -1);
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t use_deflate_compression_if_supported) {
+    return mla_http_server_try_send_websocket_text_message(connection, userData, message_generator, -1, use_deflate_compression_if_supported);
 }
 
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t &connection,
-                                                       const mla_string_t &message, mla_bool_t is_final) {
-    return mla_http_server_try_send_websocket_text_message(connection, message, is_final, -1);
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t &connection, const mla_string_t &message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported) {
+    return mla_http_server_try_send_websocket_text_message(connection, message, is_final, -1, use_deflate_compression_if_supported);
 }
 
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t &connectionId,
-                                                       const mla_string_t &message, mla_bool_t is_final) {
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t &connectionId, const mla_string_t &message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported) {
     mla_http_server_websocket_connection_t connection = mla_http_server_websocket_connection_invalid();
 
     if (!mla_http_server_find_websocket_connection(server, connectionId, connection)) {
         return false;
     }
 
-    return mla_http_server_send_websocket_text_message(connection, message, is_final);
+    return mla_http_server_send_websocket_text_message(connection, message, is_final, use_deflate_compression_if_supported);
 }
 
-mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     if (!mla_http_server_is_websocket_connection_open(connection))
         return false;
@@ -1170,7 +1189,9 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
         }
     }
 
-    if (mla_websocket_transport_send_text_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
+    mla_bool_t use_deflate_compression = connection.supports_deflate_compression && use_deflate_compression_if_supported;
+
+    if (mla_websocket_transport_send_text_with_generator(connection.connection.outputStream, userData, message_generator, false, use_deflate_compression)) {
 
         mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
@@ -1188,7 +1209,7 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
 
 }
 
-mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     if (!mla_http_server_is_websocket_connection_open(connection))
         return false;
@@ -1202,7 +1223,9 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
         }
     }
 
-    if (mla_websocket_transport_send_text_frame(connection.connection.outputStream, message, is_final, false)) {
+    mla_bool_t use_deflate_compression = connection.supports_deflate_compression && use_deflate_compression_if_supported;
+
+    if (mla_websocket_transport_send_text_frame(connection.connection.outputStream, message, is_final, false, use_deflate_compression)) {
 
         mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
@@ -1219,7 +1242,7 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
 
 }
 
-mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     mla_http_server_websocket_connection_t connection = mla_http_server_websocket_connection_invalid();
 
@@ -1227,33 +1250,32 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_t &se
         return false;
     }
 
-    return mla_http_server_try_send_websocket_text_message(connection, message, is_final, connection_lock_timeout);
+    return mla_http_server_try_send_websocket_text_message(connection, message, is_final, connection_lock_timeout, use_deflate_compression_if_supported);
 
 }
 
-mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator) {
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t use_deflate_compression_if_supported) {
 
-    return mla_http_server_try_send_websocket_binary_message(connection, userData, message_generator, -1);
+    return mla_http_server_try_send_websocket_binary_message(connection, userData, message_generator, -1, use_deflate_compression_if_supported);
 }
 
-mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t &connection,
-                                                         const mla_bytes_t &message, mla_bool_t is_final) {
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t &connection, const mla_bytes_t &message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported) {
 
-    return mla_http_server_try_send_websocket_binary_message(connection, message, is_final, -1);
+    return mla_http_server_try_send_websocket_binary_message(connection, message, is_final, -1, use_deflate_compression_if_supported);
 }
 
 mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t &connectionId,
-                                                         const mla_bytes_t &message, mla_bool_t is_final) {
+                                                         const mla_bytes_t &message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported) {
     mla_http_server_websocket_connection_t connection = mla_http_server_websocket_connection_invalid();
 
     if (!mla_http_server_find_websocket_connection(server, connectionId, connection)) {
         return false;
     }
 
-    return mla_http_server_send_websocket_binary_message(connection, message, is_final);
+    return mla_http_server_send_websocket_binary_message(connection, message, is_final, use_deflate_compression_if_supported);
 }
 
-mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     if (!mla_http_server_is_websocket_connection_open(connection))
         return false;
@@ -1267,7 +1289,9 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
         }
     }
 
-    if (mla_websocket_transport_send_binary_with_generator(connection.connection.outputStream, userData, message_generator, false)) {
+    mla_bool_t use_deflate_compression = connection.supports_deflate_compression && use_deflate_compression_if_supported;
+
+    if (mla_websocket_transport_send_binary_with_generator(connection.connection.outputStream, userData, message_generator, false, use_deflate_compression)) {
         mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
         return flush_successful;
@@ -1283,7 +1307,7 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 
 }
 
-mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     if (!mla_http_server_is_websocket_connection_open(connection))
         return false;
@@ -1297,7 +1321,9 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
         }
     }
 
-    if (mla_websocket_transport_send_binary_frame(connection.connection.outputStream, message, is_final, false)) {
+    mla_bool_t use_deflate_compression = connection.supports_deflate_compression && use_deflate_compression_if_supported;
+
+    if (mla_websocket_transport_send_binary_frame(connection.connection.outputStream, message, is_final, false, use_deflate_compression)) {
         mla_bool_t flush_successful = mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         mla_mutex_unlock(connection.lock);
         return flush_successful;
@@ -1314,7 +1340,7 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 
 }
 
-mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout) {
+mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
     mla_http_server_websocket_connection_t connection = mla_http_server_websocket_connection_invalid();
 
@@ -1322,6 +1348,6 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &
         return false;
     }
 
-    return mla_http_server_try_send_websocket_binary_message(connection, message, is_final, connection_lock_timeout);
+    return mla_http_server_try_send_websocket_binary_message(connection, message, is_final, connection_lock_timeout, use_deflate_compression_if_supported);
 
 }

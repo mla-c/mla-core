@@ -97,6 +97,7 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
 
 mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input);
+mla_size_t mla_stream_output_deflate_window_bits(mla_stream_output_t &output);
 
 //////////////////////////////////////////////////////////////////
 // Memory Stream
