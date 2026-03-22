@@ -84,7 +84,7 @@ static mla_bool_t api_status_handler(
 ### Step 3 — Register Handlers
 
 ```cpp
-// Match all GET requests whose path starts with "/api/"
+// Match GET requests whose path starts with "/api/"
 mla_http_server_handler_item_t handler =
     mla_http_server_handler_starts_with(
         mla_http_method_get,

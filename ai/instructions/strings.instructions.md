@@ -5,7 +5,7 @@ description: 'Patterns for using mla_string_t in the MLA framework'
 
 # Strings
 
-The string module (`core-os/system/mla_string.h`) is the primary text type in the MLA framework. `mla_string_t` supports UTF-8/16/32, small-string optimisation (SSO up to 14 bytes), and reference-counted heap storage. **Never** use `std::string`, `char*` arithmetic, or standard library string functions directly.
+The string module (`core-os/system/mla_string.h`) is the primary text type in the MLA framework. `mla_string_t` supports UTF-8/16/32, small-string optimization (SSO up to 14 bytes), and reference-counted heap storage. **Never** use `std::string`, `char*` arithmetic, or standard library string functions directly.
 
 ## Key Types
 

@@ -126,12 +126,19 @@ mla_stream_input_t limited = mla_stream_input_limited_wrapper(input, 1024); // m
 
 ### Buffered Wrappers
 
-Add an intermediate buffer to reduce the number of underlying read/write calls:
+Add an intermediate buffer to reduce the number of underlying read/write calls.
+
+**Input buffering** — reduces small, frequent reads:
 
 ```cpp
-mla_stream_input_t  buffIn  = mla_stream_input_buffered_wrapper(input, 4096);
-mla_stream_output_t buffOut = mla_stream_output_buffered_wrapper(output, 4096);
+mla_stream_input_t buffIn = mla_stream_input_buffered_wrapper(input, 4096);
+```
 
+**Output buffering** — batches small writes into larger chunks:
+
+```cpp
+mla_stream_output_t buffOut = mla_stream_output_buffered_wrapper(output, 4096);
+// … write data to buffOut …
 // Flush the output buffer when finished writing
 mla_stream_output_flush_buffered_wrapper(buffOut);
 ```
