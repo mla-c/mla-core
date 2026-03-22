@@ -88,7 +88,9 @@ The main library providing fundamental operating system abstractions and utiliti
 - **Endian Utils** - `mla_endian_utils.h` - Handling byte order - [Utils Documentation](core-os/utils/readme.md)
 - **Hash Functions** - `mla_hash.h` - Hashing algorithms - [Hash Documentation](core-os/hash/readme.md)
 
-#### **User Interface** (`ui/`) - [Documentation](core-os/ui/web/readme.md)
+#### **User Interface** (`ui/`) - [Documentation](core-os/ui/readme.md)
+- **UI Controls** - `mla_ui_button.h`, `mla_ui_label.h`, `mla_ui_text_edit.h`, `mla_ui_window.h` - Component-based UI widgets
+- **UI Surfaces** - `mla_ui_surface.h`, `mla_ui_surface_draw.h` - Drawing primitives and surface abstraction
 - **UI HTTP Server** - `mla_ui_http_server.h` - Web-based user interface framework
 - **UI RPC** - `mla_ui_rpc.h` - RPC integration for UI communication
 - **Embedded Web** - `mla_ui_web_embedded.h` - Embedded web resources for serving UI assets
@@ -105,13 +107,14 @@ The main library providing fundamental operating system abstractions and utiliti
 
 Platform-specific implementations providing native functionality:
 
-- **Windows** - Windows API integration
-- **Linux** - POSIX-compliant implementations
-- **WASM** - WebAssembly browser/Node.js runtime
-- **Raspberry Pi** - ARM-specific optimizations
-- **ESP-IDF** - ESP32/ESP8266 embedded support
+- **Generic** - Portable implementations for all platforms - [Documentation](core-os-platform/generic/readme.md)
+- **Windows** - Windows API integration - [Documentation](core-os-platform/windows/readme.md)
+- **Linux** - POSIX-compliant implementations - [Documentation](core-os-platform/linux/readme.md)
+- **WASM** - WebAssembly browser/Node.js runtime - [Documentation](core-os-platform/wasm/readme.md)
+- **Raspberry Pi** - ARM-specific optimizations - [Documentation](core-os-platform/raspberry/readme.md)
+- **ESP-IDF** - ESP32/ESP8266 embedded support - [Documentation](core-os-platform/espidf/readme.md)
 
-### Test Framework (`core-os-test/`)
+### Test Framework (`core-os-test/`) - [Documentation](core-os-test/readme.md)
 
 Comprehensive test suite covering all core functionality:
 
@@ -136,7 +139,7 @@ Comprehensive test suite covering all core functionality:
 - URL Tests
 - Native Integration Tests
 
-### Test Support Library (`core-os-test-support/`)
+### Test Support Library (`core-os-test-support/`) - [Documentation](core-os-test-support/readme.md)
 
 Testing and benchmarking infrastructure:
 
@@ -152,12 +155,20 @@ Testing and benchmarking infrastructure:
 
 Current Benchmark Result: [HERE](https://cs-benchmark.github.io/benchmark-app/?project=CoreOS-Application-Test)
 
-### Example Application (`core-os-exmaple-app/`)
+### Example Application (`core-os-exmaple-app/`) - [Documentation](core-os-exmaple-app/readme.md)
 
 Reference implementation demonstrating library usage:
 
 - **Main App** - `main_app.h` - Application entry point
 - **CLI Integration** - `main_app_cli.h` - Command-line interface example
+- **Web UI** - `main_app_web_ui.h` - HTTP server with RPC and web-based UI surfaces
+- **Window UI** - `main_app_window_ui.h` - Native display surface rendering
+- **Main Window** - `main_app_main_window.h` - UI controls showcase (labels, buttons, text inputs)
+- **Background Task** - `main_app_background_task.h` - Periodic background task example
+
+### Web UI Application (`core-os-web-ui/`) - [Documentation](core-os-web-ui/README.md)
+
+Browser-based interface for CoreOS applications built with Preact and TypeScript. The production build is embedded into the C++ library as a compressed byte array and served by the CoreOS HTTP server at runtime.
 
 
 ## 📚 Architecture
