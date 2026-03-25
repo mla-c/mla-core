@@ -125,18 +125,19 @@ inline void HttpServerMultiHandlerTest() {
 
 
 inline mla_bool_t mla_websocket_echo_handler(mla_http_server_websocket_connection_t &connection,
-                                             const mla_string_t &message, mla_bool_t isFinalFragment) {
+                                             const mla_string_t &message) {
     // Echo the text message back to the client
-    return mla_http_server_send_websocket_text_message(connection, message, isFinalFragment);
+    return mla_http_server_send_websocket_text_message(connection, message);
 }
 
 inline mla_bool_t mla_websocket_binary_echo_handler(mla_http_server_websocket_connection_t &connection,
-                                                    const mla_bytes_t &message, mla_bool_t isFinalFragment) {
+                                                    const mla_bytes_t &message) {
     // Echo the binary message back to the client
-    return mla_http_server_send_websocket_binary_message(connection, message, isFinalFragment);
+    return mla_http_server_send_websocket_binary_message(connection, message);
 }
 
 inline void WebSocketEchoServerTest() {
+
     // Setup server with WebSocket echo handler
     mla_http_server_t server = mla_http_server(test_server_host);
     mla_http_server_websocket_handler_item_t wsHandler = mla_http_server_websocket_handler_path_equals(
@@ -151,13 +152,14 @@ inline void WebSocketEchoServerTest() {
         // Create client and connect
         mla_websocket_client_t client = mla_websocket_client_invalid();
         mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
-        assert_true(mla_websocket_client_connect(client, ws_url, 10000), "Should connect to WebSocket echo server");
+        assert_true(mla_websocket_client_connect(client, ws_url, 10000, false), "Should connect to WebSocket echo server");
         assert_true(mla_websocket_client_is_connected(client), "WebSocket client should be connected");
+        assert_false(mla_websocket_client_is_deflate_compression_supported(client), "WebSocket client should not support deflate compression");
 
         // Test text message echo
         for (mla_size_t i = 0; i < 5; ++i) {
             mla_string_t test_message = mla_string_const("Hello, WebSocket Echo!");
-            assert_true(mla_websocket_client_send_text_message(client, test_message, true), "Should send text message");
+            assert_true(mla_websocket_client_send_text_message(client, test_message), "Should send text message");
             mla_sleep(50); // Small delay to allow server to process and respond
 
             mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
@@ -168,6 +170,24 @@ inline void WebSocketEchoServerTest() {
             assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
                          "Should receive text message");
             assert_struct_equal(mla_string_t, textMessage.message, test_message,
+                                "Echoed message should match sent message");
+        }
+
+        // Send large text message
+        for (mla_size_t i = 0; i < 5; ++i) {
+            mla_string_t large_message = mla_string_repeat(mla_string_const("LargeMessage"), 250); // ~3KB message
+
+            assert_true(mla_websocket_client_send_text_message(client, large_message), "Should send text message");
+            mla_sleep(50); // Small delay to allow server to process and respond
+
+            mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
+            mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
+
+            mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
+                client, 10000, textMessage, binaryMessage);
+            assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
+                         "Should receive text message");
+            assert_struct_equal(mla_string_t, textMessage.message, large_message,
                                 "Echoed message should match sent message");
         }
 
@@ -183,6 +203,75 @@ inline void WebSocketEchoServerTest() {
     server = mla_http_server_invalid();
 }
 
+
+inline void WebSocketEchoServerCompressedTest() {
+
+    // Setup server with WebSocket echo handler
+    mla_http_server_t server = mla_http_server(test_server_host);
+    mla_http_server_websocket_handler_item_t wsHandler = mla_http_server_websocket_handler_path_equals(
+        mla_string_const("/echo"),
+        mla_websocket_echo_handler,
+        mla_websocket_binary_echo_handler
+    );
+    assert_true(mla_http_server_register_websocket_handler(server, wsHandler),
+                "Should register WebSocket echo handler");
+
+    if (mla_http_server_start(server, 1)) {
+        // Create client and connect
+        mla_websocket_client_t client = mla_websocket_client_invalid();
+        mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
+        assert_true(mla_websocket_client_connect(client, ws_url, 10000, true), "Should connect to WebSocket echo server");
+        assert_true(mla_websocket_client_is_connected(client), "WebSocket client should be connected");
+        assert_true(mla_websocket_client_is_deflate_compression_supported(client), "WebSocket client should support deflate compression");
+
+        // Test text message echo
+        for (mla_size_t i = 0; i < 5; ++i) {
+            mla_string_t test_message = mla_string_const("Hello, WebSocket Echo!");
+            assert_true(mla_websocket_client_send_text_message(client, test_message), "Should send text message");
+            mla_sleep(50); // Small delay to allow server to process and respond
+
+            mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
+            mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
+
+            mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
+                client, 10000, textMessage, binaryMessage);
+            assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
+                         "Should receive text message");
+            assert_struct_equal(mla_string_t, textMessage.message, test_message,
+                                "Echoed message should match sent message");
+        }
+
+        // Send large text message
+        for (mla_size_t i = 0; i < 5; ++i) {
+            mla_string_t large_message = mla_string_repeat(mla_string_const("LargeMessage"), 250); // ~3KB message
+
+            assert_true(mla_websocket_client_send_text_message(client, large_message), "Should send text message");
+            mla_sleep(50); // Small delay to allow server to process and respond
+
+            mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
+            mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
+
+            mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
+                client, 10000, textMessage, binaryMessage);
+            assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
+                         "Should receive text message");
+            assert_struct_equal(mla_string_t, textMessage.message, large_message,
+                                "Echoed message should match sent message");
+        }
+
+        // Cleanup
+        assert_true(mla_websocket_client_disconnect(client), "Should disconnect from WebSocket server");
+        assert_false(mla_websocket_client_is_connected(client), "WebSocket client should be disconnected");
+
+        mla_http_server_stop(server);
+    } else {
+        assert_fail("Should start WebSocket echo server");
+    }
+
+    server = mla_http_server_invalid();
+}
+
+
 void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
     // Only run HTTP server tests in native multi-tasking environments
     // Because it need two threads to run the server and the client simultaneously
@@ -194,6 +283,9 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("WebSocketEchoServer", test_category, WebSocketEchoServerTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("WebSocketEchoServerCompressed", test_category, WebSocketEchoServerCompressedTest);
         mla_test_executor_register_test(p_TestExecutor, test);
     }
 }
@@ -255,7 +347,7 @@ void WebSocketEchoServerBenchmark_TearDown() {
 
 void WebSocketEchoServerBenchmark() {
     mla_string_t test_message = mla_string_const("Benchmark message");
-    mla_websocket_client_send_text_message(benchmark_ws_client, test_message, true);
+    mla_websocket_client_send_text_message(benchmark_ws_client, test_message);
 
     mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
     mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();

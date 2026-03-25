@@ -30,6 +30,68 @@ mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string) {
     return mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(string))), mla_string_length(string));
 }
 
+mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
+
+    if (max_length == 0)
+        return mla_string_empty();
+
+    if (input.read == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_size_t buffer_length = max_length;
+
+    if (input.remaining_bytes != nullptr) {
+
+        mla_size_t remaining_size = input.remaining_bytes(input);
+
+        // If remaining is size max this mean the size is unkown
+        if (remaining_size != mla_size_max) {
+            buffer_length = mla_min(buffer_length, remaining_size);
+        }
+    }
+
+    mla_char_t *buffer = static_cast<mla_char_t *>(mla_malloc(buffer_length));
+
+    if (buffer == nullptr) {
+        return mla_string_empty(); // Allocation failed, return empty string
+    }
+
+    mla_size_t read_length = input.read(input, 0, max_length, (mla_byte_t*)buffer);
+    return mla_string_from_buffer_with_ownership(buffer, read_length);
+}
+
+mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
+
+    if (max_length == 0)
+        return mla_bytes_empty();
+
+    if (input.read == nullptr) {
+        return mla_bytes_empty();
+    }
+
+    mla_size_t buffer_length = max_length;
+
+    if (input.remaining_bytes != nullptr) {
+
+        mla_size_t remaining_size = input.remaining_bytes(input);
+
+        // If remaining is size max this mean the size is unkown
+        if (remaining_size != mla_size_max) {
+            buffer_length = mla_min(buffer_length, remaining_size);
+        }
+    }
+
+    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_malloc(buffer_length));
+
+    if (buffer == nullptr) {
+        return mla_bytes_empty(); // Allocation failed, return empty bytes
+    }
+
+    mla_size_t read_length = input.read(input, 0, max_length, buffer);
+    return mla_bytes_from_buffer_with_ownership(buffer, read_length);
+}
+
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms) {
 
     mla_int32_t remaining_timeout = timeout_ms;

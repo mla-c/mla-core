@@ -160,14 +160,12 @@ mla_bool_t mla_ui_http_server_initialize(mla_http_server_t &server) {
 }
 
 struct mla_ui_http_server_web_surface_data_client_t {
-    mla_string_t messageBuffer;
     mla_ui_control_surface_t remoteSurface;
     mla_ui_web_remote_surface_t webRemoteSurface;
 };
 
 mla_ui_http_server_web_surface_data_client_t mla_ui_http_server_web_surface_data_client_empty() {
     return {
-        mla_string_empty(),
         mla_ui_control_surface_empty(),
         mla_ui_web_remote_surface_invalid()
     };
@@ -183,7 +181,7 @@ mla_user_data_id_init(mla_ui_http_server_web_surface_data_client_list_user_data_
 
 #define mla_web_surface_max_buffer_items 25
 
-mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment) {
+mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message) {
 
     mla_ui_http_server_web_surface_data_client_t* data_client = mla_user_data_get_pointer<mla_ui_http_server_web_surface_data_client_t>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name);
 
@@ -198,34 +196,26 @@ mla_bool_t __mla_ui_http_server_web_surface_text_handler(mla_http_server_websock
         return false;
     }
 
-    data_client->messageBuffer = mla_string_concat(data_client->messageBuffer, message);
+    if (data_client->webRemoteSurface.handle_client_text_message != nullptr) {
 
-    if (isFinalFragment) {
+        mla_ui_web_remote_surface_message_result_t result = data_client->webRemoteSurface.handle_client_text_message(data_client->webRemoteSurface, message);
+        if (result.handled) {
+            mla_array_list_add_all(data_client->remoteSurface.drawing.unprocessedInputEvents, result.inputEvents);
 
+            mla_size_t droppedEventsCount = 0;
 
-
-        if (data_client->webRemoteSurface.handle_client_text_message != nullptr) {
-            mla_ui_web_remote_surface_message_result_t result = data_client->webRemoteSurface.handle_client_text_message(data_client->webRemoteSurface, data_client->messageBuffer);
-            if (result.handled) {
-                mla_array_list_add_all(data_client->remoteSurface.drawing.unprocessedInputEvents, result.inputEvents);
-
-                mla_size_t droppedEventsCount = 0;
-
-                // Limit the number of complete messages stored in the buffer to prevent memory issues
-                if (mla_array_list_size(data_client->remoteSurface.drawing.unprocessedInputEvents) >= mla_web_surface_max_buffer_items) {
-                    mla_array_list_remove(data_client->remoteSurface.drawing.unprocessedInputEvents, 0);
-                    droppedEventsCount++;
-                }
-
-                if (droppedEventsCount > 0) {
-                    mla_warning(mla_string_concat("Dropped ", mla_string_from_uint32(droppedEventsCount), " input events from connection ", connection.id, " due to buffer limit."));
-                }
-            } else {
-                mla_warning(mla_string_concat("Received unhandled message from webRemoteSurface on connection ", connection.id, " on surface : ", data_client->messageBuffer));
+            // Limit the number of complete messages stored in the buffer to prevent memory issues
+            if (mla_array_list_size(data_client->remoteSurface.drawing.unprocessedInputEvents) >= mla_web_surface_max_buffer_items) {
+                mla_array_list_remove(data_client->remoteSurface.drawing.unprocessedInputEvents, 0);
+                droppedEventsCount++;
             }
-        }
 
-        data_client->messageBuffer = mla_string_empty();
+            if (droppedEventsCount > 0) {
+                mla_warning(mla_string_concat("Dropped ", mla_string_from_uint32(droppedEventsCount), " input events from connection ", connection.id, " due to buffer limit."));
+            }
+        } else {
+            mla_warning(mla_string_concat("Received unhandled message from webRemoteSurface on connection ", connection.id, " on surface : ", message));
+        }
     }
 
     return true;
@@ -304,7 +294,6 @@ mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_conne
 
     mla_memset(data_client, 0, sizeof(mla_ui_http_server_web_surface_data_client_t));
 
-    data_client->messageBuffer = mla_string_empty();
     data_client->remoteSurface = remoteSurface;
     data_client->webRemoteSurface = surface;
 

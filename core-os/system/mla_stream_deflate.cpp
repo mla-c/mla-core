@@ -1228,11 +1228,21 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
 }
 
 
-mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input) {
+mla_size_t mla_stream_input_deflate_decompressed_size_calculation(mla_stream_input_t &input) {
+
+    // Calc the decompressed content size
+    mla_stream_output_t size_decompression_stream = mla_stream_output_size_calculation();
+    mla_stream_input_t deflate_stream = mla_stream_input_deflate_decompress_wrapper(input);
+    mla_stream_copy(deflate_stream, size_decompression_stream);
+    return mla_stream_output_size_calculation_get_size(size_decompression_stream);
+
+}
+
+mla_size_t mla_stream_input_deflate_compressed_size_calculation(mla_stream_input_t &input, mla_deflate_compress_mode_t mode) {
 
     // Calc the compressed content size
     mla_stream_output_t size_compression_stream = mla_stream_output_size_calculation();
-    mla_stream_output_t deflate_stream = mla_stream_output_deflate_compress_wrapper(size_compression_stream);
+    mla_stream_output_t deflate_stream = mla_stream_output_deflate_compress_wrapper(size_compression_stream, mode);
     mla_stream_copy(input, deflate_stream);
     mla_stream_output_deflate_finish(deflate_stream);
     return mla_stream_output_size_calculation_get_size(size_compression_stream);

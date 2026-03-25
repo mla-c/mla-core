@@ -25,7 +25,6 @@ struct mla_websocket_client_t;
  * through the is_final flag.
  */
 struct mla_websocket_text_message_t {
-    mla_bool_t is_final;    ///< True if this is the final fragment of the message
     mla_string_t message;    ///< The text content of the message
 };
 
@@ -36,7 +35,6 @@ struct mla_websocket_text_message_t {
  * through the is_final flag.
  */
 struct mla_websocket_binary_message_t {
-    mla_bool_t is_final;    ///< True if this is the final fragment of the message
     mla_bytes_t message;     ///< The binary content of the message
 };
 
@@ -87,6 +85,8 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
 
 mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &client);
 
+mla_bool_t mla_websocket_client_is_deflate_compression_supported(const mla_websocket_client_t &client);
+
 /**
  * @brief Closes the WebSocket connection.
  * @param client The WebSocket client to disconnect.
@@ -104,7 +104,7 @@ mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_u
  * @param is_final True if this is the final fragment, false for partial messages.
  * @return True if send successful, false otherwise.
  */
-mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message, mla_bool_t is_final);
+mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message);
 
 /**
  * @brief Sends a binary message over the WebSocket connection.
@@ -113,7 +113,7 @@ mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client
  * @param is_final True if this is the final fragment, false for partial messages.
  * @return True if send successful, false otherwise.
  */
-mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message, mla_bool_t is_final);
+mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message);
 
 /**
  * @brief Receives a message from the WebSocket connection.

@@ -68,8 +68,8 @@ struct mla_http_server_t;
 struct mla_http_server_websocket_connection_t;
 
 typedef mla_bool_t (*mla_http_websocket_open_handler_t)(mla_http_server_websocket_connection_t& connection);
-typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t isFinalFragment);
-typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t isFinalFragment);
+typedef mla_bool_t (*mla_http_websocket_text_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_string_t& message);
+typedef mla_bool_t (*mla_http_websocket_binary_message_handler_t)(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message);
 typedef void (*mla_http_websocket_closed_handler_t)(const mla_http_server_websocket_connection_t& connection);
 
 struct mla_http_server_websocket_connection_t {
@@ -176,7 +176,7 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket
 // message: The text message to send.
 // is_final: Whether this is the final fragment of the message.
 // Returns true if the message was sent successfully, false otherwise.
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Sends a text message to a specific connection by ID.
 //
@@ -188,7 +188,7 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket
 // message: The text message to send.
 // is_final: Whether this is the final fragment of the message.
 // Returns true if the message was sent successfully, false otherwise.
-mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Attempts to send a text message over a websocket connection using a generator callback, with a timeout for acquiring the lock.
 //
@@ -203,20 +203,18 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
 //
 // connection: The websocket connection to send to.
 // message: The text message to send.
-// is_final: Whether this is the final fragment of the message.
 // connection_lock_timeout: Maximum time in milliseconds to wait for the connection lock.
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
-mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Attempts to send a text message to a specific connection by ID, with a timeout for acquiring the lock.
 //
 // server: The HTTP server instance.
 // connectionId: The ID of the target connection.
 // message: The text message to send.
-// is_final: Whether this is the final fragment of the message.
 // connection_lock_timeout: Maximum time in milliseconds to wait for the connection lock.
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
-mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Sends a binary message over a websocket connection using a generator callback.
 //
@@ -234,9 +232,8 @@ mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websock
 //
 // connection: The websocket connection to send to.
 // message: The binary message to send.
-// is_final: Whether this is the final fragment of the message.
 // Returns true if the message was sent successfully, false otherwise.
-mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Sends a binary message to a specific connection by ID.
 //
@@ -246,9 +243,8 @@ mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_websock
 // server: The HTTP server instance.
 // connectionId: The ID of the target connection.
 // message: The binary message to send.
-// is_final: Whether this is the final fragment of the message.
 // Returns true if the message was sent successfully, false otherwise.
-mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Attempts to send a binary message over a websocket connection using a generator callback, with a timeout for acquiring the lock.
 //
@@ -266,7 +262,7 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 // is_final: Whether this is the final fragment of the message.
 // connection_lock_timeout: Maximum time in milliseconds to wait for the connection lock.
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
-mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Attempts to send a binary message to a specific connection by ID, with a timeout for acquiring the lock.
 //
@@ -276,7 +272,7 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 // is_final: Whether this is the final fragment of the message.
 // connection_lock_timeout: Maximum time in milliseconds to wait for the connection lock.
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
-mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_bool_t is_final, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
+mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
 
 
 ////////////////////////////////////////////////////////////////

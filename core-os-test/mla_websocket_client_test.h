@@ -15,7 +15,7 @@ void SimpleLocalEchoTest() {
     assert_true(mla_websocket_client_connect(ws_client, mla_string("ws://localhost:1337"), 10000), "Should connect to WebSocket server");
     assert_true(mla_websocket_client_is_connected(ws_client), "WebSocket client should be connected");
 
-    assert_true(mla_websocket_client_send_text_message(ws_client, mla_string("Hello, WebSocket!"), true), "Should send text message");
+    assert_true(mla_websocket_client_send_text_message(ws_client, mla_string("Hello, WebSocket!")), "Should send text message");
 
     mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
     mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();

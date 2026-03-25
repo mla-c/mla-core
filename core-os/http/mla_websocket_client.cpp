@@ -25,14 +25,12 @@ mla_websocket_client_t mla_websocket_client_invalid() {
 
 mla_websocket_binary_message_t mla_websocket_binary_message_empty() {
     return {
-        true,
         mla_bytes_empty()
     };
 }
 
 mla_websocket_text_message_t mla_websocket_text_message_empty() {
     return {
-        true,
         mla_string_empty()
     };
 }
@@ -51,6 +49,10 @@ mla_string_t __mla_websocket_client_websocket_key() {
 
 mla_bool_t mla_websocket_client_is_connected(const mla_websocket_client_t &client) {
     return mla_network_connection_is_connected(client.connection);
+}
+
+mla_bool_t mla_websocket_client_is_deflate_compression_supported(const mla_websocket_client_t &client) {
+    return client.supports_deflate_compression;
 }
 
 mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url,
@@ -197,25 +199,23 @@ mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_u
 
 
 
-mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message,
-                                                  mla_bool_t is_final) {
+mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message) {
     if (!mla_network_connection_is_connected(client.connection))
         return false;
 
     // Sending the text message
 
     mla_stream_output_t &output = client.connection.outputStream;
-    return mla_websocket_transport_send_text_frame(output, message, is_final, true, client.supports_deflate_compression);
+    return mla_websocket_transport_send_text_frame(output, message, true, client.supports_deflate_compression);
 }
 
-mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message,
-                                                    mla_bool_t is_final) {
+mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message) {
     if (!mla_network_connection_is_connected(client.connection))
         return false;
 
     mla_stream_output_t &output = client.connection.outputStream;
 
-    return mla_websocket_transport_send_binary_frame(output, message, is_final, true, client.supports_deflate_compression);
+    return mla_websocket_transport_send_binary_frame(output, message, true, client.supports_deflate_compression);
 }
 
 mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message(mla_websocket_client_t &client, mla_size_t timeout_ms, mla_websocket_text_message_t &textMessage, mla_websocket_binary_message_t &binaryMessage) {
@@ -226,15 +226,12 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
         if (!mla_network_connection_is_connected(client.connection))
             return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED;
 
-        mla_bool_t is_final = true;
-        mla_websocket_transport_message_receive_type_t result = mla_websocket_transport_receive_message(client.connection, timeout_ms, textMessage.message, binaryMessage.message, is_final, true);
+        mla_websocket_transport_message_receive_type_t result = mla_websocket_transport_receive_message(client.connection, timeout_ms, textMessage.message, binaryMessage.message, true);
 
         if (result == MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TEXT) {
-            textMessage.is_final = is_final;
             return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT;
 
         } else if (result == MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_BINARY) {
-            binaryMessage.is_final = is_final;
             return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_BINARY;
 
         } else if (result == MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_CLOSED) {

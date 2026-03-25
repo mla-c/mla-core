@@ -57,6 +57,9 @@ mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla
 // From String not (Owing)
 mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string);
 
+mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_length);
+mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_length);
+
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
 
 mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_int32_t timeout_ms);
@@ -108,7 +111,10 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 // Data read from the returned stream is decompressed from the base input stream.
 mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
 
-mla_size_t mla_stream_output_deflate_size_calculation(mla_stream_input_t &input);
+
+mla_size_t mla_stream_input_deflate_decompressed_size_calculation(mla_stream_input_t &input);
+mla_size_t mla_stream_input_deflate_compressed_size_calculation(mla_stream_input_t &input, mla_deflate_compress_mode_t mode);
+
 mla_size_t mla_stream_output_deflate_window_bits(mla_stream_output_t &output);
 
 //////////////////////////////////////////////////////////////////
@@ -129,7 +135,7 @@ mla_bool_t mla_memory_stream_set_position(mla_memory_stream_t &memoryStream, mla
 void mla_memory_stream_reset(mla_memory_stream_t &memoryStream);
 
 //////////////////////////////////////////////////////////////////
-/// Size Calculation Output Stream
+/// Size Calculation Output/Input Stream
 /// Stream which discards all data written to it but keeps track of the total size of the data that would have been written,
 /// useful for calculating the size of serialized data without actually serializing it
 /////////////////////////////////////////////////////////////////
