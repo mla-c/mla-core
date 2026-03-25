@@ -606,7 +606,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
                 mla_size_t bits = mla_stream_output_deflate_window_bits(dummy);
                 // Accept the compression protocol
                 mla_string_t bits_as_string = mla_string_from_uint32(bits);
-                mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_concat("permessage-deflate; client_max_window_bits=", bits_as_string, "; server_max_window_bits=", bits_as_string));
+                mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"));
             }
 
             response.content = mla_stream_noop_input(); // ensure no body

@@ -235,7 +235,7 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
 
             // Calc the compressed size
             mla_stream_output_t size_calc_stream = mla_stream_output_size_calculation();
-            mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream);
+            mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream, mla_deflate_compress_mode_websocket);
 
             if (!mla_stream_copy(temp_stream.input, final_out)) {
                 return false;
@@ -260,7 +260,7 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
                 mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
             }
 
-            final_out = mla_stream_output_deflate_compress_wrapper(final_out);
+            final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_compress_mode_websocket);
 
             mla_memory_stream_set_position(temp_stream, 0);
 
@@ -309,7 +309,7 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
         mla_stream_output_t final_out = mla_stream_noop_output();
 
         if (use_deflate_compression) {
-            final_out = mla_stream_output_deflate_compress_wrapper(size_calculation_stream);
+            final_out = mla_stream_output_deflate_compress_wrapper(size_calculation_stream, mla_deflate_compress_mode_websocket);
         } else {
             final_out = size_calculation_stream;
         }
@@ -343,7 +343,7 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
         }
 
         if (use_deflate_compression) {
-            final_out = mla_stream_output_deflate_compress_wrapper(final_out);
+            final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_compress_mode_websocket);
         }
 
         if (!message_generator(final_out, userData)) {
@@ -385,7 +385,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
 
         // Calc the compressed size
         mla_stream_output_t size_calc_stream = mla_stream_output_size_calculation();
-        mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream);
+        mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream, mla_deflate_compress_mode_websocket);
 
         mla_stream_input_t payload_input = mla_stream_input_from_string(message);
         if (!mla_stream_copy(payload_input, final_out))
@@ -409,7 +409,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
             mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
         }
 
-        final_out = mla_stream_output_deflate_compress_wrapper(final_out);
+        final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_compress_mode_websocket);
 
         payload_input = mla_stream_input_from_string(message);
         if (!mla_stream_copy(payload_input, final_out))
@@ -467,7 +467,7 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
 
         // Calc the compressed size
         mla_stream_output_t size_calc_stream = mla_stream_output_size_calculation();
-        mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream);
+        mla_stream_output_t final_out = mla_stream_output_deflate_compress_wrapper(size_calc_stream, mla_deflate_compress_mode_websocket);
 
         mla_stream_input_t payload_input = mla_stream_input_from_buffer((mla_byte_t *) payload, payload_length);
         if (!mla_stream_copy(payload_input, final_out))
@@ -491,7 +491,7 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
             mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
         }
 
-        final_out = mla_stream_output_deflate_compress_wrapper(final_out);
+        final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_compress_mode_websocket);
 
         payload_input = mla_stream_input_from_buffer((mla_byte_t *) payload, payload_length);
         if (!mla_stream_copy(payload_input, final_out))

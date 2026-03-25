@@ -348,11 +348,6 @@ static void __mla_deflate_bit_writer_align(__mla_deflate_bit_writer_t &writer) {
     }
 }
 
-static void __mla_deflate_bit_writer_finish(__mla_deflate_bit_writer_t &writer) {
-    __mla_deflate_bit_writer_align(writer);
-    __mla_deflate_bit_writer_flush_buffer(writer);
-}
-
 ///////////////////////////////////////////////////////////////////
 /// Fixed Huffman Tables (RFC 1951 section 3.2.6)
 ///////////////////////////////////////////////////////////////////
@@ -428,6 +423,7 @@ struct __mla_deflate_compress_state_t {
 
     mla_bool_t block_started;
     mla_bool_t finished;
+    mla_deflate_compress_mode_t mode;
 };
 
 struct __mla_deflate_compress_state_initializer {
@@ -438,7 +434,8 @@ struct __mla_deflate_compress_state_initializer {
             {nullptr, {}, 0, 0, 0, false}, // writer
             {}, 0, 0,                      // window, window_pos, window_filled
             {}, {},                        // hash_head, hash_prev
-            false, false                   // block_started, finished
+            false, false,                  // block_started, finished
+            mla_deflate_compress_mode_normal // mode
         };
         return result;
     }
@@ -663,6 +660,10 @@ static mla_size_t __mla_stream_deflate_compress_available_bytes(mla_stream_outpu
 }
 
 mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output) {
+    return mla_stream_output_deflate_compress_wrapper(output, mla_deflate_compress_mode_normal);
+}
+
+mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output, mla_deflate_compress_mode_t mode) {
     if (output.write == nullptr) {
         return mla_stream_noop_output();
     }
@@ -682,6 +683,7 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
     state->finished = false;
     state->window_pos = 0;
     state->window_filled = 0;
+    state->mode = mode;
 
     // Initialize hash heads to 0xFFFF (no entry)
     mla_memset(state->hash_head, 0xFF, sizeof(state->hash_head));
@@ -706,24 +708,37 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 
     __mla_deflate_build_fixed_tables();
 
-    if (!state->block_started) {
-        // Write an empty final block
-        __mla_deflate_bit_writer_write(state->writer, 1, 1); // BFINAL = 1
-        __mla_deflate_bit_writer_write(state->writer, mla_deflate_block_fixed, 2);
-    } else {
-        // We need to close the current block and start a final one
-        // Emit end-of-block for current block
+    // Step 1 – close the in-progress Huffman block (if any).
+    if (state->block_started) {
         __mla_deflate_emit_end_of_block(state->writer);
         state->block_started = false;
-
-        // Write empty final block
-        __mla_deflate_bit_writer_write(state->writer, 1, 1); // BFINAL = 1
-        __mla_deflate_bit_writer_write(state->writer, mla_deflate_block_fixed, 2);
     }
 
-    // End of block
-    __mla_deflate_emit_end_of_block(state->writer);
-    __mla_deflate_bit_writer_finish(state->writer);
+    // Step 2 – byte-align: flush any partially-accumulated bits with zero padding.
+    __mla_deflate_bit_writer_align(state->writer);
+
+
+
+    if (state->mode == mla_deflate_compress_mode_websocket) {
+        // RFC 7692 permessage-deflate: the 4-byte LEN/NLEN tail (00 00 FF FF) is
+        //  emit the non-final empty stored-block header byte (0x00)
+        // and omit the trailing 00 00 FF FF bytes.
+        __mla_deflate_bit_writer_put_byte(state->writer, 0x00);
+    } else {
+
+        // Step 3 – write the empty stored-block header byte.
+        //   Bit layout: BFINAL=1 (bit 0), BTYPE=00 (bits 1-2), padding=00000 (bits 3-7)
+        //   → byte value 0x01.
+        __mla_deflate_bit_writer_put_byte(state->writer, 0x01);
+
+        // Normal mode: complete the empty stored block with LEN=0 and NLEN=0xFFFF.
+        __mla_deflate_bit_writer_put_byte(state->writer, 0x00); // LEN  low
+        __mla_deflate_bit_writer_put_byte(state->writer, 0x00); // LEN  high
+        __mla_deflate_bit_writer_put_byte(state->writer, 0xFF); // NLEN low
+        __mla_deflate_bit_writer_put_byte(state->writer, 0xFF); // NLEN high
+    }
+
+    __mla_deflate_bit_writer_flush_buffer(state->writer);
 
     state->finished = true;
 
@@ -1129,9 +1144,11 @@ static mla_size_t __mla_stream_deflate_decompress_read(mla_stream_input_t &input
                 break;
             }
 
-            if (!__mla_deflate_decompress_fill(*state)) {
-                break;
-            }
+            // Ignore the boolean return: if fill decoded some data before encountering
+            // an error or EOF (e.g. the WebSocket empty stored-block tail), we still want
+            // to return those bytes. The copy branch above will drain output_buf on the
+            // next iteration, and the error/finished guard will stop the loop afterward.
+            __mla_deflate_decompress_fill(*state);
 
             if (state->output_buf_len == 0) {
                 break;

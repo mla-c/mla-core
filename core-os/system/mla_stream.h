@@ -84,11 +84,23 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
 // It the min size where the compression make sense, for smaller data the compressed output can be bigger than the input and it will be slower to compress than just writing the data
 #define mla_stream_output_deflate_min_compression_data_size 1024
 
+// Deflate compression mode
+// mla_deflate_compress_mode_normal   – standard RFC 1951 terminator (BFINAL=1 empty block).
+// mla_deflate_compress_mode_websocket – RFC 7692 permessage-deflate: the compressor emits the
+//     empty stored-block header byte (0x00) but omits the 4-byte LEN/NLEN tail (00 00 FF FF).
+//     The WebSocket receiver must re-append those 4 bytes before passing the payload to the
+//     DEFLATE decompressor.
+enum mla_deflate_compress_mode_t: mla_uint8_t {
+    mla_deflate_compress_mode_normal,
+    mla_deflate_compress_mode_websocket
+};
+
 // Deflate compression output wrapper
 // Wraps an output stream to compress data written to it using the DEFLATE algorithm.
 // Data written to the returned stream is compressed and forwarded to the base output stream.
 // Call mla_stream_output_deflate_finish() when done writing to flush remaining compressed data.
 mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output);
+mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output, mla_deflate_compress_mode_t mode);
 mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 
 // Deflate decompression input wrapper

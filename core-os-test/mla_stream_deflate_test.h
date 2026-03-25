@@ -447,6 +447,125 @@ inline void StreamDeflateNullOutputTest() {
     assert_true(result.write == nullptr || result.write != nullptr, "Should handle null output gracefully");
 }
 
+inline void StreamDeflateWebSocketModeTest() {
+    // RFC 7692 permessage-deflate: compress with WebSocket mode (omits the 4-byte tail),
+    // then simulate a receiver by re-appending 0x00 0x00 0xFF 0xFF and decompressing.
+    const mla_char_t *test_data = "Hello, DEFLATE!";
+    mla_size_t test_len = 15;
+
+    // Compress with WebSocket mode
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
+        compressed.output, mla_deflate_compress_mode_websocket);
+
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "WebSocket mode: finish should succeed");
+
+    mla_size_t compressed_size = mla_memory_stream_get_size(compressed);
+    assert_true(compressed_size > 0, "WebSocket mode: compressed output should not be empty");
+
+    // Simulate the WebSocket receiver: re-append the stripped LEN/NLEN tail (00 00 FF FF)
+    // to complete the empty stored-block that closes the DEFLATE stream.
+    mla_byte_t tail[4] = { 0x00, 0x00, 0xFF, 0xFF };
+    compressed.output.write(compressed.output, 0, 4, tail);
+
+    // Decompress and verify round-trip
+    mla_memory_stream_set_position(compressed, 0);
+    mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
+
+    mla_byte_t decompressed_buf[64];
+    mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
+
+    mla_size_t total_read = 0;
+    while (total_read < test_len) {
+        mla_size_t read_bytes = decompress_in.read(decompress_in, 0, test_len - total_read, decompressed_buf + total_read);
+        if (read_bytes == 0) break;
+        total_read += read_bytes;
+    }
+
+    assert_equal(total_read, test_len, "WebSocket mode: should decompress to original length");
+    assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, test_len), (mla_test_int32_t)0,
+                 "WebSocket mode: decompressed data should match original");
+}
+
+inline void StreamDeflateWebSocketModeLargerDataTest() {
+    // Same as above but with more data to exercise LZ77 back-references
+    const mla_size_t data_size = 512;
+    mla_byte_t test_data[512];
+    for (mla_size_t i = 0; i < data_size; i++) {
+        test_data[i] = (mla_byte_t)(i % 10);
+    }
+
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
+        compressed.output, mla_deflate_compress_mode_websocket);
+
+    mla_size_t written = compress_out.write(compress_out, 0, data_size, test_data);
+    assert_equal(written, data_size, "WebSocket large: should write all bytes");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "WebSocket large: finish should succeed");
+
+    // Re-append tail
+    mla_byte_t tail[4] = { 0x00, 0x00, 0xFF, 0xFF };
+    compressed.output.write(compressed.output, 0, 4, tail);
+
+    // Decompress
+    mla_memory_stream_set_position(compressed, 0);
+    mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
+
+    mla_byte_t decompressed_buf[512];
+    mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
+
+    mla_size_t total_read = 0;
+    while (total_read < data_size) {
+        mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
+        if (read_bytes == 0) break;
+        total_read += read_bytes;
+    }
+
+    assert_equal(total_read, data_size, "WebSocket large: should decompress to original length");
+    assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0,
+                 "WebSocket large: decompressed data should match original");
+}
+
+inline void StreamDeflateWebSocketCompareToNormalTest() {
+
+    const mla_char_t *test_data = "Hello, DEFLATE!";
+    mla_size_t test_len = 15;
+
+    // Compress with WebSocket mode
+    mla_memory_stream_t compressed_websocket = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
+        compressed_websocket.output, mla_deflate_compress_mode_websocket);
+
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "WebSocket mode: finish should succeed");
+
+    mla_size_t compressed_websocket_size = mla_memory_stream_get_size(compressed_websocket);
+
+    // Compress with Normal Node
+    mla_memory_stream_t normal_websocket = mla_memory_stream_empty();
+    mla_stream_output_t normal_compress_out = mla_stream_output_deflate_compress_wrapper(normal_websocket.output, mla_deflate_compress_mode_normal);
+
+    written = compress_out.write(normal_compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    assert_equal(written, test_len, "Normal mode: should write all bytes to compressor");
+
+    finish_result = mla_stream_output_deflate_finish(normal_compress_out);
+    assert_true(finish_result, "Normal mode: finish should succeed");
+
+    mla_size_t compressed_normal_size = mla_memory_stream_get_size(normal_websocket);
+
+    assert_equal(compressed_websocket_size, compressed_normal_size - 4, "WebSocket mode and Normal mode should produce same compressed size for same data");
+
+}
+
 ///////////////////////////////////////////////////////////////////
 /// Test Registration
 ///////////////////////////////////////////////////////////////////
@@ -498,6 +617,15 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateNullOutput", test_category, StreamDeflateNullOutputTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateWebSocketMode", test_category, StreamDeflateWebSocketModeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateWebSocketModeLargerData", test_category, StreamDeflateWebSocketModeLargerDataTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateWebSocketCompareToNormal", test_category, StreamDeflateWebSocketCompareToNormalTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
