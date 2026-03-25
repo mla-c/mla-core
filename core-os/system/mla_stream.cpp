@@ -339,23 +339,21 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
                     mla_memset(newBuffer, 0, newSize);
                 }
 
+                memBuffer->buffer = newBuffer;
+                memBuffer->capacity = newSize;
+
             } else {
 
                 if (memBuffer->buffer != nullptr) {
                     mla_free(memBuffer->buffer);
                 }
 
-            }
-
-            if (newBuffer == nullptr) {
                 memBuffer->buffer = nullptr;
                 memBuffer->capacity = 0;
                 memBuffer->position = 0;
                 memBuffer->size = 0;
                 return 0; // Reallocation failed
-            } else {
-                memBuffer->buffer = newBuffer;
-                memBuffer->capacity = newSize;
+
             }
 
         } else {

@@ -559,7 +559,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
     mla_uint8_t opcode;
     mla_bool_t use_deflate_compression;
 
-    mla_memory_stream_t payload_data = mla_memory_stream(mla_websocket_stream_small_buffer_size, true);
+    mla_memory_stream_t payload_data = mla_memory_stream_empty();
     do {
 
         // At the first call we dont wait for any timeouts we just look if there is something
@@ -613,26 +613,39 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
             return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
-        // Copy to memory stream
-        mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+        if (payload_length > 0) {
 
-        while (payload_length > 0) {
-            mla_size_t chunk_size = (payload_length > sizeof(buffer)) ? sizeof(buffer) : (mla_size_t) payload_length;
+            // Init Memory Stream if empty
+            if (mla_memory_stream_get_size(payload_data) > 0) {
 
-            if (!__mla_mla_websocket_client_read(input, chunk_size, buffer, timeout_ms))
-                return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
-
-            if (is_masked) {
-                for (mla_size_t i = 0; i < chunk_size; i++) {
-                    buffer[i] ^= masking_key[(payload_length - chunk_size + i) % mla_websocket_masking_key_size];
+                if (is_final_frame) {
+                    payload_data = mla_memory_stream(payload_length, true);
+                } else {
+                    payload_data = mla_memory_stream(mla_min(payload_length, mla_stream_fast_read_buffer_size), true);
                 }
             }
 
-            if (payload_data.output.write(payload_data.output, 0, chunk_size, buffer) != chunk_size) {
-                return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
-            }
+            // Copy to memory stream
+            mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
 
-            payload_length -= chunk_size;
+            while (payload_length > 0) {
+                mla_size_t chunk_size = (payload_length > sizeof(buffer)) ? sizeof(buffer) : (mla_size_t) payload_length;
+
+                if (!__mla_mla_websocket_client_read(input, chunk_size, buffer, timeout_ms))
+                    return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
+
+                if (is_masked) {
+                    for (mla_size_t i = 0; i < chunk_size; i++) {
+                        buffer[i] ^= masking_key[(payload_length - chunk_size + i) % mla_websocket_masking_key_size];
+                    }
+                }
+
+                if (payload_data.output.write(payload_data.output, 0, chunk_size, buffer) != chunk_size) {
+                    return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
+                }
+
+                payload_length -= chunk_size;
+            }
         }
 
     } while (!is_final_frame);
