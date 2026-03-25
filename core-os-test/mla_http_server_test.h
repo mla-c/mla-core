@@ -178,7 +178,7 @@ inline void WebSocketEchoServerTest() {
             mla_string_t large_message = mla_string_repeat(mla_string_const("LargeMessage"), 250); // ~3KB message
 
             assert_true(mla_websocket_client_send_text_message(client, large_message), "Should send text message");
-            mla_sleep(50); // Small delay to allow server to process and respond
+            mla_sleep(100); // Small delay to allow server to process and respond
 
             mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
@@ -246,7 +246,7 @@ inline void WebSocketEchoServerCompressedTest() {
             mla_string_t large_message = mla_string_repeat(mla_string_const("LargeMessage"), 250); // ~3KB message
 
             assert_true(mla_websocket_client_send_text_message(client, large_message), "Should send text message");
-            mla_sleep(50); // Small delay to allow server to process and respond
+            mla_sleep(100); // Small delay to allow server to process and respond
 
             mla_websocket_text_message_t textMessage = mla_websocket_text_message_empty();
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
