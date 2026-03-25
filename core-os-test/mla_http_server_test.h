@@ -175,6 +175,7 @@ inline void WebSocketEchoServerTest() {
 
         // Send large text message
         for (mla_size_t i = 0; i < 5; ++i) {
+
             mla_string_t large_message = mla_string_repeat(mla_string_const("LargeMessage"), 250); // ~3KB message
 
             assert_true(mla_websocket_client_send_text_message(client, large_message), "Should send text message");
