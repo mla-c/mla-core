@@ -13,7 +13,7 @@
 #include "mla_websocket_utils.h"
 
 #ifndef mla_http_server_use_deflate_compression
-#define mla_http_server_use_deflate_compression 1
+#define mla_http_server_use_deflate_compression 0
 #endif
 
 struct mla_http_server_t;

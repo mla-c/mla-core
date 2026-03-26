@@ -601,14 +601,12 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             mla_http_headers_add(response.headers, mla_string_const("Upgrade"), mla_string_const("websocket"));
             mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Accept"), accept);
 
+#if mla_http_server_use_deflate_compression == 1
+
             if (supports_deflate_compression) {
-                mla_stream_output_t dummy = mla_stream_noop_output();
-                mla_size_t bits = mla_stream_output_deflate_window_bits(dummy);
-                // Accept the compression protocol
-                mla_string_t bits_as_string = mla_string_from_uint32(bits);
                 mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"));
             }
-
+#endif
             response.content = mla_stream_noop_input(); // ensure no body
 
             // 3) Register the WebSocket connection and keep it open
