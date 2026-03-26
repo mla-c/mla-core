@@ -615,8 +615,10 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
         if (payload_length > 0) {
 
+            mla_size_t current_stream_size = mla_memory_stream_get_size(payload_data);
+
             // Init Memory Stream if empty
-            if (mla_memory_stream_get_size(payload_data) > 0) {
+            if (current_stream_size == 0) {
 
                 if (is_final_frame) {
                     payload_data = mla_memory_stream(payload_length, true);
@@ -629,6 +631,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
             mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
 
             while (payload_length > 0) {
+
                 mla_size_t chunk_size = (payload_length > sizeof(buffer)) ? sizeof(buffer) : (mla_size_t) payload_length;
 
                 if (!__mla_mla_websocket_client_read(input, chunk_size, buffer, timeout_ms))
@@ -636,7 +639,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
                 if (is_masked) {
                     for (mla_size_t i = 0; i < chunk_size; i++) {
-                        buffer[i] ^= masking_key[(payload_length - chunk_size + i) % mla_websocket_masking_key_size];
+                        buffer[i] ^= masking_key[(current_stream_size + i) % mla_websocket_masking_key_size];
                     }
                 }
 
@@ -644,6 +647,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
                     return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
                 }
 
+                current_stream_size += chunk_size;
                 payload_length -= chunk_size;
             }
         }
