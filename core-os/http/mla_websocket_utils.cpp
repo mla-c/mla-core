@@ -534,7 +534,7 @@ mla_bool_t __mla_mla_websocket_client_read(mla_stream_input_t &input, mla_size_t
     const mla_int32_t sleep_interval = mla_websocket_sleep_interval_ms; // milliseconds
 
     while (total_read < size) {
-        mla_size_t bytes_read = input.read(input, total_read, size - total_read, buffer + total_read);
+        mla_size_t bytes_read = input.read(input, total_read, size - total_read, buffer);
         if (bytes_read > 0) {
             total_read += bytes_read;
         } else {
