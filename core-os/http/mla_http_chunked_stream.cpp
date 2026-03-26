@@ -305,7 +305,8 @@ mla_http_chunked_stream_output_t mla_http_chunked_stream_output(const mla_stream
 
 mla_http_chunked_stream_output_t mla_http_chunked_stream_output_deflate(const mla_stream_output_t &baseStream) {
     mla_stream_output_t chunkedStream = __mla_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_deflate_chunk_size);
-    mla_stream_output_t deflateStream = mla_stream_output_deflate_compress_wrapper(chunkedStream);
+    // ContentType: deflate is for the Browser zlib deflate
+    mla_stream_output_t deflateStream = mla_stream_output_deflate_compress_wrapper(chunkedStream, mla_deflate_mode_zlib);
 
     return {
         deflateStream,

@@ -8,6 +8,34 @@
 #include "../core-os/system/mla_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"
 
+inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_t p_Length) {
+    const mla_uint32_t mod_adler = 65521u;
+    mla_uint32_t sum1 = 1u;
+    mla_uint32_t sum2 = 0u;
+
+    for (mla_size_t i = 0; i < p_Length; i++) {
+        sum1 += (mla_uint32_t)p_Data[i];
+        if (sum1 >= mod_adler) {
+            sum1 -= mod_adler;
+        }
+
+        sum2 += sum1;
+        sum2 %= mod_adler;
+    }
+
+    return (sum2 << 16) | sum1;
+}
+
+inline void StreamDeflateExpectedZlibHeader(mla_byte_t& p_Cmf, mla_byte_t& p_Flg) {
+    mla_memory_stream_t temp = mla_memory_stream_empty();
+    mla_size_t window_bits = mla_stream_output_deflate_window_bits(temp.output);
+    p_Cmf = (mla_byte_t)(((window_bits - 8u) << 4u) | 8u);
+    p_Flg = 0;
+
+    mla_uint16_t header = (mla_uint16_t)(((mla_uint16_t)p_Cmf << 8) | p_Flg);
+    p_Flg = (mla_byte_t)((31u - (header % 31u)) % 31u);
+}
+
 ///////////////////////////////////////////////////////////////////
 /// Compress and Decompress Round-Trip Tests
 ///////////////////////////////////////////////////////////////////
@@ -431,6 +459,119 @@ inline void StreamDeflateCompressHighlyRepetitiveTest() {
     assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Decompressed data should match original");
 }
 
+inline void StreamDeflateZlibEmptyStreamBytesTest() {
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_zlib);
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Zlib mode: finish should succeed for empty stream");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_byte_t wire_bytes[32];
+    mla_memset(wire_bytes, 0, sizeof(wire_bytes));
+    mla_size_t wire_size = compressed.input.read(compressed.input, 0, sizeof(wire_bytes), wire_bytes);
+
+    assert_equal(wire_size, (mla_size_t)11, "Zlib mode: empty stream should contain header, final block and Adler-32");
+
+    mla_byte_t expected_cmf = 0;
+    mla_byte_t expected_flg = 0;
+    StreamDeflateExpectedZlibHeader(expected_cmf, expected_flg);
+
+    assert_equal((mla_test_int32_t)wire_bytes[0], (mla_test_int32_t)expected_cmf, "Zlib mode: CMF should match the configured window size");
+    assert_equal((mla_test_int32_t)wire_bytes[1], (mla_test_int32_t)expected_flg, "Zlib mode: FLG should satisfy the RFC1950 header checksum");
+    assert_equal((mla_test_int32_t)wire_bytes[2], (mla_test_int32_t)0x01, "Zlib mode: empty payload should end with a final empty stored block header");
+    assert_equal((mla_test_int32_t)wire_bytes[3], (mla_test_int32_t)0x00, "Zlib mode: LEN low byte should be zero for empty final block");
+    assert_equal((mla_test_int32_t)wire_bytes[4], (mla_test_int32_t)0x00, "Zlib mode: LEN high byte should be zero for empty final block");
+    assert_equal((mla_test_int32_t)wire_bytes[5], (mla_test_int32_t)0xFF, "Zlib mode: NLEN low byte should be 0xFF for empty final block");
+    assert_equal((mla_test_int32_t)wire_bytes[6], (mla_test_int32_t)0xFF, "Zlib mode: NLEN high byte should be 0xFF for empty final block");
+    assert_equal((mla_test_int32_t)wire_bytes[7], (mla_test_int32_t)0x00, "Zlib mode: Adler-32 byte 0 should match the empty-stream checksum");
+    assert_equal((mla_test_int32_t)wire_bytes[8], (mla_test_int32_t)0x00, "Zlib mode: Adler-32 byte 1 should match the empty-stream checksum");
+    assert_equal((mla_test_int32_t)wire_bytes[9], (mla_test_int32_t)0x00, "Zlib mode: Adler-32 byte 2 should match the empty-stream checksum");
+    assert_equal((mla_test_int32_t)wire_bytes[10], (mla_test_int32_t)0x01, "Zlib mode: Adler-32 byte 3 should match the empty-stream checksum");
+}
+
+inline void StreamDeflateZlibRoundTripTest() {
+    const mla_char_t* test_data = "Hello, valid zlib stream!";
+    mla_size_t test_len = 25;
+
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_zlib);
+
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t*)test_data);
+    assert_equal(written, test_len, "Zlib mode: should write all bytes to compressor");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Zlib mode: finish should succeed");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
+
+    mla_byte_t decompressed_buf[64];
+    mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
+
+    mla_size_t total_read = 0;
+    while (total_read < test_len) {
+        mla_size_t read_bytes = decompress_in.read(decompress_in, 0, test_len - total_read, decompressed_buf + total_read);
+        if (read_bytes == 0) {
+            break;
+        }
+        total_read += read_bytes;
+    }
+
+    assert_equal(total_read, test_len, "Zlib mode: should round-trip to the original length");
+    assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, test_len), (mla_test_int32_t)0, "Zlib mode: decompressed data should match the original input");
+}
+
+inline void StreamDeflateZlibAdler32MultiWriteTest() {
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_zlib);
+
+    mla_byte_t first_buffer[16];
+    mla_byte_t second_buffer[16];
+    mla_byte_t third_buffer[16];
+    mla_memset(first_buffer, 0, sizeof(first_buffer));
+    mla_memset(second_buffer, 0, sizeof(second_buffer));
+    mla_memset(third_buffer, 0, sizeof(third_buffer));
+
+    mla_memcpy(first_buffer + 2, "Hello", 5);
+    mla_memcpy(second_buffer + 3, " Zlib", 5);
+    mla_memcpy(third_buffer + 1, " Stream", 7);
+
+    mla_size_t written = compress_out.write(compress_out, 2, 5, first_buffer);
+    assert_equal(written, (mla_size_t)5, "Zlib mode: first write should honour the source offset");
+    written = compress_out.write(compress_out, 3, 5, second_buffer);
+    assert_equal(written, (mla_size_t)5, "Zlib mode: second write should honour the source offset");
+    written = compress_out.write(compress_out, 1, 7, third_buffer);
+    assert_equal(written, (mla_size_t)7, "Zlib mode: third write should honour the source offset");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Zlib mode: finish should succeed after multiple writes");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_byte_t wire_bytes[128];
+    mla_memset(wire_bytes, 0, sizeof(wire_bytes));
+    mla_size_t wire_size = compressed.input.read(compressed.input, 0, sizeof(wire_bytes), wire_bytes);
+    assert_true(wire_size > 6, "Zlib mode: compressed wire format should contain a header and Adler-32 trailer");
+
+    const mla_byte_t expected_plain[] = {
+        'H', 'e', 'l', 'l', 'o', ' ', 'Z', 'l', 'i', 'b', ' ', 'S', 't', 'r', 'e', 'a', 'm'
+    };
+    mla_uint32_t expected_adler = StreamDeflateTestAdler32(expected_plain, sizeof(expected_plain));
+
+    if (wire_size > 4) {
+        mla_uint32_t actual_adler =
+            ((mla_uint32_t)wire_bytes[wire_size - 4] << 24) |
+            ((mla_uint32_t)wire_bytes[wire_size - 3] << 16) |
+            ((mla_uint32_t)wire_bytes[wire_size - 2] << 8) |
+            (mla_uint32_t)wire_bytes[wire_size - 1];
+
+        assert_equal((mla_test_uint32_t)actual_adler, (mla_test_uint32_t)expected_adler, "Zlib mode: Adler-32 trailer should match the concatenated original payload");
+    } else {
+        assert_fail("Zlib mode: compressed output is too small to contain an Adler-32 trailer");
+    }
+
+}
+
 inline void StreamDeflateNullInputTest() {
     // Test creating wrapper with null read function
     mla_stream_input_t null_input = mla_stream_noop_input();
@@ -456,7 +597,7 @@ inline void StreamDeflateWebSocketModeTest() {
     // Compress with WebSocket mode
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
-        compressed.output, mla_deflate_compress_mode_websocket);
+        compressed.output, mla_deflate_mode_raw_websocket);
 
     mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
     assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
@@ -501,7 +642,7 @@ inline void StreamDeflateWebSocketModeLargerDataTest() {
 
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
-        compressed.output, mla_deflate_compress_mode_websocket);
+        compressed.output, mla_deflate_mode_raw_websocket);
 
     mla_size_t written = compress_out.write(compress_out, 0, data_size, test_data);
     assert_equal(written, data_size, "WebSocket large: should write all bytes");
@@ -540,7 +681,7 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
     // Compress with WebSocket mode
     mla_memory_stream_t compressed_websocket = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
-        compressed_websocket.output, mla_deflate_compress_mode_websocket);
+        compressed_websocket.output, mla_deflate_mode_raw_websocket);
 
     mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
     assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
@@ -552,7 +693,7 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
 
     // Compress with Normal Node
     mla_memory_stream_t normal_websocket = mla_memory_stream_empty();
-    mla_stream_output_t normal_compress_out = mla_stream_output_deflate_compress_wrapper(normal_websocket.output, mla_deflate_compress_mode_normal);
+    mla_stream_output_t normal_compress_out = mla_stream_output_deflate_compress_wrapper(normal_websocket.output, mla_deflate_mode_raw);
 
     written = compress_out.write(normal_compress_out, 0, test_len, (const mla_byte_t *)test_data);
     assert_equal(written, test_len, "Normal mode: should write all bytes to compressor");
@@ -611,6 +752,15 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateCompressHighlyRepetitive", test_category, StreamDeflateCompressHighlyRepetitiveTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateZlibEmptyStreamBytes", test_category, StreamDeflateZlibEmptyStreamBytesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateZlibRoundTrip", test_category, StreamDeflateZlibRoundTripTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateZlibAdler32MultiWrite", test_category, StreamDeflateZlibAdler32MultiWriteTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateNullInput", test_category, StreamDeflateNullInputTest);

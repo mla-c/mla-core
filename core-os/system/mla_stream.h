@@ -88,14 +88,14 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
 #define mla_stream_output_deflate_min_compression_data_size 1024
 
 // Deflate compression mode
-// mla_deflate_compress_mode_normal   – standard RFC 1951 terminator (BFINAL=1 empty block).
-// mla_deflate_compress_mode_websocket – RFC 7692 permessage-deflate: the compressor emits the
-//     empty stored-block header byte (0x00) but omits the 4-byte LEN/NLEN tail (00 00 FF FF).
-//     The WebSocket receiver must re-append those 4 bytes before passing the payload to the
-//     DEFLATE decompressor.
-enum mla_deflate_compress_mode_t: mla_uint8_t {
-    mla_deflate_compress_mode_normal,
-    mla_deflate_compress_mode_websocket
+// mla_deflate_mode_raw   – standard RFC 1951 terminator (BFINAL=1 empty block).
+// mla_deflate_mode_raw_websocket – RFC 7692 permessage-deflate: the compressor emits the
+// mla_deflate_mode_zlib - RFC1950 small zlib header + RFC1951 stream + Adler32 checksum
+
+enum mla_deflate_mode_t: mla_uint8_t {
+    mla_deflate_mode_raw,
+    mla_deflate_mode_raw_websocket,
+    mla_deflate_mode_zlib
 };
 
 // Deflate compression output wrapper
@@ -103,17 +103,18 @@ enum mla_deflate_compress_mode_t: mla_uint8_t {
 // Data written to the returned stream is compressed and forwarded to the base output stream.
 // Call mla_stream_output_deflate_finish() when done writing to flush remaining compressed data.
 mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output);
-mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output, mla_deflate_compress_mode_t mode);
+mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output_t &output, mla_deflate_mode_t mode);
 mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 
 // Deflate decompression input wrapper
 // Wraps an input stream to decompress DEFLATE-compressed data read from it.
+// The wrapper accepts both raw RFC 1951 streams and RFC 1950 zlib-wrapped DEFLATE streams.
 // Data read from the returned stream is decompressed from the base input stream.
 mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
 
 
 mla_size_t mla_stream_input_deflate_decompressed_size_calculation(mla_stream_input_t &input);
-mla_size_t mla_stream_input_deflate_compressed_size_calculation(mla_stream_input_t &input, mla_deflate_compress_mode_t mode);
+mla_size_t mla_stream_input_deflate_compressed_size_calculation(mla_stream_input_t &input, mla_deflate_mode_t mode);
 
 mla_size_t mla_stream_output_deflate_window_bits(mla_stream_output_t &output);
 
