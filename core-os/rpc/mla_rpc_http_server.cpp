@@ -256,21 +256,21 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 if (__mla_rpc_http_server_support_deflate_compression(*header) && content_size > mla_stream_output_deflate_min_compression_data_size) {
 
                     mla_memory_stream_t temp_compressed_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, true);
-                    mla_stream_output_t mla_deflate_stream = mla_stream_output_deflate_compress_wrapper(temp_compressed_stream.output);
+                    mla_stream_output_t mla_deflate_stream = mla_stream_output_deflate_compress_wrapper(temp_compressed_stream.output, mla_deflate_mode_zlib);
                     mla_stream_copy(temp_stream.input, mla_deflate_stream);
                     mla_stream_output_deflate_finish(mla_deflate_stream);
 
                     mla_memory_stream_set_position(temp_compressed_stream, 0);
 
                     mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
-                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_uint32(mla_memory_stream_get_size(temp_compressed_stream)));
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_size(mla_memory_stream_get_size(temp_compressed_stream)));
 
                     response.content = temp_compressed_stream.input;
 
 
                 } else {
                     // Content is small or client does not support deflate compression, we can write it directly with known content length
-                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_uint32(content_size));
+                    mla_http_headers_add(response.headers, mla_string_const("Content-Length"), mla_string_from_size(content_size));
                     response.content = temp_stream.input;
                 }
 

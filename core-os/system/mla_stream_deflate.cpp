@@ -532,7 +532,8 @@ static mla_bool_t __mla_deflate_compress_ensure_container_header(__mla_deflate_c
 }
 
 static mla_uint16_t __mla_deflate_hash3(const mla_byte_t *data) {
-    return (mla_uint16_t)(((mla_uint32_t)data[0] | ((mla_uint32_t)data[1] << 8) | ((mla_uint32_t)data[2] << 16)) & mla_deflate_hash_mask);
+    mla_uint32_t h = ((mla_uint32_t)data[0] * 257) ^ ((mla_uint32_t)data[1] * 13) ^ (mla_uint32_t)data[2];
+    return (mla_uint16_t)(h & mla_deflate_hash_mask);
 }
 
 // Find the length code index for a given length value
@@ -819,22 +820,24 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
         state->block_started = false;
     }
 
-    // Step 2 – byte-align: flush any partially-accumulated bits with zero padding.
-    __mla_deflate_bit_writer_align(state->writer);
-
-
 
     if (state->mode == mla_deflate_mode_raw_websocket) {
         // RFC 7692 permessage-deflate: the 4-byte LEN/NLEN tail (00 00 FF FF) is
         //  emit the non-final empty stored-block header byte (0x00)
         // and omit the trailing 00 00 FF FF bytes.
         __mla_deflate_bit_writer_put_byte(state->writer, 0x00);
+
+        // byte-align: flush any partially-accumulated bits with zero padding.
+        __mla_deflate_bit_writer_align(state->writer);
     } else {
 
         // Step 3 – write the empty stored-block header byte.
         //   Bit layout: BFINAL=1 (bit 0), BTYPE=00 (bits 1-2), padding=00000 (bits 3-7)
         //   → byte value 0x01.
         __mla_deflate_bit_writer_put_byte(state->writer, 0x01);
+
+        // byte-align: flush any partially-accumulated bits with zero padding.
+        __mla_deflate_bit_writer_align(state->writer);
 
         // Normal mode: complete the empty stored block with LEN=0 and NLEN=0xFFFF.
         __mla_deflate_bit_writer_put_byte(state->writer, 0x00); // LEN  low

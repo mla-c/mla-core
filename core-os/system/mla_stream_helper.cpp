@@ -10,7 +10,7 @@ mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &outpu
     mla_size_t bytesRead;
 
     do {
-        bytesRead = input.read(input, 0, mla_stream_fast_read_buffer_size, buffer);
+        bytesRead = input.read(input, 0, sizeof(buffer), buffer);
 
         if (bytesRead > 0) {
             mla_size_t bytesWritten = output.write(output, 0, bytesRead, buffer);

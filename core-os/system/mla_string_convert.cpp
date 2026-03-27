@@ -552,6 +552,10 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
     }
 }
 
+mla_string_t mla_string_from_size(mla_size_t p_Value) {
+    return mla_string_from_uint32(p_Value);
+}
+
 mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlaces) {
 
     // Handle special cases

@@ -174,6 +174,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value);
 mla_string_t mla_string_from_uint32(mla_uint32_t p_Value);
 mla_string_t mla_string_from_int64(mla_int64_t p_Value);
 mla_string_t mla_string_from_uint64(mla_uint64_t p_Value);
+mla_string_t mla_string_from_size(mla_size_t p_Value);
 mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPlaces);
 mla_string_t mla_string_from_bool(mla_bool_t p_Value);
