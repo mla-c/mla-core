@@ -91,11 +91,13 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
 // mla_deflate_mode_raw   – standard RFC 1951 terminator (BFINAL=1 empty block).
 // mla_deflate_mode_raw_websocket – RFC 7692 permessage-deflate: the compressor emits the
 // mla_deflate_mode_zlib - RFC1950 small zlib header + RFC1951 stream + Adler32 checksum
+// mla_deflate_mode_gzip - RFC1952 gzip header + RFC1951 stream + CRC32 + ISIZE trailer
 
 enum mla_deflate_mode_t: mla_uint8_t {
     mla_deflate_mode_raw,
     mla_deflate_mode_raw_websocket,
-    mla_deflate_mode_zlib
+    mla_deflate_mode_zlib,
+    mla_deflate_mode_gzip
 };
 
 // Deflate compression output wrapper
@@ -108,7 +110,7 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output);
 
 // Deflate decompression input wrapper
 // Wraps an input stream to decompress DEFLATE-compressed data read from it.
-// The wrapper accepts both raw RFC 1951 streams and RFC 1950 zlib-wrapped DEFLATE streams.
+// The wrapper auto-detects raw RFC 1951, RFC 1950 zlib, and RFC 1952 gzip streams.
 // Data read from the returned stream is decompressed from the base input stream.
 mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_t &input);
 
