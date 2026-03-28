@@ -10,6 +10,10 @@
 #include "../network/mla_network.h"
 #include "../url/mla_url.h"
 
+#ifndef mla_http_client_use_deflate_compression
+#define mla_http_client_use_deflate_compression mla_http_use_deflate_compression
+#endif
+
 enum mla_http_client_response_status: mla_uint8_t {
     MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
     MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL,
@@ -28,12 +32,19 @@ struct mla_http_client_response_t {
 };
 
 struct mla_http_client_t {
+    mla_bool_t support_deflate_compression;
     mla_int32_t timeout_ms;
     mla_bool_t (*resolve_host)(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host);
     mla_bool_t (*connect)(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection);
 };
 
 mla_http_client_t mla_http_client();
+
+mla_bool_t mla_http_client_support_deflate_compression(const mla_http_client_t &client);
+void mla_http_client_set_support_deflate_compression(mla_http_client_t &client, mla_bool_t support_deflate_compression);
+
+mla_int32_t mla_http_client_get_timeout(const mla_http_client_t &client);
+void mla_http_client_set_timeout(mla_http_client_t &client, mla_int32_t timeout_ms);
 
 mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t &client, mla_http_request_t &p_Request);
 

@@ -36,10 +36,32 @@ mla_bool_t __mla_http_client_default_connect(const mla_http_client_t &client, ml
 
 mla_http_client_t mla_http_client() {
     return {
+#if mla_http_client_use_deflate_compression == 1
+        true,
+#else
+        false,
+#endif
+
         mla_default_http_timeout_ms, // Default timeout 30 seconds
         __mla_http_client_default_resolve_host,
         __mla_http_client_default_connect
     };
+}
+
+mla_bool_t mla_http_client_support_deflate_compression(const mla_http_client_t &client) {
+    return client.support_deflate_compression;
+}
+
+void mla_http_client_set_support_deflate_compression(mla_http_client_t &client, mla_bool_t support_deflate_compression) {
+    client.support_deflate_compression = support_deflate_compression;
+}
+
+mla_int32_t mla_http_client_get_timeout(const mla_http_client_t &client) {
+    return client.timeout_ms;
+}
+
+void mla_http_client_set_timeout(mla_http_client_t &client, mla_int32_t timeout_ms) {
+    client.timeout_ms = timeout_ms;
 }
 
 
@@ -213,11 +235,21 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
         return false;
     }
 
+    mla_bool_t use_deflate = mla_http_headers_has_header_value(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
+
     mla_size_t content_size = 0;
 
     if (mla_parse_uint32(contentLengthStr, content_size)) {
-        mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
-        response.content = mla_http_content_fixed_size_input_stream(buffered_stream, timeout_ms, content_size);
+
+        mla_stream_input_t response_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+        response_stream = mla_http_content_fixed_size_input_stream(response_stream, timeout_ms, content_size);
+
+        if (use_deflate) {
+            response_stream = mla_stream_input_deflate_decompress_wrapper(response_stream);
+        }
+
+
+        response.content = response_stream;
         return true;
     }
 
@@ -227,7 +259,7 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     if (mla_string_equals_const(transferEncoding, "chunked")) {
         mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
 
-        if (mla_http_headers_has_header_value(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"))) {
+        if (use_deflate) {
             response.content = mla_http_chunked_stream_input_deflate(buffered_stream, timeout_ms);
         } else {
             response.content = mla_http_chunked_stream_input(buffered_stream, timeout_ms);
@@ -287,6 +319,18 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     ////////////
 
     mla_stream_output_t bufferedOutputStream = mla_stream_output_buffered_wrapper(connection.outputStream, mla_stream_fast_read_buffer_size);
+
+    if (client.support_deflate_compression) {
+
+        mla_string_t accepted_encoding = mla_http_headers_get_value(p_Request.headers, mla_string_const("Accept-Encoding"));
+
+        if (mla_string_is_empty(accepted_encoding)) {
+            mla_http_headers_add(p_Request.headers, mla_string_const("Accept-Encoding"), mla_string_const("deflate"));
+        } else if (!mla_string_contains(accepted_encoding, mla_string_const("deflate"))) {
+            mla_http_headers_add(p_Request.headers, mla_string_const("Accept-Encoding"), mla_string_const("deflate"), mla_string_const(","));
+        }
+    }
+
 
     // Send Header
     if (!__mla_http_client_send_header(response, url, p_Request, bufferedOutputStream)) {

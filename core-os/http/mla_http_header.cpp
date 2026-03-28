@@ -15,6 +15,32 @@ mla_http_header_t mla_http_header_empty() {
     };
 }
 
+void mla_http_headers_add(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value, const mla_string_t &value_seperator) {
+
+    // Check if header already exists
+    for (mla_size_t i = 0; i < mla_array_list_size(p_Headers); i++) {
+
+        mla_http_header_t* header = mla_array_list_get_ref(p_Headers, i);
+
+        if (mla_string_equals_ignore_case(header->name, p_Name)) {
+
+            // Update the header value
+            header->value = mla_string_concat(header->value, value_seperator, p_Value);
+            return;
+        }
+    }
+
+    // Header does not exist, create new
+    mla_http_header_t new_header = {
+        p_Name,
+        MLA_HTTP_HEADER_TYPE_SINGLE,
+        mla_array_list_empty<mla_string_t, mla_string_initializer>(),
+        p_Value,
+
+    };
+
+    mla_array_list_add(p_Headers, new_header);}
+
 void mla_http_headers_add(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value) {
 
     // Check if header already exists

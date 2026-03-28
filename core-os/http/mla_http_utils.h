@@ -11,6 +11,10 @@
 
 #define mla_default_http_timeout_ms 30000
 
+#ifndef mla_http_use_deflate_compression
+#define mla_http_use_deflate_compression 1
+#endif
+
 mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string_t & line, mla_int32_t timeout_ms);
 mla_bool_t mla_http_utils_write_headers(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, mla_stream_output_t & connection);
 mla_bool_t mla_http_utils_read_headers(mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &headers, mla_stream_input_t & connection, mla_int32_t timeout_ms);
