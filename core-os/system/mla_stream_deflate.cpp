@@ -825,7 +825,7 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
         // RFC 7692 permessage-deflate: the 4-byte LEN/NLEN tail (00 00 FF FF) is
         //  emit the non-final empty stored-block header byte (0x00)
         // and omit the trailing 00 00 FF FF bytes.
-        __mla_deflate_bit_writer_put_byte(state->writer, 0x00);
+        __mla_deflate_bit_writer_write(state->writer, 0x00, 3);
 
         // byte-align: flush any partially-accumulated bits with zero padding.
         __mla_deflate_bit_writer_align(state->writer);
@@ -834,7 +834,7 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
         // Step 3 – write the empty stored-block header byte.
         //   Bit layout: BFINAL=1 (bit 0), BTYPE=00 (bits 1-2), padding=00000 (bits 3-7)
         //   → byte value 0x01.
-        __mla_deflate_bit_writer_put_byte(state->writer, 0x01);
+        __mla_deflate_bit_writer_write(state->writer, 0x01, 3);
 
         // byte-align: flush any partially-accumulated bits with zero padding.
         __mla_deflate_bit_writer_align(state->writer);
