@@ -331,6 +331,42 @@ static mla_uint32_t __mla_deflate_adler32_update_byte(mla_uint32_t current, mla_
     return __mla_deflate_adler32_update(current, &value, 1);
 }
 
+///////////////////////////////////////////////////////////////////
+/// CRC-32 (ISO 3309 / ITU-T V.42) – required for gzip (RFC 1952)
+///////////////////////////////////////////////////////////////////
+
+static mla_uint32_t __mla_deflate_crc32_table[256];
+static mla_bool_t   __mla_deflate_crc32_table_initialized = false;
+
+static void __mla_deflate_crc32_build_table() {
+    if (__mla_deflate_crc32_table_initialized) return;
+    for (mla_uint32_t i = 0; i < 256; i++) {
+        mla_uint32_t c = i;
+        for (mla_uint8_t k = 0; k < 8; k++) {
+            if (c & 1u) {
+                c = 0xEDB88320u ^ (c >> 1);
+            } else {
+                c >>= 1;
+            }
+        }
+        __mla_deflate_crc32_table[i] = c;
+    }
+    __mla_deflate_crc32_table_initialized = true;
+}
+
+static mla_uint32_t __mla_deflate_crc32_update(mla_uint32_t crc, const mla_byte_t *data, mla_size_t length) {
+    __mla_deflate_crc32_build_table();
+    crc = ~crc;
+    for (mla_size_t i = 0; i < length; i++) {
+        crc = __mla_deflate_crc32_table[(crc ^ data[i]) & 0xFFu] ^ (crc >> 8);
+    }
+    return ~crc;
+}
+
+static mla_uint32_t __mla_deflate_crc32_update_byte(mla_uint32_t crc, mla_byte_t value) {
+    return __mla_deflate_crc32_update(crc, &value, 1);
+}
+
 static mla_bool_t __mla_deflate_is_zlib_header(mla_byte_t cmf, mla_byte_t flg) {
     if ((cmf & 0x0F) != 8) {
         return false;
@@ -485,6 +521,8 @@ struct __mla_deflate_compress_state_t {
     mla_uint16_t hash_prev[mla_deflate_window_size];  // Previous entry in hash chain
 
     mla_uint32_t adler32;
+    mla_uint32_t crc32;
+    mla_uint32_t input_size;
     mla_bool_t container_header_written;
     mla_bool_t block_started;
     mla_bool_t finished;
@@ -499,7 +537,8 @@ struct __mla_deflate_compress_state_initializer {
             {nullptr, {}, 0, 0, 0, false}, // writer
             {}, 0, 0,                      // window, window_pos, window_filled
             {}, {},                        // hash_head, hash_prev
-            1u, false,                     // adler32, container_header_written
+            1u, 0u, 0u,                   // adler32, crc32, input_size
+            false,                         // container_header_written
             false, false,                  // block_started, finished
             mla_deflate_mode_raw // mode
         };
@@ -518,6 +557,19 @@ static void __mla_deflate_write_zlib_header(__mla_deflate_bit_writer_t &writer) 
     __mla_deflate_bit_writer_put_byte(writer, flg);
 }
 
+static void __mla_deflate_write_gzip_header(__mla_deflate_bit_writer_t &writer) {
+    __mla_deflate_bit_writer_put_byte(writer, 0x1F); // ID1
+    __mla_deflate_bit_writer_put_byte(writer, 0x8B); // ID2
+    __mla_deflate_bit_writer_put_byte(writer, 0x08); // CM = deflate
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // FLG = no extras
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // MTIME byte 0
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // MTIME byte 1
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // MTIME byte 2
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // MTIME byte 3
+    __mla_deflate_bit_writer_put_byte(writer, 0x00); // XFL
+    __mla_deflate_bit_writer_put_byte(writer, 0xFF); // OS = unknown
+}
+
 static mla_bool_t __mla_deflate_compress_ensure_container_header(__mla_deflate_compress_state_t &state) {
     if (state.container_header_written) {
         return true;
@@ -525,6 +577,8 @@ static mla_bool_t __mla_deflate_compress_ensure_container_header(__mla_deflate_c
 
     if (state.mode == mla_deflate_mode_zlib) {
         __mla_deflate_write_zlib_header(state.writer);
+    } else if (state.mode == mla_deflate_mode_gzip) {
+        __mla_deflate_write_gzip_header(state.writer);
     }
 
     state.container_header_written = true;
@@ -740,6 +794,11 @@ static mla_size_t __mla_stream_deflate_compress_write(mla_stream_output_t &outpu
         state->adler32 = __mla_deflate_adler32_update(state->adler32, input_data, length);
     }
 
+    if (state->mode == mla_deflate_mode_gzip && length > 0) {
+        state->crc32 = __mla_deflate_crc32_update(state->crc32, input_data, length);
+        state->input_size += (mla_uint32_t)length;
+    }
+
     __mla_deflate_compress_block(*state, input_data, length, false);
 
     if (state->writer.error) {
@@ -784,6 +843,8 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
     state->window_pos = 0;
     state->window_filled = 0;
     state->adler32 = 1u;
+    state->crc32 = 0u;
+    state->input_size = 0u;
     state->container_header_written = false;
     state->mode = mode;
 
@@ -853,6 +914,19 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
         __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)(state->adler32 & 0xFFu));
     }
 
+    if (state->mode == mla_deflate_mode_gzip) {
+        // CRC32 – little-endian (RFC 1952 section 2.3.1)
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)(state->crc32 & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->crc32 >> 8) & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->crc32 >> 16) & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->crc32 >> 24) & 0xFFu));
+        // ISIZE – little-endian (original input size mod 2^32)
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)(state->input_size & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->input_size >> 8) & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->input_size >> 16) & 0xFFu));
+        __mla_deflate_bit_writer_put_byte(state->writer, (mla_byte_t)((state->input_size >> 24) & 0xFFu));
+    }
+
     __mla_deflate_bit_writer_flush_buffer(state->writer);
 
     state->finished = true;
@@ -866,7 +940,8 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 
 enum __mla_deflate_container_mode_t : mla_uint8_t {
     __mla_deflate_container_mode_raw,
-    __mla_deflate_container_mode_zlib
+    __mla_deflate_container_mode_zlib,
+    __mla_deflate_container_mode_gzip
 };
 
 struct __mla_deflate_decompress_state_t {
@@ -898,6 +973,8 @@ struct __mla_deflate_decompress_state_t {
     mla_uint16_t pending_match_dist;      // distance of the interrupted back-reference
 
     mla_uint32_t adler32;
+    mla_uint32_t crc32;
+    mla_uint32_t decompressed_size;
     __mla_deflate_container_mode_t container_mode;
     mla_bool_t finished;
     mla_bool_t error;
@@ -916,7 +993,8 @@ struct __mla_deflate_decompress_state_initializer {
             __mla_deflate_huffman_empty<mla_deflate_max_dist_codes>(),                   // dist_table
             false, false, 0, 0,           // block_final, block_active, block_type, uncompressed_remaining
             0, 0,                          // pending_match_remaining, pending_match_dist
-            1u, __mla_deflate_container_mode_raw, // adler32, container_mode
+            1u, 0u, 0u,                   // adler32, crc32, decompressed_size
+            __mla_deflate_container_mode_raw, // container_mode
             false, false                   // finished, error
         };
         return result;
@@ -941,6 +1019,44 @@ static mla_bool_t __mla_deflate_decompress_consume_zlib_trailer(__mla_deflate_de
         (mla_uint32_t)trailer[3];
 
     if (expected != state.adler32) {
+        state.error = true;
+        return false;
+    }
+
+    return true;
+}
+
+static mla_bool_t __mla_deflate_decompress_consume_gzip_trailer(__mla_deflate_decompress_state_t &state) {
+    __mla_deflate_bit_reader_align(state.reader);
+
+    // CRC32 – 4 bytes, little-endian
+    mla_byte_t trailer[8];
+    for (mla_size_t i = 0; i < 8; i++) {
+        if (!__mla_deflate_bit_reader_read_byte(state.reader, trailer[i])) {
+            state.error = true;
+            return false;
+        }
+    }
+
+    mla_uint32_t expected_crc =
+        (mla_uint32_t)trailer[0] |
+        ((mla_uint32_t)trailer[1] << 8) |
+        ((mla_uint32_t)trailer[2] << 16) |
+        ((mla_uint32_t)trailer[3] << 24);
+
+    if (expected_crc != state.crc32) {
+        state.error = true;
+        return false;
+    }
+
+    // ISIZE – 4 bytes, little-endian (original size mod 2^32)
+    mla_uint32_t expected_size =
+        (mla_uint32_t)trailer[4] |
+        ((mla_uint32_t)trailer[5] << 8) |
+        ((mla_uint32_t)trailer[6] << 16) |
+        ((mla_uint32_t)trailer[7] << 24);
+
+    if (expected_size != state.decompressed_size) {
         state.error = true;
         return false;
     }
@@ -1090,6 +1206,8 @@ static mla_bool_t __mla_deflate_decode_huffman_block(__mla_deflate_decompress_st
                 state.window[state.window_pos] = byte_val;
                 state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
                 state.adler32 = __mla_deflate_adler32_update_byte(state.adler32, byte_val);
+                state.crc32 = __mla_deflate_crc32_update_byte(state.crc32, byte_val);
+                state.decompressed_size++;
                 state.pending_match_remaining--;
             }
             continue; // re-check outer while condition before decoding a new symbol
@@ -1108,6 +1226,8 @@ static mla_bool_t __mla_deflate_decode_huffman_block(__mla_deflate_decompress_st
             state.window[state.window_pos] = (mla_byte_t)symbol;
             state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
             state.adler32 = __mla_deflate_adler32_update_byte(state.adler32, (mla_byte_t)symbol);
+            state.crc32 = __mla_deflate_crc32_update_byte(state.crc32, (mla_byte_t)symbol);
+            state.decompressed_size++;
         } else if (symbol == mla_deflate_end_of_block) {
             // End of block
             state.block_active = false;
@@ -1153,6 +1273,8 @@ static mla_bool_t __mla_deflate_decode_huffman_block(__mla_deflate_decompress_st
                 state.window[state.window_pos] = byte_val;
                 state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
                 state.adler32 = __mla_deflate_adler32_update_byte(state.adler32, byte_val);
+                state.crc32 = __mla_deflate_crc32_update_byte(state.crc32, byte_val);
+                state.decompressed_size++;
 
                 if (state.output_buf_len >= output_buf_size) {
                     // Output buffer full mid-match — save the remainder so the next
@@ -1183,6 +1305,8 @@ static mla_bool_t __mla_deflate_decode_uncompressed_block(__mla_deflate_decompre
         state.window[state.window_pos] = byte_val;
         state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
         state.adler32 = __mla_deflate_adler32_update_byte(state.adler32, byte_val);
+        state.crc32 = __mla_deflate_crc32_update_byte(state.crc32, byte_val);
+        state.decompressed_size++;
         state.uncompressed_remaining--;
     }
 
@@ -1263,6 +1387,10 @@ static mla_bool_t __mla_deflate_decompress_fill(__mla_deflate_decompress_state_t
         if (!state.block_active && state.block_final) {
             if (state.container_mode == __mla_deflate_container_mode_zlib) {
                 if (!__mla_deflate_decompress_consume_zlib_trailer(state)) {
+                    return false;
+                }
+            } else if (state.container_mode == __mla_deflate_container_mode_gzip) {
+                if (!__mla_deflate_decompress_consume_gzip_trailer(state)) {
                     return false;
                 }
             }
@@ -1355,6 +1483,8 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
     state->block_active = false;
     state->block_final = false;
     state->adler32 = 1u;
+    state->crc32 = 0u;
+    state->decompressed_size = 0u;
     state->container_mode = __mla_deflate_container_mode_raw;
     state->finished = false;
     state->error = false;
@@ -1368,7 +1498,74 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         }
     }
 
-    if (prefix_length == 2 && __mla_deflate_is_zlib_header(prefix[0], prefix[1])) {
+    if (prefix_length == 2 && prefix[0] == 0x1F && prefix[1] == 0x8B) {
+        // Gzip header detected (RFC 1952)
+        mla_byte_t gzip_hdr[8]; // remaining 8 bytes of the 10-byte fixed header
+        mla_size_t hdr_read = 0;
+        for (; hdr_read < 8; hdr_read++) {
+            mla_size_t r = state->base_input.read(state->base_input, 0, 1, gzip_hdr + hdr_read);
+            if (r == 0) { state->error = true; break; }
+        }
+
+        if (!state->error && gzip_hdr[0] != 8) {
+            // CM must be 8 (deflate)
+            state->error = true;
+        }
+
+        if (!state->error) {
+            mla_uint8_t flg = gzip_hdr[1];
+
+            // FEXTRA (bit 2)
+            if (flg & 0x04u) {
+                mla_byte_t xlen_buf[2];
+                if (state->base_input.read(state->base_input, 0, 1, xlen_buf) == 0 ||
+                    state->base_input.read(state->base_input, 0, 1, xlen_buf + 1) == 0) {
+                    state->error = true;
+                } else {
+                    mla_uint16_t xlen = (mla_uint16_t)xlen_buf[0] | ((mla_uint16_t)xlen_buf[1] << 8);
+                    for (mla_uint16_t i = 0; i < xlen && !state->error; i++) {
+                        mla_byte_t discard;
+                        if (state->base_input.read(state->base_input, 0, 1, &discard) == 0) {
+                            state->error = true;
+                        }
+                    }
+                }
+            }
+
+            // FNAME (bit 3) – zero-terminated
+            if (!state->error && (flg & 0x08u)) {
+                mla_byte_t ch;
+                do {
+                    if (state->base_input.read(state->base_input, 0, 1, &ch) == 0) {
+                        state->error = true; break;
+                    }
+                } while (ch != 0 && !state->error);
+            }
+
+            // FCOMMENT (bit 4) – zero-terminated
+            if (!state->error && (flg & 0x10u)) {
+                mla_byte_t ch;
+                do {
+                    if (state->base_input.read(state->base_input, 0, 1, &ch) == 0) {
+                        state->error = true; break;
+                    }
+                } while (ch != 0 && !state->error);
+            }
+
+            // FHCRC (bit 1) – 2-byte header CRC
+            if (!state->error && (flg & 0x02u)) {
+                mla_byte_t hcrc[2];
+                if (state->base_input.read(state->base_input, 0, 1, hcrc) == 0 ||
+                    state->base_input.read(state->base_input, 0, 1, hcrc + 1) == 0) {
+                    state->error = true;
+                }
+            }
+        }
+
+        if (!state->error) {
+            state->container_mode = __mla_deflate_container_mode_gzip;
+        }
+    } else if (prefix_length == 2 && __mla_deflate_is_zlib_header(prefix[0], prefix[1])) {
         mla_uint8_t flg = prefix[1];
         mla_size_t header_window_bits = (mla_size_t)((prefix[0] >> 4) + 8);
 

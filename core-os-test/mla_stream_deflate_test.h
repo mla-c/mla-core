@@ -708,6 +708,223 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
 }
 
 ///////////////////////////////////////////////////////////////////
+/// Gzip Mode Tests
+///////////////////////////////////////////////////////////////////
+
+inline mla_uint32_t StreamDeflateTestCrc32(const mla_byte_t* p_Data, mla_size_t p_Length) {
+    // Standard CRC-32 (ISO 3309) – same polynomial as gzip
+    static mla_uint32_t table[256];
+    static mla_bool_t built = false;
+    if (!built) {
+        for (mla_uint32_t i = 0; i < 256; i++) {
+            mla_uint32_t c = i;
+            for (mla_uint8_t k = 0; k < 8; k++) {
+                if (c & 1u) c = 0xEDB88320u ^ (c >> 1); else c >>= 1;
+            }
+            table[i] = c;
+        }
+        built = true;
+    }
+    mla_uint32_t crc = 0xFFFFFFFFu;
+    for (mla_size_t i = 0; i < p_Length; i++) {
+        crc = table[(crc ^ p_Data[i]) & 0xFFu] ^ (crc >> 8);
+    }
+    return ~crc;
+}
+
+inline void StreamDeflateGzipEmptyStreamBytesTest() {
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_gzip);
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Gzip mode: finish should succeed for empty stream");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_byte_t wire_bytes[64];
+    mla_memset(wire_bytes, 0, sizeof(wire_bytes));
+    mla_size_t wire_size = compressed.input.read(compressed.input, 0, sizeof(wire_bytes), wire_bytes);
+
+    // Minimum gzip: 10-byte header + 7-byte empty DEFLATE block + 8-byte trailer = 25 bytes
+    assert_true(wire_size >= 18, "Gzip mode: empty stream should contain header, final block and trailer");
+
+    if (wire_size >= 18) {
+        // Verify gzip magic
+        assert_equal((mla_test_int32_t)wire_bytes[0], (mla_test_int32_t)0x1F, "Gzip mode: ID1 should be 0x1F");
+        assert_equal((mla_test_int32_t)wire_bytes[1], (mla_test_int32_t)0x8B, "Gzip mode: ID2 should be 0x8B");
+        assert_equal((mla_test_int32_t)wire_bytes[2], (mla_test_int32_t)0x08, "Gzip mode: CM should be 8 (deflate)");
+        assert_equal((mla_test_int32_t)wire_bytes[3], (mla_test_int32_t)0x00, "Gzip mode: FLG should be 0 (no extras)");
+
+        // Verify trailer: CRC32 (LE) + ISIZE (LE)
+        // For empty data, CRC32 = 0x00000000 and ISIZE = 0x00000000
+        mla_uint32_t trailer_crc =
+            (mla_uint32_t)wire_bytes[wire_size - 8] |
+            ((mla_uint32_t)wire_bytes[wire_size - 7] << 8) |
+            ((mla_uint32_t)wire_bytes[wire_size - 6] << 16) |
+            ((mla_uint32_t)wire_bytes[wire_size - 5] << 24);
+        mla_uint32_t trailer_isize =
+            (mla_uint32_t)wire_bytes[wire_size - 4] |
+            ((mla_uint32_t)wire_bytes[wire_size - 3] << 8) |
+            ((mla_uint32_t)wire_bytes[wire_size - 2] << 16) |
+            ((mla_uint32_t)wire_bytes[wire_size - 1] << 24);
+
+        assert_equal((mla_test_uint32_t)trailer_crc, (mla_test_uint32_t)0u, "Gzip mode: CRC32 should be 0 for empty stream");
+        assert_equal((mla_test_uint32_t)trailer_isize, (mla_test_uint32_t)0u, "Gzip mode: ISIZE should be 0 for empty stream");
+    }
+}
+
+inline void StreamDeflateGzipRoundTripTest() {
+    const mla_char_t* test_data = "Hello, valid gzip stream!";
+    mla_size_t test_len = 25;
+
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_gzip);
+
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t*)test_data);
+    assert_equal(written, test_len, "Gzip mode: should write all bytes to compressor");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Gzip mode: finish should succeed");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
+
+    mla_byte_t decompressed_buf[64];
+    mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
+
+    mla_size_t total_read = 0;
+    while (total_read < test_len) {
+        mla_size_t read_bytes = decompress_in.read(decompress_in, 0, test_len - total_read, decompressed_buf + total_read);
+        if (read_bytes == 0) {
+            break;
+        }
+        total_read += read_bytes;
+    }
+
+    assert_equal(total_read, test_len, "Gzip mode: should round-trip to the original length");
+    assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, test_len), (mla_test_int32_t)0, "Gzip mode: decompressed data should match the original input");
+}
+
+inline void StreamDeflateGzipCrc32MultiWriteTest() {
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_gzip);
+
+    mla_byte_t first_buffer[16];
+    mla_byte_t second_buffer[16];
+    mla_byte_t third_buffer[16];
+    mla_memset(first_buffer, 0, sizeof(first_buffer));
+    mla_memset(second_buffer, 0, sizeof(second_buffer));
+    mla_memset(third_buffer, 0, sizeof(third_buffer));
+
+    mla_memcpy(first_buffer + 2, "Hello", 5);
+    mla_memcpy(second_buffer + 3, " Gzip", 5);
+    mla_memcpy(third_buffer + 1, " Stream", 7);
+
+    mla_size_t written = compress_out.write(compress_out, 2, 5, first_buffer);
+    assert_equal(written, (mla_size_t)5, "Gzip mode: first write should honour the source offset");
+    written = compress_out.write(compress_out, 3, 5, second_buffer);
+    assert_equal(written, (mla_size_t)5, "Gzip mode: second write should honour the source offset");
+    written = compress_out.write(compress_out, 1, 7, third_buffer);
+    assert_equal(written, (mla_size_t)7, "Gzip mode: third write should honour the source offset");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Gzip mode: finish should succeed after multiple writes");
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_byte_t wire_bytes[128];
+    mla_memset(wire_bytes, 0, sizeof(wire_bytes));
+    mla_size_t wire_size = compressed.input.read(compressed.input, 0, sizeof(wire_bytes), wire_bytes);
+    assert_true(wire_size > 18, "Gzip mode: compressed wire format should contain a header and trailer");
+
+    const mla_byte_t expected_plain[] = {
+        'H', 'e', 'l', 'l', 'o', ' ', 'G', 'z', 'i', 'p', ' ', 'S', 't', 'r', 'e', 'a', 'm'
+    };
+    mla_uint32_t expected_crc = StreamDeflateTestCrc32(expected_plain, sizeof(expected_plain));
+
+    if (wire_size > 8) {
+        mla_uint32_t actual_crc =
+            (mla_uint32_t)wire_bytes[wire_size - 8] |
+            ((mla_uint32_t)wire_bytes[wire_size - 7] << 8) |
+            ((mla_uint32_t)wire_bytes[wire_size - 6] << 16) |
+            ((mla_uint32_t)wire_bytes[wire_size - 5] << 24);
+
+        assert_equal((mla_test_uint32_t)actual_crc, (mla_test_uint32_t)expected_crc, "Gzip mode: CRC32 trailer should match the concatenated original payload");
+
+        mla_uint32_t actual_isize =
+            (mla_uint32_t)wire_bytes[wire_size - 4] |
+            ((mla_uint32_t)wire_bytes[wire_size - 3] << 8) |
+            ((mla_uint32_t)wire_bytes[wire_size - 2] << 16) |
+            ((mla_uint32_t)wire_bytes[wire_size - 1] << 24);
+
+        assert_equal((mla_test_uint32_t)actual_isize, (mla_test_uint32_t)sizeof(expected_plain), "Gzip mode: ISIZE trailer should match the original payload size");
+    } else {
+        assert_fail("Gzip mode: compressed output is too small to contain a CRC32/ISIZE trailer");
+    }
+}
+
+inline void StreamDeflateGzipLargeRoundTripTest() {
+    // Test with larger data that spans multiple blocks
+    const mla_size_t data_size = 4096;
+    mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_malloc(data_size));
+    assert_not_null(test_data, "Should allocate test data");
+
+    if (test_data != nullptr) {
+        for (mla_size_t i = 0; i < data_size; i++) {
+            test_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+        }
+    }
+
+    // Compress
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_gzip);
+
+    mla_size_t written = compress_out.write(compress_out, 0, data_size, test_data);
+    assert_equal(written, data_size, "Gzip large: should write all bytes to compressor");
+
+    mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
+    assert_true(finish_result, "Gzip large: finish should succeed");
+
+    // Decompress
+    mla_memory_stream_set_position(compressed, 0);
+    mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
+
+    mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_malloc(data_size + 64));
+    assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
+
+    if (decompressed_buf != nullptr)
+        mla_memset(decompressed_buf, 0, data_size + 64);
+
+    mla_size_t total_read = 0;
+    while (total_read < data_size) {
+        mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
+        if (read_bytes == 0) break;
+        total_read += read_bytes;
+    }
+
+    assert_equal(total_read, data_size, "Gzip large: should decompress to original length");
+    if (decompressed_buf != nullptr && test_data != nullptr)
+        assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Gzip large: decompressed data should match original");
+
+    mla_free(test_data);
+    mla_free(decompressed_buf);
+}
+
+inline void StreamDeflateGzipCompressedSizeCalculationTest() {
+    const mla_char_t* test_data = "Hello, gzip size!";
+    mla_size_t test_len = 17;
+
+    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)test_data, test_len);
+    mla_size_t compressed_size = mla_stream_input_deflate_compressed_size_calculation(input, mla_deflate_mode_gzip);
+
+    // Gzip compressed size should be larger than raw (header + trailer overhead)
+    mla_stream_input_t input2 = mla_stream_input_from_buffer((mla_byte_t*)test_data, test_len);
+    mla_size_t raw_compressed_size = mla_stream_input_deflate_compressed_size_calculation(input2, mla_deflate_mode_raw);
+
+    assert_true(compressed_size > raw_compressed_size, "Gzip compressed size should include header + trailer overhead");
+    // Gzip overhead: 10-byte header + 8-byte trailer = 18 bytes
+    assert_equal(compressed_size, raw_compressed_size + 18u, "Gzip overhead should be exactly 18 bytes (10 header + 8 trailer)");
+}
+
+///////////////////////////////////////////////////////////////////
 /// Test Registration
 ///////////////////////////////////////////////////////////////////
 
@@ -776,6 +993,21 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateWebSocketCompareToNormal", test_category, StreamDeflateWebSocketCompareToNormalTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateGzipEmptyStreamBytes", test_category, StreamDeflateGzipEmptyStreamBytesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateGzipRoundTrip", test_category, StreamDeflateGzipRoundTripTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateGzipCrc32MultiWrite", test_category, StreamDeflateGzipCrc32MultiWriteTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateGzipLargeRoundTrip", test_category, StreamDeflateGzipLargeRoundTripTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateGzipCompressedSizeCalculation", test_category, StreamDeflateGzipCompressedSizeCalculationTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
