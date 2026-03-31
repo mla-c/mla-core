@@ -160,25 +160,39 @@ mla_bool_t __mla_http_headers_has_value(const mla_string_t &headerValue, const m
 
     // split the value by the seperator
     mla_array_list_t<mla_string_t, mla_string_initializer> splittedValues = mla_string_split(headerValue, value_seperator);
+    mla_bool_t result = false;
+
+    mla_string_t valueToCheckWithSemi = mla_string_concat(valueToCheck, mla_string_const(";"));
 
     for (mla_size_t i = 0; i < mla_array_list_size(splittedValues); i++) {
 
         mla_string_t value = mla_array_list_get_unsafe(splittedValues, i);
-        value = mla_string_trim(value);
+        mla_string_t trimmedValue = mla_string_trim(value);
 
         // check if there is a 100% match
-        if (mla_string_equals_ignore_case(value, valueToCheck)) {
-            return true;
+        if (mla_string_equals_ignore_case(trimmedValue, valueToCheck)) {
+            result = true;
+        } else {
+            // check if its a sub category which the most time
+            // sec-websocket-extensions: permessage-deflate; client_max_window_bits
+            mla_string_t valueWithSemi = mla_string_concat(trimmedValue, mla_string_const(";"));
+            if (mla_string_starts_with_ignore_case(valueWithSemi, valueToCheckWithSemi)) {
+                result = true;
+            }
+            mla_string_destroy(valueWithSemi);
         }
 
-        // check if its a sub category which the most time
-        // sec-websocket-extensions: permessage-deflate; client_max_window_bits
-        if (mla_string_starts_with(mla_string_concat(value, ";"), valueToCheck)) {
-            return true;
+        mla_string_destroy(trimmedValue);
+
+        if (result) {
+            break;
         }
     }
 
-    return false;
+    mla_string_destroy(valueToCheckWithSemi);
+    mla_array_list_destroy(splittedValues);
+
+    return result;
 }
 
 mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_header_t, mla_http_header_initializer> &p_Headers, const mla_string_t &p_Name, const mla_string_t &p_Value, const mla_string_t &value_seperator) {
@@ -200,7 +214,7 @@ mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_hea
                 for (mla_size_t j = 0; j < mla_array_list_size(header->values); j++) {
 
                     // split the value by the seperator
-                    if (__mla_http_headers_has_value(header->value, mla_array_list_get_unsafe(header->values, j), value_seperator)) {
+                    if (__mla_http_headers_has_value(mla_array_list_get_unsafe(header->values, j), p_Value, value_seperator)) {
                         return true;
                     }
 

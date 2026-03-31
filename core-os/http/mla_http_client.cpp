@@ -235,7 +235,7 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
         return false;
     }
 
-    mla_bool_t use_deflate = mla_http_headers_has_header_value(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
+    mla_bool_t use_deflate = mla_http_headers_has_header_value(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"), mla_string_const(","));
 
     mla_size_t content_size = 0;
 
