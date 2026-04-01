@@ -3,7 +3,6 @@
 //
 
 #include "mla_http_client.h"
-
 #include "../log/mla_logging.h"
 #include "../system/mla_string_concat.h"
 #include "../system/mla_number.h"
