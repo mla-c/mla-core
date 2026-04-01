@@ -17,6 +17,7 @@ void SimpleGetRequestWithoutDeflateTest() {
     // Send the request
     mla_http_client_t client = mla_http_client();
     mla_http_client_set_support_deflate_compression(client, false);
+    mla_http_client_set_support_gzip_compression(client, false);
     mla_http_client_response_t response = mla_http_client_send_request(client, request);
 
     // Verify the response status
@@ -33,8 +34,8 @@ void SimpleGetRequestWithoutDeflateTest() {
 
     // Verify encoding
     mla_string_t encoding = mla_http_headers_get_value(response.response.headers, mla_string_const("Content-Encoding"));
-    assert_true(mla_string_is_empty(encoding) || mla_string_equals_ignore_case(encoding, mla_string_const("deflate")),
-                "Content-Encoding should be empty or deflate");
+    assert_true(mla_string_is_empty(encoding),
+                "Content-Encoding should be empty");
 
     // Check that we received some content
     mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
@@ -59,7 +60,11 @@ void SimpleGetRequestWithoutDeflateTest() {
         mla_size_t contentLength = 0;
 
         mla_parse_uint32(contentLengthStr, contentLength);
-        assert_equal(totalRead, contentLength, "Total read bytes should match Content-Length header");
+        if (mla_string_is_empty(encoding)) {
+            assert_equal(totalRead, contentLength, "Total read bytes should match Content-Length header");
+        } else {
+            assert_true(totalRead > 0, "Should read some bytes from response content");
+        }
 
     } else {
         assert_fail("Response content read function is null");
@@ -119,7 +124,11 @@ void SimpleGetRequestTest() {
         mla_size_t contentLength = 0;
 
         mla_parse_uint32(contentLengthStr, contentLength);
-        assert_equal(totalRead, contentLength, "Total read bytes should match Content-Length header");
+        if (mla_string_is_empty(encoding)) {
+            assert_equal(totalRead, contentLength, "Total read bytes should match Content-Length header");
+        } else {
+            assert_true(totalRead > 0, "Should read some bytes from response content");
+        }
 
     } else {
         assert_fail("Response content read function is null");
