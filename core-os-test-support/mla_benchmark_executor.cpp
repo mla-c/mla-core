@@ -5,26 +5,28 @@
 #include "mla_benchmark_executor.h"
 #include "mla_test_utils.h"
 
-mla_benchmark_executor_t mla_benchmark_executor(mla_test_uint32_t p_MaxBenchmarks) {
+mla_benchmark_executor_t mla_benchmark_executor() {
 
     mla_benchmark_executor_t executor;
-    executor.max_benchmarks = p_MaxBenchmarks;
-    executor.benchmarks = (mla_benchmark_t*)mla_test_malloc(sizeof(mla_benchmark_t) * p_MaxBenchmarks);
-    for (mla_test_uint32_t i = 0; i < p_MaxBenchmarks; ++i) {
+    executor.capacity = 10;
+    executor.count = 0;
+    executor.benchmarks = (mla_benchmark_t*)mla_test_malloc(sizeof(mla_benchmark_t) * executor.capacity);
+    for (mla_test_uint32_t i = 0; i < executor.capacity; ++i) {
         executor.benchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
     }
     return executor;
 }
 
 void mla_benchmark_executor_destroy(mla_benchmark_executor_t &executor) {
-    for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
+    for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
         if (executor.benchmarks[i].name) {
             mla_benchmark_destroy(executor.benchmarks[i]);
         }
     }
     mla_test_free(executor.benchmarks);
     executor.benchmarks = nullptr;
-    executor.max_benchmarks = 0;
+    executor.capacity = 0;
+    executor.count = 0;
 }
 
 void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
@@ -57,7 +59,7 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
         mla_test_print("[\n", 2);
     }
 
-    for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
+    for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
         if (executor.benchmarks[i].name != nullptr) {
 
             if (output_format == mla_test_output_format_text) {
@@ -93,7 +95,7 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
     mla_test_uint32_t benchmark_index = benchmark_number - 1; // Convert to zero-based index
 
 
-    if (benchmark_index >= executor.max_benchmarks || executor.benchmarks[benchmark_index].name == nullptr) {
+    if (benchmark_index >= executor.count || executor.benchmarks[benchmark_index].name == nullptr) {
         mla_test_print("Invalid benchmark index: ", 25);
         mla_test_char_t buffer[12];
         mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
@@ -125,10 +127,26 @@ void mla_benchmark_executor_register(mla_benchmark_executor_t &executor, mla_ben
         return;
     }
 
-    for (mla_test_uint32_t i = 0; i < executor.max_benchmarks; ++i) {
-        if (executor.benchmarks[i].name == nullptr) {
-            executor.benchmarks[i] = benchmark;
-            return;
+    if (executor.count >= executor.capacity) {
+        mla_test_uint32_t increment = (executor.capacity / 4);
+        if (increment < 10) increment = 10;
+        mla_test_uint32_t newCapacity = executor.capacity + increment;
+        mla_benchmark_t* newBenchmarks = (mla_benchmark_t*) mla_test_malloc(sizeof(mla_benchmark_t) * newCapacity);
+
+        // Copy existing benchmarks
+        for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
+            newBenchmarks[i] = executor.benchmarks[i];
         }
+
+        // Initialize new slots
+        for (mla_test_uint32_t i = executor.count; i < newCapacity; ++i) {
+            newBenchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
+        }
+
+        mla_test_free(executor.benchmarks);
+        executor.benchmarks = newBenchmarks;
+        executor.capacity = newCapacity;
     }
+
+    executor.benchmarks[executor.count++] = benchmark;
 }

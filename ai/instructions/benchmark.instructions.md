@@ -110,7 +110,7 @@ void RegisterMyModuleBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 Add the registration call in `main_test.h` alongside the existing benchmark registrations:
 
 ```cpp
-mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor(100);
+mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor();
 // …existing registrations…
 RegisterMyModuleBenchmarks(l_BenchmarkExecutor);
 ```
