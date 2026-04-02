@@ -166,6 +166,112 @@ inline void ParseBoolTest() {
     assert_false(result, "Parsing should fail for invalid string");
 }
 
+inline void ParseInt16Test() {
+    mla_string_t str = mla_string("32767");
+    mla_int16_t value;
+    mla_test_bool_t result = mla_parse_int16(str, value);
+    assert_true(result, "Parsing should succeed for max int16");
+    assert_equal(value, (mla_int16_t)32767, "Parsed value should be 32767");
+
+    str = mla_string("-32768");
+    result = mla_parse_int16(str, value);
+    assert_true(result, "Parsing should succeed for min int16");
+    assert_equal(value, (mla_int16_t)-32768, "Parsed value should be -32768");
+
+    str = mla_string("32768");
+    result = mla_parse_int16(str, value);
+    assert_false(result, "Parsing should fail for out of range int16");
+}
+
+inline void ParseUInt16Test() {
+    mla_string_t str = mla_string("65535");
+    mla_uint16_t value;
+    mla_test_bool_t result = mla_parse_uint16(str, value);
+    assert_true(result, "Parsing should succeed for max uint16");
+    assert_equal(value, (mla_uint16_t)65535, "Parsed value should be 65535");
+
+    str = mla_string("65536");
+    result = mla_parse_uint16(str, value);
+    assert_false(result, "Parsing should fail for out of range uint16");
+}
+
+inline void ParseInt8Test() {
+    mla_string_t str = mla_string("127");
+    mla_int8_t value;
+    mla_test_bool_t result = mla_parse_int8(str, value);
+    assert_true(result, "Parsing should succeed for max int8");
+    assert_equal(value, (mla_int8_t)127, "Parsed value should be 127");
+
+    str = mla_string("-128");
+    result = mla_parse_int8(str, value);
+    assert_true(result, "Parsing should succeed for min int8");
+    assert_equal(value, (mla_int8_t)-128, "Parsed value should be -128");
+
+    str = mla_string("128");
+    result = mla_parse_int8(str, value);
+    assert_false(result, "Parsing should fail for out of range int8");
+}
+
+inline void ParseUInt8Test() {
+    mla_string_t str = mla_string("255");
+    mla_uint8_t value;
+    mla_test_bool_t result = mla_parse_uint8(str, value);
+    assert_true(result, "Parsing should succeed for max uint8");
+    assert_equal(value, (mla_uint8_t)255, "Parsed value should be 255");
+
+    str = mla_string("256");
+    result = mla_parse_uint8(str, value);
+    assert_false(result, "Parsing should fail for out of range uint8");
+}
+
+inline void ParseUInt8HexTest() {
+    mla_string_t str = mla_string("0xFF");
+    mla_uint8_t value;
+    mla_test_bool_t result = mla_parse_uint8_hex(str, value);
+    assert_true(result, "Parsing should succeed for 0xFF");
+    assert_equal(value, (mla_uint8_t)0xFF, "Parsed value should be 255");
+
+    str = mla_string("100");
+    result = mla_parse_uint8_hex(str, value);
+    assert_false(result, "Parsing should fail for out of range uint8 hex");
+}
+
+inline void ParseUInt16HexTest() {
+    mla_string_t str = mla_string("0xFFFF");
+    mla_uint16_t value;
+    mla_test_bool_t result = mla_parse_uint16_hex(str, value);
+    assert_true(result, "Parsing should succeed for 0xFFFF");
+    assert_equal(value, (mla_uint16_t)0xFFFF, "Parsed value should be 65535");
+
+    str = mla_string("10000");
+    result = mla_parse_uint16_hex(str, value);
+    assert_false(result, "Parsing should fail for out of range uint16 hex");
+}
+
+inline void ParseUInt32HexTest() {
+    mla_string_t str = mla_string("0xFFFFFFFF");
+    mla_uint32_t value;
+    mla_test_bool_t result = mla_parse_uint32_hex(str, value);
+    assert_true(result, "Parsing should succeed for 0xFFFFFFFF");
+    assert_equal(value, (mla_uint32_t)0xFFFFFFFFU, "Parsed value should be max uint32");
+
+    str = mla_string("100000000");
+    result = mla_parse_uint32_hex(str, value);
+    assert_false(result, "Parsing should fail for out of range uint32 hex");
+}
+
+inline void ParseUInt64HexTest() {
+    mla_string_t str = mla_string("0xFFFFFFFFFFFFFFFF");
+    mla_uint64_t value;
+    mla_test_bool_t result = mla_parse_uint64_hex(str, value);
+    assert_true(result, "Parsing should succeed for 0xFFFFFFFFFFFFFFFF");
+    assert_equal(value, 0xFFFFFFFFFFFFFFFFULL, "Parsed value should be max uint64");
+
+    str = mla_string("G");
+    result = mla_parse_uint64_hex(str, value);
+    assert_false(result, "Parsing should fail for invalid hex character");
+}
+
 void RegisterNumberTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("ParseDouble", test_category, ParseDoubleTest);
@@ -187,6 +293,30 @@ void RegisterNumberTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ParseBool", test_category, ParseBoolTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseInt16", test_category, ParseInt16Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt16", test_category, ParseUInt16Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseInt8", test_category, ParseInt8Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt8", test_category, ParseUInt8Test);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt8Hex", test_category, ParseUInt8HexTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt16Hex", test_category, ParseUInt16HexTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt32Hex", test_category, ParseUInt32HexTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseUInt64Hex", test_category, ParseUInt64HexTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 }
@@ -254,6 +384,70 @@ inline void ParseBoolBenchmark() {
     }
 }
 
+inline void ParseInt16Benchmark() {
+    mla_string_t str = mla_string_const("32767");
+    mla_int16_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_int16(str, value);
+    }
+}
+
+inline void ParseUInt16Benchmark() {
+    mla_string_t str = mla_string_const("65535");
+    mla_uint16_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint16(str, value);
+    }
+}
+
+inline void ParseInt8Benchmark() {
+    mla_string_t str = mla_string_const("127");
+    mla_int8_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_int8(str, value);
+    }
+}
+
+inline void ParseUInt8Benchmark() {
+    mla_string_t str = mla_string_const("255");
+    mla_uint8_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint8(str, value);
+    }
+}
+
+inline void ParseUInt8HexBenchmark() {
+    mla_string_t str = mla_string_const("0xFF");
+    mla_uint8_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint8_hex(str, value);
+    }
+}
+
+inline void ParseUInt16HexBenchmark() {
+    mla_string_t str = mla_string_const("0xFFFF");
+    mla_uint16_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint16_hex(str, value);
+    }
+}
+
+inline void ParseUInt32HexBenchmark() {
+    mla_string_t str = mla_string_const("0xFFFFFFFF");
+    mla_uint32_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint32_hex(str, value);
+    }
+}
+
+inline void ParseUInt64HexBenchmark() {
+    mla_string_t str = mla_string_const("0xFFFFFFFFFFFFFFFF");
+    mla_uint64_t value;
+    for (int i = 0; i < 1000; i++) {
+        mla_parse_uint64_hex(str, value);
+    }
+}
+
 void RegisterNumberBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     mla_benchmark_t benchmark = mla_benchmark("ParseDouble", benchmark_category, ParseDoubleBenchmark);
@@ -275,6 +469,30 @@ void RegisterNumberBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("ParseBool", benchmark_category, ParseBoolBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseInt16", benchmark_category, ParseInt16Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt16", benchmark_category, ParseUInt16Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseInt8", benchmark_category, ParseInt8Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt8", benchmark_category, ParseUInt8Benchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt8Hex", benchmark_category, ParseUInt8HexBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt16Hex", benchmark_category, ParseUInt16HexBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt32Hex", benchmark_category, ParseUInt32HexBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("ParseUInt64Hex", benchmark_category, ParseUInt64HexBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 }
 
