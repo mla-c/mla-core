@@ -5,6 +5,8 @@ description: 'Instructions on how to build the project and run tests/benchmarks'
 
 # Build Instructions
 
+> **Note:** These instructions are only valid if no build infrastructure (like CMake or other configuration files) is found in the project.
+
 ## Project Structure and Build System
 
 The project has no fixed main file and can be built with any build infrastructure (e.g., CMake, Zig, etc.). The repository contains a `sources.cmake` file which lists the source files, but note that it uses a `lib/` prefix for paths which might not exist physically in the file system. The actual directories (`core-os`, `core-os-platform`, `core-os-test`, `core-os-test-support`) are located directly at the repository root.
