@@ -5,7 +5,7 @@ description: 'Instructions on how to build the project and run tests/benchmarks'
 
 # Build Instructions
 
-> **Note:** These instructions are only valid if no build infrastructure (like CMake or other configuration files) is found in the project.
+> **IMPORTANT:** These instructions are **ONLY** valid if no build infrastructure (like CMakeLists.txt or other build configuration files) is found in the project.
 
 ## Project Structure and Build System
 
