@@ -53,5 +53,32 @@ assert_struct_equal(my_struct_t, actual, expected, "Structs should match");
 assert_not_null(pointer, "Pointer should be allocated");
 ```
 
+## Mandatory Safety Checks
+
+To ensure robust tests, you **must** check the return values of all fallible operations.
+
+### 1. Memory Allocation
+Always check pointers after `mla_malloc`:
+```cpp
+mla_byte_t* buffer = (mla_byte_t*)mla_malloc(size);
+assert_not_null(buffer, "Memory allocation failed");
+```
+
+### 2. Collection Operations
+Always check if adding to a list or map succeeded:
+```cpp
+assert_true(mla_array_list_add(list, item), "Failed to add item to list");
+
+auto result = mla_hash_map_push(map, key, value);
+assert_not_equal(result, MLA_HASH_MAP_PUSH_ERROR, "Failed to push to hash map");
+```
+
+### 3. File System Operations
+Always check if file or directory operations succeeded:
+```cpp
+mla_file_system_stream_t stream;
+assert_true(mla_fs_open_file(path, mode, stream), "Failed to open file");
+```
+
 ### Header Guards
 Use #ifndef [FILENAME]_H format matching the filename

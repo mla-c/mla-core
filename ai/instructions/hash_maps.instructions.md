@@ -58,11 +58,14 @@ auto emptyMap = mla_hash_map_empty<mla_string_t, mla_int32_t,
 ## Inserting (Push)
 
 ```cpp
-mla_hash_map_push(map, mla_string_const("key"), 42);
+mla_hash_map_push_result result = mla_hash_map_push(map, mla_string_const("key"), 42);
 // Returns MLA_HASH_MAP_PUSH_ADDED on first insert
 
-mla_hash_map_push(map, mla_string_const("key"), 100);
+result = mla_hash_map_push(map, mla_string_const("key"), 100);
 // Returns MLA_HASH_MAP_PUSH_REPLACED (key existed, value updated)
+
+// In test code, always verify that the operation did not result in an error:
+assert_not_equal(mla_hash_map_push(map, key, value), MLA_HASH_MAP_PUSH_ERROR, "Failed to push to map");
 ```
 
 Push returns one of:
