@@ -1102,6 +1102,138 @@ void RepeatTest() {
     mla_string_destroy(str);
 }
 
+void StringIsDataOwnerTest() {
+    mla_string_t sso = mla_string("hello");
+    assert_false(mla_string_is_data_owner(sso), "SSO string should not be data owner");
+
+    mla_string_t cstr = mla_string("this is a long string that should be on heap");
+    assert_false(mla_string_is_data_owner(cstr), "C-string layout should not be data owner by default");
+
+    mla_string_t copy = mla_string_copy(cstr);
+    assert_true(mla_string_is_data_owner(copy), "Copied string should be data owner");
+    mla_string_destroy(copy);
+}
+
+void StringCopyTest() {
+    // Test copy from char*
+    mla_string_t copy1 = mla_string_copy("hello", 5);
+    assert_true(mla_string_equals(copy1, mla_string("hello")), "Copy from char* failed");
+    assert_true(mla_string_is_data_owner(copy1), "Copy from char* should be data owner");
+    mla_string_destroy(copy1);
+
+    // Test copy from mla_string_t
+    mla_string_t orig = mla_string("world");
+    mla_string_t copy2 = mla_string_copy(orig);
+    assert_true(mla_string_equals(copy2, orig), "Copy from mla_string_t failed");
+    assert_true(mla_string_is_data_owner(copy2), "Copy from mla_string_t should be data owner");
+    mla_string_destroy(copy2);
+}
+
+void StringFromBufferWithoutOwnershipTest() {
+    mla_char_t data[] = {'h', 'e', 'l', 'l', 'o', '\0'};
+    mla_string_t str = mla_string_from_buffer_without_ownership(data, 5);
+    assert_true(mla_string_equals(str, mla_string("hello")), "From buffer without ownership failed");
+    assert_false(mla_string_is_data_owner(str), "Should not be data owner");
+}
+
+void StringContainsIgnoreCaseTest() {
+    mla_string_t str = mla_string("Hello, World!");
+    assert_true(mla_string_contains_ignore_case(str, mla_string("hello")), "Contains ignore case failed");
+    assert_true(mla_string_contains_ignore_case(str, mla_string("WORLD")), "Contains ignore case failed");
+    assert_false(mla_string_contains_ignore_case(str, mla_string("Mars")), "Should not contain Mars");
+}
+
+void StringStartsWithIgnoreCaseTest() {
+    mla_string_t str = mla_string("Hello, World!");
+    assert_true(mla_string_starts_with_ignore_case(str, mla_string("hello")), "Starts with ignore case failed");
+    assert_false(mla_string_starts_with_ignore_case(str, mla_string("world")), "Should not start with world");
+}
+
+void StringEndsWithIgnoreCaseTest() {
+    mla_string_t str = mla_string("Hello, World!");
+    assert_true(mla_string_ends_with_ignore_case(str, mla_string("WORLD!")), "Ends with ignore case failed");
+    assert_false(mla_string_ends_with_ignore_case(str, mla_string("hello")), "Should not end with hello");
+}
+
+void DestroyCStringTest() {
+    mla_string_t str = mla_string("Hello");
+    mla_c_string_t cstr = mla_string_to_cString(str, true);
+    assert_true(cstr.isOwner, "Should be owner");
+    assert_true(mla_destroy_c_string(cstr), "Destroy C string should return true if owned");
+    assert_null(cstr.c_str, "C string should be null after destruction");
+
+    mla_c_string_t cstr2 = mla_string_to_cString(str, false);
+    assert_false(cstr2.isOwner, "Should not be owner");
+    assert_false(mla_destroy_c_string(cstr2), "Destroy C string should return false if not owned");
+    assert_not_null(cstr2.c_str, "C string should not be null after failed destruction");
+}
+
+void StringFromSizeTest() {
+    mla_string_t str = mla_string_from_size(12345);
+    assert_true(mla_string_equals(str, mla_string("12345")), "From size failed");
+    mla_string_destroy(str);
+}
+
+void StringFromHexTest() {
+    mla_string_t str8 = mla_string_from_uint8_hex(0xAB);
+    assert_true(mla_string_equals(str8, mla_string("0xAB")), "uint8 hex failed");
+    mla_string_destroy(str8);
+
+    mla_string_t str16 = mla_string_from_uint16_hex(0xABCD);
+    assert_true(mla_string_equals(str16, mla_string("0xABCD")), "uint16 hex failed");
+    mla_string_destroy(str16);
+
+    mla_string_t str32 = mla_string_from_uint32_hex(0x12345678);
+    assert_true(mla_string_equals(str32, mla_string("0x12345678")), "uint32 hex failed");
+    mla_string_destroy(str32);
+
+    mla_string_t str64 = mla_string_from_uint64_hex(0x1234567890ABCDEFULL);
+    assert_true(mla_string_equals(str64, mla_string("0x1234567890ABCDEF")), "uint64 hex failed");
+    mla_string_destroy(str64);
+}
+
+void StringFromHexShortTest() {
+    mla_string_t str8 = mla_string_from_uint8_hex_short(0xAB);
+    assert_true(mla_string_equals(str8, mla_string("AB")), "uint8 hex short failed");
+    mla_string_destroy(str8);
+
+    mla_string_t str16 = mla_string_from_uint16_hex_short(0xABCD);
+    assert_true(mla_string_equals(str16, mla_string("ABCD")), "uint16 hex short failed");
+    mla_string_destroy(str16);
+
+    mla_string_t str32 = mla_string_from_uint32_hex_short(0x12345678);
+    assert_true(mla_string_equals(str32, mla_string("12345678")), "uint32 hex short failed");
+    mla_string_destroy(str32);
+
+    mla_string_t str64 = mla_string_from_uint64_hex_short(0x1234567890ABCDEFULL);
+    assert_true(mla_string_equals(str64, mla_string("1234567890ABCDEF")), "uint64 hex short failed");
+    mla_string_destroy(str64);
+}
+
+void StringHashTest() {
+    mla_string_t str = mla_string("hello");
+    mla_size_t h = mla_string_hash_t::hash(str);
+    assert_true(h != 0, "Hash should not be zero");
+}
+
+void StringConstTest() {
+    mla_string_t str = mla_string_const("hello");
+    assert_true(mla_string_equals(str, mla_string("hello")), "String const failed");
+    assert_equal(mla_string_length(str), (mla_size_t)5, "String const length failed");
+}
+
+void StringFromEndPointerTest() {
+    const mla_char_t *data = "hello world";
+    mla_string_t str = mla_string(data, data + 5);
+    assert_true(mla_string_equals(str, mla_string("hello")), "String from end pointer failed");
+}
+
+void StringEqualsConstTest() {
+    mla_string_t str = mla_string("hello");
+    assert_true(mla_string_equals_const(str, "hello"), "String equals const failed");
+    assert_false(mla_string_equals_const(str, "world"), "String equals const should fail for different strings");
+}
+
 
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
@@ -1252,6 +1384,48 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Repeat", test_category, RepeatTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IsDataOwner", test_category, StringIsDataOwnerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Copy", test_category, StringCopyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromBufferWithoutOwnership", test_category, StringFromBufferWithoutOwnershipTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ContainsIgnoreCase", test_category, StringContainsIgnoreCaseTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StartsWithIgnoreCase", test_category, StringStartsWithIgnoreCaseTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EndsWithIgnoreCase", test_category, StringEndsWithIgnoreCaseTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("DestroyCString", test_category, DestroyCStringTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromSize", test_category, StringFromSizeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromHex", test_category, StringFromHexTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromHexShort", test_category, StringFromHexShortTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Hash", test_category, StringHashTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Const", test_category, StringConstTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromEndPointer", test_category, StringFromEndPointerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsConst", test_category, StringEqualsConstTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
