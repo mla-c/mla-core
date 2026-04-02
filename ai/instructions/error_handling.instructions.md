@@ -29,7 +29,7 @@ if (!mla_network_connection_connect(conn, host, mla_connection_type_tcp, 5000)) 
 
 ### 2. Nullptr Return for Pointer-Returning Functions
 
-Functions that return pointers use `nullptr` to signal failure:
+Functions that return pointers use `nullptr` to signal failure. This is critical for memory management — **never** assume an allocation succeeded:
 
 ```cpp
 mla_buffer_t* buffer = mla_buffer(data, size, cleanup);
@@ -38,6 +38,8 @@ if (buffer == nullptr) {
     return false;
 }
 ```
+
+This applies to all allocation functions, including `mla_malloc` and `mla_create_char_array`. In test code, use `assert_not_null(pointer, "...")`.
 
 ### 3. Negative Index for Search Functions
 

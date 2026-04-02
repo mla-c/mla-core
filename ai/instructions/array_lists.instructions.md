@@ -45,7 +45,11 @@ mla_array_list_add(numbers, 99);
 // numbers: [42, 17, 99], size = 3
 ```
 
-The list automatically doubles its capacity when full.
+The list automatically doubles its capacity when full. **In test code, you must always verify that `mla_array_list_add` returns `true`**:
+
+```cpp
+assert_true(mla_array_list_add(numbers, 42), "Failed to add to list");
+```
 
 ### Adding Multiple Elements
 

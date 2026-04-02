@@ -221,7 +221,8 @@ FILE* f = fopen("/data/file.txt", "r"); // use mla_fs_open_file
 
 // ❌ Using the stream without checking open success
 mla_file_system_stream_t stream;
-mla_fs_open_file(path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, stream);
+// In test code, you must always verify that mla_fs_open_file returns true:
+assert_true(mla_fs_open_file(path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, stream), "Failed to open file");
 stream.read(stream, 0, 100, buf); // crash if open failed
 
 // ❌ Writing to a read-only stream
