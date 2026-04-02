@@ -60,10 +60,6 @@ mla_string_t mla_string_copy(const mla_string_t &p_String) {
 }
 
 mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String) {
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
-        return true; // Embedded strings own their data
-    }
-
     return !mla_buffer_reference_is_noOwner(p_String.dataOwner);
 }
 

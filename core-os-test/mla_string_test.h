@@ -1107,7 +1107,7 @@ void StringIsDataOwnerTest() {
     assert_false(mla_string_is_data_owner(cstr_view), "C-string layout should not be data owner by default");
 
     mla_string_t sso = mla_string_copy("hello", 5);
-    assert_true(mla_string_is_data_owner(sso), "SSO string should be data owner");
+    assert_false(mla_string_is_data_owner(sso), "SSO string should not be data owner");
 
     mla_string_t cstr = mla_string("this is a long string that should be on heap");
     assert_false(mla_string_is_data_owner(cstr), "C-string layout should not be data owner by default");
@@ -1118,17 +1118,22 @@ void StringIsDataOwnerTest() {
 }
 
 void StringCopyTest() {
-    // Test copy from char*
+    // Test copy from char* (Short string -> SSO)
     mla_string_t copy1 = mla_string_copy("hello", 5);
     assert_true(mla_string_equals(copy1, mla_string("hello")), "Copy from char* failed");
-    assert_true(mla_string_is_data_owner(copy1), "Copy from char* should be data owner");
+    assert_false(mla_string_is_data_owner(copy1), "Copy from short char* should be SSO (not data owner)");
     mla_string_destroy(copy1);
 
-    // Test copy from mla_string_t
+    // Test copy from char* (Long string -> Heap)
+    mla_string_t copy_long = mla_string_copy("this is a very long string that will definitely be on the heap", 62);
+    assert_true(mla_string_is_data_owner(copy_long), "Copy from long char* should be data owner");
+    mla_string_destroy(copy_long);
+
+    // Test copy from mla_string_t (Short string -> SSO)
     mla_string_t orig = mla_string("world");
     mla_string_t copy2 = mla_string_copy(orig);
     assert_true(mla_string_equals(copy2, orig), "Copy from mla_string_t failed");
-    assert_true(mla_string_is_data_owner(copy2), "Copy from mla_string_t should be data owner");
+    assert_false(mla_string_is_data_owner(copy2), "Copy from short mla_string_t should be SSO (not data owner)");
     mla_string_destroy(copy2);
 }
 
