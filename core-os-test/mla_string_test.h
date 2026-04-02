@@ -1103,8 +1103,11 @@ void RepeatTest() {
 }
 
 void StringIsDataOwnerTest() {
-    mla_string_t sso = mla_string("hello");
-    assert_false(mla_string_is_data_owner(sso), "SSO string should not be data owner");
+    mla_string_t cstr_view = mla_string("hello");
+    assert_false(mla_string_is_data_owner(cstr_view), "C-string layout should not be data owner by default");
+
+    mla_string_t sso = mla_string_copy("hello", 5);
+    assert_true(mla_string_is_data_owner(sso), "SSO string should be data owner");
 
     mla_string_t cstr = mla_string("this is a long string that should be on heap");
     assert_false(mla_string_is_data_owner(cstr), "C-string layout should not be data owner by default");
