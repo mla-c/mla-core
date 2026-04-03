@@ -159,7 +159,7 @@ static mla_test_bool_t mla_test_executor_run_single_with_failure(mla_test_t &p_T
 
 #if defined(MLA_TEST_EXECUTOR_HAS_CRASH_RECOVERY)
     // Save g_low_level_access state for restoration after crash
-    void (*savedMalloc)(void) = (void (*)(void))g_low_level_access.malloc;
+    mla_pointer_t (*savedMalloc)(mla_size_t) = g_low_level_access.malloc;
     void (*savedOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
 
     struct sigaction sa, oldSaSEGV, oldSaBUS;
@@ -175,7 +175,7 @@ static mla_test_bool_t mla_test_executor_run_single_with_failure(mla_test_t &p_T
         result = mla_test_run(p_Test);
     } else {
         // Recovered from crash - restore g_low_level_access state
-        g_low_level_access.malloc = (mla_pointer_t (*)(mla_size_t))savedMalloc;
+        g_low_level_access.malloc = savedMalloc;
         g_low_level_access.on_malloc_failure = savedOnFailure;
 
         mla_test_print("✗ Test crashed: ", 18);
