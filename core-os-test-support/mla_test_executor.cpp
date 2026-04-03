@@ -50,7 +50,7 @@ mla_test_int32_t mla_test_executor_run_test(mla_test_executor_t &executor, mla_t
 
 }
 
-mla_test_int32_t mla_test_executor_run_all_tests(mla_test_executor_t &executor) {
+mla_test_int32_t mla_test_executor_run_all_tests(mla_test_executor_t &executor, mla_test_bool_t* p_SuccessMap) {
 
     mla_test_int32_t failed_tests = 0;
 
@@ -62,8 +62,13 @@ mla_test_int32_t mla_test_executor_run_all_tests(mla_test_executor_t &executor) 
             mla_test_print(buffer, strLength);
             mla_test_print("). ", 3);
 
-            if (!mla_test_run(executor.tests[i])) {
+            mla_test_bool_t success = mla_test_run(executor.tests[i]);
+            if (!success) {
                 failed_tests++;
+            }
+
+            if (p_SuccessMap != nullptr) {
+                p_SuccessMap[i] = success;
             }
         }
     }
@@ -168,7 +173,7 @@ mla_test_int32_t mla_test_executor_run_test_with_allocation_failure(mla_test_exe
     return result ? 0 : 1;
 }
 
-mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_test_executor_t &executor, mla_test_uint32_t p_Seed) {
+mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_test_executor_t &executor, mla_test_uint32_t p_Seed, const mla_test_bool_t* p_SuccessMap) {
 
     mla_test_print("Running Tests with Allocation Failure (Seed: ", 45);
     char seedBuffer[12];
@@ -190,6 +195,10 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
 
     for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
         if (executor.tests[i].name != nullptr) {
+
+            if (p_SuccessMap != nullptr && !p_SuccessMap[i]) {
+                continue;
+            }
 
             // Reset PRNG state for each test to ensure deterministic behavior
             g_mla_test_failure_prng_state = p_Seed;
@@ -219,12 +228,12 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
     return failedTests;
 }
 
-mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failures(mla_test_executor_t &executor, mla_test_uint32_t p_SeedCount) {
+mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failures(mla_test_executor_t &executor, mla_test_uint32_t p_SeedCount, const mla_test_bool_t* p_SuccessMap) {
 
     mla_test_int32_t totalFailed = 0;
 
     for (mla_test_uint32_t seed = 1; seed <= p_SeedCount; ++seed) {
-        totalFailed += mla_test_executor_run_all_tests_with_allocation_failure(executor, seed);
+        totalFailed += mla_test_executor_run_all_tests_with_allocation_failure(executor, seed, p_SuccessMap);
     }
 
     mla_test_print("\nAllocation Failure Tests completed with ", 41);
