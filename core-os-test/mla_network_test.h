@@ -17,7 +17,7 @@ extern mla_network_low_level_operations_t g_network_low_level_operations;
 
 static mla_bool_t mock_resolve_host_called = false;
 static mla_bool_t mock_resolve_host_result = true;
-static mla_network_host_t mock_resolved_host;
+static mla_network_host_t mock_resolved_host = mla_network_host_invalid();
 
 static mla_bool_t mock_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     (void)hostname;
@@ -53,7 +53,7 @@ static mla_bool_t mock_bind_and_listen(mla_network_listener_t &listener, const m
 }
 
 static mla_bool_t mock_get_local_ip_addresses_called = false;
-static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_local_ips;
+static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_local_ips = {0, 0, nullptr, {nullptr}};
 
 static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_get_local_ip_addresses() {
     mock_get_local_ip_addresses_called = true;
@@ -110,13 +110,19 @@ inline void NetworkGetLocalIpAddressesTest() {
 
     mock_get_local_ip_addresses_called = false;
     mock_local_ips = mla_array_list<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
-    mla_array_list_add(mock_local_ips, mla_network_ip_address_ip4(mla_string_const("127.0.0.1")));
+    mla_array_list_add(mock_local_ips, mla_network_ip_address_ip4(mla_string_copy("127.0.0.1", 9)));
 
     auto result = mla_network_get_local_ip_addresses();
     assert_true(mock_get_local_ip_addresses_called, "Mock get_local_ip_addresses should be called");
     assert_equal((mla_test_uint32_t)mla_array_list_size(result), (mla_test_uint32_t)1, "Result size should be 1");
-    assert_true(mla_string_equals(mla_array_list_get_unsafe(result, 0).address, mla_string_const("127.0.0.1")), "IP address should match");
 
+    if (mla_array_list_size(result) > 0) {
+        mla_network_ip_address_t ip = mla_array_list_get_unsafe(result, 0);
+        assert_true(mla_string_equals(ip.address, mla_string_const("127.0.0.1")), "IP address should match");
+    }
+
+    mla_array_list_destroy(mock_local_ips);
+    mock_local_ips = {0, 0, nullptr, {nullptr}};
     g_network_low_level_operations = original;
 }
 
@@ -125,10 +131,10 @@ inline void NetworkHostResolveTest() {
     g_network_low_level_operations.resolve_host = mock_resolve_host;
 
     mock_resolve_host_called = false;
-    mock_resolved_host = mla_network_host_ip4(mla_string_const("1.2.3.4"), 80);
+    mock_resolved_host = mla_network_host_ip4(mla_string_copy("1.2.3.4", 7), 80);
     mock_resolve_host_result = true;
 
-    mla_network_host_t host;
+    mla_network_host_t host = mla_network_host_invalid();
     mla_bool_t success = mla_network_host_resolve(host, mla_string_const("example.com"), 80);
 
     assert_true(mock_resolve_host_called, "Mock resolve_host should be called");
@@ -142,6 +148,8 @@ inline void NetworkHostResolveTest() {
     assert_false(mock_resolve_host_called, "Mock resolve_host should NOT be called for empty hostname");
     assert_false(success, "Resolve should fail for empty hostname");
 
+    mla_string_destroy(mock_resolved_host.address.address);
+    mock_resolved_host = mla_network_host_invalid();
     g_network_low_level_operations = original;
 }
 
@@ -171,7 +179,7 @@ inline void NetworkConnectionConnectTest() {
 }
 
 inline void NetworkConnectionDisconnectTest() {
-    mla_network_connection_t conn;
+    mla_network_connection_t conn = mla_network_connection_disconnected();
     conn.host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 80);
     conn.inputStream = mla_stream_noop_input();
     conn.outputStream = mla_stream_noop_output();
@@ -207,7 +215,7 @@ inline void NetworkListenerTest() {
     mock_accept_called = false;
     listener.accept_connection = mock_accept_connection;
 
-    mla_network_connection_t conn;
+    mla_network_connection_t conn = mla_network_connection_disconnected();
     success = mla_network_listener_accept_connection(listener, conn);
     assert_true(mock_accept_called, "Custom accept_connection should be called");
     assert_true(success, "Accept should succeed");
