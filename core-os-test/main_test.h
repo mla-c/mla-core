@@ -65,7 +65,8 @@
 #include "native_string_test.h"
 #include "native_list_test.h"
 
-int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat) {
+int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_format_t benchmarkOutputFormat,
+        mla_test_uint32_t p_AllocationFailureSeed = 0, mla_test_uint32_t p_AllocationFailureSeedCount = 0) {
 
     mla_test_executor_t l_TestExecutor = mla_test_executor();
     RegisterDataTypesTests(l_TestExecutor);
@@ -171,6 +172,17 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         mla_test_print(buffer, strLength);
         mla_test_print(" failed tests\n", 14);
     }
+
+    // Run tests with allocation failure injection
+    ////////////////////////////////////////
+
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+    if (runTest && p_AllocationFailureSeed > 0) {
+        mla_test_executor_run_all_tests_with_allocation_failure(l_TestExecutor, p_AllocationFailureSeed);
+    } else if (runTest && p_AllocationFailureSeedCount > 0) {
+        mla_test_executor_run_all_tests_with_generated_allocation_failures(l_TestExecutor, p_AllocationFailureSeedCount);
+    }
+#endif
 
     // Running benchmarks
     ////////////////////////////////////////

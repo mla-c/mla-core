@@ -99,3 +99,207 @@ void mla_test_executor_register_test(mla_test_executor_t &executor, mla_test_t &
 
     executor.tests[executor.count++] = test;
 }
+
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+
+#include "../core-os/memory/mla_memory_hook.h"
+
+// Signal-based crash recovery for POSIX systems
+#if defined(__linux__) || defined(__APPLE__) || defined(__unix__)
+#include <signal.h>
+#include <setjmp.h>
+#define MLA_TEST_EXECUTOR_HAS_CRASH_RECOVERY 1
+
+static sigjmp_buf g_mla_test_failure_jmp;
+static volatile sig_atomic_t g_mla_test_failure_jmp_active = 0;
+
+static void mla_test_executor_crash_handler(int p_Signal) {
+    (void)p_Signal;
+    if (g_mla_test_failure_jmp_active) {
+        g_mla_test_failure_jmp_active = 0;
+        siglongjmp(g_mla_test_failure_jmp, 1);
+    }
+}
+#endif
+
+// State for seed-based allocation failure injection
+static mla_test_uint32_t g_mla_test_failure_prng_state = 0;
+
+// Malloc hook that selectively fails allocations based on seed-driven PRNG
+static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_pointer_t* p_OutPtr) {
+    (void)p_Size;
+
+    g_mla_test_failure_prng_state = g_mla_test_failure_prng_state * 1664525u + 1013904223u;
+
+    if (((g_mla_test_failure_prng_state >> 16) & 0x7u) == 0u) {
+        *p_OutPtr = nullptr;
+        return true;
+    }
+
+    return false;
+}
+
+// Free hook - pass through to original free for all pointers
+static mla_bool_t mla_test_executor_failure_free_hook(mla_pointer_t p_Ptr) {
+    (void)p_Ptr;
+    return false;
+}
+
+// Suppresses on_malloc_failure output during allocation failure injection
+static void mla_test_executor_on_malloc_failure_noop(mla_size_t p_Size, const mla_char_t* p_Filename, const mla_char_t* p_FunctionName) {
+    (void)p_Size;
+    (void)p_Filename;
+    (void)p_FunctionName;
+}
+
+// Runs a single test with the failure hook active and crash recovery
+static mla_test_bool_t mla_test_executor_run_single_with_failure(mla_test_t &p_Test) {
+
+    mla_test_bool_t result;
+
+#if defined(MLA_TEST_EXECUTOR_HAS_CRASH_RECOVERY)
+    // Save g_low_level_access state for restoration after crash
+    void (*savedMalloc)(void) = (void (*)(void))g_low_level_access.malloc;
+    void (*savedOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
+
+    struct sigaction sa, oldSaSEGV, oldSaBUS;
+    sa.sa_handler = mla_test_executor_crash_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGSEGV, &sa, &oldSaSEGV);
+    sigaction(SIGBUS, &sa, &oldSaBUS);
+
+    g_mla_test_failure_jmp_active = 1;
+
+    if (sigsetjmp(g_mla_test_failure_jmp, 1) == 0) {
+        result = mla_test_run(p_Test);
+    } else {
+        // Recovered from crash - restore g_low_level_access state
+        g_low_level_access.malloc = (mla_pointer_t (*)(mla_size_t))savedMalloc;
+        g_low_level_access.on_malloc_failure = savedOnFailure;
+
+        mla_test_print("✗ Test crashed: ", 18);
+        mla_test_print(p_Test.category, mla_test_strlen(p_Test.category));
+        mla_test_print("->", 2);
+        mla_test_print(p_Test.name, mla_test_strlen(p_Test.name));
+        mla_test_print(" (SIGSEGV/SIGBUS during allocation failure)\n", 44);
+
+        result = false;
+    }
+
+    g_mla_test_failure_jmp_active = 0;
+    sigaction(SIGSEGV, &oldSaSEGV, nullptr);
+    sigaction(SIGBUS, &oldSaBUS, nullptr);
+#else
+    result = mla_test_run(p_Test);
+#endif
+
+    return result;
+}
+
+mla_test_int32_t mla_test_executor_run_test_with_allocation_failure(mla_test_executor_t &executor, mla_test_uint32_t p_TestNumber, mla_test_uint32_t p_Seed) {
+
+    mla_test_uint32_t testIndex = p_TestNumber - 1;
+
+    if (testIndex >= executor.count || executor.tests[testIndex].name == nullptr) {
+        return -1;
+    }
+
+    char buffer[12];
+    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), testIndex + 1);
+    mla_test_print(buffer, strLength);
+    mla_test_print("). ", 3);
+
+    // Suppress on_malloc_failure during failure injection
+    void (*originalOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
+    g_low_level_access.on_malloc_failure = mla_test_executor_on_malloc_failure_noop;
+
+    // Reset PRNG state to seed for deterministic behavior
+    g_mla_test_failure_prng_state = p_Seed;
+
+    // Install memory failure hook
+    mla_memory_hook_t hook = mla_memory_hook_install(
+        mla_test_executor_failure_malloc_hook,
+        mla_test_executor_failure_free_hook
+    );
+
+    mla_test_bool_t result = mla_test_executor_run_single_with_failure(executor.tests[testIndex]);
+
+    mla_memory_hook_uninstall(hook);
+    g_low_level_access.on_malloc_failure = originalOnFailure;
+
+    return result ? 0 : 1;
+}
+
+mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_test_executor_t &executor, mla_test_uint32_t p_Seed) {
+
+    mla_test_print("Running Tests with Allocation Failure (Seed: ", 45);
+    char seedBuffer[12];
+    mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
+    mla_test_print(seedBuffer, seedLen);
+    mla_test_print(")...\n", 5);
+
+    // Suppress on_malloc_failure during failure injection
+    void (*originalOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
+    g_low_level_access.on_malloc_failure = mla_test_executor_on_malloc_failure_noop;
+
+    // Install memory failure hook once for the entire run
+    mla_memory_hook_t hook = mla_memory_hook_install(
+        mla_test_executor_failure_malloc_hook,
+        mla_test_executor_failure_free_hook
+    );
+
+    mla_test_int32_t failedTests = 0;
+
+    for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
+        if (executor.tests[i].name != nullptr) {
+
+            // Reset PRNG state for each test to ensure deterministic behavior
+            g_mla_test_failure_prng_state = p_Seed;
+
+            char buffer[12];
+            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+            mla_test_print(buffer, strLength);
+            mla_test_print("). ", 3);
+
+            if (!mla_test_executor_run_single_with_failure(executor.tests[i])) {
+                failedTests++;
+            }
+        }
+    }
+
+    mla_memory_hook_uninstall(hook);
+    g_low_level_access.on_malloc_failure = originalOnFailure;
+
+    mla_test_print("Tests with Allocation Failure (Seed: ", 37);
+    mla_test_print(seedBuffer, seedLen);
+    mla_test_print(") completed with ", 17);
+    char failBuffer[12];
+    mla_test_uint32_t failLen = mla_uint32_to_string(failBuffer, sizeof(failBuffer), (mla_test_uint32_t)failedTests);
+    mla_test_print(failBuffer, failLen);
+    mla_test_print(" failed tests\n", 14);
+
+    return failedTests;
+}
+
+mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failures(mla_test_executor_t &executor, mla_test_uint32_t p_SeedCount) {
+
+    mla_test_int32_t totalFailed = 0;
+
+    for (mla_test_uint32_t seed = 1; seed <= p_SeedCount; ++seed) {
+        totalFailed += mla_test_executor_run_all_tests_with_allocation_failure(executor, seed);
+    }
+
+    mla_test_print("\nAllocation Failure Tests completed with ", 41);
+    char buffer[12];
+    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), (mla_test_uint32_t)totalFailed);
+    mla_test_print(buffer, strLength);
+    mla_test_print(" total failed tests across ", 27);
+    strLength = mla_uint32_to_string(buffer, sizeof(buffer), p_SeedCount);
+    mla_test_print(buffer, strLength);
+    mla_test_print(" seeds\n", 7);
+
+    return totalFailed;
+}
+
+#endif
