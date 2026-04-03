@@ -57,9 +57,6 @@ void mla_test_parse_cmd(int argc, char** argv, mla_test_bool_t& runTest, mla_tes
 
 void mla_test_parse_allocation_failure_cmd(int argc, char** argv, mla_test_uint32_t& p_AllocationFailureSeed, mla_test_uint32_t& p_AllocationFailureSeedCount) {
 
-    p_AllocationFailureSeed = 0;
-    p_AllocationFailureSeedCount = 0;
-
     for (int i = 1; i < argc; ++i) {
         const mla_test_char_t* value = mla_test_cli_match_prefix(argv[i], "--allocation-failure-seed-count=");
         if (value != nullptr) {
