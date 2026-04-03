@@ -6,6 +6,7 @@
 #define COREOS_MLA_BYTES_TEST_H
 
 #include "../core-os/system/mla_bytes.h"
+#include "../core-os/system/mla_string.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/Test/mla_test.h"
 
