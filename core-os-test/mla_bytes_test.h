@@ -14,7 +14,6 @@ inline void BytesEmptyTest() {
     assert_true(mla_bytes_is_empty(bytes), "Empty bytes should be empty");
     assert_equal(mla_bytes_length(bytes), (mla_size_t)0, "Empty bytes size should be 0");
     assert_null(mla_bytes_get_data_readonly(bytes), "Empty bytes data should be null");
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesAllocTest() {
@@ -30,8 +29,6 @@ inline void BytesAllocTest() {
             assert_equal(data[i], (mla_byte_t)0, "Allocated bytes should be initialized to 0");
         }
     }
-
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesFromExternalBufferTest() {
@@ -41,8 +38,6 @@ inline void BytesFromExternalBufferTest() {
 
     assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to external buffer");
     assert_equal(mla_bytes_length(bytes), size, "Bytes size should match external buffer size");
-
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesFromBufferWithOwnershipTest() {
@@ -56,8 +51,6 @@ inline void BytesFromBufferWithOwnershipTest() {
     mla_bytes_t bytes = mla_bytes_from_buffer_with_ownership(data, size);
     assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to provided buffer");
     assert_equal(mla_bytes_length(bytes), size, "Bytes size should match provided size");
-
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesBase64Test() {
@@ -77,11 +70,6 @@ inline void BytesBase64Test() {
             assert_equal(decoded_data[i], original_data[i], "Decoded data mismatch");
         }
     }
-
-    mla_string_destroy(base64);
-    mla_string_destroy(expected);
-    mla_bytes_destroy(decoded);
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesStringConversionTest() {
@@ -103,11 +91,6 @@ inline void BytesStringConversionTest() {
             assert_equal(from_str_data[i], original_data[i], "Bytes from string data mismatch");
         }
     }
-
-    mla_bytes_destroy(from_str);
-    mla_string_destroy(str);
-    mla_string_destroy(expected);
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesCopyTest() {
@@ -129,9 +112,6 @@ inline void BytesCopyTest() {
             assert_equal(copy_data[i], original_data[i], "Copy data content mismatch");
         }
     }
-
-    mla_bytes_destroy(original);
-    mla_bytes_destroy(copy);
 }
 
 inline void BytesAccessTest() {
@@ -140,8 +120,6 @@ inline void BytesAccessTest() {
 
     assert_equal(mla_bytes_length(bytes), size, "Length mismatch");
     assert_equal(mla_bytes_get_data_readonly(bytes), (const mla_byte_t*)mla_bytes_get_data_for_writing(bytes), "Data pointer mismatch");
-
-    mla_bytes_destroy(bytes);
 }
 
 inline void BytesIsEmptyTest() {
@@ -150,12 +128,9 @@ inline void BytesIsEmptyTest() {
 
     mla_bytes_t not_empty = mla_bytes(1);
     assert_false(mla_bytes_is_empty(not_empty), "mla_bytes(1) should not be empty");
-
-    mla_bytes_destroy(empty);
-    mla_bytes_destroy(not_empty);
 }
 
-inline void BytesDestroyTest() {
+inline void BytesManualDestroyTest() {
     mla_bytes_t bytes = mla_bytes(10);
     mla_bytes_destroy(bytes);
     assert_true(mla_bytes_is_empty(bytes), "Destroyed bytes should be empty");
@@ -163,7 +138,7 @@ inline void BytesDestroyTest() {
     assert_null(mla_bytes_get_data_readonly(bytes), "Destroyed bytes data should be null");
 }
 
-void RegisterBytesTests(mla_test_executor_t& p_TestExecutor) {
+inline void RegisterBytesTests(mla_test_executor_t& p_TestExecutor) {
     mla_test_t test = mla_test("BytesEmpty", test_category, BytesEmptyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -191,7 +166,7 @@ void RegisterBytesTests(mla_test_executor_t& p_TestExecutor) {
     test = mla_test("BytesIsEmpty", test_category, BytesIsEmptyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("BytesDestroy", test_category, BytesDestroyTest);
+    test = mla_test("BytesManualDestroy", test_category, BytesManualDestroyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
