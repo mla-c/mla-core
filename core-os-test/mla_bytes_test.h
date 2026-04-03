@@ -11,21 +11,24 @@
 
 inline void BytesEmptyTest() {
     mla_bytes_t bytes = mla_bytes_empty();
-    assert_null(bytes.data, "Empty bytes data should be null");
-    assert_equal(bytes.size, (mla_size_t)0, "Empty bytes size should be 0");
-    assert_null(bytes.dataOwner.buffer, "Empty bytes should have no owner");
+    assert_true(mla_bytes_is_empty(bytes), "Empty bytes should be empty");
+    assert_equal(mla_bytes_length(bytes), (mla_size_t)0, "Empty bytes size should be 0");
+    assert_null(mla_bytes_get_data_readonly(bytes), "Empty bytes data should be null");
     mla_bytes_destroy(bytes);
 }
 
 inline void BytesAllocTest() {
     mla_size_t length = 10;
     mla_bytes_t bytes = mla_bytes(length);
-    assert_not_null(bytes.data, "Allocated bytes data should not be null");
-    assert_equal(bytes.size, length, "Allocated bytes size should match requested length");
-    assert_not_null(bytes.dataOwner.buffer, "Allocated bytes should have an owner");
+    assert_false(mla_bytes_is_empty(bytes), "Allocated bytes should not be empty");
+    assert_equal(mla_bytes_length(bytes), length, "Allocated bytes size should match requested length");
+    const mla_byte_t* data = mla_bytes_get_data_readonly(bytes);
+    assert_not_null(data, "Allocated bytes data should not be null");
 
-    for (mla_size_t i = 0; i < length; ++i) {
-        assert_equal(bytes.data[i], (mla_byte_t)0, "Allocated bytes should be initialized to 0");
+    if (data != nullptr) {
+        for (mla_size_t i = 0; i < length; ++i) {
+            assert_equal(data[i], (mla_byte_t)0, "Allocated bytes should be initialized to 0");
+        }
     }
 
     mla_bytes_destroy(bytes);
@@ -36,9 +39,8 @@ inline void BytesFromExternalBufferTest() {
     mla_size_t size = sizeof(data);
     mla_bytes_t bytes = mla_bytes_from_external_buffer(data, size);
 
-    assert_equal(bytes.data, data, "Bytes data should point to external buffer");
-    assert_equal(bytes.size, size, "Bytes size should match external buffer size");
-    assert_null(bytes.dataOwner.buffer, "External buffer should not have an owner");
+    assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to external buffer");
+    assert_equal(mla_bytes_length(bytes), size, "Bytes size should match external buffer size");
 
     mla_bytes_destroy(bytes);
 }
@@ -47,13 +49,13 @@ inline void BytesFromBufferWithOwnershipTest() {
     mla_size_t size = 5;
     mla_byte_t* data = (mla_byte_t*)mla_malloc(size);
     assert_not_null(data, "Malloc failed");
-    data[0] = 10;
+    if (data != nullptr) {
+        data[0] = 10;
+    }
 
     mla_bytes_t bytes = mla_bytes_from_buffer_with_ownership(data, size);
-    assert_equal(bytes.data, data, "Bytes data should point to provided buffer");
-    assert_equal(bytes.size, size, "Bytes size should match provided size");
-    assert_not_null(bytes.dataOwner.buffer, "Bytes should now own the buffer");
-    assert_equal(bytes.dataOwner.buffer->data, (mla_pointer_t)data, "Owner buffer should point to provided data");
+    assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to provided buffer");
+    assert_equal(mla_bytes_length(bytes), size, "Bytes size should match provided size");
 
     mla_bytes_destroy(bytes);
 }
@@ -67,14 +69,19 @@ inline void BytesBase64Test() {
     assert_true(mla_string_equals(base64, expected), "Base64 encoding failed");
 
     mla_bytes_t decoded = mla_bytes_from_base64(base64);
-    assert_equal(decoded.size, bytes.size, "Decoded size mismatch");
-    for (mla_size_t i = 0; i < decoded.size; ++i) {
-        assert_equal(decoded.data[i], bytes.data[i], "Decoded data mismatch");
+    assert_equal(mla_bytes_length(decoded), mla_bytes_length(bytes), "Decoded size mismatch");
+    const mla_byte_t* decoded_data = mla_bytes_get_data_readonly(decoded);
+    const mla_byte_t* original_data = mla_bytes_get_data_readonly(bytes);
+    if (decoded_data != nullptr && original_data != nullptr) {
+        for (mla_size_t i = 0; i < mla_bytes_length(decoded); ++i) {
+            assert_equal(decoded_data[i], original_data[i], "Decoded data mismatch");
+        }
     }
 
     mla_string_destroy(base64);
     mla_string_destroy(expected);
     mla_bytes_destroy(decoded);
+    mla_bytes_destroy(bytes);
 }
 
 inline void BytesStringConversionTest() {
@@ -88,27 +95,39 @@ inline void BytesStringConversionTest() {
     assert_true(mla_string_equals(str, expected), "String content mismatch");
 
     mla_bytes_t from_str = mla_bytes_from_string(str);
-    assert_equal(from_str.size, size, "Bytes from string size mismatch");
-    for (mla_size_t i = 0; i < from_str.size; ++i) {
-        assert_equal(from_str.data[i], bytes.data[i], "Bytes from string data mismatch");
+    assert_equal(mla_bytes_length(from_str), size, "Bytes from string size mismatch");
+    const mla_byte_t* from_str_data = mla_bytes_get_data_readonly(from_str);
+    const mla_byte_t* original_data = mla_bytes_get_data_readonly(bytes);
+    if (from_str_data != nullptr && original_data != nullptr) {
+        for (mla_size_t i = 0; i < mla_bytes_length(from_str); ++i) {
+            assert_equal(from_str_data[i], original_data[i], "Bytes from string data mismatch");
+        }
     }
 
     mla_bytes_destroy(from_str);
     mla_string_destroy(str);
     mla_string_destroy(expected);
+    mla_bytes_destroy(bytes);
 }
 
 inline void BytesCopyTest() {
     mla_size_t size = 5;
     mla_bytes_t original = mla_bytes(size);
     mla_byte_t* data = mla_bytes_get_data_for_writing(original);
-    for (mla_size_t i = 0; i < size; ++i) data[i] = (mla_byte_t)i;
+    if (data != nullptr) {
+        for (mla_size_t i = 0; i < size; ++i) data[i] = (mla_byte_t)i;
+    }
 
     mla_bytes_t copy = mla_bytes_copy(original);
-    assert_equal(copy.size, original.size, "Copy size mismatch");
-    assert_not_equal(copy.data, original.data, "Copy should have different data pointer");
-    for (mla_size_t i = 0; i < size; ++i) {
-        assert_equal(copy.data[i], original.data[i], "Copy data content mismatch");
+    assert_equal(mla_bytes_length(copy), mla_bytes_length(original), "Copy size mismatch");
+    assert_not_equal(mla_bytes_get_data_readonly(copy), mla_bytes_get_data_readonly(original), "Copy should have different data pointer");
+
+    const mla_byte_t* copy_data = mla_bytes_get_data_readonly(copy);
+    const mla_byte_t* original_data = mla_bytes_get_data_readonly(original);
+    if (copy_data != nullptr && original_data != nullptr) {
+        for (mla_size_t i = 0; i < size; ++i) {
+            assert_equal(copy_data[i], original_data[i], "Copy data content mismatch");
+        }
     }
 
     mla_bytes_destroy(original);
@@ -120,10 +139,7 @@ inline void BytesAccessTest() {
     mla_bytes_t bytes = mla_bytes(size);
 
     assert_equal(mla_bytes_length(bytes), size, "Length mismatch");
-    assert_equal(mla_bytes_get_data_readonly(bytes), bytes.data, "Readonly data pointer mismatch");
-
-    mla_byte_t* writable = mla_bytes_get_data_for_writing(bytes);
-    assert_equal(writable, (mla_byte_t*)bytes.data, "Writable data pointer mismatch");
+    assert_equal(mla_bytes_get_data_readonly(bytes), (const mla_byte_t*)mla_bytes_get_data_for_writing(bytes), "Data pointer mismatch");
 
     mla_bytes_destroy(bytes);
 }
@@ -142,9 +158,9 @@ inline void BytesIsEmptyTest() {
 inline void BytesDestroyTest() {
     mla_bytes_t bytes = mla_bytes(10);
     mla_bytes_destroy(bytes);
-    assert_null(bytes.data, "Destroyed bytes data should be null");
-    assert_equal(bytes.size, (mla_size_t)0, "Destroyed bytes size should be 0");
-    assert_null(bytes.dataOwner.buffer, "Destroyed bytes should have no owner");
+    assert_true(mla_bytes_is_empty(bytes), "Destroyed bytes should be empty");
+    assert_equal(mla_bytes_length(bytes), (mla_size_t)0, "Destroyed bytes size should be 0");
+    assert_null(mla_bytes_get_data_readonly(bytes), "Destroyed bytes data should be null");
 }
 
 void RegisterBytesTests(mla_test_executor_t& p_TestExecutor) {

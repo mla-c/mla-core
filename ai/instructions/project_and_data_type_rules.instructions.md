@@ -168,3 +168,4 @@ string copy_string(const string &str) {
 - Use MLA memory operations and low-level from the framework like mla_malloc, mla_memcpy, etc.
 - Never include standard library headers; use MLA equivalents instead.
 - Never use new or delete; use mla_malloc and mla_free instead.
+- **NEVER** access internal struct fields (e.g., `bytes.data`, `string.heap.data`) directly if a corresponding API function is provided by the header file (e.g., `mla_bytes_get_data_readonly`, `mla_string_data`). Always use the provided API for data access and manipulation.
