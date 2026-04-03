@@ -52,6 +52,7 @@
 #include "mla_http_server_test.h"
 #include "mla_websocket_client_test.h"
 #include "mla_http_rpc_test.h"
+#include "mla_network_test.h"
 
 #endif
 
@@ -109,6 +110,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHttpServerTests(l_TestExecutor);
     RegisterWebsocketClientTests(l_TestExecutor);
     RegisterHttpRpcTests(l_TestExecutor);
+    RegisterNetworkTests(l_TestExecutor);
 
 #endif
 
