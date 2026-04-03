@@ -29,6 +29,7 @@
 #include "mla_serializer_test.h"
 #include "mla_config_test.h"
 #include "mla_id_test.h"
+#include "mla_bytes_test.h"
 #include "mla_atomic_test.h"
 #include "mla_sha1_test.h"
 #include "mla_hash_test.h"
@@ -85,6 +86,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterSerializerTests(l_TestExecutor);
     RegisterConfigTests(l_TestExecutor);
     RegisterIdTests(l_TestExecutor);
+    RegisterBytesTests(l_TestExecutor);
     RegisterAtomicTests(l_TestExecutor);
     RegisterSha1Tests(l_TestExecutor);
     RegisterHashTests(l_TestExecutor);
