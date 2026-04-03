@@ -157,51 +157,50 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
     mla_test_int32_t l_FailedTest = 0;
 
-    if (runTest) {
-        mla_test_print("Running Tests...\n", 17);
-        l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
-        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 33);
-        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 34);
-        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 35);
-        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 57);
-        //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 128);
-
-        mla_test_print("Tests completed with ", 21);
-        mla_test_char_t buffer[12];
-        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), (mla_test_uint32_t)l_FailedTest);
-        mla_test_print(buffer, strLength);
-        mla_test_print(" failed tests\n", 14);
-    }
-
-    // Run tests with allocation failure injection
-    ////////////////////////////////////////
-
+    mla_test_bool_t l_RunAllocationFailureTests = false;
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
-    if (runTest && p_AllocationFailureSeed > 0) {
-        mla_test_executor_run_all_tests_with_allocation_failure(l_TestExecutor, p_AllocationFailureSeed);
-    } else if (runTest && p_AllocationFailureSeedCount > 0) {
-        mla_test_executor_run_all_tests_with_generated_allocation_failures(l_TestExecutor, p_AllocationFailureSeedCount);
+    if (p_AllocationFailureSeed > 0 || p_AllocationFailureSeedCount > 0) {
+        l_RunAllocationFailureTests = true;
     }
 #endif
 
-    // Running benchmarks
-    ////////////////////////////////////////
+    if (l_RunAllocationFailureTests) {
+#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+        if (p_AllocationFailureSeed > 0) {
+            l_FailedTest = mla_test_executor_run_all_tests_with_allocation_failure(l_TestExecutor, p_AllocationFailureSeed);
+        } else if (p_AllocationFailureSeedCount > 0) {
+            l_FailedTest = mla_test_executor_run_all_tests_with_generated_allocation_failures(l_TestExecutor, p_AllocationFailureSeedCount);
+        }
+#endif
+    } else {
 
-    mla_test_print("\n", 1);
+        if (runTest) {
+            mla_test_print("Running Tests...\n", 17);
+            l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
 
-    if (runBenchmark) {
-
-        if (benchmarkOutputFormat == mla_test_output_format_text) {
-            mla_test_print("Running Benchmarks...\n\n", 23);
+            mla_test_print("Tests completed with ", 21);
+            mla_test_char_t buffer[12];
+            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), (mla_test_uint32_t)l_FailedTest);
+            mla_test_print(buffer, strLength);
+            mla_test_print(" failed tests\n", 14);
         }
 
-        mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 82, benchmarkOutputFormat);
+        // Running benchmarks
+        ////////////////////////////////////////
 
-        if (benchmarkOutputFormat == mla_test_output_format_text) {
-            mla_test_print("\nBenchmarks completed\n", 22);
+        mla_test_print("\n", 1);
+
+        if (runBenchmark) {
+
+            if (benchmarkOutputFormat == mla_test_output_format_text) {
+                mla_test_print("Running Benchmarks...\n\n", 23);
+            }
+
+            mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
+
+            if (benchmarkOutputFormat == mla_test_output_format_text) {
+                mla_test_print("\nBenchmarks completed\n", 22);
+            }
         }
     }
 
