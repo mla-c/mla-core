@@ -11,6 +11,10 @@
 
 mla_test_result_t current_test_result;
 
+// Initialize global flags to their default values
+mla_test_bool_t g_mla_test_run_all_fail_test = true;
+mla_test_bool_t g_mla_test_verbose = true;
+
 mla_test_t mla_test(const char *name, const char *category,
                     void (*run)(void),
                     void (*setUp)(void),
@@ -77,10 +81,12 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
     if (current_test_result.success) {
 
-        mla_test_print("✓ Test passed: ", 17);
-        mla_test_print(test.category, mla_test_strlen(test.category));
-        mla_test_print("->", 2);
-        mla_test_print(test.name, mla_test_strlen(test.name));
+        if (g_mla_test_verbose) {
+            mla_test_print("✓ Test passed: ", 17);
+            mla_test_print(test.category, mla_test_strlen(test.category));
+            mla_test_print("->", 2);
+            mla_test_print(test.name, mla_test_strlen(test.name));
+        }
 
     } else {
 
@@ -94,15 +100,19 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
 
-    mla_test_print(" (Memory allocated: ", 20);
-    mla_test_char_t buffer[32];
-    mla_test_uint32_t len = mla_uint64_to_string(buffer, sizeof(buffer), current_test_result.allocated_memory);
-    mla_test_print(buffer, len);
-    mla_test_print(" bytes)", 7);
+    if (g_mla_test_verbose || !current_test_result.success) {
+        mla_test_print(" (Memory allocated: ", 20);
+        mla_test_char_t buffer[32];
+        mla_test_uint32_t len = mla_uint64_to_string(buffer, sizeof(buffer), current_test_result.allocated_memory);
+        mla_test_print(buffer, len);
+        mla_test_print(" bytes)", 7);
+    }
 
 #endif
 
-    mla_test_print("\n", 1);
+    if (g_mla_test_verbose || !current_test_result.success) {
+        mla_test_print("\n", 1);
+    }
 
     mla_test_bool_t result = current_test_result.success;
 
@@ -114,7 +124,10 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
 
-    // Run again but blocking memory allocations
+    // Run again but blocking memory allocations if enabled
+    if (!g_mla_test_run_all_fail_test) {
+        return result;
+    }
 
     current_test_result.block_memory_allocations = true;
 

@@ -167,10 +167,12 @@ mla_test_int32_t mla_test_executor_run_test_with_allocation_failure(mla_test_exe
         return -1;
     }
 
-    char buffer[12];
-    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), testIndex + 1);
-    mla_test_print(buffer, strLength);
-    mla_test_print("). ", 3);
+    if (g_mla_test_verbose) {
+        char buffer[12];
+        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), testIndex + 1);
+        mla_test_print(buffer, strLength);
+        mla_test_print("). ", 3);
+    }
 
     // Suppress on_malloc_failure during failure injection
     void (*originalOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
@@ -195,11 +197,13 @@ mla_test_int32_t mla_test_executor_run_test_with_allocation_failure(mla_test_exe
 
 mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_test_executor_t &executor, mla_test_uint32_t p_Seed, const mla_test_bool_t* p_SuccessMap) {
 
-    mla_test_print("Running Tests with Allocation Failure (Seed: ", 45);
-    char seedBuffer[12];
-    mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
-    mla_test_print(seedBuffer, seedLen);
-    mla_test_print(")...\n", 5);
+    if (g_mla_test_verbose) {
+        mla_test_print("Running Tests with Allocation Failure (Seed: ", 45);
+        char seedBuffer[12];
+        mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
+        mla_test_print(seedBuffer, seedLen);
+        mla_test_print(")...\n", 5);
+    }
 
     // Suppress on_malloc_failure during failure injection
     void (*originalOnFailure)(mla_size_t, const mla_char_t*, const mla_char_t*) = g_low_level_access.on_malloc_failure;
@@ -223,12 +227,25 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
             // Reset PRNG state for each test to ensure deterministic behavior
             g_mla_test_failure_prng_state = p_Seed;
 
-            char buffer[12];
-            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
-            mla_test_print(buffer, strLength);
-            mla_test_print("). ", 3);
+            if (g_mla_test_verbose) {
+                char buffer[12];
+                mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+                mla_test_print(buffer, strLength);
+                mla_test_print("). ", 3);
+            }
 
             if (!mla_test_run(executor.tests[i])) {
+                if (!g_mla_test_verbose) {
+                    char buffer[12];
+                    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+                    mla_test_print(buffer, strLength);
+                    mla_test_print("). ", 3);
+                    mla_test_print("⚠ Test failed in allocation failure mode (Seed: ", 47);
+                    char seedBuffer[12];
+                    mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
+                    mla_test_print(seedBuffer, seedLen);
+                    mla_test_print(")\n", 2);
+                }
                 failedTests++;
             }
         }
@@ -238,6 +255,8 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
     g_low_level_access.on_malloc_failure = originalOnFailure;
 
     mla_test_print("Tests with Allocation Failure (Seed: ", 37);
+    char seedBuffer[12];
+    mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
     mla_test_print(seedBuffer, seedLen);
     mla_test_print(") completed with ", 17);
     char failBuffer[12];
@@ -252,10 +271,19 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failu
 
     mla_test_int32_t totalFailed = 0;
 
+    mla_test_bool_t original_all_fail = g_mla_test_run_all_fail_test;
+    mla_test_bool_t original_verbose = g_mla_test_verbose;
+
+    g_mla_test_run_all_fail_test = false;
+    g_mla_test_verbose = false;
+
     for (mla_test_uint32_t i = 1; i <= p_SeedCount; ++i) {
         mla_test_uint32_t seed = mla_test_generate_seed();
         totalFailed += mla_test_executor_run_all_tests_with_allocation_failure(executor, seed, p_SuccessMap);
     }
+
+    g_mla_test_run_all_fail_test = original_all_fail;
+    g_mla_test_verbose = original_verbose;
 
     mla_test_print("\nAllocation Failure Tests completed with ", 41);
     char buffer[12];

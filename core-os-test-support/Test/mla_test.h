@@ -17,6 +17,10 @@ struct mla_test_result_t {
 
 extern mla_test_result_t current_test_result;
 
+// Global flags to control test execution and output
+extern mla_test_bool_t g_mla_test_run_all_fail_test; // Default true, runs test with all-fail memory allocations
+extern mla_test_bool_t g_mla_test_verbose;          // Default true, prints success and memory info for each test
+
 struct mla_test_t {
     const mla_test_char_t *name;
     const mla_test_char_t *category;
