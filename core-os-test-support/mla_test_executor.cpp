@@ -4,6 +4,7 @@
 
 #include "mla_test_executor.h"
 #include "mla_test_utils.h"
+#include "Benchmark/mla_benchmark.h"
 
 mla_test_executor_t mla_test_executor() {
 
@@ -111,6 +112,25 @@ void mla_test_executor_register_test(mla_test_executor_t &executor, mla_test_t &
 
 // State for seed-based allocation failure injection
 static mla_test_uint32_t g_mla_test_failure_prng_state = 0;
+static mla_test_uint32_t g_mla_test_seed_generator_state = 0;
+
+mla_test_uint32_t mla_test_generate_seed() {
+    if (g_mla_test_seed_generator_state == 0) {
+        // Initialize state with system time and address
+        mla_test_uint64_t system_time = g_benchmark_timer.current_nanoseconds();
+        g_mla_test_seed_generator_state = (mla_test_uint32_t)(system_time ^ (mla_test_uint64_t)&g_mla_test_seed_generator_state);
+        if (g_mla_test_seed_generator_state == 0) {
+            g_mla_test_seed_generator_state = 0xACE1u; // Fallback
+        }
+    }
+
+    // Xorshift32 algorithm
+    g_mla_test_seed_generator_state ^= g_mla_test_seed_generator_state << 13;
+    g_mla_test_seed_generator_state ^= g_mla_test_seed_generator_state >> 17;
+    g_mla_test_seed_generator_state ^= g_mla_test_seed_generator_state << 5;
+
+    return g_mla_test_seed_generator_state;
+}
 
 // Malloc hook that selectively fails allocations based on seed-driven PRNG
 static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_pointer_t* p_OutPtr) {
@@ -232,7 +252,8 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failu
 
     mla_test_int32_t totalFailed = 0;
 
-    for (mla_test_uint32_t seed = 1; seed <= p_SeedCount; ++seed) {
+    for (mla_test_uint32_t i = 1; i <= p_SeedCount; ++i) {
+        mla_test_uint32_t seed = mla_test_generate_seed();
         totalFailed += mla_test_executor_run_all_tests_with_allocation_failure(executor, seed, p_SuccessMap);
     }
 
