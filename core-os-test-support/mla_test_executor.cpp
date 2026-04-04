@@ -4,6 +4,7 @@
 
 #include "mla_test_executor.h"
 #include "mla_test_utils.h"
+#include "Benchmark/mla_benchmark.h"
 
 mla_test_executor_t mla_test_executor() {
 
@@ -116,7 +117,7 @@ static mla_test_uint32_t g_mla_test_seed_generator_state = 0;
 mla_test_uint32_t mla_test_generate_seed() {
     if (g_mla_test_seed_generator_state == 0) {
         // Initialize state with system time and address
-        mla_test_uint64_t system_time = g_low_level_access.system_time_ms();
+        mla_test_uint64_t system_time = g_benchmark_timer.current_nanoseconds();
         g_mla_test_seed_generator_state = (mla_test_uint32_t)(system_time ^ (mla_test_uint64_t)&g_mla_test_seed_generator_state);
         if (g_mla_test_seed_generator_state == 0) {
             g_mla_test_seed_generator_state = 0xACE1u; // Fallback
