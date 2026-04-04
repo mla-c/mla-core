@@ -4,6 +4,7 @@
 
 #include "mla_test.h"
 #include "../mla_test_utils.h"
+#include "../Benchmark/mla_benchmark.h"
 
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
 #include "../../core-os/mla_data_types.h"
@@ -55,6 +56,11 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
     current_test_result = {true, nullptr, 0, false};
 
+    mla_test_uint64_t start_ns = 0;
+    if (g_benchmark_timer.current_nanoseconds) {
+        start_ns = g_benchmark_timer.current_nanoseconds();
+    }
+
     if (test.setUp) {
         test.setUp();
     }
@@ -73,6 +79,11 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
     if (test.tearDown) {
         test.tearDown();
+    }
+
+    mla_test_uint64_t end_ns = 0;
+    if (g_benchmark_timer.current_nanoseconds) {
+        end_ns = g_benchmark_timer.current_nanoseconds();
     }
 
     if (current_test_result.success) {
@@ -101,6 +112,15 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
     mla_test_print(" bytes)", 7);
 
 #endif
+
+    if (g_benchmark_timer.current_nanoseconds) {
+        mla_test_print(" (Runtime: ", 11);
+        mla_test_char_t time_buffer[32];
+        mla_test_uint32_t duration_ms = (mla_test_uint32_t)((end_ns - start_ns) / 1000000);
+        mla_test_uint32_t time_len = mla_uint32_to_string(time_buffer, sizeof(time_buffer), duration_ms);
+        mla_test_print(time_buffer, time_len);
+        mla_test_print(" ms)", 4);
+    }
 
     mla_test_print("\n", 1);
 
