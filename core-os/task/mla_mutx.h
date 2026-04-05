@@ -10,9 +10,6 @@
 #include "mla_task_manager_data_types.h"
 #include "../system/mla_string_concat.h"
 
-#define mla_mutex_default_wait_timeout 1000 // Default timeout for mutex lock in milliseconds
-
-
 struct mla_mutex_t {
     mla_string_t name;
     mla_pointer_t resource; // Pointer to the mutex resource

@@ -10,14 +10,6 @@
 #include "../network/mla_network.h"
 #include "../url/mla_url.h"
 
-#ifndef mla_http_client_use_deflate_compression
-#define mla_http_client_use_deflate_compression mla_http_use_deflate_compression
-#endif
-
-#ifndef mla_http_client_use_gzip_compression
-#define mla_http_client_use_gzip_compression mla_http_use_deflate_compression
-#endif
-
 enum mla_http_client_response_status: mla_uint8_t {
     MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
     MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL,

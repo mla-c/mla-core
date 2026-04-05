@@ -10,10 +10,6 @@
 #define mla_hash_map_t_param TKey, TValue, TKeyInit, TValueInit
 #define mla_hash_map_t_param_full TKey, TValue, Hasher, TKeyInit, TValueInit
 
-#define CONST_mla_hash_map_item_default_size 2
-#define CONST_mla_hash_map_default_bucket_size 8
-#define CONST_mla_hash_map_default_load_factor 0.75
-
 template < mla_hash_map_template >
 struct mla_hash_map_bucket_item_t {
     TKey key; // Key of the item

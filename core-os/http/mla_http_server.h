@@ -12,10 +12,6 @@
 #include "../task/mla_rw_lock.h"
 #include "mla_websocket_utils.h"
 
-#ifndef mla_http_server_use_deflate_compression
-#define mla_http_server_use_deflate_compression mla_http_use_deflate_compression
-#endif
-
 struct mla_http_server_t;
 
 enum mla_http_server_status_t: mla_uint8_t {

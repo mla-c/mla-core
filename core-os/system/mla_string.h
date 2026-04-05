@@ -10,8 +10,6 @@
 #include "mla_array_list.h"
 #include "../hash/mla_hash.h"
 
-#define mla_string_sso_max_length 14
-
 // Forward declaration
 struct mla_multi_byte_char_t;
 struct mla_string_t;

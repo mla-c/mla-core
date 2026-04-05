@@ -1,6 +1,8 @@
 #ifndef COREOS_MLA_DATATYPES_H
 #define COREOS_MLA_DATATYPES_H
 
+#include "mla_global_config.h"
+
 /////////////////////////////////////////////////
 // Main Datatypes for the MLA framework
 ////////////////////////////////////////////////

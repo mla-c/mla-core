@@ -7,8 +7,6 @@
 
 #include "../mla_data_types.h"
 
-#define CONST_MLA_MAX_MEMORY_HOOKS 10
-
 typedef mla_pointer_t(*mla_memory_malloc_t)(mla_size_t size);
 typedef void (*mla_memory_free_t)(mla_pointer_t ptr);
 typedef mla_bool_t (*mla_memory_is_gcc_pointer_t)(const mla_pointer_t ptr);

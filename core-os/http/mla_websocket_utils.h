@@ -8,10 +8,6 @@
 #include "../system/mla_stream.h"
 #include "../network/mla_network.h"
 
-// WebSocket close status codes
-#define mla_websocket_close_normal 1000
-#define mla_websocket_close_abnormal 1006
-
 typedef mla_bool_t (mla_websocket_transport_message_generator_t)(mla_stream_output_t& output, mla_user_data_t& user_data);
 
 mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output, mla_uint16_t status_code, const mla_string_t &reason, mla_bool_t mask_message);

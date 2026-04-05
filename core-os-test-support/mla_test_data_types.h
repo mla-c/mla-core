@@ -1,6 +1,8 @@
 #ifndef COREOS_TESTDATATYPES_H
 #define COREOS_TESTDATATYPES_H
 
+#include "mla_test_global_config.h"
+
 // Platform detection and 32-bit type definitions
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__) || defined(__aarch64__) || (defined(__SIZEOF_LONG__) && __SIZEOF_LONG__ == 8)
     // 64-bit Unix/Linux (LP64 model): long is 8 bytes

@@ -12,8 +12,6 @@
 
 static mla_string_t RPC_CACHE_LOGGER_NAME = mla_string("RpcConsole", 10);
 
-#define mla_rpc_log_cache_size 128
-
 struct mla_logger_rpc_log_level_t {
     mla_log_level level;
 

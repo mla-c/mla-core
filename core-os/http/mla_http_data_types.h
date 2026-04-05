@@ -12,6 +12,4 @@ enum mla_http_version: mla_uint8_t {
     MLA_HTTP_VERSION_3_0
 };
 
-#define mla_http_max_header_size 8192 // 8 KB
-
 #endif

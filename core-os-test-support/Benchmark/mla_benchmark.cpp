@@ -5,16 +5,8 @@
 #include "mla_benchmark.h"
 #include "../mla_test_utils.h"
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_benchmark_memory == 1)
 #include "../../core-os/mla_data_types.h"
-#endif
-
-#if (!defined(mla_benchmark_max_arena_size))
-#define mla_benchmark_max_arena_size (100 * 1024 * 1024) // 100 MB
-#endif
-
-#if (!defined(mla_benchmark_arena_alignment))
-#define mla_benchmark_arena_alignment 8u // 8 bytes alignment
 #endif
 
 
@@ -119,10 +111,6 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
     benchmark.tearDown = nullptr;
 }
 
-#if (!defined(mla_benchmark_use_median))
-#define mla_benchmark_use_median 1  // Default to median (1), set to 0 for average
-#endif
-
 #if (mla_benchmark_use_median == 1)
 
 // Simple partition function for median calculation
@@ -192,7 +180,7 @@ static mla_test_uint64_t __mla_benchmark_calculate_median(mla_test_uint64_t* tim
 
 #endif
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_benchmark_memory == 1)
 
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
 
@@ -639,7 +627,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     auto averageTime = totalTime / benchmarkIterations;
 #endif
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_benchmark_memory == 1)
 
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_stat_hook;
@@ -659,7 +647,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         benchmark.tearDown();
     }
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_benchmark_memory == 1)
 
     if (output_format == mla_test_output_format_text) {
 #if (mla_benchmark_use_median == 1)

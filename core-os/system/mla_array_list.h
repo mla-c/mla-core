@@ -8,9 +8,6 @@
 #include "../mla_data_types.h"
 #include "mla_buffer.h"
 
-#define mla_array_list_default_capacity 8
-
-
 #define mla_array_list_template typename  T, typename TInit = mla_default_init(T)
 
 template <mla_array_list_template>
