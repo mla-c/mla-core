@@ -144,6 +144,8 @@ mla_bool_t mla_http_server_running(const mla_http_server_t &server);
 mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks, mla_task_stack_size task_stack_size = TASK_STACK_SIZE_DEFAULT);
 mla_bool_t mla_http_server_stop(mla_http_server_t &server);
 
+void mla_http_server_set_timeout(mla_http_server_t &server, mla_int32_t timeout_ms);
+
 // Registration Methods
 mla_bool_t mla_http_server_register_handler(mla_http_server_t &server, const mla_http_server_handler_item_t& handlerItem);
 mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server, const mla_http_server_websocket_handler_item_t& handlerItem);
