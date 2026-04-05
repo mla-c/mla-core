@@ -321,131 +321,115 @@ void RegisterNumberTests(mla_test_executor_t &p_TestExecutor) {
 
 }
 
+template <typename T>
+static inline void bench_sink(T v) {
+    volatile T sink = v;
+    (void)sink;
+}
+
 inline void ParseDoubleBenchmark() {
     mla_string_t str = mla_string_const("123.456");
     mla_double_t value;
-    mla_test_bool_t result = mla_parse_double(str, value);
-    if (!result || value != 123.456) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_double(str, value);
+    bench_sink(value);
 }
 
 inline void ParseFloatBenchmark() {
     mla_string_t str = mla_string_const("123.456");
     mla_float_t value;
-    mla_test_bool_t result = mla_parse_float(str, value);
-    if (!result || value != 123.456f) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_float(str, value);
+    bench_sink(value);
 }
 
 inline void ParseInt64Benchmark() {
     mla_string_t str = mla_string_const("9223372036854775807");
     mla_int64_t value;
-    mla_test_bool_t result = mla_parse_int64(str, value);
-    if (!result || value != 9223372036854775807LL) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_int64(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt64Benchmark() {
     mla_string_t str = mla_string_const("18446744073709551615");
     mla_uint64_t value;
-    mla_test_bool_t result = mla_parse_uint64(str, value);
-    if (!result || value != 18446744073709551615ULL) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_uint64(str, value);
+    bench_sink(value);
 }
 
 inline void ParseInt32Benchmark() {
     mla_string_t str = mla_string_const("2147483647");
     mla_int32_t value;
-    mla_test_bool_t result = mla_parse_int32(str, value);
-    if (!result || value != 2147483647) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_int32(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt32Benchmark() {
     mla_string_t str = mla_string_const("4294967295");
     mla_uint32_t value;
-    mla_test_bool_t result = mla_parse_uint32(str, value);
-    if (!result || value != 4294967295U) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_uint32(str, value);
+    bench_sink(value);
 }
 
 inline void ParseBoolBenchmark() {
     mla_string_t str = mla_string_const("true");
     mla_bool_t value;
-    mla_test_bool_t result = mla_parse_bool(str, value);
-    if (!result || !value) {
-        static_assert(true, "Benchmark parse failed");
-    }
+    mla_parse_bool(str, value);
+    bench_sink(value);
 }
 
 inline void ParseInt16Benchmark() {
     mla_string_t str = mla_string_const("32767");
     mla_int16_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_int16(str, value);
-    }
+    mla_parse_int16(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt16Benchmark() {
     mla_string_t str = mla_string_const("65535");
     mla_uint16_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint16(str, value);
-    }
+    mla_parse_uint16(str, value);
+    bench_sink(value);
 }
 
 inline void ParseInt8Benchmark() {
     mla_string_t str = mla_string_const("127");
     mla_int8_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_int8(str, value);
-    }
+    mla_parse_int8(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt8Benchmark() {
     mla_string_t str = mla_string_const("255");
     mla_uint8_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint8(str, value);
-    }
+    mla_parse_uint8(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt8HexBenchmark() {
     mla_string_t str = mla_string_const("0xFF");
     mla_uint8_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint8_hex(str, value);
-    }
+    mla_parse_uint8_hex(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt16HexBenchmark() {
     mla_string_t str = mla_string_const("0xFFFF");
     mla_uint16_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint16_hex(str, value);
-    }
+    mla_parse_uint16_hex(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt32HexBenchmark() {
     mla_string_t str = mla_string_const("0xFFFFFFFF");
     mla_uint32_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint32_hex(str, value);
-    }
+    mla_parse_uint32_hex(str, value);
+    bench_sink(value);
 }
 
 inline void ParseUInt64HexBenchmark() {
     mla_string_t str = mla_string_const("0xFFFFFFFFFFFFFFFF");
     mla_uint64_t value;
-    for (int i = 0; i < 1000; i++) {
-        mla_parse_uint64_hex(str, value);
-    }
+    mla_parse_uint64_hex(str, value);
+    bench_sink(value);
 }
 
 void RegisterNumberBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
