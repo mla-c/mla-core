@@ -33,9 +33,10 @@
 /**
  * @brief Default log level for the console logger.
  * Messages with a priority lower than this level will be filtered out.
+ * 0: VERBOSE, 1: DEBUG, 2: INFO, 3: WARNING, 4: ERROR
  */
 #ifndef mla_logger_console_level
-#define mla_logger_console_level MLA_LOG_LEVEL_INFO
+#define mla_logger_console_level ((mla_log_level)2) // corresponds to MLA_LOG_LEVEL_INFO
 #endif
 
 /////////////////////////////////////////////////

@@ -4,10 +4,6 @@
 
 #include "mla_logger_console.h"
 
-#if !defined(mla_logger_console_level)
-#define mla_logger_console_level MLA_LOG_LEVEL_INFO
-#endif
-
 void __mla_log_console_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
                               mla_user_data_t& userData) {
 

@@ -15,7 +15,7 @@ void __mla_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, 
 mla_char_t temp[64]; \
 __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 
-#if (!defined(mla_logging_use_native) || (mla_logging_use_native == 0))
+#if (mla_logging_use_native == 0)
 
 #include "mla_logger.h"
 
