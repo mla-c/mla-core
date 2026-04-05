@@ -53,9 +53,13 @@ inline void StartSimpleHttpServerTest() {
         mla_http_method_get, mla_http_server_request_hello_world_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem), "Should register hello world handler");
 
+    mla_http_server_set_timeout(server, 1000);
+
     if (mla_http_server_start(server, 1)) {
         mla_http_request_t request = mla_http_get_request(test_server_url);
-        mla_http_client_response_t response = mla_http_client_send_request(request);
+        mla_http_client_t client = mla_http_client();
+        mla_http_client_set_timeout(client, 1000);
+        mla_http_client_response_t response = mla_http_client_send_request(client, request);
         assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                      "HTTP request to simple server should succeed");
         assert_equal(response.response.statusCode, mla_http_status_ok, "Should receive 200 OK from simple server");
@@ -75,11 +79,15 @@ inline void HttpServerMultiHandlerTest() {
         mla_http_method_post, mla_string_const("/echo"), mla_http_server_request_echo_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem2), "Should register echo handler");
 
+    mla_http_server_set_timeout(server, 1000);
+
     if (mla_http_server_start(server, 2)) {
         // Test GET request
         mla_string_t test_url = mla_string_concat(test_server_url, mla_string_const("/test"));
         mla_http_request_t request1 = mla_http_get_request(test_url);
-        mla_http_client_response_t response1 = mla_http_client_send_request(request1);
+        mla_http_client_t client = mla_http_client();
+        mla_http_client_set_timeout(client, 1000);
+        mla_http_client_response_t response1 = mla_http_client_send_request(client, request1);
         assert_equal(response1.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                      "HTTP GET request to multi handler server should succeed");
         assert_equal(response1.response.statusCode, mla_http_status_ok,
@@ -95,7 +103,7 @@ inline void HttpServerMultiHandlerTest() {
         mla_string_t echo_url = mla_string_concat(test_server_url, mla_string_const("/echo"));
         mla_http_request_t request2 = mla_http_post_request(echo_url);
         request2.content = mla_stream_input_from_buffer((mla_byte_t *) "hello world", 12);
-        mla_http_client_response_t response2 = mla_http_client_send_request(request2);
+        mla_http_client_response_t response2 = mla_http_client_send_request(client, request2);
         assert_equal(response2.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                      "HTTP POST request to multi handler server should succeed");
         assert_equal(response2.response.statusCode, mla_http_status_ok,
@@ -111,7 +119,7 @@ inline void HttpServerMultiHandlerTest() {
         // Test Not Found
         mla_string_t not_found_url = mla_string_concat(test_server_url, mla_string_const("/not_found"));
         mla_http_request_t request3 = mla_http_get_request(not_found_url);
-        mla_http_client_response_t response3 = mla_http_client_send_request(request3);
+        mla_http_client_response_t response3 = mla_http_client_send_request(client, request3);
         assert_equal(response3.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                      "HTTP GET request to non-existent path should succeed");
         assert_equal(response3.response.statusCode, mla_http_status_not_found,
@@ -148,11 +156,13 @@ inline void WebSocketEchoServerTest() {
     assert_true(mla_http_server_register_websocket_handler(server, wsHandler),
                 "Should register WebSocket echo handler");
 
+    mla_http_server_set_timeout(server, 2000);
+
     if (mla_http_server_start(server, 1)) {
         // Create client and connect
         mla_websocket_client_t client = mla_websocket_client_invalid();
         mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
-        assert_true(mla_websocket_client_connect(client, ws_url, 10000, false), "Should connect to WebSocket echo server");
+        assert_true(mla_websocket_client_connect(client, ws_url, 2000, false), "Should connect to WebSocket echo server");
         assert_true(mla_websocket_client_is_connected(client), "WebSocket client should be connected");
         assert_false(mla_websocket_client_is_deflate_compression_supported(client), "WebSocket client should not support deflate compression");
 
@@ -166,7 +176,7 @@ inline void WebSocketEchoServerTest() {
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
 
             mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
-                client, 10000, textMessage, binaryMessage);
+                client, 2000, textMessage, binaryMessage);
             assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
                          "Should receive text message");
             assert_struct_equal(mla_string_t, textMessage.message, test_message,
@@ -185,7 +195,7 @@ inline void WebSocketEchoServerTest() {
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
 
             mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
-                client, 10000, textMessage, binaryMessage);
+                client, 2000, textMessage, binaryMessage);
             assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
                          "Should receive text message");
             assert_struct_equal(mla_string_t, textMessage.message, large_message,
@@ -217,11 +227,13 @@ inline void WebSocketEchoServerCompressedTest() {
     assert_true(mla_http_server_register_websocket_handler(server, wsHandler),
                 "Should register WebSocket echo handler");
 
+    mla_http_server_set_timeout(server, 2000);
+
     if (mla_http_server_start(server, 1)) {
         // Create client and connect
         mla_websocket_client_t client = mla_websocket_client_invalid();
         mla_string_t ws_url = mla_string_concat(test_server_url_ws, mla_string_const("/echo"));
-        assert_true(mla_websocket_client_connect(client, ws_url, 10000, true), "Should connect to WebSocket echo server");
+        assert_true(mla_websocket_client_connect(client, ws_url, 2000, true), "Should connect to WebSocket echo server");
         assert_true(mla_websocket_client_is_connected(client), "WebSocket client should be connected");
         assert_true(mla_websocket_client_is_deflate_compression_supported(client), "WebSocket client should support deflate compression");
 
@@ -235,7 +247,7 @@ inline void WebSocketEchoServerCompressedTest() {
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
 
             mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
-                client, 10000, textMessage, binaryMessage);
+                client, 2000, textMessage, binaryMessage);
             assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
                          "Should receive text message");
             assert_struct_equal(mla_string_t, textMessage.message, test_message,
@@ -253,7 +265,7 @@ inline void WebSocketEchoServerCompressedTest() {
             mla_websocket_binary_message_t binaryMessage = mla_websocket_binary_message_empty();
 
             mla_websocket_client_message_receive_type_t result = mla_websocket_client_receive_message(
-                client, 10000, textMessage, binaryMessage);
+                client, 2000, textMessage, binaryMessage);
             assert_equal((mla_uint8_t)result, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT,
                          "Should receive text message");
             assert_struct_equal(mla_string_t, textMessage.message, large_message,

@@ -974,7 +974,9 @@ mla_bool_t mla_http_server_running(const mla_http_server_t &server) {
     return (server.status == MLA_HTTP_SERVER_STATUS_RUNNING);
 }
 
-
+void mla_http_server_set_timeout(mla_http_server_t &server, mla_int32_t timeout_ms) {
+    server.timeout_ms = timeout_ms;
+}
 
 mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
 
