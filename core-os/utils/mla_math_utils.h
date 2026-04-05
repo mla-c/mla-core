@@ -7,6 +7,8 @@
 
 #include "../mla_data_types.h"
 
+#define mla_math_pi 3.14159265358979323846
+
 mla_double_t mla_math_sin(mla_double_t x);
 mla_double_t mla_math_cos(mla_double_t x);
 mla_double_t mla_math_tan(mla_double_t x);
