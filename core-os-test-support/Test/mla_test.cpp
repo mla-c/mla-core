@@ -11,7 +11,7 @@
 #endif
 
 mla_test_result_t current_test_result;
-mla_test_bool_t g_mla_test_run_all_fail_test = true;
+mla_test_bool_t g_mla_test_run_forced_allocation_failure_pass = true;
 
 mla_test_t mla_test(const char *name, const char *category,
                     void (*run)(void),
@@ -135,7 +135,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
 #if (!defined(mla_test_memory) || (mla_test_memory == 1))
 
-    if (!g_mla_test_run_all_fail_test) {
+    if (!g_mla_test_run_forced_allocation_failure_pass) {
         return result;
     }
 

@@ -16,7 +16,7 @@ struct mla_test_result_t {
 };
 
 extern mla_test_result_t current_test_result;
-extern mla_test_bool_t g_mla_test_run_all_fail_test;
+extern mla_test_bool_t g_mla_test_run_forced_allocation_failure_pass;
 
 struct mla_test_t {
     const mla_test_char_t *name;
