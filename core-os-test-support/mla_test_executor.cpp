@@ -211,6 +211,10 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
         mla_test_executor_failure_free_hook
     );
 
+    // Disable the redundant second pass in mla_test_run
+    mla_test_bool_t originalRunAllFail = g_mla_test_run_all_fail_test;
+    g_mla_test_run_all_fail_test = false;
+
     mla_test_int32_t failedTests = 0;
 
     for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
@@ -236,6 +240,7 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
 
     mla_memory_hook_uninstall(hook);
     g_low_level_access.on_malloc_failure = originalOnFailure;
+    g_mla_test_run_all_fail_test = originalRunAllFail;
 
     mla_test_print("Tests with Allocation Failure (Seed: ", 37);
     mla_test_print(seedBuffer, seedLen);
