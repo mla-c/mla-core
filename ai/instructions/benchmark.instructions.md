@@ -137,9 +137,13 @@ Compilers may optimise away unused results. Use one of these patterns:
 mla_size_t hash = mla_string_hash(str, len);
 (void)hash;
 
-// Touch through a helper
-static inline void bench_touch(mla_int32_t v) { (void)v; }
-bench_touch(result.value);
+// Use a type-preserving sink with a volatile local to prevent DCE
+template <typename T>
+static inline void bench_sink(T v) {
+    volatile T sink = v;
+    (void)sink;
+}
+bench_sink(result.value);
 
 // Use volatile read
 volatile mla_byte_t temp = buffer[0];
