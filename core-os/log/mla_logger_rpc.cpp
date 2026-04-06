@@ -26,7 +26,7 @@ void __mla_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_
 
     (void)userData;
 
-    if (!mla_mutex_trylock(g_rpc_log_cache.lock, 10)) {
+    if (!mla_mutex_trylock(g_rpc_log_cache.lock, 250)) {
         return;
     }
 
