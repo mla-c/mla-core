@@ -6,6 +6,7 @@
 #define COREOS_MLA_TASK_MANAGER_PTHREAD_H
 
 #include "../../core-os/task/mla_task_manager.h"
+#include "../../core-os/task/mla_atomic.h"
 #include <pthread.h>
 
 #define mla_task_manager_pthread_thread_name_max_length 16
@@ -44,22 +45,24 @@ mla_pointer_t __mla_task_manager_pthread_worker(mla_pointer_t payload) {
         mla_task_shared_states* shared_states = thread_data->sharedStates;
 
         if (thread_data->worker == nullptr) {
-            shared_states->processingState = TASK_STATE_COMPLETED;
+            mla_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
             return nullptr;
         }
 
         while (true) {
 
-            if (shared_states->processingState == TASK_STATE_ABORTING) {
-                shared_states->processingState = TASK_STATE_ABORTED;
+            if (mla_atomic_compare_exchange(shared_states->processingState, TASK_STATE_ABORTING, TASK_STATE_ABORTED)) {
                 break; // Exit the loop if the task is aborted
             }
 
-            shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
+            // Only switch to RUNNING if it was previously RUNNING or STARTING.
+            // If it is ABORTING, we must not overwrite it.
+            mla_atomic_compare_exchange(shared_states->processingState, TASK_STATE_STARTING, TASK_STATE_RUNNING);
+
             mla_task_process_result_state result_state = thread_data->worker(thread_data->userData); // Call the worker function
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
-                shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
+                mla_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED); // Set the state to completed if the worker function returns DONE
                 break; // Exit the loop after completion
             }
 

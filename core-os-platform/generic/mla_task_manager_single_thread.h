@@ -145,23 +145,23 @@ mla_uint32_t mla_task_manager_single_thread_run_with_prio(mla_task_priority prio
 
             mla_task_shared_states* shared_states = task->sharedStates;
 
-            if (shared_states->processingState == TASK_STATE_ABORTING) {
-                shared_states->processingState = TASK_STATE_ABORTED;
-            } else if (!mla_task_is_done(shared_states->processingState)) {
+            if (shared_states->processingState.value == TASK_STATE_ABORTING) {
+                shared_states->processingState.value = TASK_STATE_ABORTED;
+            } else if (!mla_task_is_done(shared_states->processingState.value)) {
 
-                shared_states->processingState = TASK_STATE_RUNNING;
+                shared_states->processingState.value = TASK_STATE_RUNNING;
 
                 if (task->worker != nullptr) {
 
                     mla_task_process_result_state result_state = task->worker(task->userData);
 
                     if (result_state == TASK_PROCESS_RESULT_DONE) {
-                        shared_states->processingState = TASK_STATE_COMPLETED;
+                        shared_states->processingState.value = TASK_STATE_COMPLETED;
                     }
 
                 } else {
                     // If the worker is null, we just mark it as completed.
-                    shared_states->processingState = TASK_STATE_COMPLETED;
+                    shared_states->processingState.value = TASK_STATE_COMPLETED;
                 }
 
                 processedTaskCount++;
