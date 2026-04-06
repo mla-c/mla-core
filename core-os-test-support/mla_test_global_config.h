@@ -17,8 +17,8 @@
  * @brief Default number of iterations for benchmark execution.
  * Can be reduced in CI environments to speed up test runs.
  */
-#ifndef mla_benchmark_iternations
-#define mla_benchmark_iternations 1000000
+#ifndef mla_benchmark_iterations
+#define mla_benchmark_iterations 1000000
 #endif
 
 /**
