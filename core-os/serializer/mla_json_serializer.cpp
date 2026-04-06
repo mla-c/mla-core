@@ -414,7 +414,7 @@ mla_bool_t __mla_json_deserializer_string_match(mla_deserializer_t &instance, co
 
 
 mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance, mla_string_t &out_str) {
-    mla_char_t charBuffer[mla_stream_fast_read_buffer_size];
+    mla_char_t charBuffer[mla_global_config_stream_fast_read_buffer_size];
     mla_size_t position = 0;
     out_str = mla_string_empty();
 
@@ -429,7 +429,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
 
     while (true) {
         // Add more space in case of unicode parsing
-        if (position + 4 >= mla_stream_fast_read_buffer_size) {
+        if (position + 4 >= mla_global_config_stream_fast_read_buffer_size) {
             // Buffer full, append to string
             out_str = mla_string_concat(out_str, mla_string(charBuffer, position));
             position = 0;

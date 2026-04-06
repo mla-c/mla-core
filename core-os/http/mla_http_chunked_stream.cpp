@@ -301,7 +301,7 @@ mla_http_chunked_stream_output_t mla_http_chunked_stream_output(const mla_stream
     };
 }
 
-#define mla_http_chunked_stream_output_deflate_chunk_size (mla_stream_output_deflate_min_compression_data_size * 2)
+#define mla_http_chunked_stream_output_deflate_chunk_size (mla_global_config_stream_output_deflate_min_compression_data_size * 2)
 
 mla_http_chunked_stream_output_t mla_http_chunked_stream_output_deflate(const mla_stream_output_t &baseStream) {
     mla_stream_output_t chunkedStream = __mla_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_deflate_chunk_size);

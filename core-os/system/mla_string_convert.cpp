@@ -10,7 +10,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
     const mla_size_t maxLength = 4; // Max: "-128"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -84,7 +84,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
 
     const mla_size_t maxLength = 3; // Max: "255"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -147,7 +147,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
     const mla_size_t maxLength = 6; // Max: "-32768"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -220,7 +220,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
 
     const mla_size_t maxLength = 5; // Max: "65535"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -283,7 +283,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
     const mla_size_t maxLength = 11; // Max: "-2147483648"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -356,7 +356,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
 
     const mla_size_t maxLength = 10; // Max: "4294967295"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t index = 0;
@@ -419,7 +419,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
     const mla_size_t maxLength = 20; // Max: "-9223372036854775808"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
@@ -492,7 +492,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
     const mla_size_t maxLength = 20; // Max: "18446744073709551615"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
@@ -624,7 +624,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     mla_string_t result = mla_string_empty();
     mla_char_t* dest;
 
-    if (totalLength <= mla_string_sso_max_length) {
+    if (totalLength <= mla_global_config_string_sso_max_length) {
         // Initialize for SSO
         result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
@@ -748,7 +748,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     mla_string_t result = mla_string_empty();
     mla_char_t* dest;
 
-    if (totalLength <= mla_string_sso_max_length) {
+    if (totalLength <= mla_global_config_string_sso_max_length) {
         // Initialize for SSO
         result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
@@ -819,7 +819,7 @@ const mla_char_t hexDigits[] = "0123456789ABCDEF";
 mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
     const mla_size_t maxLength = 4; // "0x" + 2 hex digits
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
@@ -853,7 +853,7 @@ mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
 mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
     const mla_size_t maxLength = 6; // "0x" + 4 hex digits
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
@@ -891,7 +891,7 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
 mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
     const mla_size_t maxLength = 10; // "0x" + 8 hex digits
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         result.embedded.data[0] = '0';
@@ -937,7 +937,7 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
 mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
     const mla_size_t maxLength = 18; // "0x" + 16 hex digits
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         // This branch won't be taken with default SSO size, but included for consistency
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
@@ -1000,7 +1000,7 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
 mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
     const mla_size_t maxLength = 2; // Max: "FF"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         if (p_Value == 0) {
@@ -1069,7 +1069,7 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
 mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
     const mla_size_t maxLength = 4; // Max: "FFFF"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         if (p_Value == 0) {
@@ -1136,7 +1136,7 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
 mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
     const mla_size_t maxLength = 8; // Max: "FFFFFFFF"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         if (p_Value == 0) {
@@ -1203,7 +1203,7 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
 mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
     const mla_size_t maxLength = 16; // Max: "FFFFFFFFFFFFFFFF"
 
-    if (maxLength <= mla_string_sso_max_length) {
+    if (maxLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         if (p_Value == 0) {

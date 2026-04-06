@@ -102,7 +102,7 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
 
 mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string_t & line, mla_int32_t timeout_ms) {
 
-    mla_char_t buffer[mla_stream_fast_read_buffer_size];
+    mla_char_t buffer[mla_global_config_stream_fast_read_buffer_size];
     mla_size_t bytesRead = 0;
 
     mla_char_t* finalResultBuffer = nullptr;
@@ -154,7 +154,7 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
 
         }
 
-        if (bytesRead >= mla_stream_fast_read_buffer_size) {
+        if (bytesRead >= mla_global_config_stream_fast_read_buffer_size) {
             // Move to finalbuffer
             if (finalResultBuffer == nullptr) {
                 finalResultBuffer = mla_create_char_array(bytesRead);
@@ -185,7 +185,7 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
             bytesRead = 0;
         }
 
-        if ((finalResultBufferSize + bytesRead) >= mla_http_max_header_size) {
+        if ((finalResultBufferSize + bytesRead) >= mla_global_config_http_max_header_size) {
 
             if (finalResultBuffer != nullptr) {
                 mla_free(finalResultBuffer);

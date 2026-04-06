@@ -13,7 +13,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     mla_size_t newLength = length1 + size2;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -48,7 +48,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     mla_size_t newLength = length1 + length2;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -87,7 +87,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -122,7 +122,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_char_t* p_
     mla_size_t newLength = size1 + size2;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -156,7 +156,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     mla_size_t newLength = length1 + length2 + length3;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -200,7 +200,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -238,7 +238,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     mla_size_t newLength = length1 + size2 + length3;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -281,7 +281,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_char_t* p_
     mla_size_t newLength = size1 + size2 + size3 + length4;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -324,7 +324,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     mla_size_t newLength = length1 + length2 + length3 + length4;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -373,7 +373,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + size4;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -416,7 +416,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + length4;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -461,7 +461,7 @@ mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* 
     mla_size_t newLength = length1 + size2 + length3 + size4;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -508,7 +508,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + size4 + size5 + length6;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -559,7 +559,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + length4 + size5;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -609,7 +609,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + length4 + size5 + length6;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -663,7 +663,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + length4 + size5 + length6 + size7;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -720,7 +720,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     mla_size_t newLength = size1 + length2 + size3 + length4 + size5 + length6 + size7 + length8;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -782,7 +782,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
     mla_size_t newLength = size1 + length2 + size3 + size4 + size5 + size6 + size7 + size8 + size9;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 
@@ -840,7 +840,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
     mla_size_t newLength = size1 + length2 + size3 + length4 + size5 + length6 + size7 + length8 + size9;
 
     // Use small string optimization if the result fits
-    if (newLength <= mla_string_sso_max_length) {
+    if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(newLength);
 

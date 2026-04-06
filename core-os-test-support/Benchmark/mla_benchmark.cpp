@@ -5,16 +5,8 @@
 #include "mla_benchmark.h"
 #include "../mla_test_utils.h"
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_test_global_feature_flag_benchmark_memory == 1)
 #include "../../core-os/mla_data_types.h"
-#endif
-
-#if (!defined(mla_benchmark_max_arena_size))
-#define mla_benchmark_max_arena_size (100 * 1024 * 1024) // 100 MB
-#endif
-
-#if (!defined(mla_benchmark_arena_alignment))
-#define mla_benchmark_arena_alignment 8u // 8 bytes alignment
 #endif
 
 
@@ -56,7 +48,7 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
     }
 
     // Align current offset
-    mla_size_t aligned_offset = mla_align_up(g_mla_benchmark_memory_arena_offset, mla_benchmark_arena_alignment);
+    mla_size_t aligned_offset = mla_align_up(g_mla_benchmark_memory_arena_offset, mla_test_global_config_benchmark_arena_alignment);
 
     // Bounds check including padding
     if (aligned_offset + size > g_mla_benchmark_memory_arena_size) {
@@ -119,11 +111,7 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
     benchmark.tearDown = nullptr;
 }
 
-#if (!defined(mla_benchmark_use_median))
-#define mla_benchmark_use_median 1  // Default to median (1), set to 0 for average
-#endif
-
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
 
 // Simple partition function for median calculation
 static void __mla_benchmark_partition_for_median(mla_test_uint64_t* arr, mla_test_uint32_t left, mla_test_uint32_t right, mla_test_uint32_t k) {
@@ -192,7 +180,7 @@ static mla_test_uint64_t __mla_benchmark_calculate_median(mla_test_uint64_t* tim
 
 #endif
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_test_global_feature_flag_benchmark_memory == 1)
 
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
 
@@ -224,7 +212,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     mla_benchmark_allocated_memory = 0;
 
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
     // Min, Max, and Median time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;
     mla_test_uint64_t maxTime = 0;
@@ -371,7 +359,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 
     if (output_format == mla_test_output_format_text) {
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
     // Category column (24 chars)
     mla_test_char_t category_padded[25];
     mla_test_uint32_t cat_len = (mla_test_uint32_t)mla_test_strlen(benchmark.category);
@@ -509,7 +497,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         mla_test_print(buffer, strLength);
         mla_test_print(",\n", 2);
 
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
         mla_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
@@ -543,7 +531,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size_per_run, mla_test_output_format_t output_format) {
 
 
-#if (mla_benchmark_max_arena_size > 0)
+#if (mla_test_global_config_benchmark_max_arena_size > 0)
 
     // No memory used in the test so no need to run in an arena
     if (arena_size_per_run <= 0) {
@@ -551,14 +539,14 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
     }
 
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
-    mla_test_uint64_t arena_size = mla_align_up(arena_size_per_run, mla_benchmark_arena_alignment) * benchmarkIterations;
+    mla_test_uint64_t arena_size = mla_align_up(arena_size_per_run, mla_test_global_config_benchmark_arena_alignment) * benchmarkIterations;
 
-    while (arena_size > mla_benchmark_max_arena_size) {
+    while (arena_size > mla_test_global_config_benchmark_max_arena_size) {
         benchmarkIterations = benchmarkIterations / 2;
         arena_size = (mla_test_uint64_t)((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
     }
 
-    arena_size = mla_align_up(arena_size, mla_benchmark_arena_alignment);
+    arena_size = mla_align_up(arena_size, mla_test_global_config_benchmark_arena_alignment);
 
     // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {
@@ -588,7 +576,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
 
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
     // Min, Max, and Median time tracking
     mla_test_uint64_t minTime = 18446744073709551615ULL;
     mla_test_uint64_t maxTime = 0;
@@ -639,7 +627,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     auto averageTime = totalTime / benchmarkIterations;
 #endif
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_test_global_feature_flag_benchmark_memory == 1)
 
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_stat_hook;
@@ -659,10 +647,10 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         benchmark.tearDown();
     }
 
-#if (!defined(mla_benchmark_memory) || (mla_benchmark_memory == 1))
+#if (mla_test_global_feature_flag_benchmark_memory == 1)
 
     if (output_format == mla_test_output_format_text) {
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
         // Category column (24 chars, left-aligned)
         mla_test_print("|", 1);
         mla_test_char_t category_padded[25];
@@ -817,7 +805,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print(buffer, strLength);
         mla_test_print(",\n", 2);
 
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
         mla_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
@@ -848,7 +836,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 #else
 
     if (output_format == mla_test_output_format_text) {
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
         mla_test_printf("|%-24s|%-30s|%9lld|%12lld|%9lld|%12ld\n",
                benchmark.category,
                benchmark.name,
@@ -880,7 +868,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print(buffer, strLength);
         mla_test_print(",\n", 2);
 
-#if (mla_benchmark_use_median == 1)
+#if (mla_test_global_feature_flag_benchmark_use_median == 1)
         mla_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);

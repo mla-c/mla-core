@@ -127,7 +127,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_str
     if (input_data != nullptr) {
 
         // If its an short input we can optimize by writing it directly
-        mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, false);
+        mla_memory_stream_t temp_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, false);
 
         if (__mla_http_rpc_request_content_write(config->content_type, temp_stream.output, input_data, input_definition.write_function)) {
             // If serialization was successful we can use the memory stream as content

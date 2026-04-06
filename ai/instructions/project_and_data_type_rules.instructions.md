@@ -159,6 +159,25 @@ string copy_string(const string &str) {
 }
 ```
 
+## Global Configuration System
+
+The framework uses a centralized configuration system to manage system-wide and test-specific parameters.
+
+### 1. Configuration Headers
+- **Framework Config:** `core-os/mla_global_config.h` (included via `mla_data_types.h`)
+- **Test Config:** `core-os-test-support/mla_test_global_config.h` (included via `mla_test_data_types.h`)
+
+### 2. Naming Conventions
+- **Feature Flags (Booleans):** Use the prefix `mla_global_feature_flag_` (e.g., `mla_global_feature_flag_logging_use_native`).
+- **Configuration Values (Numeric/String):** Use the prefix `mla_global_config_` (e.g., `mla_global_config_string_sso_max_length`).
+- **Test-Support Specific Feature Flags:** Use the prefix `mla_test_global_feature_flag_` (e.g., `mla_test_global_feature_flag_test_memory`).
+- **Test-Support Specific Config Values:** Use the prefix `mla_test_global_config_` (e.g., `mla_test_global_config_benchmark_iterations`).
+
+### 3. Usage Guidelines
+- All configuration macros **MUST** be wrapped in `#ifndef` guards to allow for compile-time overrides via compiler flags (e.g., `-Dmla_global_config_default_http_timeout_ms=5000`).
+- Configuration files should contain Doxygen-style documentation for each parameter.
+- Only parameters that are intended to be configurable should be placed in these files. Immutable constants (like mathematical PI) should remain in their respective module headers.
+
 ### Summary
 - Always use MLA data types from mla_data_types.h
 - Never use standard C/C++ types or library functions directly

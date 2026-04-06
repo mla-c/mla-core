@@ -187,7 +187,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
     mla_size_t maxUtf8Size = p_Utf16Buffer.charCount * 4;
 
     // Try SSO first - use embedded buffer directly
-    if (maxUtf8Size <= mla_string_sso_max_length) {
+    if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t utf8Index = 0;
@@ -387,7 +387,7 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
     mla_size_t maxUtf8Size = p_Utf32Buffer.charCount * 4;
 
     // Try SSO first - use embedded buffer directly
-    if (maxUtf8Size <= mla_string_sso_max_length) {
+    if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t utf8Index = 0;

@@ -38,7 +38,7 @@ void SimpleGetRequestWithoutDeflateTest() {
                 "Content-Encoding should be empty");
 
     // Check that we received some content
-    mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+    mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
 
     if (response.response.content.read != nullptr) {
         mla_size_t readed = response.response.content.read(response.response.content, 0, sizeof(buffer), buffer);
@@ -102,7 +102,7 @@ void SimpleGetRequestTest() {
                 "Content-Encoding should be deflate or gzip");
 
     // Check that we received some content
-    mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+    mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
 
     if (response.response.content.read != nullptr) {
         mla_size_t readed = response.response.content.read(response.response.content, 0, sizeof(buffer), buffer);

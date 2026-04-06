@@ -192,7 +192,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
     }
 
     // Use small string optimization if possible
-    if (totalLength <= mla_string_sso_max_length) {
+    if (totalLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
 
@@ -346,7 +346,7 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
     }
 
     // Use small string optimization if possible
-    if (totalLength <= mla_string_sso_max_length) {
+    if (totalLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
 

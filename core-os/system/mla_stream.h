@@ -9,10 +9,6 @@
 #include "../mla_data_types.h"
 #include "mla_user_data.h"
 
-// Define the buffer size for reading from fast streams non blocking streams
-// Is better to keep the memory low and read more often than allocating a big buffer
-#define mla_stream_fast_read_buffer_size 128
-
 struct mla_stream_input_t {
     mla_user_data_t userdata; // Userdata for the read function
     mla_size_t (*read)(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Read function
@@ -83,9 +79,6 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
 ///////////////////////////////////////////////////////////////////
 /// Deflate Compression/Decompression Wrappers
 ///////////////////////////////////////////////////////////////////
-
-// It the min size where the compression make sense, for smaller data the compressed output can be bigger than the input and it will be slower to compress than just writing the data
-#define mla_stream_output_deflate_min_compression_data_size 1024
 
 // Deflate compression mode
 // mla_deflate_mode_raw   – standard RFC 1951 terminator (BFINAL=1 empty block).

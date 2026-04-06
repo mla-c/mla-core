@@ -31,7 +31,7 @@ void __mla_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_
     }
 
     g_rpc_log_cache.current_index++;
-    if (g_rpc_log_cache.current_index >= mla_rpc_log_cache_size) {
+    if (g_rpc_log_cache.current_index >= mla_global_config_rpc_log_cache_size) {
         g_rpc_log_cache.current_index = 0;
     }
 
@@ -42,7 +42,7 @@ void __mla_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_
         message,
         context1
     };
-    if (g_rpc_log_cache.entry_count < mla_rpc_log_cache_size) {
+    if (g_rpc_log_cache.entry_count < mla_global_config_rpc_log_cache_size) {
         g_rpc_log_cache.entry_count++;
     }
 
@@ -62,14 +62,14 @@ mla_bool_t mla_logger_rpc_activate() {
         return false;
     }
 
-    g_rpc_log_cache.entries = reinterpret_cast<mla_logger_rpc_log_entry_t*>(mla_malloc(sizeof(mla_logger_rpc_log_entry_t) * mla_rpc_log_cache_size));
+    g_rpc_log_cache.entries = reinterpret_cast<mla_logger_rpc_log_entry_t*>(mla_malloc(sizeof(mla_logger_rpc_log_entry_t) * mla_global_config_rpc_log_cache_size));
 
     if (g_rpc_log_cache.entries == nullptr) {
         mla_mutex_unlock(g_rpc_log_cache.lock);
         return false;
     }
 
-    mla_memset(g_rpc_log_cache.entries, 0, sizeof(mla_logger_rpc_log_entry_t) * mla_rpc_log_cache_size);
+    mla_memset(g_rpc_log_cache.entries, 0, sizeof(mla_logger_rpc_log_entry_t) * mla_global_config_rpc_log_cache_size);
     g_rpc_log_cache.last_log_id = 0;
     g_rpc_log_cache.current_index = 0;
     g_rpc_log_cache.entry_count = 0;
@@ -146,7 +146,7 @@ mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_pointer_t input, ml
         mla_array_list_add(output->entries, entry);
         g_rpc_log_cache.entries[index] = mla_logger_rpc_log_entry_empty();
         if (index == 0) {
-            index = mla_rpc_log_cache_size - 1;
+            index = mla_global_config_rpc_log_cache_size - 1;
         } else {
             index--;
         }

@@ -227,7 +227,7 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
         mla_memory_stream_set_position(temp_stream, 0);
         mla_size_t payload_length = mla_memory_stream_get_size(temp_stream);
 
-        if (use_deflate_compression && payload_length > mla_stream_output_deflate_min_compression_data_size) {
+        if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
             if (!__mla_websocket_transport_write_frame_header(output, is_text_message, true, true)) {
                 return false;
@@ -378,7 +378,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
     }
 
     // Check if it make sense to use compression
-    if (use_deflate_compression && payload_length > mla_stream_output_deflate_min_compression_data_size) {
+    if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
         if (!__mla_websocket_transport_write_frame_header(output, true, true, true))
             return false;
@@ -460,7 +460,7 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
     }
 
     // Check if it make sense to use compression
-    if (use_deflate_compression && payload_length > mla_stream_output_deflate_min_compression_data_size) {
+    if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
         if (!__mla_websocket_transport_write_frame_header(output, false, true, true))
             return false;
@@ -623,12 +623,12 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
                 if (is_final_frame) {
                     payload_data = mla_memory_stream(payload_length, true);
                 } else {
-                    payload_data = mla_memory_stream(mla_min(payload_length, mla_stream_fast_read_buffer_size), true);
+                    payload_data = mla_memory_stream(mla_min(payload_length, mla_global_config_stream_fast_read_buffer_size), true);
                 }
             }
 
             // Copy to memory stream
-            mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+            mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
 
             while (payload_length > 0) {
 

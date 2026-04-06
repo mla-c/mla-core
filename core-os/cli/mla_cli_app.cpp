@@ -352,7 +352,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
 
     // Create an own scopt so that the buffer is removed from the stack after reading
     {
-        mla_byte_t buffer[mla_stream_fast_read_buffer_size] = {0};
+        mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
         mla_size_t bytesRead = inputStream.read(inputStream, 0, sizeof(buffer), buffer);
 
         if (bytesRead == 0) {

@@ -131,7 +131,7 @@ mla_bool_t __mla_ui_http_server_handler(mla_http_server_t& http_server, const ml
         mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Origin"), mla_string_const("*"));
 
         // Calculate content length
-        mla_memory_stream_t memory_stream = mla_memory_stream(mla_stream_fast_read_buffer_size);
+        mla_memory_stream_t memory_stream = mla_memory_stream(mla_global_config_stream_fast_read_buffer_size);
         mla_serializer_t serializer = mla_json_serializer(memory_stream.output);
         mla_serializer_write_data_struct<>(serializer, surfaceInfos);
 

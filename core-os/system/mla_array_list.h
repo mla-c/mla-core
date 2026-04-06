@@ -8,9 +8,6 @@
 #include "../mla_data_types.h"
 #include "mla_buffer.h"
 
-#define mla_array_list_default_capacity 8
-
-
 #define mla_array_list_template typename  T, typename TInit = mla_default_init(T)
 
 template <mla_array_list_template>
@@ -40,7 +37,7 @@ mla_array_list_t<T, TInit> mla_array_list_empty() {
 }
 
 template <mla_array_list_template>
-mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_array_list_default_capacity) {
+mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_global_config_array_list_default_capacity) {
 
     if (initialCapacity == 0) {
         return mla_array_list_empty<T, TInit>();
@@ -118,7 +115,7 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 
     if (list.size >= list.capacity) {
         // Resize the array if necessary
-        mla_size_t newCapacity = mla_max(list.capacity * 2, mla_array_list_default_capacity);
+        mla_size_t newCapacity = mla_max(list.capacity * 2, mla_global_config_array_list_default_capacity);
 
         if (!mla_array_list_resize(list, newCapacity)) {
             return false; // Memory allocation failed

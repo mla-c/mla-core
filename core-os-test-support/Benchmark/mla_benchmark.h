@@ -7,17 +7,8 @@
 
 #include "../mla_test_data_types.h"
 
-// You can define mla_benchmark_iternations to override the default number of iterations
-// e.g. #define mla_benchmark_iternations 5000000
-// This can be useful for CI systems where you want to reduce the number of iterations
-// to speed up the tests.
-#if defined(mla_benchmark_iternations)
-const mla_test_int32_t CONST_CPU_WARMUP_ITERATIONS = mla_benchmark_iternations;
-const mla_test_int32_t CONST_BENCHMARK_ITERATIONS = mla_benchmark_iternations;
-#else
-const mla_test_int32_t CONST_CPU_WARMUP_ITERATIONS = 1000000;
-const mla_test_int32_t CONST_BENCHMARK_ITERATIONS = 1000000;
-#endif
+const mla_test_int32_t CONST_CPU_WARMUP_ITERATIONS = mla_test_global_config_benchmark_iterations;
+const mla_test_int32_t CONST_BENCHMARK_ITERATIONS = mla_test_global_config_benchmark_iterations;
 
 struct mla_benchmark_t {
     const mla_test_char_t *name;

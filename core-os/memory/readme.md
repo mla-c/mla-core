@@ -4,7 +4,7 @@ The Memory module provides a powerful mechanism for hooking into the memory allo
 
 ## Architecture
 
-The Memory module is based on a global list of memory hooks. You can install up to `CONST_MLA_MAX_MEMORY_HOOKS` hooks, and they will be called in the order they were installed for `malloc` operations and in the reverse order for `free` operations.
+The Memory module is based on a global list of memory hooks. You can install up to `mla_global_config_max_memory_hooks` hooks, and they will be called in the order they were installed for `malloc` operations and in the reverse order for `free` operations.
 
 ### Key Functions
 
