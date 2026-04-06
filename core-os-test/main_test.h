@@ -158,7 +158,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     mla_test_int32_t l_FailedTest = 0;
     mla_test_bool_t* l_SuccessMap = nullptr;
 
-#if (!defined(mla_global_feature_flag_test_memory) || (mla_global_feature_flag_test_memory == 1))
+#if (!defined(mla_test_global_feature_flag_test_memory) || (mla_test_global_feature_flag_test_memory == 1))
     if (p_AllocationFailureSeed > 0) {
         // Fixed seed mode: only run allocation failure tests with this seed
         mla_test_print("Fixed Seed Mode: Running only allocation failure tests...\n", 58);

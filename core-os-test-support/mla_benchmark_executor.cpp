@@ -44,7 +44,7 @@ void __mla_benchmark_print_into_text(mla_test_output_format_t output_format) {
 
 #endif
 
-#if (mla_global_feature_flag_benchmark_memory == 1)
+#if (mla_test_global_feature_flag_benchmark_memory == 1)
     mla_test_print("No |Category                |Name                          |Min (ns) |Max (ns)    |Med (ns) |Mem (bytes) |Iterations\n", 117);
 #else
     mla_test_print("No |Category                |Name                          |Min (ns) |Max (ns)    |Avg (ns) |Iterations\n", 105);

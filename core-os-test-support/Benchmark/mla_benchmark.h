@@ -7,8 +7,8 @@
 
 #include "../mla_test_data_types.h"
 
-const mla_test_int32_t CONST_CPU_WARMUP_ITERATIONS = mla_global_config_benchmark_iterations;
-const mla_test_int32_t CONST_BENCHMARK_ITERATIONS = mla_global_config_benchmark_iterations;
+const mla_test_int32_t CONST_CPU_WARMUP_ITERATIONS = mla_test_global_config_benchmark_iterations;
+const mla_test_int32_t CONST_BENCHMARK_ITERATIONS = mla_test_global_config_benchmark_iterations;
 
 struct mla_benchmark_t {
     const mla_test_char_t *name;
