@@ -62,7 +62,7 @@ struct mla_string_internal_heap_t {
 struct mla_string_internal_embedded_t {
     mla_string_memory_layout_t memoryLayout;
     mla_uint8_t length; // Length of the embedded string
-    mla_char_t data[mla_string_sso_max_length];
+    mla_char_t data[mla_global_config_string_sso_max_length];
 };
 
 

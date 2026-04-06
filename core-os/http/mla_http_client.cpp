@@ -35,19 +35,19 @@ mla_bool_t __mla_http_client_default_connect(const mla_http_client_t &client, ml
 
 mla_http_client_t mla_http_client() {
     return {
-#if mla_http_client_use_deflate_compression == 1
+#if mla_global_feature_flag_http_client_use_deflate_compression == 1
         true,
 #else
         false,
 #endif
 
-#if mla_http_client_use_gzip_compression == 1
+#if mla_global_feature_flag_http_client_use_gzip_compression == 1
         true,
 #else
         false,
 #endif
 
-        mla_default_http_timeout_ms, // Default timeout 30 seconds
+        mla_global_config_default_http_timeout_ms, // Default timeout 30 seconds
         __mla_http_client_default_resolve_host,
         __mla_http_client_default_connect
     };
@@ -255,7 +255,7 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
 
     if (mla_parse_uint32(contentLengthStr, content_size)) {
 
-        mla_stream_input_t response_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+        mla_stream_input_t response_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_global_config_stream_fast_read_buffer_size);
         response_stream = mla_http_content_fixed_size_input_stream(response_stream, timeout_ms, content_size);
 
         if (use_deflate || use_gzip) {
@@ -271,7 +271,7 @@ mla_bool_t __mla_http_client_handle_response_body(mla_http_response_t& response,
     mla_string_t transferEncoding = mla_http_headers_get_value(response.headers, mla_string_const("Transfer-Encoding"));
 
     if (mla_string_equals_const(transferEncoding, "chunked")) {
-        mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_stream_fast_read_buffer_size);
+        mla_stream_input_t buffered_stream = mla_stream_input_buffered_wrapper(connection.inputStream, mla_global_config_stream_fast_read_buffer_size);
 
         if (use_deflate || use_gzip) {
             response.content = mla_http_chunked_stream_input_deflate(buffered_stream, timeout_ms);
@@ -332,7 +332,7 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     /// REQUEST
     ////////////
 
-    mla_stream_output_t bufferedOutputStream = mla_stream_output_buffered_wrapper(connection.outputStream, mla_stream_fast_read_buffer_size);
+    mla_stream_output_t bufferedOutputStream = mla_stream_output_buffered_wrapper(connection.outputStream, mla_global_config_stream_fast_read_buffer_size);
 
     if (client.support_deflate_compression) {
 

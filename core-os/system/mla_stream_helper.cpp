@@ -6,7 +6,7 @@
 
 mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &output) {
 
-    mla_byte_t buffer[mla_stream_fast_read_buffer_size];
+    mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size];
     mla_size_t bytesRead;
 
     do {
@@ -19,7 +19,7 @@ mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &outpu
             }
         }
 
-    } while (bytesRead == mla_stream_fast_read_buffer_size);
+    } while (bytesRead == mla_global_config_stream_fast_read_buffer_size);
 
     return true;
 

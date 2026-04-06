@@ -52,8 +52,8 @@ auto emptyMap = mla_hash_map_empty<mla_string_t, mla_int32_t,
 
 | Constant | Value | Purpose |
 |---|---|---|
-| `CONST_mla_hash_map_default_bucket_size` | 8 | Initial number of buckets |
-| `CONST_mla_hash_map_default_load_factor` | 0.75 | Rehash threshold |
+| `mla_global_config_hash_map_default_bucket_size` | 8 | Initial number of buckets |
+| `mla_global_config_hash_map_default_load_factor` | 0.75 | Rehash threshold |
 
 ## Inserting (Push)
 

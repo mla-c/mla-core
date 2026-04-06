@@ -6,7 +6,7 @@
 #include "../mla_test_utils.h"
 #include "../Benchmark/mla_benchmark.h"
 
-#if (mla_test_memory == 1)
+#if (mla_global_feature_flag_test_memory == 1)
 #include "../../core-os/mla_data_types.h"
 #endif
 
@@ -66,14 +66,14 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
         test.setUp();
     }
 
-#if (mla_test_memory == 1)
+#if (mla_global_feature_flag_test_memory == 1)
     mla_test_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_test_malloc_stat_hook;
 #endif
 
     test.run();
 
-#if (mla_test_memory == 1)
+#if (mla_global_feature_flag_test_memory == 1)
     g_low_level_access.malloc = mla_test_malloc_hook_original;
     mla_test_malloc_hook_original = nullptr;
 #endif
@@ -104,7 +104,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
         mla_test_print(current_test_result.message, mla_test_strlen(current_test_result.message));
     }
 
-#if (mla_test_memory == 1)
+#if (mla_global_feature_flag_test_memory == 1)
 
     mla_test_print(" (Memory allocated: ", 20);
     mla_test_char_t buffer[32];
@@ -133,7 +133,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
     }
 
 
-#if (mla_test_memory == 1)
+#if (mla_global_feature_flag_test_memory == 1)
 
     if (!g_mla_test_run_forced_allocation_failure_pass) {
         return result;

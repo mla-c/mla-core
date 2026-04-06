@@ -86,7 +86,7 @@ mla_benchmark_t my_benchmark = mla_benchmark(
 
 ### Configuration
 
-- **Default iterations**: 1,000,000 (customizable via `#define mla_benchmark_iterations`)
+- **Default iterations**: 1,000,000 (customizable via `#define mla_global_config_benchmark_iterations`)
 - **CPU warmup iterations**: 1,000,000 (ensures consistent timing)
 - **Iteration division**: Adjustable via `mla_benchmark_set_iteration_division()` for benchmarks with internal loops.
 

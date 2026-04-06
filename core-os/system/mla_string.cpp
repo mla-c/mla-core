@@ -28,7 +28,7 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
         return mla_string_empty();
     }
 
-    if (p_Length <= mla_string_sso_max_length) {
+    if (p_Length <= mla_global_config_string_sso_max_length) {
         // Use embedded storage for small strings
         mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
@@ -452,7 +452,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
     mla_size_t newTotalLength = occurrenceCount * lengthNewSub;
     mla_size_t resultLength = length - oldTotalLength + newTotalLength;
 
-    if (resultLength <= mla_string_sso_max_length) {
+    if (resultLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = (mla_uint8_t)resultLength;
@@ -664,7 +664,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         return result;
     }
 
-    if (p_Length <= mla_string_sso_max_length) {
+    if (p_Length <= mla_global_config_string_sso_max_length) {
 
         // I am not sure if this is a good idea to copy substrings into embedded strings
         // Maybe its faster just to create a substring view
@@ -691,7 +691,7 @@ mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times)
 
     mla_size_t resultLength = length * p_Times;
 
-    if (resultLength <= mla_string_sso_max_length) {
+    if (resultLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(resultLength);
@@ -874,7 +874,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
         mla_size_t length = mla_string_length(p_String);
         const mla_char_t* data = mla_string_data(p_String);
 
-        if (length > mla_string_sso_max_length) {
+        if (length > mla_global_config_string_sso_max_length) {
             mla_error("Cannot convert to embedded layout: string too long.");
             return false; // Cannot convert to embedded layout
         }
@@ -896,7 +896,7 @@ mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceC
 
         if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
             // Embedded strings we can null terminate in place if there is enough space
-            if (p_String.embedded.length < mla_string_sso_max_length) {
+            if (p_String.embedded.length < mla_global_config_string_sso_max_length) {
                 p_String.embedded.data[p_String.embedded.length] = '\0';
                 return {p_String.embedded.data, false};
             }
@@ -930,7 +930,7 @@ mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
 
         // If there is enough space in the embedded data and there is already a null terminator
-        if (p_String.embedded.length < mla_string_sso_max_length && p_String.embedded.data[p_String.embedded.length] == '\0') {
+        if (p_String.embedded.length < mla_global_config_string_sso_max_length && p_String.embedded.data[p_String.embedded.length] == '\0') {
             return {p_String.embedded.data, false}; // Already a C-style string, no need to copy
         }
 

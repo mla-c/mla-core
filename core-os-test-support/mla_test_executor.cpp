@@ -106,7 +106,7 @@ void mla_test_executor_register_test(mla_test_executor_t &executor, mla_test_t &
     executor.tests[executor.count++] = test;
 }
 
-#if (!defined(mla_test_memory) || (mla_test_memory == 1))
+#if (!defined(mla_global_feature_flag_test_memory) || (mla_global_feature_flag_test_memory == 1))
 
 #include "../core-os/memory/mla_memory_hook.h"
 

@@ -12,7 +12,7 @@
 #include "../http/mla_http_chunked_stream.h"
 
 #ifndef mla_rpc_http_server_use_deflate_compression
-#define mla_rpc_http_server_use_deflate_compression mla_http_server_use_deflate_compression
+#define mla_rpc_http_server_use_deflate_compression mla_global_feature_flag_http_server_use_deflate_compression
 #endif
 
 mla_user_data_id_init(mla_rpc_http_server_writer_output_buffer_user_data)
@@ -244,7 +244,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
             }
 
             // If its an short input we can optimize by writing it directly
-            mla_memory_stream_t temp_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, false);
+            mla_memory_stream_t temp_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, false);
 
             if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, outputData, procedure.outputDefinition.write_function)) {
 
@@ -253,9 +253,9 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 mla_memory_stream_set_position(temp_stream, 0);
                 mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
 
-                if (__mla_rpc_http_server_support_deflate_compression(*header) && content_size > mla_stream_output_deflate_min_compression_data_size) {
+                if (__mla_rpc_http_server_support_deflate_compression(*header) && content_size > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
-                    mla_memory_stream_t temp_compressed_stream = mla_memory_stream(mla_rpc_stream_small_buffer_size, true);
+                    mla_memory_stream_t temp_compressed_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, true);
                     mla_stream_output_t mla_deflate_stream = mla_stream_output_deflate_compress_wrapper(temp_compressed_stream.output, mla_deflate_mode_zlib);
                     mla_stream_copy(temp_stream.input, mla_deflate_stream);
                     mla_stream_output_deflate_finish(mla_deflate_stream);

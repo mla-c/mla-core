@@ -214,7 +214,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 mla_size_t __mla_stream_std_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)input;
-    mla_char_t tempBuffer[mla_stream_fast_read_buffer_size] = {0};
+    mla_char_t tempBuffer[mla_global_config_stream_fast_read_buffer_size] = {0};
 
     mla_size_t char_read = mla_std_read(tempBuffer, sizeof(tempBuffer));
 
@@ -323,7 +323,7 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
         if (memBuffer->can_grow) {
 
             // Need to resize the buffer
-            mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_stream_fast_read_buffer_size);
+            mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_global_config_stream_fast_read_buffer_size);
             // We can not use realloc so we need to use malloc and memcpy
             mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
             if (newBuffer != nullptr) {

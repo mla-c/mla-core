@@ -19,8 +19,8 @@
 
 mla_user_data_id_init(mla_http_task_user_data_server_name)
 
-#define mla_http_server_connection_input_buffer_size mla_stream_fast_read_buffer_size
-#define mla_http_server_connection_output_buffer_size mla_stream_fast_read_buffer_size
+#define mla_http_server_connection_input_buffer_size mla_global_config_stream_fast_read_buffer_size
+#define mla_http_server_connection_output_buffer_size mla_global_config_stream_fast_read_buffer_size
 
 mla_http_server_handler_item_t mla_http_server_handler(const mla_string_t &http_method,
                                                        mla_user_data_t& userdata,
@@ -161,7 +161,7 @@ mla_http_server_websocket_connection_t __mla_http_server_websocket_connection(ml
 
     const mla_string_t id = mla_generate_runtime_id();
 
-#if mla_http_server_use_deflate_compression == 1
+#if mla_global_feature_flag_http_server_use_deflate_compression == 1
     mla_bool_t final_supports_deflate_compression = supports_deflate_compression;
 #else
     (void)supports_deflate_compression;
@@ -269,7 +269,7 @@ mla_http_server_t mla_http_server(const mla_network_host_t &host) {
                                     mla_string_from_uint16(host.port)), true),
         mla_buffer_reference_noOwner(),
         MLA_HTTP_SERVER_STATUS_STOPPED,
-        mla_default_http_timeout_ms
+        mla_global_config_default_http_timeout_ms
     };
 }
 
@@ -601,7 +601,7 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
             mla_http_headers_add(response.headers, mla_string_const("Upgrade"), mla_string_const("websocket"));
             mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Accept"), accept);
 
-#if mla_http_server_use_deflate_compression == 1
+#if mla_global_feature_flag_http_server_use_deflate_compression == 1
 
             if (supports_deflate_compression) {
                 mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"));

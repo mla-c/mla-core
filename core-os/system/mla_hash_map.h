@@ -62,7 +62,7 @@ inline mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map_empty() {
 }
 
 template < mla_hash_map_template_full >
-mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = CONST_mla_hash_map_default_bucket_size, mla_float_t loadFactor = CONST_mla_hash_map_default_load_factor) {
+mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = mla_global_config_hash_map_default_bucket_size, mla_float_t loadFactor = mla_global_config_hash_map_default_load_factor) {
 
 
     auto array = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(bucketCount);
@@ -72,9 +72,9 @@ mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = 
     if (bucketCount > 0) {
         for (mla_size_t i = 0; i < bucketCount; ++i) {
 
-            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-            if (items.capacity == 0 && CONST_mla_hash_map_item_default_size > 0) {
+            if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
                 mla_array_list_destroy(array);
                 return mla_hash_map_empty<mla_hash_map_t_param_full>();
             }
@@ -129,9 +129,9 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
                 mla_bool_t initSuccess = true;
                 for (mla_size_t i = 0; i < newBucketCount; ++i) {
                     auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>,
-                                              mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+                                              mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-                    if (items.capacity == 0 && CONST_mla_hash_map_item_default_size > 0) {
+                    if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
                         initSuccess = false;
                         break;
                     }
@@ -201,8 +201,8 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
     if (map.bucketCount == 0) {
         // Initialize with a default bucket count if not already initialized
 
-        map.loadFactor = CONST_mla_hash_map_default_load_factor;
-        map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_default_bucket_size);
+        map.loadFactor = mla_global_config_hash_map_default_load_factor;
+        map.buckets = mla_array_list<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_default_bucket_size);
         map.bucketCount = mla_array_list_capacity(map.buckets);
 
         if (map.bucketCount == 0) {
@@ -211,9 +211,9 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 
         for (mla_size_t i = 0; i < map.bucketCount; ++i) {
 
-            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+            auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-            if (items.capacity == 0 && CONST_mla_hash_map_item_default_size > 0) {
+            if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
                 mla_array_list_destroy(map.buckets);
                 map.buckets = mla_array_list_empty<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>();
                 map.bucketCount = 0;
@@ -425,7 +425,7 @@ void mla_hash_map_clear(mla_hash_map_t<mla_hash_map_t_param_full> &map) {
     for (mla_size_t i = 0; i < map.bucketCount; ++i) {
 
         mla_hash_map_bucket_t<mla_hash_map_t_param> &bucket = mla_array_list_get_unsafe(map.buckets, i);
-        bucket.items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(CONST_mla_hash_map_item_default_size);
+        bucket.items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
     }
 

@@ -25,13 +25,13 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
 mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const char *source, mla_uint32_t line);
 mla_bool_t mla_rw_lock_try_unlock_write(mla_rw_lock_t &lock, const char *source, mla_uint32_t line);
 
-#define mla_rw_lock_read(lock) mla_rw_lock_try_read(lock, mla_rw_lock_default_timeout, __FILE__, __LINE__)
+#define mla_rw_lock_read(lock) mla_rw_lock_try_read(lock, mla_global_config_rw_lock_default_timeout, __FILE__, __LINE__)
 #define mla_rw_lock_read_timout(lock, timeout) mla_rw_lock_try_read(lock, timeout, __FILE__, __LINE__)
 
-#define mla_rw_lock_write(lock) mla_rw_lock_try_write(lock, mla_rw_lock_default_timeout, __FILE__, __LINE__)
+#define mla_rw_lock_write(lock) mla_rw_lock_try_write(lock, mla_global_config_rw_lock_default_timeout, __FILE__, __LINE__)
 #define mla_rw_lock_write_timout(lock, timeout) mla_rw_lock_try_write(lock, timeout, __FILE__, __LINE__)
 
-#define mla_rw_unlock_read(lock) mla_rw_lock_try_unlock_read(lock, mla_rw_lock_default_timeout, __FILE__, __LINE__)
+#define mla_rw_unlock_read(lock) mla_rw_lock_try_unlock_read(lock, mla_global_config_rw_lock_default_timeout, __FILE__, __LINE__)
 #define mla_rw_unlock_read_timout(lock, timeout) mla_rw_lock_try_unlock_read(lock, timeout, __FILE__, __LINE__)
 
 #define mla_rw_unlock_write(lock) mla_rw_lock_try_unlock_write(lock, __FILE__, __LINE__)

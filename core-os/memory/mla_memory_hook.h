@@ -32,7 +32,7 @@ struct mla_global_memory_hook_list_t {
     mla_memory_free_t original_free;
     mla_memory_is_gcc_pointer_t original_is_gcc_pointer;
     mla_int8_t hook_count;
-    mla_memory_hook_t hooks[CONST_MLA_MAX_MEMORY_HOOKS];
+    mla_memory_hook_t hooks[mla_global_config_max_memory_hooks];
 };
 
 mla_memory_hook_t mla_memory_hook_install(mla_memory_malloc_hook_t malloc_hook, mla_memory_free_hook_t free_hook, mla_memory_is_gcc_pointer_hook_t is_gcc_pointer = nullptr);
