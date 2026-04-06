@@ -111,7 +111,7 @@ void mla_test_executor_register_test(mla_test_executor_t &executor, mla_test_t &
 #include "../core-os/memory/mla_memory_hook.h"
 
 // State for seed-based allocation failure injection
-static mla_test_uint32_t g_mla_test_failure_prng_state = 0;
+static thread_local mla_test_uint32_t g_mla_test_failure_prng_state = 0;
 static mla_test_uint32_t g_mla_test_seed_generator_state = 0;
 
 mla_test_uint32_t mla_test_generate_seed() {

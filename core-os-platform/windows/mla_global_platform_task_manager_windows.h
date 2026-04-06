@@ -44,22 +44,24 @@ DWORD WINAPI __mla_task_manager_windows_native_worker(LPVOID lpParam) {
         mla_task_shared_states* shared_states = thread_data->sharedStates;
 
         if (thread_data->worker == nullptr) {
-            shared_states->processingState = TASK_STATE_COMPLETED;
+            mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
             return 0;
         }
 
         while (true) {
 
-            if (shared_states->processingState == TASK_STATE_ABORTING) {
-                shared_states->processingState = TASK_STATE_ABORTED;
+            if (mla_task_manager_windows_atomic_int32_compare_exchange(shared_states->processingState, TASK_STATE_ABORTING, TASK_STATE_ABORTED)) {
                 break; // Exit the loop if the task is aborted
             }
 
-            shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
+            // Only switch to RUNNING if it was previously RUNNING or STARTING.
+            // If it is ABORTING, we must not overwrite it.
+            mla_task_manager_windows_atomic_int32_compare_exchange(shared_states->processingState, TASK_STATE_STARTING, TASK_STATE_RUNNING);
+
             mla_task_process_result_state result_state = thread_data->worker(thread_data->userData); // Call the worker function
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
-                shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
+                mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_COMPLETED); // Set the state to completed if the worker function returns DONE
                 break; // Exit the loop after completion
             }
 

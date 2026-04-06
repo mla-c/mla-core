@@ -85,7 +85,7 @@ void __mla_task_manager_esp32_native_worker(void * param) {
         mla_task_shared_states* shared_states = thread_data->sharedStates;
 
         if (thread_data->worker == nullptr) {
-            shared_states->processingState = TASK_STATE_COMPLETED;
+            mla_task_manager_esp32_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
             thread_data->hThread = nullptr;
             mla_error(mla_string_const("Unable to start task, no worker function provided"));
             vTaskDelete(nullptr);
@@ -96,17 +96,19 @@ void __mla_task_manager_esp32_native_worker(void * param) {
 
         while (true) {
 
-            if (shared_states->processingState == TASK_STATE_ABORTING) {
+            if (mla_task_manager_esp32_atomic_compare_exchange(shared_states->processingState, TASK_STATE_ABORTING, TASK_STATE_ABORTED)) {
                 mla_error(mla_string_const("Task is aborting, stopping execution"));
-                shared_states->processingState = TASK_STATE_ABORTED;
                 break; // Exit the loop if the task is aborted
             }
 
-            shared_states->processingState = TASK_STATE_RUNNING; // Set the state to running
+            // Only switch to RUNNING if it was previously RUNNING or STARTING.
+            // If it is ABORTING, we must not overwrite it.
+            mla_task_manager_esp32_atomic_compare_exchange(shared_states->processingState, TASK_STATE_STARTING, TASK_STATE_RUNNING);
+
             mla_task_process_result_state result_state = thread_data->worker(thread_data->userData); // Call the worker function
 
             if (result_state != TASK_PROCESS_RESULT_CONTINUE) {
-                shared_states->processingState = TASK_STATE_COMPLETED; // Set the state to completed if the worker function returns DONE
+                mla_task_manager_esp32_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED); // Set the state to completed if the worker function returns DONE
                 mla_debug("Task processing complete");
                 break; // Exit the loop after completion
             }

@@ -7,6 +7,7 @@
 
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os/system/mla_string.h"
+#include "../core-os/system/mla_string_concat.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 #include "../core-os-test-support/mla_test_utils.h"

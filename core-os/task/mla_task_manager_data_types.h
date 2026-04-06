@@ -54,10 +54,10 @@ enum mla_multi_task_mode: mla_uint8_t {
 
 // Represents shared states for a task, and the plaform logices
 struct mla_task_shared_states {
-    mla_task_state processingState;
+    mla_atomic_int32_t processingState;
 };
 
-#define mla_task_is_done(state) (state == TASK_STATE_COMPLETED || state == TASK_STATE_ABORTED)
+#define mla_task_is_done(state) ((mla_task_state)state == TASK_STATE_COMPLETED || (mla_task_state)state == TASK_STATE_ABORTED)
 
 struct mla_task_manager_low_level_access {
     mla_bool_t (*create_task)(const mla_task_worker_t worker, const mla_string_t& task_name, mla_user_data_t& user_data, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);

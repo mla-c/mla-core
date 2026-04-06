@@ -32,8 +32,7 @@ mla_bool_t mla_log_register_logger(const mla_logger_t& logger) {
         return false; // Logger already registered
     }
 
-    mla_array_list_add(g_logger_manager.loggers, logger);
-    return true;
+    return mla_array_list_add(g_logger_manager.loggers, logger);
 }
 
 mla_bool_t mla_log_unregister_logger(const mla_string_t& loggerName) {
