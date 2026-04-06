@@ -170,7 +170,8 @@ The framework uses a centralized configuration system to manage system-wide and 
 ### 2. Naming Conventions
 - **Feature Flags (Booleans):** Use the prefix `mla_global_feature_flag_` (e.g., `mla_global_feature_flag_logging_use_native`).
 - **Configuration Values (Numeric/String):** Use the prefix `mla_global_config_` (e.g., `mla_global_config_string_sso_max_length`).
-- **Test Specific:** Use `mla_test_global_feature_flag_` and `mla_test_global_config_` prefixes respectively.
+- **Test-Support Specific Feature Flags:** Use the prefix `mla_test_global_feature_flag_` (e.g., `mla_test_global_feature_flag_test_memory`).
+- **Test-Support Specific Config Values:** Use the prefix `mla_test_global_config_` (e.g., `mla_test_global_config_benchmark_iterations`).
 
 ### 3. Usage Guidelines
 - All configuration macros **MUST** be wrapped in `#ifndef` guards to allow for compile-time overrides via compiler flags (e.g., `-Dmla_global_config_default_http_timeout_ms=5000`).

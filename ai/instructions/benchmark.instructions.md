@@ -30,7 +30,7 @@ Add benchmarks whenever:
 | `CONST_CPU_WARMUP_ITERATIONS` | 1 000 000 | Iterations used to warm up the CPU before measuring |
 | `CONST_BENCHMARK_ITERATIONS` | 1 000 000 | Iterations used for the actual measurement |
 
-Override both at compile time with `-Dmla_benchmark_iterations=<N>` to speed up CI runs.
+Override both at compile time with `-Dmla_test_global_config_benchmark_iterations=<N>` to speed up CI runs.
 
 ### Category Macro
 
