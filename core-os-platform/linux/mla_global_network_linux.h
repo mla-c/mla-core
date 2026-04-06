@@ -142,9 +142,12 @@ mla_size_t __linux_socket_write(mla_stream_output_t& output, mla_size_t offset, 
                 FD_SET(sock, &write_set);
 
                 // Select waits until the socket is writable again
-                if (select(sock + 1, nullptr, &write_set, nullptr, nullptr) < 0) {
+                struct timeval timeout;
+                timeout.tv_sec = 5; // 5 second safety timeout
+                timeout.tv_usec = 0;
+                if (select(sock + 1, nullptr, &write_set, nullptr, &timeout) <= 0) {
                     if (errno == EINTR) continue;
-                    break; // Select error
+                    break; // Select error or timeout
                 }
                 continue;
             } else if (sent < 0 && errno == EINTR) {

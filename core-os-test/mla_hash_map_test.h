@@ -8,6 +8,7 @@
 
 #include "../core-os/hash/mla_hash.h"
 #include "../core-os/system/mla_hash_map.h"
+#include "../core-os/system/mla_string_concat.h"
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"
 #include "mla_list_contains_const.h"
