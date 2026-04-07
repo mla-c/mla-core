@@ -75,6 +75,36 @@ mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_pointer_t da
     return CLEAN_UP_NEEDED;
 }
 
+////////////////////////////////////////////////////////////////////////////
+/// Atomic Implementation
+////////////////////////////////////////////////////////////////////////////
+
+#define mla_atomic_memory_order __ATOMIC_SEQ_CST
+
+inline mla_int32_t mla_task_manager_esp32_atomic_increment(mla_atomic_int32_t& value) {
+    return __atomic_add_fetch(&value.value, 1, mla_atomic_memory_order);
+}
+
+inline mla_int32_t mla_task_manager_esp32_atomic_decrement(mla_atomic_int32_t& value) {
+    return __atomic_sub_fetch(&value.value, 1, mla_atomic_memory_order);
+}
+
+inline mla_int32_t mla_task_manager_esp32_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend) {
+    return __atomic_add_fetch(&value.value, addend, mla_atomic_memory_order);
+}
+
+inline mla_int32_t mla_task_manager_esp32_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
+    return __atomic_sub_fetch(&value.value, subtrahend, mla_atomic_memory_order);
+}
+
+inline mla_int32_t mla_task_manager_esp32_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
+    return __atomic_exchange_n(&value.value, newValue, mla_atomic_memory_order);
+}
+
+inline mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
+    return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
+}
+
 void __mla_task_manager_esp32_native_worker(void * param) {
 
 
@@ -260,40 +290,9 @@ mla_bool_t mla_task_manager_esp32_native_unlock_mutex(mla_pointer_t mutexResourc
     }
 }
 
-////////////////////////////////////////////////////////////////////////////
-/// Atomic Implementation
-////////////////////////////////////////////////////////////////////////////
-
-#define mla_atomic_memory_order __ATOMIC_SEQ_CST
-
 mla_multi_task_mode mla_task_manager_esp32_native_get_multi_task_mode() {
     return MULTI_TASK_MODE_NATIVE;
 }
-
-mla_int32_t mla_task_manager_esp32_atomic_increment(mla_atomic_int32_t& value) {
-    return __atomic_add_fetch(&value.value, 1, mla_atomic_memory_order);
-}
-
-mla_int32_t mla_task_manager_esp32_atomic_decrement(mla_atomic_int32_t& value) {
-    return __atomic_sub_fetch(&value.value, 1, mla_atomic_memory_order);
-}
-
-mla_int32_t mla_task_manager_esp32_atomic_add(mla_atomic_int32_t& value, mla_int32_t addend) {
-    return __atomic_add_fetch(&value.value, addend, mla_atomic_memory_order);
-}
-
-mla_int32_t mla_task_manager_esp32_atomic_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
-    return __atomic_sub_fetch(&value.value, subtrahend, mla_atomic_memory_order);
-}
-
-mla_int32_t mla_task_manager_esp32_atomic_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
-    return __atomic_exchange_n(&value.value, newValue, mla_atomic_memory_order);
-}
-
-mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
-    return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////
 /// Task Local Storage Implementation
