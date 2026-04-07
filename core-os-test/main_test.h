@@ -42,6 +42,7 @@
 #include "mla_memory_test.h"
 #include "mla_math_utils_test.h"
 #include "mla_user_data_test.h"
+#include "ui/mla_ui_bitmap_surface_test.h"
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -100,6 +101,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterReflectionRpcTests(l_TestExecutor);
     RegisterMathUtilsTests(l_TestExecutor);
     RegisterUserDataTests(l_TestExecutor);
+    RegisterBitmapSurfaceTests(l_TestExecutor);
 
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
