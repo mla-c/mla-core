@@ -5,7 +5,6 @@
 #include "mla_ui_bitmap_surface.h"
 #include "../../system/mla_buffer.h"
 #include "../../system/mla_number.h"
-#include <new>
 
 struct mla_ui_bitmap_surface_resource_t {
     mla_uint32_t width;
