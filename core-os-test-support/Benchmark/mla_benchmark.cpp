@@ -12,9 +12,7 @@
 
 typedef mla_test_pointer_t (*test_benchmark_malloc_hook_t)(mla_test_uint32_t size);
 typedef void (*test_benchmark_free_hook_t)(mla_test_pointer_t pointer);
-typedef mla_bool_t (*test_benchmark_is_gcc_pointer_hook_t)(const mla_test_pointer_t pointer);
 
-static test_benchmark_is_gcc_pointer_hook_t mla_benchmark_is_gcc_pointer_hook_original = nullptr;
 static test_benchmark_malloc_hook_t mla_benchmark_malloc_hook_original = nullptr;
 static test_benchmark_free_hook_t mla_benchmark_free_hook_original = nullptr;
 
@@ -66,15 +64,6 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 
     return (mla_test_pointer_t)ptr;
 
-}
-
-mla_bool_t mla_benchmark_is_arena_pointer(const mla_test_pointer_t pointer) {
-    if (g_mla_benchmark_memory_arena && pointer) {
-        auto* base = static_cast<mla_test_uint8_t*>(g_mla_benchmark_memory_arena);
-        auto* ptr  = static_cast<const mla_test_uint8_t*>(pointer);
-        return (ptr >= base) && (ptr < (base + g_mla_benchmark_memory_arena_size));
-    }
-    return false;
 }
 
 void mla_benchmark_free_in_arena_hook(mla_test_pointer_t pointer) {
@@ -203,8 +192,6 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
     g_mla_benchmark_arena_mutex = g_test_mutex.create_mutex();
 
-    mla_benchmark_is_gcc_pointer_hook_original = g_low_level_access.is_gcc_pointer;
-    g_low_level_access.is_gcc_pointer = mla_benchmark_is_arena_pointer;
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_in_arena_hook;
     mla_benchmark_free_hook_original = g_low_level_access.free;
@@ -299,8 +286,6 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 #endif
 
-    g_low_level_access.is_gcc_pointer = mla_benchmark_is_gcc_pointer_hook_original;
-    mla_benchmark_is_gcc_pointer_hook_original = nullptr;
     g_low_level_access.free = mla_benchmark_free_hook_original;
     mla_benchmark_free_hook_original = nullptr;
     g_low_level_access.malloc = mla_benchmark_malloc_hook_original;
@@ -498,20 +483,20 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         mla_test_print(",\n", 2);
 
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
         mla_test_print(buffer_avg, strLength_avg);
         mla_test_print(",\n", 2);
 #else
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
         mla_test_print(buffer_avg, strLength_avg);
         mla_test_print(",\n", 2);
 #endif
 
-        mla_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
+        mla_test_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
         mla_test_char_t buffer_mem[20];
         mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
         mla_test_print(buffer_mem, strLength_mem);
@@ -528,34 +513,37 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 }
 
 
-void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size_per_run, mla_test_output_format_t output_format) {
+void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint64_t total_allocated_memory, mla_test_uint32_t originalIterations, mla_test_output_format_t output_format) {
 
 
 #if (mla_test_global_config_benchmark_max_arena_size > 0)
 
     // No memory used in the test so no need to run in an arena
-    if (arena_size_per_run <= 0) {
+    if (total_allocated_memory <= 0) {
         return;
     }
 
-    mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
-    mla_test_uint64_t arena_size = mla_align_up(arena_size_per_run, mla_test_global_config_benchmark_arena_alignment) * benchmarkIterations;
+    mla_test_uint32_t benchmarkIterations = originalIterations;
 
+    // Add 10% safety margin to the total allocated memory to account for padding and potential variations
+    mla_test_uint64_t arena_size = (mla_test_uint64_t)(total_allocated_memory * 1.1);
+
+    // Ensure arena_size fits within max limits and align it
     while (arena_size > mla_test_global_config_benchmark_max_arena_size) {
         benchmarkIterations = benchmarkIterations / 2;
-        arena_size = (mla_test_uint64_t)((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
+        arena_size = (mla_test_uint64_t)(((total_allocated_memory / originalIterations) * benchmarkIterations) * 1.1);
     }
 
-    arena_size = mla_align_up(arena_size, mla_test_global_config_benchmark_arena_alignment);
+    arena_size = mla_align_up((mla_test_uint32_t)arena_size, mla_test_global_config_benchmark_arena_alignment);
 
-    // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {
         mla_benchmark_run_in_arena_fixed_size(benchmark, (mla_test_uint32_t)arena_size, benchmarkIterations, output_format);
     }
 
 #else
     (void)benchmark;
-    (void)arena_size_per_run;
+    (void)total_allocated_memory;
+    (void)originalIterations;
 #endif
 
 }
@@ -806,20 +794,20 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print(",\n", 2);
 
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
         mla_test_print(buffer_avg, strLength_avg);
         mla_test_print(",\n", 2);
 #else
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
         mla_test_print(buffer_avg, strLength_avg);
         mla_test_print(",\n", 2);
 #endif
 
-        mla_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
+        mla_test_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
         mla_test_char_t buffer_mem[20];
         mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)(mla_benchmark_allocated_memory / benchmarkIterations));
         mla_test_print(buffer_mem, strLength_mem);
@@ -831,7 +819,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     }
 
     // Start the benchmark one more time but inside an memory arena
-    mla_benchmark_run_in_arena(benchmark, (mla_test_uint32_t)(mla_benchmark_allocated_memory / benchmarkIterations), output_format);
+    mla_benchmark_run_in_arena(benchmark, mla_benchmark_allocated_memory, benchmarkIterations, output_format);
 
 #else
 
@@ -869,13 +857,13 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print(",\n", 2);
 
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), medianTime);
         mla_test_print(buffer_avg, strLength_avg);
         mla_test_print(",\n", 2);
 #else
-        mla_print("  \"AverageTimeNs\": ", 19);
+        mla_test_print("  \"AverageTimeNs\": ", 19);
         mla_test_char_t buffer_avg[20];
         mla_test_uint32_t strLength_avg = mla_uint64_to_string(buffer_avg, sizeof(buffer_avg), averageTime);
         mla_test_print(buffer_avg, strLength_avg);
