@@ -5,23 +5,32 @@
 #include "mla_ui_bitmap_surface.h"
 #include "../../system/mla_buffer.h"
 #include "../../system/mla_number.h"
+#include <new>
 
 struct mla_ui_bitmap_surface_resource_t {
     mla_uint32_t width;
     mla_uint32_t height;
-    mla_byte_t* pixels;
+    mla_buffer_reference_t pixels;
+
+    mla_ui_bitmap_surface_resource_t() : width(0), height(0), pixels(mla_buffer_reference_noOwner()) {}
 };
 
 static mla_buffer_cleanup_mode __mla_ui_bitmap_surface_cleanup(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
     (void)p_UserData;
     mla_ui_bitmap_surface_resource_t* resource = static_cast<mla_ui_bitmap_surface_resource_t*>(p_Data);
     if (resource != nullptr) {
-        if (resource->pixels != nullptr) {
-            mla_free(resource->pixels);
-        }
+        resource->~mla_ui_bitmap_surface_resource_t();
         mla_free(resource);
     }
-    return CLEAN_UP_NEEDED;
+    return CLEAN_UP_SKIP;
+}
+
+static mla_buffer_cleanup_mode __mla_ui_bitmap_surface_pixels_cleanup(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+    (void)p_UserData;
+    if (p_Data != nullptr) {
+        mla_free(p_Data);
+    }
+    return CLEAN_UP_SKIP;
 }
 
 // Basic 5x7 font - simplified ASCII
@@ -123,6 +132,8 @@ static const mla_byte_t font5x7[] = {
     0x08, 0x08, 0x2A, 0x1C, 0x08  // ->
 };
 
+static const mla_uint32_t MLA_UI_BITMAP_SURFACE_MAX_DIMENSION = 16384;
+
 static mla_ui_surface_size_t __mla_ui_bitmap_surface_get_size(const mla_ui_surface_t& p_Surface) {
     mla_ui_bitmap_surface_resource_t* resource = static_cast<mla_ui_bitmap_surface_resource_t*>(p_Surface.resource);
     if (resource == nullptr) return {0, 0};
@@ -135,17 +146,18 @@ static mla_bool_t __mla_ui_bitmap_surface_set_size(const mla_ui_surface_t& p_Sur
 
     if (resource->width == p_Size.width && resource->height == p_Size.height) return true;
 
-    mla_size_t newSize = p_Size.width * p_Size.height * 4;
-    mla_byte_t* newPixels = static_cast<mla_byte_t*>(mla_malloc(newSize));
-    if (newPixels == nullptr) return false;
+    if (p_Size.width > MLA_UI_BITMAP_SURFACE_MAX_DIMENSION || p_Size.height > MLA_UI_BITMAP_SURFACE_MAX_DIMENSION) return false;
 
-    mla_memset(newPixels, 0, newSize);
+    mla_uint64_t newSize64 = static_cast<mla_uint64_t>(p_Size.width) * static_cast<mla_uint64_t>(p_Size.height) * 4ULL;
+    if (newSize64 > static_cast<mla_uint64_t>(mla_size_max)) return false;
 
-    if (resource->pixels != nullptr) {
-        mla_free(resource->pixels);
-    }
+    mla_size_t newSize = static_cast<mla_size_t>(newSize64);
+    mla_byte_t* newPixelsData = static_cast<mla_byte_t*>(mla_malloc(newSize));
+    if (newPixelsData == nullptr) return false;
 
-    resource->pixels = newPixels;
+    mla_memset(newPixelsData, 0, newSize);
+
+    resource->pixels = mla_buffer_reference_create(newPixelsData, true, __mla_ui_bitmap_surface_pixels_cleanup, mla_dynamic_data_empty());
     resource->width = p_Size.width;
     resource->height = p_Size.height;
 
@@ -155,10 +167,10 @@ static mla_bool_t __mla_ui_bitmap_surface_set_size(const mla_ui_surface_t& p_Sur
 static mla_ui_surface_draw_size_t __mla_ui_bitmap_surface_calc_text_size(const mla_ui_surface_t &p_Surface, const mla_ui_surface_font_type_t &p_Font_type, const mla_string_t &p_Text) {
     (void)p_Surface;
     mla_size_t len = mla_string_length(p_Text);
-    mla_double_t scale = p_Font_type.size / 7.0;
-    if (scale < 1.0) scale = 1.0;
+    mla_int32_t scale = static_cast<mla_int32_t>(p_Font_type.size / 7.0);
+    if (scale < 1) scale = 1;
 
-    return { static_cast<mla_double_t>(len * 6 * scale), 7.0 * scale };
+    return { static_cast<mla_double_t>(len * 6 * scale), static_cast<mla_double_t>(7 * scale) };
 }
 
 static mla_ui_surface_input_states_t __mla_ui_bitmap_surface_get_input_states(const mla_ui_surface_t &p_Surface) {
@@ -170,7 +182,9 @@ static void __mla_ui_bitmap_surface_draw_pixel(mla_ui_bitmap_surface_resource_t*
     if (x < 0 || x >= (mla_int32_t)r->width || y < 0 || y >= (mla_int32_t)r->height) return;
     if (color.a == 0) return;
 
-    mla_byte_t* p = &r->pixels[(y * r->width + x) * 4];
+    mla_uint64_t offset = (static_cast<mla_uint64_t>(y) * static_cast<mla_uint64_t>(r->width) + static_cast<mla_uint64_t>(x)) * 4ULL;
+    mla_byte_t* pixels = static_cast<mla_byte_t*>(const_cast<mla_pointer_t>(r->pixels.buffer->data));
+    mla_byte_t* p = &pixels[offset];
 
     if (color.a == 255) {
         p[0] = color.r;
@@ -180,10 +194,10 @@ static void __mla_ui_bitmap_surface_draw_pixel(mla_ui_bitmap_surface_resource_t*
     } else {
         mla_uint32_t alpha = color.a;
         mla_uint32_t inv_alpha = 255 - alpha;
-        p[0] = (mla_byte_t)((color.r * alpha + p[0] * inv_alpha) / 255);
-        p[1] = (mla_byte_t)((color.g * alpha + p[1] * inv_alpha) / 255);
-        p[2] = (mla_byte_t)((color.b * alpha + p[2] * inv_alpha) / 255);
-        p[3] = (mla_byte_t)(alpha + (p[3] * inv_alpha) / 255);
+        p[0] = static_cast<mla_byte_t>((color.r * alpha + p[0] * inv_alpha) / 255);
+        p[1] = static_cast<mla_byte_t>((color.g * alpha + p[1] * inv_alpha) / 255);
+        p[2] = static_cast<mla_byte_t>((color.b * alpha + p[2] * inv_alpha) / 255);
+        p[3] = static_cast<mla_byte_t>(alpha + (p[3] * inv_alpha) / 255);
     }
 }
 
@@ -202,18 +216,69 @@ static void __mla_ui_bitmap_surface_draw_line(mla_ui_bitmap_surface_resource_t* 
     mla_int32_t sy = y0 < y1 ? 1 : -1;
     mla_int32_t err = dx + dy, e2;
 
-    for (;;) {
-        if (stroke_width <= 1) {
+    if (stroke_width <= 1) {
+        for (;;) {
             __mla_ui_bitmap_surface_draw_pixel(r, x0, y0, color);
-        } else {
-            __mla_ui_bitmap_surface_fill_rect(r, x0 - stroke_width / 2, y0 - stroke_width / 2, stroke_width, stroke_width, color);
+            if (x0 == x1 && y0 == y1) break;
+            e2 = 2 * err;
+            if (e2 >= dy) { err += dy; x0 += sx; }
+            if (e2 <= dx) { err += dx; y0 += sy; }
         }
-
-        if (x0 == x1 && y0 == y1) break;
-        e2 = 2 * err;
-        if (e2 >= dy) { err += dy; x0 += sx; }
-        if (e2 <= dx) { err += dx; y0 += sy; }
+        return;
     }
+
+    // Thick line with mask to avoid alpha overdraw
+    mla_int32_t minX = mla_min(x0, x1) - stroke_width;
+    mla_int32_t minY = mla_min(y0, y1) - stroke_width;
+    mla_int32_t maxX = mla_max(x0, x1) + stroke_width;
+    mla_int32_t maxY = mla_max(y0, y1) + stroke_width;
+
+    // Clamp to surface bounds
+    minX = mla_max(0, minX);
+    minY = mla_max(0, minY);
+    maxX = mla_min((mla_int32_t)r->width - 1, maxX);
+    maxY = mla_min((mla_int32_t)r->height - 1, maxY);
+
+    mla_int32_t maskW = maxX - minX + 1;
+    mla_int32_t maskH = maxY - minY + 1;
+    if (maskW <= 0 || maskH <= 0) return;
+
+    mla_uint64_t maskSize64 = static_cast<mla_uint64_t>(maskW) * static_cast<mla_uint64_t>(maskH);
+    if (maskSize64 > static_cast<mla_uint64_t>(mla_size_max)) return;
+
+    mla_size_t maskSize = static_cast<mla_size_t>(maskSize64);
+    mla_bool_t* mask = static_cast<mla_bool_t*>(mla_malloc(maskSize * sizeof(mla_bool_t)));
+    if (mask == nullptr) return;
+    mla_memset(mask, 0, maskSize * sizeof(mla_bool_t));
+
+    mla_int32_t cx = x0, cy = y0;
+    for (;;) {
+        for (mla_int32_t i = -stroke_width / 2; i < (stroke_width + 1) / 2; ++i) {
+            for (mla_int32_t j = -stroke_width / 2; j < (stroke_width + 1) / 2; ++j) {
+                mla_int32_t px = cx + j;
+                mla_int32_t py = cy + i;
+                if (px >= minX && px <= maxX && py >= minY && py <= maxY) {
+                    mla_uint64_t maskOffset = static_cast<mla_uint64_t>(py - minY) * static_cast<mla_uint64_t>(maskW) + static_cast<mla_uint64_t>(px - minX);
+                    mask[maskOffset] = true;
+                }
+            }
+        }
+        if (cx == x1 && cy == y1) break;
+        e2 = 2 * err;
+        if (e2 >= dy) { err += dy; cx += sx; }
+        if (e2 <= dx) { err += dx; cy += sy; }
+    }
+
+    for (mla_int32_t y = 0; y < maskH; ++y) {
+        for (mla_int32_t x = 0; x < maskW; ++x) {
+            mla_uint64_t maskOffset = static_cast<mla_uint64_t>(y) * static_cast<mla_uint64_t>(maskW) + static_cast<mla_uint64_t>(x);
+            if (mask[maskOffset]) {
+                __mla_ui_bitmap_surface_draw_pixel(r, minX + x, minY + y, color);
+            }
+        }
+    }
+
+    mla_free(mask);
 }
 
 static void __mla_ui_bitmap_surface_draw_circle(mla_ui_bitmap_surface_resource_t* r, mla_int32_t cx, mla_int32_t cy, mla_int32_t rad, mla_ui_surface_draw_command_color_t color, mla_bool_t fill) {
@@ -299,9 +364,15 @@ static mla_bool_t __mla_ui_bitmap_surface_render_draw_commands(const mla_ui_surf
                 break;
             }
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_CIRCLE: {
-                __mla_ui_bitmap_surface_draw_circle(resource, (mla_int32_t)cmd.circle.cx, (mla_int32_t)cmd.circle.cy, (mla_int32_t)cmd.circle.r, cmd.circle.fill, true);
                 if (cmd.circle.stroke_width > 0) {
-                    __mla_ui_bitmap_surface_draw_circle(resource, (mla_int32_t)cmd.circle.cx, (mla_int32_t)cmd.circle.cy, (mla_int32_t)cmd.circle.r, cmd.circle.stroke, false);
+                    mla_int32_t r = (mla_int32_t)cmd.circle.r;
+                    mla_int32_t sw = (mla_int32_t)cmd.circle.stroke_width;
+                    __mla_ui_bitmap_surface_draw_circle(resource, (mla_int32_t)cmd.circle.cx, (mla_int32_t)cmd.circle.cy, r, cmd.circle.stroke, true);
+                    if (sw < r) {
+                        __mla_ui_bitmap_surface_draw_circle(resource, (mla_int32_t)cmd.circle.cx, (mla_int32_t)cmd.circle.cy, r - sw, cmd.circle.fill, true);
+                    }
+                } else {
+                    __mla_ui_bitmap_surface_draw_circle(resource, (mla_int32_t)cmd.circle.cx, (mla_int32_t)cmd.circle.cy, (mla_int32_t)cmd.circle.r, cmd.circle.fill, true);
                 }
                 break;
             }
@@ -327,20 +398,28 @@ static mla_bool_t __mla_ui_bitmap_surface_render_draw_commands(const mla_ui_surf
 }
 
 mla_ui_surface_t mla_ui_bitmap_surface_create(mla_uint32_t p_Width, mla_uint32_t p_Height) {
+    if (p_Width > MLA_UI_BITMAP_SURFACE_MAX_DIMENSION || p_Height > MLA_UI_BITMAP_SURFACE_MAX_DIMENSION) return mla_ui_surface_invalid();
+
+    mla_uint64_t size64 = static_cast<mla_uint64_t>(p_Width) * static_cast<mla_uint64_t>(p_Height) * 4ULL;
+    if (size64 > static_cast<mla_uint64_t>(mla_size_max)) return mla_ui_surface_invalid();
+
     mla_ui_bitmap_surface_resource_t* resource = static_cast<mla_ui_bitmap_surface_resource_t*>(mla_malloc(sizeof(mla_ui_bitmap_surface_resource_t)));
     if (resource == nullptr) return mla_ui_surface_invalid();
 
+    new (resource) mla_ui_bitmap_surface_resource_t();
     resource->width = p_Width;
     resource->height = p_Height;
-    mla_size_t size = p_Width * p_Height * 4;
-    resource->pixels = static_cast<mla_byte_t*>(mla_malloc(size));
+    mla_size_t size = static_cast<mla_size_t>(size64);
+    mla_byte_t* pixelsData = static_cast<mla_byte_t*>(mla_malloc(size));
 
-    if (resource->pixels == nullptr) {
+    if (pixelsData == nullptr) {
+        resource->~mla_ui_bitmap_surface_resource_t();
         mla_free(resource);
         return mla_ui_surface_invalid();
     }
 
-    mla_memset(resource->pixels, 0, size);
+    mla_memset(pixelsData, 0, size);
+    resource->pixels = mla_buffer_reference_create(pixelsData, true, __mla_ui_bitmap_surface_pixels_cleanup, mla_dynamic_data_empty());
 
     mla_ui_surface_t surface = mla_ui_surface_invalid();
     surface.resource = resource;
@@ -354,10 +433,12 @@ mla_ui_surface_t mla_ui_bitmap_surface_create(mla_uint32_t p_Width, mla_uint32_t
     return surface;
 }
 
-mla_bytes_t mla_ui_bitmap_surface_get_bytes(const mla_ui_surface_t& p_Surface) {
+mla_bytes_t mla_ui_bitmap_surface_get_bytes_borrowed(const mla_ui_surface_t& p_Surface) {
     mla_ui_bitmap_surface_resource_t* resource = static_cast<mla_ui_bitmap_surface_resource_t*>(p_Surface.resource);
-    if (resource == nullptr || resource->pixels == nullptr) return mla_bytes_empty();
+    if (resource == nullptr || mla_buffer_reference_is_noOwner(resource->pixels)) return mla_bytes_empty();
 
-    mla_size_t size = resource->width * resource->height * 4;
-    return mla_bytes_from_external_buffer(resource->pixels, size);
+    mla_uint64_t size64 = static_cast<mla_uint64_t>(resource->width) * static_cast<mla_uint64_t>(resource->height) * 4ULL;
+    mla_size_t size = static_cast<mla_size_t>(size64);
+
+    return mla_bytes_from_external_buffer(static_cast<mla_byte_t*>(const_cast<mla_pointer_t>(resource->pixels.buffer->data)), size);
 }
