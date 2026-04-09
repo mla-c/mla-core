@@ -883,12 +883,15 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 
 
     if (state->mode == mla_deflate_mode_raw_websocket) {
-        // RFC 7692 permessage-deflate: the 4-byte LEN/NLEN tail (00 00 FF FF) is
-        //  emit the non-final empty stored-block header byte (0x00)
-        // and omit the trailing 00 00 FF FF bytes.
-        __mla_deflate_bit_writer_write(state->writer, 0x00, 3);
+        // RFC 7692 permessage-deflate expects the sender to emit the same bit
+        // sequence as a normal raw DEFLATE flush, but to omit only the trailing
+        // LEN/NLEN bytes (00 00 FF FF). The 3 empty-block header bits from the
+        // raw flush must still be written because they may share the same output
+        // byte as the pending end-of-block bits.
+        __mla_deflate_bit_writer_write(state->writer, 0x01, 3);
 
-        // byte-align: flush any partially-accumulated bits with zero padding.
+        // Byte-align so the kept prefix exactly matches a normal raw stream with
+        // only the last four LEN/NLEN bytes removed.
         __mla_deflate_bit_writer_align(state->writer);
     } else {
 

@@ -7,6 +7,10 @@
 
 #include "../core-os/system/mla_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"
+#include <zlib.h>
+
+static const mla_size_t stream_deflate_test_websocket_zlib_wire_buffer_size = 512;
+static const mla_size_t stream_deflate_test_websocket_zlib_output_buffer_size = 4096;
 
 inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_t p_Length) {
     const mla_uint32_t mod_adler = 65521u;
@@ -707,6 +711,62 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
 
 }
 
+inline void StreamDeflateWebSocketModeZlibCompatibilityTest() {
+    mla_string_t test_data = mla_string_repeat(mla_string_const("LargeMessage"), 250);
+    mla_size_t test_len = mla_string_length(test_data);
+
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
+        compressed.output, mla_deflate_mode_raw_websocket);
+
+    mla_stream_input_t input = mla_stream_input_from_string(test_data);
+    assert_true(mla_stream_copy(input, compress_out), "WebSocket zlib: should write the full payload");
+    assert_true(mla_stream_output_deflate_finish(compress_out), "WebSocket zlib: finish should succeed");
+
+    mla_size_t compressed_size = mla_memory_stream_get_size(compressed);
+    assert_true(compressed_size > 0, "WebSocket zlib: compressed output should not be empty");
+
+        mla_byte_t wire_bytes[stream_deflate_test_websocket_zlib_wire_buffer_size];
+        assert_true(compressed_size + 4 <= sizeof(wire_bytes), "WebSocket zlib: test buffer should fit compressed payload plus trailer");
+
+    if (compressed_size + 4 <= sizeof(wire_bytes)) {
+        mla_memory_stream_set_position(compressed, 0);
+        mla_size_t wire_size = compressed.input.read(compressed.input, 0, compressed_size, wire_bytes);
+        assert_equal(wire_size, compressed_size, "WebSocket zlib: should read the complete compressed payload");
+
+        wire_bytes[wire_size + 0] = 0x00;
+        wire_bytes[wire_size + 1] = 0x00;
+        wire_bytes[wire_size + 2] = 0xFF;
+        wire_bytes[wire_size + 3] = 0xFF;
+        wire_size += 4;
+
+        mla_byte_t decompressed_buf[stream_deflate_test_websocket_zlib_output_buffer_size];
+        mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
+
+        z_stream stream = {};
+        stream.next_in = wire_bytes;
+        stream.avail_in = (uInt)wire_size;
+        stream.next_out = decompressed_buf;
+        stream.avail_out = (uInt)sizeof(decompressed_buf);
+
+        int init_result = inflateInit2(&stream, -MAX_WBITS);
+        assert_equal(init_result, Z_OK, "WebSocket zlib: inflateInit2 should succeed");
+
+        if (init_result == Z_OK) {
+            int inflate_result = inflate(&stream, Z_FINISH);
+            assert_equal(inflate_result, Z_STREAM_END, "WebSocket zlib: standards-compliant inflate should finish successfully");
+            assert_equal((mla_size_t)stream.total_out, test_len, "WebSocket zlib: decompressed size should match the original payload");
+
+            if (inflate_result == Z_STREAM_END && (mla_size_t)stream.total_out == test_len) {
+                assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, mla_string_data(test_data), test_len), (mla_test_int32_t)0,
+                             "WebSocket zlib: decompressed bytes should match the original payload");
+            }
+
+            inflateEnd(&stream);
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 /// Gzip Mode Tests
 ///////////////////////////////////////////////////////////////////
@@ -993,6 +1053,9 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateWebSocketCompareToNormal", test_category, StreamDeflateWebSocketCompareToNormalTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateWebSocketModeZlibCompatibility", test_category, StreamDeflateWebSocketModeZlibCompatibilityTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateGzipEmptyStreamBytes", test_category, StreamDeflateGzipEmptyStreamBytesTest);
