@@ -6,6 +6,9 @@
 #include "../../system/mla_buffer.h"
 #include "../../system/mla_number.h"
 
+// Placement new operator definition to avoid <new> include in freestanding environment
+inline void* operator new(mla_size_t, void* p) throw() { return p; }
+
 struct mla_ui_bitmap_surface_resource_t {
     mla_uint32_t width;
     mla_uint32_t height;
@@ -18,6 +21,7 @@ static mla_buffer_cleanup_mode __mla_ui_bitmap_surface_cleanup(mla_pointer_t p_D
     (void)p_UserData;
     mla_ui_bitmap_surface_resource_t* resource = static_cast<mla_ui_bitmap_surface_resource_t*>(p_Data);
     if (resource != nullptr) {
+        mla_buffer_reference_destroy(resource->pixels);
         resource->~mla_ui_bitmap_surface_resource_t();
         mla_free(resource);
     }
@@ -156,7 +160,14 @@ static mla_bool_t __mla_ui_bitmap_surface_set_size(const mla_ui_surface_t& p_Sur
 
     mla_memset(newPixelsData, 0, newSize);
 
-    resource->pixels = mla_buffer_reference_create(newPixelsData, true, __mla_ui_bitmap_surface_pixels_cleanup, mla_dynamic_data_empty());
+    mla_buffer_reference_t pixelsRef = mla_buffer_reference_create(newPixelsData, true, __mla_ui_bitmap_surface_pixels_cleanup, mla_dynamic_data_empty());
+    if (mla_buffer_reference_is_noOwner(pixelsRef)) {
+        mla_free(newPixelsData);
+        return false;
+    }
+
+    mla_buffer_reference_destroy(resource->pixels);
+    resource->pixels = pixelsRef;
     resource->width = p_Size.width;
     resource->height = p_Size.height;
 
@@ -169,7 +180,7 @@ static mla_ui_surface_draw_size_t __mla_ui_bitmap_surface_calc_text_size(const m
     mla_int32_t scale = static_cast<mla_int32_t>(p_Font_type.size / 7.0);
     if (scale < 1) scale = 1;
 
-    return { static_cast<mla_double_t>(len * 6 * scale), static_cast<mla_double_t>(7 * scale) };
+    return { static_cast<mla_double_t>(len * 6 * scale), static_cast<mla_double_t>(8 * scale) };
 }
 
 static mla_ui_surface_input_states_t __mla_ui_bitmap_surface_get_input_states(const mla_ui_surface_t &p_Surface) {
@@ -193,10 +204,20 @@ static void __mla_ui_bitmap_surface_draw_pixel(mla_ui_bitmap_surface_resource_t*
     } else {
         mla_uint32_t alpha = color.a;
         mla_uint32_t inv_alpha = 255 - alpha;
-        p[0] = static_cast<mla_byte_t>((color.r * alpha + p[0] * inv_alpha) / 255);
-        p[1] = static_cast<mla_byte_t>((color.g * alpha + p[1] * inv_alpha) / 255);
-        p[2] = static_cast<mla_byte_t>((color.b * alpha + p[2] * inv_alpha) / 255);
-        p[3] = static_cast<mla_byte_t>(alpha + (p[3] * inv_alpha) / 255);
+        mla_uint32_t destA = p[3];
+        mla_uint32_t outA = alpha + (destA * inv_alpha) / 255;
+
+        if (outA == 0) {
+            p[0] = 0;
+            p[1] = 0;
+            p[2] = 0;
+            p[3] = 0;
+        } else {
+            p[0] = static_cast<mla_byte_t>((static_cast<mla_uint32_t>(color.r) * alpha + static_cast<mla_uint32_t>(p[0]) * destA * inv_alpha / 255) / outA);
+            p[1] = static_cast<mla_byte_t>((static_cast<mla_uint32_t>(color.g) * alpha + static_cast<mla_uint32_t>(p[1]) * destA * inv_alpha / 255) / outA);
+            p[2] = static_cast<mla_byte_t>((static_cast<mla_uint32_t>(color.b) * alpha + static_cast<mla_uint32_t>(p[2]) * destA * inv_alpha / 255) / outA);
+            p[3] = static_cast<mla_byte_t>(outA);
+        }
     }
 }
 
@@ -419,10 +440,21 @@ mla_ui_surface_t mla_ui_bitmap_surface_create(mla_uint32_t p_Width, mla_uint32_t
 
     mla_memset(pixelsData, 0, size);
     resource->pixels = mla_buffer_reference_create(pixelsData, true, __mla_ui_bitmap_surface_pixels_cleanup, mla_dynamic_data_empty());
+    if (mla_buffer_reference_is_noOwner(resource->pixels)) {
+        mla_free(pixelsData);
+        resource->~mla_ui_bitmap_surface_resource_t();
+        mla_free(resource);
+        return mla_ui_surface_invalid();
+    }
 
     mla_ui_surface_t surface = mla_ui_surface_invalid();
     surface.resource = resource;
     surface.resourceOwner = mla_buffer_reference_create(resource, false, __mla_ui_bitmap_surface_cleanup, mla_dynamic_data_empty());
+    if (mla_buffer_reference_is_noOwner(surface.resourceOwner)) {
+        resource->~mla_ui_bitmap_surface_resource_t();
+        mla_free(resource);
+        return mla_ui_surface_invalid();
+    }
     surface.get_size = __mla_ui_bitmap_surface_get_size;
     surface.set_size = __mla_ui_bitmap_surface_set_size;
     surface.calc_text_size = __mla_ui_bitmap_surface_calc_text_size;
