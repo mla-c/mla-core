@@ -9,6 +9,9 @@
 #include "../core-os-test-support/mla_test_executor.h"
 #include <zlib.h>
 
+static const mla_size_t stream_deflate_test_websocket_zlib_wire_buffer_size = 512;
+static const mla_size_t stream_deflate_test_websocket_zlib_output_buffer_size = 4096;
+
 inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_t p_Length) {
     const mla_uint32_t mod_adler = 65521u;
     mla_uint32_t sum1 = 1u;
@@ -723,8 +726,8 @@ inline void StreamDeflateWebSocketModeZlibCompatibilityTest() {
     mla_size_t compressed_size = mla_memory_stream_get_size(compressed);
     assert_true(compressed_size > 0, "WebSocket zlib: compressed output should not be empty");
 
-    mla_byte_t wire_bytes[512];
-    assert_true(compressed_size + 4 <= sizeof(wire_bytes), "WebSocket zlib: test buffer should fit compressed payload plus trailer");
+        mla_byte_t wire_bytes[stream_deflate_test_websocket_zlib_wire_buffer_size];
+        assert_true(compressed_size + 4 <= sizeof(wire_bytes), "WebSocket zlib: test buffer should fit compressed payload plus trailer");
 
     if (compressed_size + 4 <= sizeof(wire_bytes)) {
         mla_memory_stream_set_position(compressed, 0);
@@ -737,7 +740,7 @@ inline void StreamDeflateWebSocketModeZlibCompatibilityTest() {
         wire_bytes[wire_size + 3] = 0xFF;
         wire_size += 4;
 
-        mla_byte_t decompressed_buf[4096];
+        mla_byte_t decompressed_buf[stream_deflate_test_websocket_zlib_output_buffer_size];
         mla_memset(decompressed_buf, 0, sizeof(decompressed_buf));
 
         z_stream stream = {};
