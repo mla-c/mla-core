@@ -8,7 +8,7 @@
 #include "../core-os/system/mla_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"
 
-#if defined(mla_test_featureflag_zlib) && mla_test_featureflag_zlib == 1
+#if mla_test_featureflag_zlib == 1
 #include <zlib.h>
 
 static const mla_size_t stream_deflate_test_websocket_zlib_wire_buffer_size = 512;
@@ -714,7 +714,7 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
 
 }
 
-#if defined(mla_test_featureflag_zlib) && mla_test_featureflag_zlib == 1
+#if mla_test_featureflag_zlib == 1
 inline void StreamDeflateWebSocketModeZlibCompatibilityTest() {
     mla_string_t test_data = mla_string_repeat(mla_string_const("LargeMessage"), 250);
     mla_size_t test_len = mla_string_length(test_data);
@@ -1060,7 +1060,7 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("StreamDeflateWebSocketCompareToNormal", test_category, StreamDeflateWebSocketCompareToNormalTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-#if defined(mla_test_featureflag_zlib) && mla_test_featureflag_zlib == 1
+#if mla_test_featureflag_zlib == 1
     test = mla_test("StreamDeflateWebSocketModeZlibCompatibility", test_category, StreamDeflateWebSocketModeZlibCompatibilityTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 #endif
