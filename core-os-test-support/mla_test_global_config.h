@@ -63,4 +63,13 @@
 #define mla_test_global_feature_flag_test_memory 1
 #endif
 
+/**
+ * @brief Flag to enable tests that depend on the zlib library.
+ * Set to 1 to enable (requires linking against zlib with -lz), 0 to disable.
+ * Disabled by default to allow building and testing without zlib.
+ */
+#ifndef mla_test_featureflag_zlib
+#define mla_test_featureflag_zlib 0
+#endif
+
 #endif // COREOS_TEST_MLA_TEST_GLOBAL_CONFIG_H
