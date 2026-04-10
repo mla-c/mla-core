@@ -659,7 +659,16 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
     mla_stream_input_t final_payload_stream = payload_data.input;
 
     if (use_deflate_compression) {
+        // RFC 7692 permessage-deflate: the sender strips the trailing 4 bytes
+        // (00 00 FF FF) from the compressed payload before transmitting.
+        // Re-append them so the raw-DEFLATE decompressor can cleanly find the
+        // end-of-stream marker.
+        mla_memory_stream_set_position(payload_data, payload_size);
+        const mla_byte_t websocket_deflate_tail[4] = { 0x00, 0x00, 0xFF, 0xFF };
+        payload_data.output.write(payload_data.output, 0, 4, websocket_deflate_tail);
+
         // Recalc the final_payload_size
+        mla_memory_stream_set_position(payload_data, 0);
         payload_size = mla_stream_input_deflate_decompressed_size_calculation(final_payload_stream);
         mla_memory_stream_set_position(payload_data, 0);
         // Create the wrapper for the decompression
