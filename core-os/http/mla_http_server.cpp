@@ -604,7 +604,12 @@ mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_dat
 #if mla_global_feature_flag_http_server_use_deflate_compression == 1
 
             if (supports_deflate_compression) {
-                mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"));
+                // Advertise client_no_context_takeover and server_no_context_takeover because
+                // the server creates a fresh DEFLATE compressor/decompressor for every message.
+                // Without these parameters third-party clients may reuse their compression
+                // window across messages, causing the server's per-message decompressor to
+                // produce corrupt output.
+                mla_http_headers_add(response.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate; client_no_context_takeover; server_no_context_takeover"));
             }
 #endif
             response.content = mla_stream_noop_input(); // ensure no body
