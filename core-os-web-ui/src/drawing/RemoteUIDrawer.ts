@@ -31,6 +31,7 @@ export class RemoteUIDrawer {
     private needRedraw: boolean = false;
     private nextClientStateMessage: ClientMessage
     private lastClientStateSentTime: number = 0;
+    private _lastNetworkDelay: number = 0;
 
     // FPS counter state (render loop)
     private _fpsFrameCount: number = 0;
@@ -276,6 +277,7 @@ export class RemoteUIDrawer {
         this.webSocket.onmessage = (event) => {
             const data = JSON.parse(event.data) as DrawCommands;
             this.lastServerFrameTime = new Date().getTime();
+            this._lastNetworkDelay = this.lastServerFrameTime - data.timestamp;
             this.lastServerFrameData = data.drawCommands;
             this._serverFpsFrameCount++;
             this.needRedraw = true;
@@ -845,6 +847,7 @@ export class RemoteUIDrawer {
         const lines = [
             `Render FPS:  ${this._fpsCurrentValue}`,
             `Server FPS:  ${this._serverFpsCurrentValue}`,
+            `Network Delay: ${this._lastNetworkDelay} ms`,
         ];
 
         const ctx = this.ctx;
