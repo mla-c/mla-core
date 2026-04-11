@@ -42,12 +42,16 @@
 #include "mla_memory_test.h"
 #include "mla_math_utils_test.h"
 #include "mla_user_data_test.h"
+#if !defined mla_test_disable_ui || mla_test_disable_ui != 1
+// UI Controls
 #include "mla_ui_control_base_test.h"
 #include "mla_ui_button_test.h"
 #include "mla_ui_label_test.h"
 #include "mla_ui_text_edit_test.h"
 #include "mla_ui_window_test.h"
 #include "mla_ui_loading_indicator_test.h"
+
+#endif
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -106,12 +110,16 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterReflectionRpcTests(l_TestExecutor);
     RegisterMathUtilsTests(l_TestExecutor);
     RegisterUserDataTests(l_TestExecutor);
+#if !defined mla_test_disable_ui || mla_test_disable_ui != 1
+    // UI Control Tests
     RegisterUIControlBaseTests(l_TestExecutor);
     RegisterUIButtonTests(l_TestExecutor);
     RegisterUILabelTests(l_TestExecutor);
     RegisterUITextEditTests(l_TestExecutor);
     RegisterUIWindowTests(l_TestExecutor);
     RegisterUILoadingIndicatorTests(l_TestExecutor);
+
+#endif
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Tests
