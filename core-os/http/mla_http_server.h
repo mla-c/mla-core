@@ -160,6 +160,10 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_t &server,
 //
 // This function blocks until the connection lock can be acquired.
 //
+// NOTE: The message_generator callback may be invoked multiple times for a single message send
+// (e.g., once to calculate the message length and again to write the actual content).
+// The generator MUST produce deterministic output for a given call to ensure data consistency.
+//
 // connection: The websocket connection to send to.
 // userData: User data passed to the generator callback.
 // message_generator: Callback function that generates the message content.
@@ -189,6 +193,10 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_websocket
 mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_string_t& message, mla_bool_t use_deflate_compression_if_supported = true);
 
 // Attempts to send a text message over a websocket connection using a generator callback, with a timeout for acquiring the lock.
+//
+// NOTE: The message_generator callback may be invoked multiple times for a single message send
+// (e.g., once to calculate the message length and again to write the actual content).
+// The generator MUST produce deterministic output for a given call to ensure data consistency.
 //
 // connection: The websocket connection to send to.
 // userData: User data passed to the generator callback.
