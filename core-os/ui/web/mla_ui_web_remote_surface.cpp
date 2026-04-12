@@ -96,10 +96,12 @@ struct mla_ui_web_remote_surface_data_t {
 
 struct mla_ui_web_remote_surface_server_message_t {
     const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands;
+    mla_uint64_t timestamp;
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
         const auto* in = static_cast<const mla_ui_web_remote_surface_server_message_t*>(obj);
         mla_serializer_write_list_struct(serializer, mla_string_const("drawCommands"), in->drawCommands, mla_ui_surface_draw_command_t);
+        mla_serializer_write_uint64(serializer, mla_string_const("timestamp"), in->timestamp);
         return true;
     }
 
@@ -127,10 +129,12 @@ mla_bool_t __mla_ui_web_remote_surface_set_size(const mla_ui_surface_t& surface,
 }
 
 mla_user_data_id_init(mla_ui_web_remote_surface_draw_commands_message_user_data_name)
+mla_user_data_id_init(mla_ui_web_remote_surface_timestamp_user_data_name)
 
 mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator(mla_stream_output_t& output, mla_user_data_t& user_data) {
 
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>* drawCommands = mla_user_data_get_pointer<mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>>(user_data, mla_ui_web_remote_surface_draw_commands_message_user_data_name);
+    mla_uint64_t timestamp = mla_user_data_get_uint64(user_data, mla_ui_web_remote_surface_timestamp_user_data_name);
 
     if (drawCommands == nullptr) {
         return false; // No draw commands to serialize
@@ -139,7 +143,8 @@ mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_genera
     mla_serializer_t serializer = mla_json_serializer(output);
 
     mla_ui_web_remote_surface_server_message_t drawData = {
-        *drawCommands
+        *drawCommands,
+        timestamp
     };
 
     return mla_serializer_write_data_struct(serializer, drawData);
@@ -172,6 +177,7 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
 
     mla_user_data_t messageData = mla_user_data_empty();
     mla_user_data_set_pointer_without_ownership(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, &drawCommands);
+    mla_user_data_set_uint64(messageData, mla_ui_web_remote_surface_timestamp_user_data_name, mla_system_time_ms());
 
     // Serialize the commands to JSON
     mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));

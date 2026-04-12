@@ -218,6 +218,7 @@ export interface DrawCommand {
 
 export interface DrawCommands {
     drawCommands: DrawCommand[];
+    timestamp: number;
 }
 
 export enum InputEventClickButton {
