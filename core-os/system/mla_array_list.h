@@ -99,12 +99,6 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
         }
 
         mla_buffer_reference_t newItemsOwner = mla_buffer_reference_create(newItems, false, __mla_array_list_cleanup<T, TInit>, mla_dynamic_data_from_uint32(newSize));
-
-        if (mla_buffer_reference_is_noOwner(newItemsOwner)) {
-            mla_free(newItems);
-            return false;
-        }
-
         list.items = newItems;
         list.capacity = newSize;
         // We dont need to call the cleanup hook here because we are not destroying the old items
