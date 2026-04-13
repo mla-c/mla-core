@@ -757,11 +757,14 @@ inline void StreamDeflateWebSocketModeZlibCompatibilityTest() {
         assert_equal(init_result, Z_OK, "WebSocket zlib: inflateInit2 should succeed");
 
         if (init_result == Z_OK) {
-            int inflate_result = inflate(&stream, Z_FINISH);
-            assert_equal(inflate_result, Z_STREAM_END, "WebSocket zlib: standards-compliant inflate should finish successfully");
+            // Use Z_SYNC_FLUSH to match real-world WebSocket client behaviour
+            // (e.g. Node.js ws library).  RFC 7692 websocket mode produces
+            // BFINAL=0 so inflate returns Z_OK, not Z_STREAM_END.
+            int inflate_result = inflate(&stream, Z_SYNC_FLUSH);
+            assert_true(inflate_result == Z_OK || inflate_result == Z_BUF_ERROR, "WebSocket zlib: inflate with Z_SYNC_FLUSH should succeed");
             assert_equal((mla_size_t)stream.total_out, test_len, "WebSocket zlib: decompressed size should match the original payload");
 
-            if (inflate_result == Z_STREAM_END && (mla_size_t)stream.total_out == test_len) {
+            if ((inflate_result == Z_OK || inflate_result == Z_BUF_ERROR) && (mla_size_t)stream.total_out == test_len) {
                 assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, mla_string_data(test_data), test_len), (mla_test_int32_t)0,
                              "WebSocket zlib: decompressed bytes should match the original payload");
             }

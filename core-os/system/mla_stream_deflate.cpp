@@ -883,14 +883,17 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 
 
     if (state->mode == mla_deflate_mode_raw_websocket) {
-        // RFC 7692 permessage-deflate expects the sender to emit the same bit
-        // sequence as a normal raw DEFLATE flush, but to omit only the trailing
-        // LEN/NLEN bytes (00 00 FF FF). The 3 empty-block header bits from the
-        // raw flush must still be written because they may share the same output
-        // byte as the pending end-of-block bits.
-        __mla_deflate_bit_writer_write(state->writer, 0x01, 3);
+        // RFC 7692 permessage-deflate expects the sender to produce the same
+        // byte sequence as a Z_SYNC_FLUSH, then strip the trailing 4-byte
+        // LEN/NLEN (00 00 FF FF).  Z_SYNC_FLUSH emits an empty stored block
+        // with BFINAL=0 (not BFINAL=1).  The receiver re-appends the 4 bytes
+        // and feeds the result to inflate with Z_SYNC_FLUSH, which expects
+        // Z_OK – not Z_STREAM_END.  Using BFINAL=1 here would cause standard
+        // clients (e.g. Node.js ws library) to receive Z_STREAM_END, which can
+        // corrupt the inflate stream state and produce garbled output.
+        __mla_deflate_bit_writer_write(state->writer, 0x00, 3);
 
-        // Byte-align so the kept prefix exactly matches a normal raw stream with
+        // Byte-align so the kept prefix exactly matches a Z_SYNC_FLUSH with
         // only the last four LEN/NLEN bytes removed.
         __mla_deflate_bit_writer_align(state->writer);
     } else {
