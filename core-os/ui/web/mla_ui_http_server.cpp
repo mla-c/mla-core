@@ -15,7 +15,7 @@ struct mla_ui_rpc_surface_info_t {
     mla_string_t displayName;
     mla_string_t surfaceName;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_ui_rpc_surface_info_t* surfaceInfo = static_cast<const mla_ui_rpc_surface_info_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("displayName"), surfaceInfo->displayName);
@@ -42,7 +42,7 @@ struct mla_ui_rpc_surface_info_t_initializer {
 struct mla_ui_rpc_surface_infos_t {
     mla_array_list_t<mla_ui_rpc_surface_info_t, mla_ui_rpc_surface_info_t_initializer> surfaces;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_ui_rpc_surface_infos_t* surfaceInfos = static_cast<const mla_ui_rpc_surface_infos_t*>(obj);
         mla_serializer_write_list<mla_ui_rpc_surface_info_t>(serializer, mla_string_const("surfaces"), surfaceInfos->surfaces, mla_ui_rpc_surface_info_t::serialize);
@@ -245,7 +245,7 @@ mla_bool_t __mla_ui_http_server_web_surface_path_checker(const mla_user_data_t &
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(data);
 

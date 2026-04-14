@@ -163,7 +163,7 @@ static inline mla_bool_t __mla_file_system_native_list_directory(mla_file_system
     return true;
 }
 
-static inline mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pointer_t data, mla_callback_userdata userData) {
+static inline mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
     int fd = *reinterpret_cast<int*>(data);
 
@@ -316,7 +316,7 @@ static inline mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& f
     return true;
 }
 
-static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
 
     (void)userData;
 

@@ -40,7 +40,7 @@
 #define mla_utf_32_char_t unsigned ___mla_internal_int32
 
 #define mla_void_t void
-#define mla_pointer_t void*
+#define mla_platform_pointer_t void*
 
 
 // Limits for the data types
@@ -89,7 +89,7 @@ struct mla_dynamic_data_t {
         mla_uint64_t asUint64;
         mla_float_t asFloat;
         mla_double_t asDouble;
-        mla_pointer_t asPointer;
+        mla_platform_pointer_t asPointer;
         mla_char_t asChar;
     };
 };
@@ -106,7 +106,7 @@ mla_dynamic_data_t mla_dynamic_data_from_int64(mla_int64_t value);
 mla_dynamic_data_t mla_dynamic_data_from_uint64(mla_uint64_t value);
 mla_dynamic_data_t mla_dynamic_data_from_float(mla_float_t value);
 mla_dynamic_data_t mla_dynamic_data_from_double(mla_double_t value);
-mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_pointer_t value);
+mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_platform_pointer_t value);
 mla_dynamic_data_t mla_dynamic_data_from_char(mla_char_t value);
 
 #define mla_size_t mla_uint32_t
@@ -167,10 +167,10 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path);
 
 typedef struct mla_low_level_operations_t {
     // Function pointers for memory operations
-    mla_pointer_t (*memcpy)(mla_pointer_t dest, const mla_pointer_t src, mla_size_t size);
-    mla_pointer_t (*memset)(mla_pointer_t dest, mla_byte_t value, mla_size_t size);
-    mla_int32_t (*memcmp)(const mla_pointer_t dest, const mla_pointer_t src, mla_size_t size);
-    mla_pointer_t (*memmove)(mla_pointer_t dest, const mla_pointer_t src, mla_size_t size);
+    mla_platform_pointer_t (*memcpy)(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
+    mla_platform_pointer_t (*memset)(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size);
+    mla_int32_t (*memcmp)(const mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
+    mla_platform_pointer_t (*memmove)(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
 
     // Function pointers for string operations
     mla_char_t* (*strcpy)(mla_char_t* dest, const mla_char_t* src);
@@ -178,9 +178,9 @@ typedef struct mla_low_level_operations_t {
     const mla_char_t* (*strstr)(const mla_char_t* str, const mla_char_t* substr);
 
     // Memory allocation and deallocation functions
-    mla_pointer_t (*malloc)(mla_size_t size);
-    void (*free)(mla_pointer_t ptr);
-    mla_bool_t (*is_gcc_pointer)(const mla_pointer_t ptr);
+    mla_platform_pointer_t (*malloc)(mla_size_t size);
+    void (*free)(mla_platform_pointer_t ptr);
+    mla_bool_t (*is_gcc_pointer)(const mla_platform_pointer_t ptr);
     void (*on_malloc_failure)(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
     // Function pointers for printf and other output functions
@@ -214,7 +214,7 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
-mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
+mla_platform_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
 #define mla_malloc(size) mla_malloc_with_check(size, __FILE__, __func__)
 #define mla_free(ptr) g_low_level_access.free((ptr))

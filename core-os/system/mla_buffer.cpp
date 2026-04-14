@@ -8,7 +8,7 @@
 #include "../task/mla_atomic.h"
 
 
-mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p_CleanupHook, const mla_dynamic_data_t& cleanupHookUserData) {
+mla_buffer_t* mla_buffer(const mla_platform_pointer_t p_Data, mla_buffer_cleanup_hook_t p_CleanupHook, const mla_dynamic_data_t& cleanupHookUserData) {
 
     if (!p_Data) {
         return nullptr; // Return null if data is null
@@ -30,7 +30,7 @@ mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p
 void __mla_buffer_destroy(mla_buffer_t* p_Buffer, mla_bool_t executeCleanupHook) {
     if (p_Buffer) {
         if (mla_atomic_decrement(p_Buffer->refCount) == 0) {
-            mla_pointer_t l_Data = const_cast<mla_pointer_t>(p_Buffer->data);
+            mla_platform_pointer_t l_Data = const_cast<mla_platform_pointer_t>(p_Buffer->data);
 
             if (l_Data) {
 
@@ -105,13 +105,13 @@ mla_buffer_reference_t& mla_buffer_reference_t::operator=(const mla_buffer_refer
     return *this;
 }
 
-mla_buffer_reference_t mla_buffer_reference_without_cleanup_hook(const mla_pointer_t data) {
+mla_buffer_reference_t mla_buffer_reference_without_cleanup_hook(const mla_platform_pointer_t data) {
     mla_dynamic_data_t empty_user_data = mla_dynamic_data_empty();
     return mla_buffer_reference_create(data, false, nullptr, empty_user_data);
 }
 
 
-mla_buffer_reference_t mla_buffer_reference_create(const mla_pointer_t data, mla_bool_t mangedExternalResource, mla_buffer_cleanup_hook_t cleanupHook, const mla_dynamic_data_t& cleanupHookUserData) {
+mla_buffer_reference_t mla_buffer_reference_create(const mla_platform_pointer_t data, mla_bool_t mangedExternalResource, mla_buffer_cleanup_hook_t cleanupHook, const mla_dynamic_data_t& cleanupHookUserData) {
 
     if (data != nullptr && !mangedExternalResource && mla_is_gcc_pointer(data)) {
         return mla_buffer_reference_noOwner();

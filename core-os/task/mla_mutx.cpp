@@ -5,12 +5,12 @@
 #include "mla_mutx.h"
 
 
-mla_buffer_cleanup_mode __mla_mutex_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_mutex_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
     // This function is called when the mutex is destroyed
-    mla_pointer_t mutexResource = data;
+    mla_platform_pointer_t mutexResource = data;
     mla_bool_t success = g_task_low_level_access.destroy_mutex(mutexResource);
 
     if (!success) {
@@ -38,7 +38,7 @@ mla_mutex_t mla_mutex(const mla_string_t& name, mla_bool_t support_recursive) {
     };
 
     // Create the native mutex
-    mla_pointer_t outResource = nullptr;
+    mla_platform_pointer_t outResource = nullptr;
     mla_bool_t success = g_task_low_level_access.create_mutex(&outResource, support_recursive);
 
     if (!success) {

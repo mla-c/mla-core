@@ -82,7 +82,7 @@ mla_string_t __mla_ui_control_surface_get_task_id(mla_ui_control_surface_t& conn
     return mla_user_data_get_string(connector.userData, mla_ui_control_surface_task_id_user_data_name);
 }
 
-mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     mla_ui_control_surface_t* connector = static_cast<mla_ui_control_surface_t*>(data);
@@ -104,7 +104,7 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_pointer_t data, con
     return CLEAN_UP_SKIP;
 }
 
-mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     mla_ui_control_surface_t* connector = static_cast<mla_ui_control_surface_t*>(data);

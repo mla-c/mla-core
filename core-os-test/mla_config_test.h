@@ -14,7 +14,7 @@ struct test_config_struct {
     mla_bool_t boolValue;
     mla_string_t strValue;
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
 
         test_config_struct* obj = static_cast<test_config_struct*>(config);
         if (mla_string_equals_const(property_name, "intValue")) {
@@ -29,7 +29,7 @@ struct test_config_struct {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
 
         const test_config_struct* obj = static_cast<const test_config_struct*>(config);
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
@@ -72,7 +72,7 @@ struct simple_config {
     mla_uint8_t version;
     mla_float_t value;
 
-    static  mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+    static  mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
         simple_config* obj = static_cast<simple_config*>(config);
         if (mla_string_equals_const(property_name, "version")) {
             mla_deserializer_read_uint8(deserializer, obj->version);
@@ -84,7 +84,7 @@ struct simple_config {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
 
         const simple_config* obj = static_cast<const simple_config*>(config);
         mla_serializer_write_uint8(serializer, mla_string_const("version"), obj->version);
@@ -102,7 +102,7 @@ struct complex_config {
     mla_string_t name;
     mla_array_list_t<mla_int32_t> values;
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
         complex_config* obj = static_cast<complex_config*>(config);
         if (mla_string_equals_const(property_name, "id")) {
             mla_deserializer_read_int64(deserializer, obj->id);
@@ -122,7 +122,7 @@ struct complex_config {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
 
         const complex_config* obj = static_cast<const complex_config*>(config);
         mla_serializer_write_int64(serializer, mla_string_const("id"), obj->id);

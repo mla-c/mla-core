@@ -402,7 +402,7 @@ mla_memory_stream_t mla_memory_stream_empty() {
     return mla_memory_stream(0, true);
 }
 
-mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData;
     mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(data);

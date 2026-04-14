@@ -14,14 +14,14 @@ struct mla_ui_surface_size_t {
     mla_uint32_t width;
     mla_uint32_t height;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
         const mla_ui_surface_size_t* self = static_cast<const mla_ui_surface_size_t*>(obj);
         mla_serializer_write_uint32(serializer, mla_string_const("width"),  self->width);
         mla_serializer_write_uint32(serializer, mla_string_const("height"), self->height);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
         mla_ui_surface_size_t* self = static_cast<mla_ui_surface_size_t*>(obj);
         if (mla_string_equals_const(property_name, "width")) {
             mla_deserializer_read_uint32(deserializer, self->width);
@@ -34,7 +34,7 @@ struct mla_ui_surface_size_t {
 };
 
 struct mla_ui_surface_t {
-    mla_pointer_t resource; // Pointer to the surface resource
+    mla_platform_pointer_t resource; // Pointer to the surface resource
     mla_buffer_reference_t resourceOwner; // Resource owner for the surface
 
     // Size management

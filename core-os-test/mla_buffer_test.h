@@ -15,23 +15,23 @@ struct my_native_auto_buffer_test_t {
 };
 
 struct my_native_buffer_test_t {
-    mla_pointer_t data;
+    mla_platform_pointer_t data;
 };
 
 struct my_buffer_test_t {
-    mla_pointer_t data;
+    mla_platform_pointer_t data;
     mla_buffer_reference_t dataOwner;
 };
 
 static mla_bool_t is_buffer_destroyed = false;
 
-mla_bool_t my_buffer_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+mla_bool_t my_buffer_malloc_hook(mla_size_t size, mla_platform_pointer_t* out_ptr) {
     (void)size;
     (void)out_ptr;
     return false;
 }
 
-mla_bool_t my_buffer_free_hook(mla_pointer_t ptr) {
+mla_bool_t my_buffer_free_hook(mla_platform_pointer_t ptr) {
     (void)ptr;
     is_buffer_destroyed = true;
     return false;
@@ -42,7 +42,7 @@ void SimpleReleaseTest() {
     is_buffer_destroyed = false;
     mla_memory_hook_t hook = mla_memory_hook_install(my_buffer_malloc_hook, my_buffer_free_hook);
 
-    mla_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_malloc(64);
 
     my_buffer_test_t container = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
 
@@ -81,7 +81,7 @@ void SimpleReleaseTest() {
 
 static mla_dynamic_data_t my_test_user_data = mla_dynamic_data_empty();
 
-mla_buffer_cleanup_mode my_test_cleanup_hook(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+mla_buffer_cleanup_mode my_test_cleanup_hook(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
     (void)p_Data;
     my_test_user_data = p_UserData;
     return CLEAN_UP_NEEDED;
@@ -89,7 +89,7 @@ mla_buffer_cleanup_mode my_test_cleanup_hook(mla_pointer_t p_Data, const mla_dyn
 
 void CleanUpHookTests() {
 
-    mla_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_malloc(64);
     my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, mla_dynamic_data_from_int32(42))};
 
     if (container.dataOwner.buffer != nullptr) {
@@ -118,7 +118,7 @@ void RegisterBufferTests(mla_test_executor_t &p_TestExecutor) {
 
 void BufferMemoryManagementBenchmark() {
 
-    mla_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_malloc(64);
     my_buffer_test_t container1 = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
     my_buffer_test_t container2 = container1;
     my_buffer_test_t container3 = container2;
@@ -130,7 +130,7 @@ void BufferMemoryManagementBenchmark() {
 
 void NativeMemoryManagementBenchmark() {
 
-    mla_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_malloc(64);
     my_native_buffer_test_t container1 = {data};
     my_native_buffer_test_t container2 = container1;
     my_native_buffer_test_t container3 = container2;

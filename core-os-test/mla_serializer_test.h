@@ -28,7 +28,7 @@ struct mla_all_types_inner_struct {
     mla_bool_t boolValue;
 };
 
-inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
 
     mla_all_types_inner_struct* obj = static_cast<mla_all_types_inner_struct*>(config);
 
@@ -43,7 +43,7 @@ inline mla_deserializer_read_result_t __mla_all_types_inner_struct_read_function
     }
 }
 
-inline mla_bool_t __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline mla_bool_t __mla_all_types_inner_struct_write_function(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
 
     const mla_all_types_inner_struct* obj = static_cast<const mla_all_types_inner_struct*>(config);
     mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
@@ -71,7 +71,7 @@ struct mla_all_types_struct {
     mla_array_list_t<mla_all_types_inner_struct> innerStructList;
 };
 
-inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
 
     mla_all_types_struct* obj = static_cast<mla_all_types_struct*>(config);
 
@@ -142,7 +142,7 @@ inline mla_deserializer_read_result_t __mla_all_types_struct_read_function(mla_d
     }
 }
 
-inline mla_bool_t __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_pointer_t config) {
+inline mla_bool_t __mla_all_types_struct_write_function(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
 
     const mla_all_types_struct* obj = static_cast<const mla_all_types_struct*>(config);
 

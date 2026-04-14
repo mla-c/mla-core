@@ -29,7 +29,7 @@ struct test_config_struct {
     mla_bool_t boolValue;
     mla_string_t strValue;
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
         test_config_struct* obj = static_cast<test_config_struct*>(config);
         if (mla_string_equals_const(property_name, "intValue")) {
             mla_deserializer_read_int32(deserializer, obj->intValue);
@@ -43,7 +43,7 @@ struct test_config_struct {
         return MLA_DESERIALIZER_READ_HANDLED;
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
         const test_config_struct* obj = static_cast<const test_config_struct*>(config);
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);

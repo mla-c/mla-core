@@ -250,7 +250,7 @@ inline void UserDataEmptyTest() {
     mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_missing, 999);
     assert_equal(value, 999, "Should return default value for missing key in empty user data");
 
-    mla_pointer_t ptr = mla_user_data_get_mla_pointer(userData, mla_user_data_test_missing);
+    mla_platform_pointer_t ptr = mla_user_data_get_mla_pointer(userData, mla_user_data_test_missing);
     assert_null(ptr, "Should return null pointer for missing key in empty user data");
 }
 

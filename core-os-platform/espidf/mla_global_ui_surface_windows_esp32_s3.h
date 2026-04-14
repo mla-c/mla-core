@@ -372,14 +372,14 @@ static void st7701_init_sequence() {
 
 
 struct mla_esp32_surface_t {
-    mla_pointer_t panel;
+    mla_platform_pointer_t panel;
     uint16_t *frame_buffer;
     mla_esp32_software_renderer_t renderer;
     mla_ui_surface_size_t size;
 };
 
 // Cleanup function
-inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void) userData;
     mla_esp32_surface_t *surface = (mla_esp32_surface_t *) data;
     if (surface) {
@@ -617,7 +617,7 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
         return false;
     }
 
-    esp_surface->panel = (mla_pointer_t)panel_handle;
+    esp_surface->panel = (mla_platform_pointer_t)panel_handle;
     esp_surface->frame_buffer = (uint16_t*)fb;
     esp_surface->size = {LCD_H_RES, LCD_V_RES};
     esp_surface->renderer = {(uint16_t*)fb, LCD_H_RES, LCD_V_RES};

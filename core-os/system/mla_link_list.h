@@ -38,7 +38,7 @@ struct mla_link_list_t {
 };
 
 template < mla_list_list_template >
-mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -53,7 +53,7 @@ mla_buffer_cleanup_mode __mla_link_list_node_cleanup_hook(mla_pointer_t data, co
 }
 
 template < mla_list_list_template >
-mla_buffer_cleanup_mode __mla_link_list_data_cleanup_hook(mla_pointer_t p_Data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_link_list_data_cleanup_hook(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 

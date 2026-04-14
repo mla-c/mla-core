@@ -40,7 +40,7 @@ This project follows strict data type and coding conventions to ensure cross-pla
 - `mla_size_t` (size type, aliased to `mla_uint32_t`)
 - `mla_byte_t` (byte type, aliased to `mla_uint8_t`)
 - `mla_hash_t` (hash type)
-- `mla_pointer_t` (void pointer)
+- `mla_platform_pointer_t` (void pointer)
 - `mla_void_t` (void)
 
 ### 3. Type Limits

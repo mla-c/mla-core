@@ -21,7 +21,7 @@ void TaskLocalSetGetTest() {
     mla_int32_t testValue = 42;
     assert_true(mla_task_local_set(local, &testValue), "Task local set should succeed");
 
-    mla_pointer_t result = mla_task_local_get(local);
+    mla_platform_pointer_t result = mla_task_local_get(local);
     assert_not_null(result, "Task local get should return a non-null pointer");
 
     mla_int32_t *resultValue = static_cast<mla_int32_t *>(result);
@@ -42,7 +42,7 @@ void TaskLocalOverwriteTest() {
     assert_true(mla_task_local_set(local, &firstValue), "First set should succeed");
     assert_true(mla_task_local_set(local, &secondValue), "Second set should succeed");
 
-    mla_pointer_t result = mla_task_local_get(local);
+    mla_platform_pointer_t result = mla_task_local_get(local);
     mla_int32_t *resultValue = static_cast<mla_int32_t *>(result);
 
     if (resultValue == nullptr) {
@@ -55,7 +55,7 @@ void TaskLocalOverwriteTest() {
 void TaskLocalNullDefaultTest() {
     mla_task_local_t local = mla_task_local_create();
 
-    mla_pointer_t result = mla_task_local_get(local);
+    mla_platform_pointer_t result = mla_task_local_get(local);
     assert_null(result, "Task local should return null before any value is set");
 }
 

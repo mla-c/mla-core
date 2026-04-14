@@ -133,7 +133,7 @@ mla_test_uint32_t mla_test_generate_seed() {
 }
 
 // Malloc hook that selectively fails allocations based on seed-driven PRNG
-static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_pointer_t* p_OutPtr) {
+static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_platform_pointer_t* p_OutPtr) {
     (void)p_Size;
 
     g_mla_test_failure_prng_state = g_mla_test_failure_prng_state * 1664525u + 1013904223u;
@@ -147,7 +147,7 @@ static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_p
 }
 
 // Free hook - pass through to original free for all pointers
-static mla_bool_t mla_test_executor_failure_free_hook(mla_pointer_t p_Ptr) {
+static mla_bool_t mla_test_executor_failure_free_hook(mla_platform_pointer_t p_Ptr) {
     (void)p_Ptr;
     return false;
 }

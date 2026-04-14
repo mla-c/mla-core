@@ -39,7 +39,7 @@ struct mla_ui_control_value_t {
         mla_uint64_t uint64Value;
         mla_double_t doubleValue;
         mla_bool_t boolValue;
-        mla_pointer_t pointerValue;
+        mla_platform_pointer_t pointerValue;
     };
 };
 
@@ -121,7 +121,7 @@ mla_float_t mla_ui_control_get_value_as_float(const mla_ui_control_t &control, c
 mla_double_t mla_ui_control_get_value_as_double(const mla_ui_control_t &control, const mla_string_t &name, mla_double_t defaultValue = 0.0);
 mla_string_t mla_ui_control_get_value_as_string(const mla_ui_control_t &control, const mla_string_t &name, const mla_string_t &defaultValue = mla_string_empty());
 mla_bool_t mla_ui_control_get_value_as_bool(const mla_ui_control_t &control, const mla_string_t &name, mla_bool_t defaultValue = false);
-mla_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t defaultValue = nullptr);
+mla_platform_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_platform_pointer_t defaultValue = nullptr);
 
 mla_bool_t mla_ui_control_set_value_as_uint8(mla_ui_control_t &control, const mla_string_t &name, mla_uint8_t value);
 mla_bool_t mla_ui_control_set_value_as_int8(mla_ui_control_t &control, const mla_string_t &name, mla_int8_t value);
@@ -135,7 +135,7 @@ mla_bool_t mla_ui_control_set_value_as_float(mla_ui_control_t &control, const ml
 mla_bool_t mla_ui_control_set_value_as_double(mla_ui_control_t &control, const mla_string_t &name, mla_double_t value);
 mla_bool_t mla_ui_control_set_value_as_string(mla_ui_control_t &control, const mla_string_t &name, const mla_string_t &value);
 mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla_string_t &name, mla_bool_t value);
-mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t value);
+mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_platform_pointer_t value);
 
 void mla_ui_control_reset_values(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &name);
 

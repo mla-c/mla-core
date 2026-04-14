@@ -8,11 +8,11 @@
 #include "../mla_test_data_types.h"
 #include <cstdlib>
 
-mla_pointer_t __internal_test_malloc(mla_test_uint32_t size) {
+mla_platform_pointer_t __internal_test_malloc(mla_test_uint32_t size) {
     return malloc(size);
 }
 
-void __internal_test_free(mla_pointer_t ptr) {
+void __internal_test_free(mla_platform_pointer_t ptr) {
     free(ptr);
 }
 

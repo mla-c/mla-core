@@ -21,8 +21,8 @@ struct mla_config_definition_t {
     const mla_serialize_definition_t definition;
 };
 
-mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_pointer_t config);
-mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, mla_pointer_t config);
+mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_platform_pointer_t config);
+mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, mla_platform_pointer_t config);
 mla_bool_t mla_config_manager_reset();
 
 

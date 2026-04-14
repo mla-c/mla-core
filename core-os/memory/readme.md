@@ -15,9 +15,9 @@ The Memory module is based on a global list of memory hooks. You can install up 
 
 Your custom hook functions must match the following signatures:
 
-- `mla_memory_malloc_hook_t`: `mla_bool_t (*)(mla_size_t size, mla_pointer_t* out_ptr)`
-- `mla_memory_free_hook_t`: `mla_bool_t (*)(mla_pointer_t ptr)`
-- `mla_memory_is_gcc_pointer_hook_t`: `MLA_MEMORY_POINTER_TYPE (*)(const mla_pointer_t ptr)`
+- `mla_memory_malloc_hook_t`: `mla_bool_t (*)(mla_size_t size, mla_platform_pointer_t* out_ptr)`
+- `mla_memory_free_hook_t`: `mla_bool_t (*)(mla_platform_pointer_t ptr)`
+- `mla_memory_is_gcc_pointer_hook_t`: `MLA_MEMORY_POINTER_TYPE (*)(const mla_platform_pointer_t ptr)`
 
 If a `malloc` hook returns `true`, it indicates that the hook has handled the memory allocation and the original `malloc` function will not be called. If it returns `false`, the original `malloc` will be called. Similarly, if a `free` hook returns `true`, the original `free` function will not be called.
 
@@ -31,13 +31,13 @@ To install a memory hook, you need to define your custom `malloc` and `free` hoo
 #include "mla_memory_hook.h"
 
 // Custom malloc hook
-mla_bool_t my_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+mla_bool_t my_malloc_hook(mla_size_t size, mla_platform_pointer_t* out_ptr) {
     // Your custom allocation logic here
     return false; // Return false to chain to the original malloc
 }
 
 // Custom free hook
-mla_bool_t my_free_hook(mla_pointer_t ptr) {
+mla_bool_t my_free_hook(mla_platform_pointer_t ptr) {
     // Your custom deallocation logic here
     return false; // Return false to chain to the original free
 }

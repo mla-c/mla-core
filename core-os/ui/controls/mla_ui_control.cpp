@@ -166,7 +166,7 @@ mla_bool_t mla_ui_control_get_value_as_bool(const mla_ui_control_t &control, con
     return defaultValue;
 }
 
-mla_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t defaultValue) {
+mla_platform_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_t &control, const mla_string_t &name, mla_platform_pointer_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, value)) {
         return value->pointerValue;
@@ -343,7 +343,7 @@ mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla
     return mla_array_list_add(control.values, newValue);
 }
 
-mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_pointer_t value) {
+mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_platform_pointer_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (__mla_ui_control_find_value_by_name(control, name, internalValue)) {
         internalValue->pointerValue = value;

@@ -119,10 +119,10 @@ enum mla_deserializer_read_result_t {
 };
 
 // Called for every property in a struct
-typedef mla_deserializer_read_result_t (*mla_serialize_definition_read_function_t)(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_string_t& property_name);
+typedef mla_deserializer_read_result_t (*mla_serialize_definition_read_function_t)(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name);
 
 // Called to write the entire struct
-typedef mla_bool_t (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_pointer_t config);
+typedef mla_bool_t (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_platform_pointer_t config);
 
 /// Definition of serialization functions for a specific data structure
 struct mla_serialize_definition_t {
@@ -143,8 +143,8 @@ mla_serialize_definition_t mla_serialize_definition_create(
 /// Serializer Helpers
 //////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_platform_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_platform_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_bool_t>& list);
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint8_t>& list);
@@ -222,14 +222,14 @@ mla_serialize_definition_t mla_serialize_definition()
 mla_serialize_definition_create(0, void_deserialize, void_serialize)
 
 // Helpers for void datatypes
-mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_pointer_t obj);
-mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name);
+mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj);
+mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name);
 
 //////////////////////////////////////////////////////////////////////////////////
 /// Deserializer Helpers
 //////////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t config, const mla_serialize_definition_read_function_t& read_function);
+mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_serialize_definition_read_function_t& read_function);
 
 template <typename T>
 mla_bool_t mla_serializer_read_data_struct(mla_deserializer_t& deserializer, T &value) {

@@ -55,7 +55,7 @@ UBaseType_t mla_task_manager_esp32_native_get_priority(const mla_task_priority p
     }
 }
 
-mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(data);
 
@@ -216,7 +216,7 @@ struct mla_task_manager_esp32_native_mutex_t {
     mla_bool_t recursive;
 };
 
-mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
     if (outMutex == nullptr) {
         return false;
     }
@@ -241,11 +241,11 @@ mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t* outMutex, m
         return false;
     }
 
-    *outMutex = static_cast<mla_pointer_t>(mutex);
+    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -261,7 +261,7 @@ mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_pointer_t mutexResour
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_pointer_t mutexResource, mla_int32_t timeoutms) {
+mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
 
     mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
 
@@ -276,7 +276,7 @@ mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_pointer_t mutexResource,
     }
 }
 
-mla_bool_t mla_task_manager_esp32_native_unlock_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_esp32_native_unlock_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
     if (mutex == nullptr || mutex->semaphore == nullptr) {
@@ -307,7 +307,7 @@ struct mla_task_manager_esp32_task_local {
     BaseType_t index;
 };
 
-mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_esp32_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
     // Find a free slot
     BaseType_t freeIndex = -1;
@@ -330,12 +330,12 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t* outTaskLocal)
 
     g_esp32_task_local_slots_used[freeIndex] = true;
     local->index = freeIndex;
-    *outTaskLocal = static_cast<mla_pointer_t>(local);
+    *outTaskLocal = static_cast<mla_platform_pointer_t>(local);
 
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_platform_pointer_t taskLocal) {
 
     mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
 
@@ -349,7 +349,7 @@ mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_pointer_t taskLocal) {
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+mla_bool_t mla_task_manager_esp32_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
 
     mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
 
@@ -361,7 +361,7 @@ mla_bool_t mla_task_manager_esp32_set_task_local(mla_pointer_t taskLocal, mla_po
     return true;
 }
 
-mla_pointer_t mla_task_manager_esp32_get_task_local(mla_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_esp32_get_task_local(mla_platform_pointer_t taskLocal) {
 
     mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
 

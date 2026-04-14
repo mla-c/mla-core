@@ -22,7 +22,7 @@ struct mla_sensor_reading_t {
     mla_bool_t   isValid;
 
     // --- Serialize: write all fields to the serializer ---
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
         const mla_sensor_reading_t* self = static_cast<const mla_sensor_reading_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("sensorId"),    self->sensorId);
         mla_serializer_write_float (serializer, mla_string_const("temperature"), self->temperature);
@@ -32,7 +32,7 @@ struct mla_sensor_reading_t {
     }
 
     // --- Deserialize: handle one property at a time ---
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
         mla_sensor_reading_t* self = static_cast<mla_sensor_reading_t*>(obj);
         if (mla_string_equals_const(property_name, "sensorId")) {
             mla_deserializer_read_string(deserializer, self->sensorId);
@@ -53,7 +53,7 @@ struct mla_sensor_reading_t {
 ### Serialize Function Signature
 
 ```cpp
-static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj);
+static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj);
 ```
 
 - Cast `obj` to `const MyStruct*` at the top of the function.
@@ -63,7 +63,7 @@ static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t ob
 ### Deserialize Function Signature
 
 ```cpp
-static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name);
+static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name);
 ```
 
 - Cast `obj` to `MyStruct*` at the top of the function.
@@ -123,14 +123,14 @@ struct mla_gps_position_t {
     mla_double_t latitude;
     mla_double_t longitude;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
         const mla_gps_position_t* self = static_cast<const mla_gps_position_t*>(obj);
         mla_serializer_write_double(serializer, mla_string_const("latitude"),  self->latitude);
         mla_serializer_write_double(serializer, mla_string_const("longitude"), self->longitude);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
         mla_gps_position_t* self = static_cast<mla_gps_position_t*>(obj);
         if (mla_string_equals_const(property_name, "latitude")) {
             mla_deserializer_read_double(deserializer, self->latitude);
@@ -148,7 +148,7 @@ struct mla_device_report_t {
     mla_gps_position_t position;
     mla_array_list_t<mla_sensor_reading_t, mla_sensor_reading_initializer> readings;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
         const mla_device_report_t* self = static_cast<const mla_device_report_t*>(obj);
         mla_serializer_write_string     (serializer, mla_string_const("deviceId"), self->deviceId);
         mla_serializer_write_struct     (serializer, mla_string_const("position"), self->position, mla_gps_position_t);
@@ -156,7 +156,7 @@ struct mla_device_report_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
         mla_device_report_t* self = static_cast<mla_device_report_t*>(obj);
         if (mla_string_equals_const(property_name, "deviceId")) {
             mla_deserializer_read_string(deserializer, self->deviceId);

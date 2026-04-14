@@ -60,7 +60,7 @@ mla_bool_t __mla_user_data_manage_external_resource(mla_user_data_list_t* list) 
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_ser_data_data_into_list_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_ser_data_data_into_list_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData;
 
@@ -236,7 +236,7 @@ mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id) {
 
 
 mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, mla_user_data_id id,
-                                     mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup_hook,
+                                     mla_platform_pointer_t data, mla_buffer_cleanup_hook_t cleanup_hook,
                                      mla_bool_t mangedExternalResource) {
 
     mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
@@ -254,7 +254,7 @@ mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, 
     return true;
 }
 
-mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_pointer_t data) {
+mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_platform_pointer_t data) {
 
     mla_user_data_t* user_data = __mla_user_data_get_for_update(target, id);
 
@@ -461,7 +461,7 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, mla_user_data_id id
     user_data->id = id;
 
     mla_c_string_t c_string = mla_string_to_cString(data, true);
-    user_data->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_string.c_str));
+    user_data->data.asPointer = reinterpret_cast<mla_platform_pointer_t>(const_cast<char*>(c_string.c_str));
     user_data->dataOwner = mla_buffer_reference_create(c_string.c_str, false, nullptr, mla_dynamic_data_empty());
     return true;
 }
@@ -865,7 +865,7 @@ mla_bool_t mla_user_data_dec_double(mla_user_data_t& target, mla_user_data_id id
 
 }
 
-mla_buffer_cleanup_mode __mla_user_data_set_native_resource_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_user_data_set_native_resource_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     mla_user_data_set_native_resource_hook_t orginal_cleanup_function = reinterpret_cast<mla_user_data_set_native_resource_hook_t>(data);
 
@@ -888,7 +888,7 @@ mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, mla_user_d
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_create(reinterpret_cast<mla_pointer_t>(cleanup), true, __mla_user_data_set_native_resource_cleanup, data);
+    user_data->dataOwner = mla_buffer_reference_create(reinterpret_cast<mla_platform_pointer_t>(cleanup), true, __mla_user_data_set_native_resource_cleanup, data);
     user_data->data = data;
 
     __mla_user_data_update_manage_external_resource(target, user_data);
@@ -936,7 +936,7 @@ mla_user_data_t* mla_user_data_get(mla_user_data_t& data, mla_user_data_id id) {
     return nullptr;
 }
 
-mla_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id) {
+mla_platform_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id) {
 
     const mla_user_data_t* found = mla_user_data_get((mla_user_data_t&)userData, id);
     if (found == nullptr) {
@@ -1351,7 +1351,7 @@ mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userDat
 
     // Now replace with new value
     mla_c_string_t c_new_string = mla_string_to_cString(newValue, true);
-    found->data.asPointer = reinterpret_cast<mla_pointer_t>(const_cast<char*>(c_new_string.c_str));
+    found->data.asPointer = reinterpret_cast<mla_platform_pointer_t>(const_cast<char*>(c_new_string.c_str));
     found->dataOwner = mla_buffer_reference_create(c_new_string.c_str, false, nullptr, mla_dynamic_data_empty());
 
     return result;

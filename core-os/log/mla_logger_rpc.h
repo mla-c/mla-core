@@ -15,7 +15,7 @@ static mla_string_t RPC_CACHE_LOGGER_NAME = mla_string("RpcConsole", 10);
 struct mla_logger_rpc_log_level_t {
     mla_log_level level;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_logger_rpc_log_level_t* logLevel = static_cast<const mla_logger_rpc_log_level_t*>(obj);
         mla_serializer_write_enum(serializer, mla_string_const("level"), logLevel->level);
@@ -23,7 +23,7 @@ struct mla_logger_rpc_log_level_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_logger_rpc_log_level_t* logLevel = static_cast<mla_logger_rpc_log_level_t*>(obj);
 
@@ -49,7 +49,7 @@ struct mla_logger_rpc_log_entry_t {
     mla_string_t message;
     mla_string_t context1;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_logger_rpc_log_entry_t* logEntry = static_cast<const mla_logger_rpc_log_entry_t*>(obj);
         mla_serializer_write_uint32(serializer, mla_string_const("logid"), logEntry->logid);
@@ -60,7 +60,7 @@ struct mla_logger_rpc_log_entry_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_logger_rpc_log_entry_t* logEntry = static_cast<mla_logger_rpc_log_entry_t*>(obj);
         if (mla_string_equals_const(property_name, "logid")) {
@@ -103,7 +103,7 @@ struct mla_logger_rpc_log_entry_initializer {
 struct mla_logger_rpc_log_messages_t {
     mla_array_list_t<mla_logger_rpc_log_entry_t, mla_logger_rpc_log_entry_initializer> entries;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_logger_rpc_log_messages_t* logMessages = static_cast<const mla_logger_rpc_log_messages_t*>(obj);
         mla_serializer_write_list<mla_logger_rpc_log_entry_t>(serializer, mla_string_const("entries"), logMessages->entries, mla_logger_rpc_log_entry_t::serialize);
@@ -111,7 +111,7 @@ struct mla_logger_rpc_log_messages_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_logger_rpc_log_messages_t* logMessages = static_cast<mla_logger_rpc_log_messages_t*>(obj);
         if (mla_string_equals_const(property_name, "entries")) {
@@ -138,15 +138,15 @@ mla_bool_t mla_logger_rpc_active();
 
 #define mla_rpc_procedure_set_loglevel_name "log/setLoglevel"
 #define mla_rpc_procedure_set_loglevel_signature mla_logger_rpc_log_level_t, mla_void_t
-mla_bool_t mla_logger_rpc_set_loglevel_handler(const mla_logger_rpc_log_level_t* input, mla_pointer_t output);
+mla_bool_t mla_logger_rpc_set_loglevel_handler(const mla_logger_rpc_log_level_t* input, mla_platform_pointer_t output);
 
 #define mla_rpc_procedure_get_loglevel_name "log/getLoglevel"
 #define mla_rpc_procedure_get_loglevel_signature void, mla_logger_rpc_log_level_t
-mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_pointer_t input, mla_logger_rpc_log_level_t* output);
+mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_platform_pointer_t input, mla_logger_rpc_log_level_t* output);
 
 #define mla_rpc_procedure_log_message_name "log/getMessages"
 #define mla_rpc_procedure_log_message_signature void, mla_logger_rpc_log_messages_t
-mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_pointer_t input, mla_logger_rpc_log_messages_t* output);
+mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_platform_pointer_t input, mla_logger_rpc_log_messages_t* output);
 
 
 

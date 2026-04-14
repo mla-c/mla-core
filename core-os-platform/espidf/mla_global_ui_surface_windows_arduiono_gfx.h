@@ -662,7 +662,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
     return true;
 }
 
-mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
 
     mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(data);

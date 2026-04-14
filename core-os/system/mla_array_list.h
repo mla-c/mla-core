@@ -19,7 +19,7 @@ struct mla_array_list_t {
 };
 
 template <mla_array_list_template>
-mla_buffer_cleanup_mode __mla_array_list_cleanup(mla_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+mla_buffer_cleanup_mode __mla_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
 
     T* l_Item = static_cast<T*>(p_Data);
 

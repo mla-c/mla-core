@@ -82,7 +82,7 @@ mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name) {
     return mla_hash_map_contains(g_rpc_container.procedures, procedure_name);
 }
 
-mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data) {
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
@@ -96,7 +96,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     }
 
     // Serialize also local calls to have the same behavior as remote calls
-    mla_pointer_t serialized_input = nullptr;
+    mla_platform_pointer_t serialized_input = nullptr;
 
     mla_memory_stream_t memory_stream = mla_memory_stream_empty();
 
@@ -128,7 +128,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     }
 
     // Create Output Buffer
-    mla_pointer_t serialized_output = nullptr;
+    mla_platform_pointer_t serialized_output = nullptr;
 
     if (output_data != nullptr && output_definition.data_size > 0) {
         serialized_output = mla_malloc(output_definition.data_size);
@@ -183,7 +183,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     }
 }
 
-mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t input_data, mla_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data) {
 
 
     mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_invalid();

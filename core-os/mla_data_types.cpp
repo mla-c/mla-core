@@ -24,9 +24,9 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path) {
 
 }
 
-mla_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* path, const mla_char_t* function_name) {
+mla_platform_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* path, const mla_char_t* function_name) {
 
-    mla_pointer_t ptr = g_low_level_access.malloc(size);
+    mla_platform_pointer_t ptr = g_low_level_access.malloc(size);
     if (ptr == nullptr) {
 
         const mla_char_t* fileName =  mla_find_filename_from_path(path);
@@ -107,7 +107,7 @@ mla_dynamic_data_t mla_dynamic_data_from_double(mla_double_t value) {
     return data;
 }
 
-mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_pointer_t value) {
+mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_platform_pointer_t value) {
     mla_dynamic_data_t data = {};
     data.asPointer = value;
     return data;

@@ -545,7 +545,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_pointer_t data, const mla_dynamic_data_t &userData) {
+mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t &userData) {
     (void)userData;
     mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(data);
     if (window_surface != nullptr) {

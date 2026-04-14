@@ -18,7 +18,7 @@ struct mla_task_manager_pthread_data_t {
     mla_task_shared_states* sharedStates;
 };
 
-mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Unused parameter
 
@@ -36,7 +36,7 @@ mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_pointer_t data, c
     return CLEAN_UP_NEEDED;
 }
 
-mla_pointer_t __mla_task_manager_pthread_worker(mla_pointer_t payload) {
+mla_platform_pointer_t __mla_task_manager_pthread_worker(mla_platform_pointer_t payload) {
 
     mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(payload);
 
@@ -185,7 +185,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
 }
 
-mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_pthread_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
     pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mla_malloc(sizeof(pthread_mutex_t)));
     if (mutex == nullptr) {
@@ -210,12 +210,12 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t* outMutex, mla_bo
         return false;
     }
 
-    *outMutex = static_cast<mla_pointer_t>(mutex);
+    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
     return true;
 
 }
 
-mla_bool_t mla_task_manager_pthread_lock_mutex(mla_pointer_t mutexResource, mla_int32_t timeoutms) {
+mla_bool_t mla_task_manager_pthread_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
 
     pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -253,7 +253,7 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(mla_pointer_t mutexResource, mla_
     return pthread_mutex_timedlock(mutex, &timeout) == 0; // Lock the mutex with timeout
 }
 
-mla_bool_t mla_task_manager_pthread_unlock_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_pthread_unlock_mutex(mla_platform_pointer_t mutexResource) {
 
     pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -263,7 +263,7 @@ mla_bool_t mla_task_manager_pthread_unlock_mutex(mla_pointer_t mutexResource) {
     return pthread_mutex_unlock(mutex) == 0;
 }
 
-mla_bool_t mla_task_manager_pthread_destroy_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_pthread_destroy_mutex(mla_platform_pointer_t mutexResource) {
 
     pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
 
@@ -319,7 +319,7 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
     return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
 }
 
-mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_pthread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
     pthread_key_t* key = static_cast<pthread_key_t*>(mla_malloc(sizeof(pthread_key_t)));
     if (key == nullptr) {
@@ -332,11 +332,11 @@ mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t* outTaskLoca
         return false;
     }
 
-    *outTaskLocal = static_cast<mla_pointer_t>(key);
+    *outTaskLocal = static_cast<mla_platform_pointer_t>(key);
     return true;
 }
 
-mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_platform_pointer_t taskLocal) {
 
     pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
     if (key == nullptr) {
@@ -348,7 +348,7 @@ mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_pointer_t taskLocal) 
     return success;
 }
 
-mla_bool_t mla_task_manager_pthread_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+mla_bool_t mla_task_manager_pthread_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
 
     pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
     if (key == nullptr) {
@@ -358,7 +358,7 @@ mla_bool_t mla_task_manager_pthread_set_task_local(mla_pointer_t taskLocal, mla_
     return pthread_setspecific(*key, value) == 0;
 }
 
-mla_pointer_t mla_task_manager_pthread_get_task_local(mla_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_pthread_get_task_local(mla_platform_pointer_t taskLocal) {
 
     pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
     if (key == nullptr) {

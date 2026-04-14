@@ -11,14 +11,14 @@
 
 static mla_bool_t m_hook_called = false;
 
-mla_bool_t my_test_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+mla_bool_t my_test_malloc_hook(mla_size_t size, mla_platform_pointer_t* out_ptr) {
     (void)out_ptr;
     (void)size;
     m_hook_called = true;
     return false;
 }
 
-mla_bool_t my_test_free_hook(mla_pointer_t ptr) {
+mla_bool_t my_test_free_hook(mla_platform_pointer_t ptr) {
     (void)ptr;
     m_hook_called = true;
     return false;
@@ -26,14 +26,14 @@ mla_bool_t my_test_free_hook(mla_pointer_t ptr) {
 
 static mla_bool_t m_hook2_called = false;
 
-mla_bool_t my_test2_malloc_hook(mla_size_t size, mla_pointer_t* out_ptr) {
+mla_bool_t my_test2_malloc_hook(mla_size_t size, mla_platform_pointer_t* out_ptr) {
     (void)out_ptr;
     (void)size;
     m_hook2_called = true;
     return false;
 }
 
-mla_bool_t my_test2_free_hook(mla_pointer_t ptr) {
+mla_bool_t my_test2_free_hook(mla_platform_pointer_t ptr) {
     (void)ptr;
     m_hook2_called = true;
     return false;
@@ -42,7 +42,7 @@ mla_bool_t my_test2_free_hook(mla_pointer_t ptr) {
 void InstallAndUninstallMemoryHookTest() {
 
     m_hook_called = false;
-    mla_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_malloc(24);
     assert_false(m_hook_called, "Memory hook should not be called on initial malloc");
     mla_free(data);
     assert_false(m_hook_called, "Memory hook should not be called on initial free");
@@ -90,7 +90,7 @@ void RegisterMemoryHookTests(mla_test_executor_t &p_TestExecutor) {
 
 void NoMemoryHookBenchmark() {
 
-    mla_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_malloc(24);
     (void)data; // Prevent unused variable warning
     mla_free(data);
 
@@ -109,7 +109,7 @@ void TeardownMemoryHookBenchmark() {
 
 void MemoryHookBenchmark() {
 
-    mla_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_malloc(24);
     (void)data; // Prevent unused variable warning
     mla_free(data);
 }
@@ -127,7 +127,7 @@ void TeardownTwoMemoryHookBenchmark() {
 void TwoMemoryHookBenchmark() {
 
 
-    mla_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_malloc(24);
     (void)data; // Prevent unused variable warning
     mla_free(data);
 

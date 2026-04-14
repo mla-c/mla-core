@@ -12,16 +12,16 @@ enum mla_buffer_cleanup_mode {
     CLEAN_UP_NEEDED,
 };
 
-typedef mla_buffer_cleanup_mode(*mla_buffer_cleanup_hook_t)(mla_pointer_t data, const mla_dynamic_data_t& userData);
+typedef mla_buffer_cleanup_mode(*mla_buffer_cleanup_hook_t)(mla_platform_pointer_t data, const mla_dynamic_data_t& userData);
 
 struct mla_buffer_t {
     mla_atomic_int32_t refCount;
-    const mla_pointer_t data; // Pointer to the buffer data
+    const mla_platform_pointer_t data; // Pointer to the buffer data
     mla_buffer_cleanup_hook_t cleanupHook;
     mla_dynamic_data_t cleanupHookUserData;
 };
 
-mla_buffer_t* mla_buffer(const mla_pointer_t p_Data, mla_buffer_cleanup_hook_t p_CleanupHook, const mla_dynamic_data_t& cleanupHookUserData);
+mla_buffer_t* mla_buffer(const mla_platform_pointer_t p_Data, mla_buffer_cleanup_hook_t p_CleanupHook, const mla_dynamic_data_t& cleanupHookUserData);
 
 void mla_buffer_destroy_without_cleanup_unsafe(mla_buffer_t* p_Buffer);
 
@@ -50,14 +50,14 @@ public:
 };
 
 
-mla_buffer_reference_t mla_buffer_reference_create(const mla_pointer_t data, mla_bool_t mangedExternalResource, mla_buffer_cleanup_hook_t cleanupHook, const mla_dynamic_data_t& cleanupHookUserData);
+mla_buffer_reference_t mla_buffer_reference_create(const mla_platform_pointer_t data, mla_bool_t mangedExternalResource, mla_buffer_cleanup_hook_t cleanupHook, const mla_dynamic_data_t& cleanupHookUserData);
 
-mla_buffer_reference_t mla_buffer_reference_without_cleanup_hook(const mla_pointer_t data);
+mla_buffer_reference_t mla_buffer_reference_without_cleanup_hook(const mla_platform_pointer_t data);
 mla_buffer_reference_t mla_buffer_reference_noOwner();
 
 
 template <typename T, typename TInit = mla_default_init(T)>
-mla_buffer_cleanup_mode mla_buffer_default_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode mla_buffer_default_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
 
     T* l_Data = reinterpret_cast<T*>(data);

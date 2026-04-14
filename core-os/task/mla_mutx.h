@@ -12,7 +12,7 @@
 
 struct mla_mutex_t {
     mla_string_t name;
-    mla_pointer_t resource; // Pointer to the mutex resource
+    mla_platform_pointer_t resource; // Pointer to the mutex resource
     mla_buffer_reference_t resourceOwner; // Resource owner for the mutex
 };
 

@@ -98,12 +98,12 @@ mla_uint32_t mla_random_uint32() {
 
     // Initialize seed on first call using system time
     if (!initialized) {
-        if (sizeof(mla_pointer_t) == 8) {
+        if (sizeof(mla_platform_pointer_t) == 8) {
             // 64-bit pointers: mix high and low bits
             mla_uint64_t addr1 = (mla_uint64_t) &seed;
             mla_uint64_t addr2 = (mla_uint64_t) &initialized;
             seed = (mla_uint32_t) (addr1 ^ (addr1 >> 32) ^ addr2 ^ (addr2 >> 32));
-        } else if (sizeof(mla_pointer_t) == 4) {
+        } else if (sizeof(mla_platform_pointer_t) == 4) {
             // 32-bit pointers: direct XOR
             mla_uint32_t addr1 = (mla_uint32_t)(mla_uint64_t) &seed;
             mla_uint32_t addr2 = (mla_uint32_t)(mla_uint64_t) &initialized;

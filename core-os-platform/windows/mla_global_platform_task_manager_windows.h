@@ -16,7 +16,7 @@ struct mla_task_manager_windows_native_data_t {
     mla_task_shared_states* sharedStates;
 };
 
-mla_buffer_cleanup_mode __mla_task_manager_windows_native_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_task_manager_windows_native_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData;
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(data);
@@ -196,7 +196,7 @@ struct mla_task_manager_windows_native_mutex_t {
     mla_bool_t supports_recursive_locking; // whether the mutex supports recursive locking
 };
 
-mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_windows_native_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
     mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_windows_native_mutex_t)));
 
@@ -209,12 +209,12 @@ mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t* outMutex,
     mutex->locked = false; // Initially not locked
     mutex->supports_recursive_locking = supports_recursive_locking;
 
-    *outMutex = static_cast<mla_pointer_t>(mutex);
+    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
     return true; // Successfully created the mutex
 
 }
 
-mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_pointer_t mutexResource, mla_int32_t timeoutms) {
+mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
 
     mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -245,7 +245,7 @@ mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_pointer_t mutexResourc
     return false; // Failed to lock the mutex within the timeout
 }
 
-mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -276,7 +276,7 @@ mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_pointer_t mutexResou
 
 }
 
-mla_bool_t mla_task_manager_windows_native_destroy_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_windows_native_destroy_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
     if (mutex == nullptr) {
@@ -307,7 +307,7 @@ mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
     return MULTI_TASK_MODE_NATIVE;
 }
 
-mla_bool_t mla_task_manager_windows_native_create_task_local(mla_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_windows_native_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
     DWORD flsIndex = FlsAlloc(nullptr);
     if (flsIndex == FLS_OUT_OF_INDEXES) {
@@ -321,11 +321,11 @@ mla_bool_t mla_task_manager_windows_native_create_task_local(mla_pointer_t* outT
     }
 
     *index = flsIndex;
-    *outTaskLocal = static_cast<mla_pointer_t>(index);
+    *outTaskLocal = static_cast<mla_platform_pointer_t>(index);
     return true;
 }
 
-mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_platform_pointer_t taskLocal) {
 
     DWORD* index = static_cast<DWORD*>(taskLocal);
     if (index == nullptr) {
@@ -337,7 +337,7 @@ mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_pointer_t task
     return success;
 }
 
-mla_bool_t mla_task_manager_windows_native_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+mla_bool_t mla_task_manager_windows_native_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
 
     DWORD* index = static_cast<DWORD*>(taskLocal);
     if (index == nullptr) {
@@ -347,7 +347,7 @@ mla_bool_t mla_task_manager_windows_native_set_task_local(mla_pointer_t taskLoca
     return FlsSetValue(*index, value) != 0;
 }
 
-mla_pointer_t mla_task_manager_windows_native_get_task_local(mla_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_windows_native_get_task_local(mla_platform_pointer_t taskLocal) {
 
     DWORD* index = static_cast<DWORD*>(taskLocal);
     if (index == nullptr) {

@@ -13,19 +13,19 @@
 
 #include "../../core-os/mla_data_types.h"
 
-mla_pointer_t __generic_memcpy(mla_pointer_t dest, const mla_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t __generic_memcpy(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
     return memcpy(dest, src, size);
 }
 
-mla_pointer_t __generic_memset(mla_pointer_t dest, mla_byte_t value, mla_size_t size) {
+mla_platform_pointer_t __generic_memset(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size) {
     return memset(dest, value, size);
 }
 
-mla_int32_t __generic_memcmp(const mla_pointer_t dest, const mla_pointer_t src, mla_size_t size) {
+mla_int32_t __generic_memcmp(const mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
     return memcmp(dest, src, size);
 }
 
-mla_pointer_t __generic_memmove(mla_pointer_t dest, const mla_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t __generic_memmove(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
     return memmove(dest, src, size);
 }
 
@@ -41,15 +41,15 @@ const mla_char_t* __generic_strstr(const mla_char_t* str, const mla_char_t* subs
     return strstr(str, substr);
 }
 
-mla_pointer_t __generic_malloc(mla_size_t size) {
+mla_platform_pointer_t __generic_malloc(mla_size_t size) {
     return malloc(size);
 }
 
-void __generic_free(mla_pointer_t ptr) {
+void __generic_free(mla_platform_pointer_t ptr) {
     free(ptr);
 }
 
-mla_bool_t __generic_is_gcc_pointer(const mla_pointer_t ptr) {
+mla_bool_t __generic_is_gcc_pointer(const mla_platform_pointer_t ptr) {
     (void)ptr;
     return false;
 }

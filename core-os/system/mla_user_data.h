@@ -33,8 +33,8 @@ mla_user_data_t mla_user_data_empty();
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other);
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id);
-mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = true /** for now true because in Area We can not control 100% if the inner suff need to be maintained, like wrapped sockeds **/);
-mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_pointer_t data);
+mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_platform_pointer_t data, mla_buffer_cleanup_hook_t cleanup, mla_bool_t mangedExternalResource = true /** for now true because in Area We can not control 100% if the inner suff need to be maintained, like wrapped sockeds **/);
+mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_platform_pointer_t data);
 mla_bool_t mla_user_data_set_int8(mla_user_data_t& target, mla_user_data_id id, mla_int8_t data);
 mla_bool_t mla_user_data_set_uint8(mla_user_data_t& target, mla_user_data_id id, mla_uint8_t data);
 mla_bool_t mla_user_data_set_int16(mla_user_data_t& target, mla_user_data_id id, mla_int16_t data);
@@ -79,31 +79,31 @@ template <typename T, typename TInit = mla_default_init_ref(T)>
 mla_bool_t mla_user_data_set_pointer_with_ownership(mla_user_data_t& target, mla_user_data_id id, T* data) {
 
     mla_buffer_cleanup_hook_t cleanupHook = mla_buffer_default_cleanup<T, TInit>;
-    return mla_user_data_set_pointer_with_ownership_ex(target, id, reinterpret_cast<mla_pointer_t>(data), cleanupHook);
+    return mla_user_data_set_pointer_with_ownership_ex(target, id, reinterpret_cast<mla_platform_pointer_t>(data), cleanupHook);
 
 }
 
 template <typename T>
 mla_bool_t mla_user_data_set_pointer_without_ownership(mla_user_data_t& target, mla_user_data_id id, T* data) {
 
-    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_pointer_t>(data));
+    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_platform_pointer_t>(data));
 }
 
 template <typename T>
 mla_bool_t mla_user_data_set_pointer_without_ownership(mla_user_data_t& target, mla_user_data_id id, const T* data) {
 
-    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_pointer_t>(const_cast<T*>(data)));
+    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_platform_pointer_t>(const_cast<T*>(data)));
 }
 
 template <typename T>
 mla_bool_t mla_user_data_set_callback(mla_user_data_t& target, mla_user_data_id id, T data) {
-    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_pointer_t>(data));
+    return mla_user_data_set_pointer_without_ownership_ex(target, id, reinterpret_cast<mla_platform_pointer_t>(data));
 }
 
 mla_bool_t mla_user_data_equal(const mla_user_data_t& a, const mla_user_data_t& b);
 mla_user_data_t* mla_user_data_get(const mla_user_data_t& data, mla_user_data_id id);
 
-mla_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id);
+mla_platform_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id);
 mla_int8_t mla_user_data_get_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t defaultValue = 0);
 mla_uint8_t mla_user_data_get_uint8(const mla_user_data_t& userData, mla_user_data_id id, mla_uint8_t defaultValue = 0);
 mla_int16_t mla_user_data_get_int16(const mla_user_data_t& userData, mla_user_data_id id, mla_int16_t defaultValue = 0);

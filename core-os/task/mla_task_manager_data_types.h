@@ -62,17 +62,17 @@ struct mla_task_shared_states {
 struct mla_task_manager_low_level_access {
     mla_bool_t (*create_task)(const mla_task_worker_t worker, const mla_string_t& task_name, mla_user_data_t& user_data, const mla_task_stack_size stackSize, const mla_task_priority priority, mla_buffer_reference_t* outTaskResourceOwner, mla_task_shared_states* shared_states);
     void (*run_tasks)();
-    mla_bool_t (*create_mutex)(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking);
-    mla_bool_t (*lock_mutex)(mla_pointer_t mutex, mla_int32_t timeout);
-    mla_bool_t (*unlock_mutex)(mla_pointer_t mutex);
-    mla_bool_t (*destroy_mutex)(mla_pointer_t mutex);
+    mla_bool_t (*create_mutex)(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking);
+    mla_bool_t (*lock_mutex)(mla_platform_pointer_t mutex, mla_int32_t timeout);
+    mla_bool_t (*unlock_mutex)(mla_platform_pointer_t mutex);
+    mla_bool_t (*destroy_mutex)(mla_platform_pointer_t mutex);
     mla_multi_task_mode (*get_multi_task_mode)();
 
     // task local storage
-    mla_bool_t (*create_task_local)(mla_pointer_t* outTaskLocal);
-    mla_bool_t (*destroy_task_local)(mla_pointer_t taskLocal);
-    mla_bool_t (*set_task_local)(mla_pointer_t taskLocal, mla_pointer_t value);
-    mla_pointer_t (*get_task_local)(mla_pointer_t taskLocal);
+    mla_bool_t (*create_task_local)(mla_platform_pointer_t* outTaskLocal);
+    mla_bool_t (*destroy_task_local)(mla_platform_pointer_t taskLocal);
+    mla_bool_t (*set_task_local)(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value);
+    mla_platform_pointer_t (*get_task_local)(mla_platform_pointer_t taskLocal);
 
     // atomic operations
     mla_int32_t (*atomic_int32_increment)(mla_atomic_int32_t& value);

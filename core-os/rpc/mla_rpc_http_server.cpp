@@ -46,7 +46,7 @@ mla_bool_t __mla_rpc_http_server_support_deflate_compression(const mla_rpc_http_
 #endif
 }
 
-mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t outputData, const mla_serialize_definition_write_function_t &write_function) {
+mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_platform_pointer_t outputData, const mla_serialize_definition_write_function_t &write_function) {
 
     mla_serializer_t serializer = mla_serializer_invalid();
 
@@ -69,7 +69,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type
 
 mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
-    mla_pointer_t buffer = mla_user_data_get_mla_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
+    mla_platform_pointer_t buffer = mla_user_data_get_mla_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
 
     if (buffer == nullptr) {
         return false;
@@ -81,7 +81,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
         return false;
 
     // Store content type and write function at the beginning of output buffer
-    mla_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+    mla_platform_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
 
     mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output_invalid();
 
@@ -163,7 +163,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     }
 
     // Prepare Input data
-    mla_pointer_t input = nullptr;
+    mla_platform_pointer_t input = nullptr;
 
     if (procedure.inputDefinition.data_size > 0) {
         input = mla_malloc(procedure.inputDefinition.data_size);
@@ -176,7 +176,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     }
 
     // Prepare Output data
-    mla_pointer_t output = nullptr;
+    mla_platform_pointer_t output = nullptr;
 
     if (procedure.outputDefinition.data_size > 0) {
 
@@ -215,7 +215,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     }
 
     // Store content type and write function at the beginning of output buffer
-    mla_pointer_t outputData = nullptr;
+    mla_platform_pointer_t outputData = nullptr;
 
     if (output != nullptr) {
         outputData = reinterpret_cast<mla_uint8_t*>(output) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);

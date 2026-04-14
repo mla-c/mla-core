@@ -16,7 +16,7 @@ struct mla_reflection_rpc_struct_metadata_field_t {
     mla_reflection_type_t element_type; // For lists
     mla_string_t struct_name;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_reflection_rpc_struct_metadata_field_t* field = static_cast<const mla_reflection_rpc_struct_metadata_field_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("name"), field->name);
@@ -27,7 +27,7 @@ struct mla_reflection_rpc_struct_metadata_field_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_reflection_rpc_struct_metadata_field_t* field = static_cast<mla_reflection_rpc_struct_metadata_field_t*>(obj);
 
@@ -62,7 +62,7 @@ struct mla_reflection_rpc_struct_metadata_t {
     mla_string_t name;
     mla_array_list_t<mla_reflection_rpc_struct_metadata_field_t, mla_reflection_rpc_struct_metadata_field_initializer> fields;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_reflection_rpc_struct_metadata_t* metadata = static_cast<const mla_reflection_rpc_struct_metadata_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("name"), metadata->name);
@@ -72,7 +72,7 @@ struct mla_reflection_rpc_struct_metadata_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_reflection_rpc_struct_metadata_t* metadata = static_cast<mla_reflection_rpc_struct_metadata_t*>(obj);
         if (mla_string_equals_const(property_name, "name")) {
@@ -111,7 +111,7 @@ struct mla_reflection_rpc_struct_metadata_initializer {
 struct mla_reflection_struct_metadata_request_t {
     mla_string_t struct_name;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_reflection_struct_metadata_request_t* request = static_cast<const mla_reflection_struct_metadata_request_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("struct_name"), request->struct_name);
@@ -119,7 +119,7 @@ struct mla_reflection_struct_metadata_request_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_reflection_struct_metadata_request_t* request = static_cast<mla_reflection_struct_metadata_request_t*>(obj);
 
@@ -146,7 +146,7 @@ struct mla_reflection_struct_metadata_response_t {
     mla_bool_t found;
     mla_reflection_rpc_struct_metadata_t meta_data;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
 
         const mla_reflection_struct_metadata_response_t* response = static_cast<const mla_reflection_struct_metadata_response_t*>(obj);
         mla_serializer_write_bool(serializer, mla_string_const("found"), response->found);
@@ -155,7 +155,7 @@ struct mla_reflection_struct_metadata_response_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
 
         mla_reflection_struct_metadata_response_t* response = static_cast<mla_reflection_struct_metadata_response_t*>(obj);
 

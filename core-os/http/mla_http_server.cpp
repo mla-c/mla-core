@@ -867,7 +867,7 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_user_data_t& us
     return __mla_http_server_handler_websocket_messages(userData);
 }
 
-mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = static_cast<

@@ -274,5 +274,5 @@ mla_ui_button_click_event_t mla_ui_button_get_click_event(const mla_ui_control_t
 }
 
 mla_bool_t mla_ui_button_set_click_event(mla_ui_control_t &button, mla_ui_button_click_event_t processClickEvent) {
-    return mla_ui_control_set_value_as_pointer(button, mla_string_const("click"), reinterpret_cast<mla_pointer_t>(processClickEvent));
+    return mla_ui_control_set_value_as_pointer(button, mla_string_const("click"), reinterpret_cast<mla_platform_pointer_t>(processClickEvent));
 }

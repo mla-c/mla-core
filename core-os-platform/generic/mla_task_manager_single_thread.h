@@ -44,7 +44,7 @@ struct mla_task_manager_single_thread_mutex {
     mla_volatile mla_bool_t locked;
 };
 
-mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_single_thread_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
     if (supports_recursive_locking) {
         // If recursive locking is supported, we can just return a dummy mutex that is always unlocked.
@@ -59,12 +59,12 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t* outMutex, 
     mla_memset(mutex, 0, sizeof(mla_task_manager_single_thread_mutex));
 
     mutex->locked = false;
-    *outMutex = static_cast<mla_pointer_t>(mutex);
+    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
 
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_pointer_t mutexResource, mla_int32_t timeout) {
+mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeout) {
 
     (void)timeout; // Silences the unused parameter warning
 
@@ -85,7 +85,7 @@ mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_pointer_t mutexResource
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
 
@@ -103,7 +103,7 @@ mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_pointer_t mutexResour
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_destroy_mutex(mla_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_single_thread_destroy_mutex(mla_platform_pointer_t mutexResource) {
 
     mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
 
@@ -236,10 +236,10 @@ mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atom
 }
 
 struct mla_task_manager_single_thread_task_local {
-    mla_pointer_t value;
+    mla_platform_pointer_t value;
 };
 
-mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_single_thread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
     mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(mla_malloc(sizeof(mla_task_manager_single_thread_task_local)));
 
@@ -249,12 +249,12 @@ mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t* outTa
     mla_memset(local, 0, sizeof(mla_task_manager_single_thread_task_local));
 
     local->value = nullptr;
-    *outTaskLocal = static_cast<mla_pointer_t>(local);
+    *outTaskLocal = static_cast<mla_platform_pointer_t>(local);
 
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_platform_pointer_t taskLocal) {
 
     mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
 
@@ -266,7 +266,7 @@ mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_pointer_t taskL
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_set_task_local(mla_pointer_t taskLocal, mla_pointer_t value) {
+mla_bool_t mla_task_manager_single_thread_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
 
     mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
 
@@ -278,7 +278,7 @@ mla_bool_t mla_task_manager_single_thread_set_task_local(mla_pointer_t taskLocal
     return true;
 }
 
-mla_pointer_t mla_task_manager_single_thread_get_task_local(mla_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_single_thread_get_task_local(mla_platform_pointer_t taskLocal) {
 
     mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
 

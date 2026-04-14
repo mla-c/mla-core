@@ -58,7 +58,7 @@ la_global_ui_surface_windows_direct2d_Cache __mla_global_ui_surface_windows_dire
 }
 
 mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(
-    mla_pointer_t data, const mla_dynamic_data_t& userData) {
+    mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     ID2D1SolidColorBrush *solid_brush = static_cast<ID2D1SolidColorBrush *>(data);
@@ -86,7 +86,7 @@ ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_br
 }
 
 mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(
-    mla_pointer_t data, const mla_dynamic_data_t& userData) {
+    mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     IDWriteTextFormat *textFormat = static_cast<IDWriteTextFormat *>(data);
@@ -1107,7 +1107,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     return SUCCEEDED(hr);
 }
 
-mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void) userData;
 
     mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(data);
