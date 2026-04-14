@@ -844,10 +844,21 @@ export class RemoteUIDrawer {
             this._serverFpsWindowStart = now;
         }
 
+
+        let networkDelayMs = 0;
+
+        // Try to find the time which the server is sending
+        if (now < this._lastNetworkDelay) {
+            networkDelayMs = this._lastNetworkDelay;
+        } else {
+            // Try to guess what is the ms format which the server is sending unix or windows
+            networkDelayMs = now - this._lastNetworkDelay;
+        }
+
         const lines = [
             `Render FPS:  ${this._fpsCurrentValue}`,
             `Server FPS:  ${this._serverFpsCurrentValue}`,
-            `Network Delay: ${this._lastNetworkDelay} ms`,
+            `Network Delay: ${networkDelayMs} ms`,
         ];
 
         const ctx = this.ctx;
