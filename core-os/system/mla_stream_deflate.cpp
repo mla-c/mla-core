@@ -17,6 +17,7 @@
 // DEFLATE limits
 #define mla_deflate_max_bits            15
 #define mla_deflate_max_lit_codes       286
+#define mla_deflate_fixed_lit_codes     288       // RFC 1951 §3.2.6: fixed Huffman uses 288 code-space entries (0..287)
 #define mla_deflate_max_dist_codes      30
 #define mla_deflate_max_cl_codes        19
 #define mla_deflate_max_codes           (mla_deflate_max_lit_codes + mla_deflate_max_dist_codes)
@@ -452,8 +453,8 @@ static void __mla_deflate_bit_writer_align(__mla_deflate_bit_writer_t &writer) {
 ///////////////////////////////////////////////////////////////////
 
 struct __mla_deflate_fixed_tables_t {
-    mla_uint16_t lit_code[mla_deflate_max_lit_codes];
-    mla_uint8_t lit_length[mla_deflate_max_lit_codes];
+    mla_uint16_t lit_code[mla_deflate_fixed_lit_codes];
+    mla_uint8_t lit_length[mla_deflate_fixed_lit_codes];
     mla_bool_t initialized;
 };
 
@@ -468,18 +469,21 @@ static void __mla_deflate_build_fixed_tables() {
     //   0..143   -> 8 bits
     //   144..255 -> 9 bits
     //   256..279 -> 7 bits
-    //   280..285 -> 8 bits
+    //   280..287 -> 8 bits
+    // Note: symbols 286-287 are unused in practice, but RFC 1951 defines
+    // 288 entries for the fixed Huffman code space and all 288 must be
+    // included so that the canonical code assignment is correct.
     mla_uint16_t i;
     for (i = 0; i <= 143; i++) __mla_deflate_fixed_tables.lit_length[i] = 8;
     for (i = 144; i <= 255; i++) __mla_deflate_fixed_tables.lit_length[i] = 9;
     for (i = 256; i <= 279; i++) __mla_deflate_fixed_tables.lit_length[i] = 7;
-    for (i = 280; i <= 285; i++) __mla_deflate_fixed_tables.lit_length[i] = 8;
+    for (i = 280; i <= 287; i++) __mla_deflate_fixed_tables.lit_length[i] = 8;
 
     // Build the actual Huffman codes from the lengths
     // Step 1: Count the number of codes for each bit length
     mla_uint16_t bl_count[mla_deflate_max_bits + 1];
     mla_memset(bl_count, 0, sizeof(bl_count));
-    for (i = 0; i < mla_deflate_max_lit_codes; i++) {
+    for (i = 0; i < mla_deflate_fixed_lit_codes; i++) {
         bl_count[__mla_deflate_fixed_tables.lit_length[i]]++;
     }
 
@@ -493,7 +497,7 @@ static void __mla_deflate_build_fixed_tables() {
     }
 
     // Step 3: Assign codes to symbols
-    for (i = 0; i < mla_deflate_max_lit_codes; i++) {
+    for (i = 0; i < mla_deflate_fixed_lit_codes; i++) {
         mla_uint8_t len = __mla_deflate_fixed_tables.lit_length[i];
         if (len != 0) {
             __mla_deflate_fixed_tables.lit_code[i] = next_code[len]++;
@@ -883,14 +887,17 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 
 
     if (state->mode == mla_deflate_mode_raw_websocket) {
-        // RFC 7692 permessage-deflate expects the sender to emit the same bit
-        // sequence as a normal raw DEFLATE flush, but to omit only the trailing
-        // LEN/NLEN bytes (00 00 FF FF). The 3 empty-block header bits from the
-        // raw flush must still be written because they may share the same output
-        // byte as the pending end-of-block bits.
-        __mla_deflate_bit_writer_write(state->writer, 0x01, 3);
+        // RFC 7692 permessage-deflate expects the sender to produce the same
+        // byte sequence as a Z_SYNC_FLUSH, then strip the trailing 4-byte
+        // LEN/NLEN (00 00 FF FF).  Z_SYNC_FLUSH emits an empty stored block
+        // with BFINAL=0 (not BFINAL=1).  The receiver re-appends the 4 bytes
+        // and feeds the result to inflate with Z_SYNC_FLUSH, which expects
+        // Z_OK – not Z_STREAM_END.  Using BFINAL=1 here would cause standard
+        // clients (e.g. Node.js ws library) to receive Z_STREAM_END, which can
+        // corrupt the inflate stream state and produce garbled output.
+        __mla_deflate_bit_writer_write(state->writer, 0x00, 3);
 
-        // Byte-align so the kept prefix exactly matches a normal raw stream with
+        // Byte-align so the kept prefix exactly matches a Z_SYNC_FLUSH with
         // only the last four LEN/NLEN bytes removed.
         __mla_deflate_bit_writer_align(state->writer);
     } else {
@@ -961,7 +968,7 @@ struct __mla_deflate_decompress_state_t {
     mla_size_t output_buf_len;   // amount of decoded data in buffer
 
     // Huffman tables for current block
-    __mla_deflate_huffman_t<mla_deflate_max_lit_codes> lit_table;
+    __mla_deflate_huffman_t<mla_deflate_fixed_lit_codes> lit_table;
     __mla_deflate_huffman_t<mla_deflate_max_dist_codes> dist_table;
 
     // Block state
@@ -992,7 +999,7 @@ struct __mla_deflate_decompress_state_initializer {
             {nullptr, 0, 0, {}, 0, 0, false}, // reader
             {}, 0,                         // window, window_pos
             mla_bytes_empty(), 0, 0,             // output_buf, output_buf_size, output_buf_pos, output_buf_len
-            __mla_deflate_huffman_empty<mla_deflate_max_lit_codes>(),                   // lit_table
+            __mla_deflate_huffman_empty<mla_deflate_fixed_lit_codes>(),                   // lit_table
             __mla_deflate_huffman_empty<mla_deflate_max_dist_codes>(),                   // dist_table
             false, false, 0, 0,           // block_final, block_active, block_type, uncompressed_remaining
             0, 0,                          // pending_match_remaining, pending_match_dist
@@ -1070,7 +1077,7 @@ static mla_bool_t __mla_deflate_decompress_consume_gzip_trailer(__mla_deflate_de
 mla_user_data_id_init(__mla_stream_deflate_decompress_data_name)
 
 
-static __mla_deflate_huffman_t<mla_deflate_max_lit_codes> __mla_deflate_fixed_lit_decode_table;
+static __mla_deflate_huffman_t<mla_deflate_fixed_lit_codes> __mla_deflate_fixed_lit_decode_table;
 static __mla_deflate_huffman_t<mla_deflate_max_dist_codes> __mla_deflate_fixed_dist_decode_table;
 static mla_bool_t __mla_deflate_fixed_decode_tables_initialized = false;
 
@@ -1078,16 +1085,17 @@ static void __mla_deflate_build_fixed_decode_tables_once() {
     if (__mla_deflate_fixed_decode_tables_initialized)
         return;
 
-    mla_uint8_t lengths[mla_deflate_max_lit_codes];
+    mla_uint8_t lengths[mla_deflate_fixed_lit_codes];
     mla_uint16_t i;
 
-    // Literal/Length: 0..143 = 8 bits, 144..255 = 9 bits, 256..279 = 7 bits, 280..285 = 8 bits
+    // Literal/Length per RFC 1951 3.2.6: 288 entries (0..287)
+    // 0..143 = 8 bits, 144..255 = 9 bits, 256..279 = 7 bits, 280..287 = 8 bits
     for (i = 0; i <= 143; i++) lengths[i] = 8;
     for (i = 144; i <= 255; i++) lengths[i] = 9;
     for (i = 256; i <= 279; i++) lengths[i] = 7;
-    for (i = 280; i <= 285; i++) lengths[i] = 8;
+    for (i = 280; i <= 287; i++) lengths[i] = 8;
 
-    __mla_deflate_huffman_build(__mla_deflate_fixed_lit_decode_table, lengths, mla_deflate_max_lit_codes);
+    __mla_deflate_huffman_build(__mla_deflate_fixed_lit_decode_table, lengths, mla_deflate_fixed_lit_codes);
 
     // Distance: all 5 bits
     mla_uint8_t dist_lengths[mla_deflate_max_dist_codes];
