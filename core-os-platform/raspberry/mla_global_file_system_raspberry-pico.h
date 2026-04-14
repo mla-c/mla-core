@@ -89,7 +89,7 @@ mla_buffer_cleanup_mode __mla_file_system_pico_native_cleanup(mla_platform_point
 
 mla_file_system_t __mla_file_system_pico_native_create() {
     
-    mla_file_system_pico_native_t* fs = static_cast<mla_file_system_pico_native_t*>(mla_malloc(sizeof(mla_file_system_pico_native_t)));
+    mla_file_system_pico_native_t* fs = static_cast<mla_file_system_pico_native_t*>(mla_platform_malloc(sizeof(mla_file_system_pico_native_t)));
     
     if (fs == nullptr)
         return mla_file_system_empty();

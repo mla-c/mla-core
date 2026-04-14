@@ -102,7 +102,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
     // Serialize input data
     if (input_data != nullptr && input_definition.data_size > 0) {
-        serialized_input = mla_malloc(input_definition.data_size);
+        serialized_input = mla_platform_malloc(input_definition.data_size);
 
         if (serialized_input == nullptr) {
             return false; // Memory allocation failed
@@ -112,7 +112,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
         mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
         if (!mla_serializer_write_data_struct(binarySerializer, input_data, input_definition.write_function)) {
-            mla_free(serialized_input);
+            mla_platform_free(serialized_input);
             return false; // Serialization failed
         }
         mla_memory_stream_set_position(memory_stream, 0);
@@ -121,7 +121,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
         // Start reading
         binaryDeserializer.read_next(binaryDeserializer);
         if (!mla_deserializer_read_struct_read_function(binaryDeserializer, serialized_input, input_definition.read_function)) {
-            mla_free(serialized_input);
+            mla_platform_free(serialized_input);
             return false; // Serialization failed
         }
 
@@ -131,11 +131,11 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     mla_platform_pointer_t serialized_output = nullptr;
 
     if (output_data != nullptr && output_definition.data_size > 0) {
-        serialized_output = mla_malloc(output_definition.data_size);
+        serialized_output = mla_platform_malloc(output_definition.data_size);
 
         if (serialized_output == nullptr) {
             if (serialized_input != nullptr) {
-                mla_free(serialized_input);
+                mla_platform_free(serialized_input);
             }
             return false; // Memory allocation failed
         }
@@ -146,7 +146,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     mla_bool_t result = procedure.execute(serialized_input, serialized_output);
 
     if (serialized_input != nullptr) {
-        mla_free(serialized_input);
+        mla_platform_free(serialized_input);
     }
 
 
@@ -158,10 +158,10 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
             // Deserialize output data
             mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
             if (!mla_serializer_write_data_struct(binarySerializer, serialized_output, output_definition.write_function)) {
-                mla_free(serialized_output);
+                mla_platform_free(serialized_output);
                 return false; // Serialization failed
             }
-            mla_free(serialized_output);
+            mla_platform_free(serialized_output);
             mla_memory_stream_set_position(memory_stream, 0);
 
             mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
@@ -176,7 +176,7 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
 
     } else {
         if (serialized_output != nullptr) {
-            mla_free(serialized_output);
+            mla_platform_free(serialized_output);
         }
 
         return false; // Procedure execution failed
@@ -250,7 +250,7 @@ mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& u
 
 mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t& start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data) {
 
-    mla_rpc_remote_endpoint_start_with_user_data_t* user_data_payload = reinterpret_cast<mla_rpc_remote_endpoint_start_with_user_data_t*>(mla_malloc(sizeof(mla_rpc_remote_endpoint_start_with_user_data_t)));
+    mla_rpc_remote_endpoint_start_with_user_data_t* user_data_payload = reinterpret_cast<mla_rpc_remote_endpoint_start_with_user_data_t*>(mla_platform_malloc(sizeof(mla_rpc_remote_endpoint_start_with_user_data_t)));
 
     if (user_data_payload == nullptr) {
         return mla_rpc_remote_endpoint_invalid();

@@ -42,7 +42,7 @@ void SimpleReleaseTest() {
     is_buffer_destroyed = false;
     mla_memory_hook_t hook = mla_memory_hook_install(my_buffer_malloc_hook, my_buffer_free_hook);
 
-    mla_platform_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_platform_malloc(64);
 
     my_buffer_test_t container = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
 
@@ -89,7 +89,7 @@ mla_buffer_cleanup_mode my_test_cleanup_hook(mla_platform_pointer_t p_Data, cons
 
 void CleanUpHookTests() {
 
-    mla_platform_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_platform_malloc(64);
     my_buffer_test_t container = {data, mla_buffer(data, my_test_cleanup_hook, mla_dynamic_data_from_int32(42))};
 
     if (container.dataOwner.buffer != nullptr) {
@@ -118,7 +118,7 @@ void RegisterBufferTests(mla_test_executor_t &p_TestExecutor) {
 
 void BufferMemoryManagementBenchmark() {
 
-    mla_platform_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_platform_malloc(64);
     my_buffer_test_t container1 = {data, mla_buffer(data, nullptr, mla_dynamic_data_empty())};
     my_buffer_test_t container2 = container1;
     my_buffer_test_t container3 = container2;
@@ -130,7 +130,7 @@ void BufferMemoryManagementBenchmark() {
 
 void NativeMemoryManagementBenchmark() {
 
-    mla_platform_pointer_t data = mla_malloc(64);
+    mla_platform_pointer_t data = mla_platform_malloc(64);
     my_native_buffer_test_t container1 = {data};
     my_native_buffer_test_t container2 = container1;
     my_native_buffer_test_t container3 = container2;
@@ -141,7 +141,7 @@ void NativeMemoryManagementBenchmark() {
     container3 = {nullptr};
 
     // Free the memory
-    mla_free(data);
+    mla_platform_free(data);
 }
 
 void NativeAutomaticMemoryManagementBenchmark() {

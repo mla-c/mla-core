@@ -104,7 +104,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     mla_buffer_reference_t* outTaskResourceOwner,
     mla_task_shared_states* shared_states) {
 
-    mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(mla_malloc(sizeof(mla_task_manager_pthread_data_t)));
+    mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_pthread_data_t)));
 
     if (thread_data == nullptr) {
         return false;
@@ -170,7 +170,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
     // No scressfull
     if (result != 0) {
-        mla_free(thread_data);
+        mla_platform_free(thread_data);
         return false;
     }
 
@@ -187,7 +187,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
 mla_bool_t mla_task_manager_pthread_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
-    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mla_malloc(sizeof(pthread_mutex_t)));
+    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mla_platform_malloc(sizeof(pthread_mutex_t)));
     if (mutex == nullptr) {
         return false;
     }
@@ -206,7 +206,7 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_platform_pointer_t* outMute
     pthread_mutexattr_destroy(&attr);
 
     if (result != 0) {
-        mla_free(mutex);
+        mla_platform_free(mutex);
         return false;
     }
 
@@ -321,14 +321,14 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
 
 mla_bool_t mla_task_manager_pthread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
-    pthread_key_t* key = static_cast<pthread_key_t*>(mla_malloc(sizeof(pthread_key_t)));
+    pthread_key_t* key = static_cast<pthread_key_t*>(mla_platform_malloc(sizeof(pthread_key_t)));
     if (key == nullptr) {
         return false;
     }
 
     int result = pthread_key_create(key, nullptr);
     if (result != 0) {
-        mla_free(key);
+        mla_platform_free(key);
         return false;
     }
 
@@ -344,7 +344,7 @@ mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_platform_pointer_t ta
     }
 
     mla_bool_t success = pthread_key_delete(*key) == 0;
-    mla_free(key);
+    mla_platform_free(key);
     return success;
 }
 

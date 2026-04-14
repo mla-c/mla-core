@@ -1130,7 +1130,7 @@ mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_platform_pointer_t 
 }
 
 mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(mla_malloc(
+    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(mla_platform_malloc(
         sizeof(mla_windows_window_surface_t)));
 
     if (window_surface == nullptr) {

@@ -300,7 +300,7 @@ mla_ui_surface_draw_size_t __arduino_gfx_surface_calc_text_size(const mla_ui_sur
 
     g_gfx->getTextBounds(textStr, 0, 0, &x1, &y1, &w, &h);
 
-    mla_free(textStr);
+    mla_platform_free(textStr);
 
     size.width = (mla_double_t)w;
     size.height = (mla_double_t)h;
@@ -642,7 +642,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
 
                     g_gfx->setCursor((mla_int32_t)cmd.text.x, y);
                     g_gfx->print(textStr);
-                    mla_free(textStr);
+                    mla_platform_free(textStr);
                 }
                 break;
             }
@@ -676,7 +676,7 @@ mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_platform_pointe
 
 mla_bool_t __arduino_gfx_create_surface(mla_ui_surface_t &outSurface) {
     mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(
-        mla_malloc(sizeof(mla_arduino_gfx_surface_t)));
+        mla_platform_malloc(sizeof(mla_arduino_gfx_surface_t)));
 
     if (gfx_surface == nullptr) {
         return false;

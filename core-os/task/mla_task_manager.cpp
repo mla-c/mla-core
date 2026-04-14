@@ -62,7 +62,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     // Cleanup tasks which are completed or aborted before adding a new task
     __mla_task_manager_cleanup_tasks_no_lock();
 
-    mla_task_shared_states* sharedStates = static_cast<mla_task_shared_states*>(mla_malloc(sizeof(mla_task_shared_states)));
+    mla_task_shared_states* sharedStates = static_cast<mla_task_shared_states*>(mla_platform_malloc(sizeof(mla_task_shared_states)));
 
     if (sharedStates == nullptr) {
         mla_rw_unlock_write(g_TaskManager.taskLock);

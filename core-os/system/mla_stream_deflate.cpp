@@ -833,7 +833,7 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
 
     __mla_deflate_build_fixed_tables();
 
-    __mla_deflate_compress_state_t *state = static_cast<__mla_deflate_compress_state_t *>(mla_malloc(sizeof(__mla_deflate_compress_state_t)));
+    __mla_deflate_compress_state_t *state = static_cast<__mla_deflate_compress_state_t *>(mla_platform_malloc(sizeof(__mla_deflate_compress_state_t)));
 
     if (state == nullptr) {
         return mla_stream_noop_output();
@@ -1481,7 +1481,7 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         return mla_stream_noop_input();
     }
 
-    __mla_deflate_decompress_state_t *state = static_cast<__mla_deflate_decompress_state_t *>(mla_malloc(sizeof(__mla_deflate_decompress_state_t)));
+    __mla_deflate_decompress_state_t *state = static_cast<__mla_deflate_decompress_state_t *>(mla_platform_malloc(sizeof(__mla_deflate_decompress_state_t)));
 
     if (state == nullptr) {
         return mla_stream_noop_input();
@@ -1597,7 +1597,7 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
     mla_size_t buf_size = mla_deflate_compress_buf_size;
     state->output_buf = mla_bytes(buf_size);
     if (mla_bytes_is_empty(state->output_buf)) {
-        mla_free(state);
+        mla_platform_free(state);
         return mla_stream_noop_input();
     }
     state->output_buf_pos = 0;

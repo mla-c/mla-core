@@ -39,7 +39,7 @@ if (buffer == nullptr) {
 }
 ```
 
-This applies to all allocation functions, including `mla_malloc` and `mla_create_char_array`. In test code, use `assert_not_null(pointer, "...")`.
+This applies to all allocation functions, including `mla_platform_malloc` and `mla_create_char_array`. In test code, use `assert_not_null(pointer, "...")`.
 
 ### 3. Negative Index for Search Functions
 

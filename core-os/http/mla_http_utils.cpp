@@ -141,12 +141,12 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
 
                 if (newBuffer == nullptr) {
                     // Memory allocation failed
-                    mla_free(finalResultBuffer);
+                    mla_platform_free(finalResultBuffer);
                     return false;
                 }
 
                 mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
-                mla_free(finalResultBuffer);
+                mla_platform_free(finalResultBuffer);
                 mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead - 2);
                 line = mla_string_from_buffer_with_ownership(newBuffer, finalResultBufferSize + bytesRead - 2);
                 return true;
@@ -171,13 +171,13 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
 
                 if (newBuffer == nullptr) {
                     // Memory allocation failed
-                    mla_free(finalResultBuffer);
+                    mla_platform_free(finalResultBuffer);
                     return false;
                 }
 
                 mla_memcpy(newBuffer, finalResultBuffer, finalResultBufferSize);
                 mla_memcpy(newBuffer + finalResultBufferSize, buffer, bytesRead);
-                mla_free(finalResultBuffer);
+                mla_platform_free(finalResultBuffer);
                 finalResultBuffer = newBuffer;
                 finalResultBufferSize += bytesRead;
             }
@@ -188,7 +188,7 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
         if ((finalResultBufferSize + bytesRead) >= mla_global_config_http_max_header_size) {
 
             if (finalResultBuffer != nullptr) {
-                mla_free(finalResultBuffer);
+                mla_platform_free(finalResultBuffer);
             }
 
             // Line too long
@@ -197,7 +197,7 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
     }
 
     if (finalResultBuffer != nullptr) {
-        mla_free(finalResultBuffer);
+        mla_platform_free(finalResultBuffer);
     }
 
     return false;

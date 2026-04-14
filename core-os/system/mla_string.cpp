@@ -8,7 +8,7 @@
 #include "../utils/mla_char_utils.h"
 
 mla_char_t * mla_create_char_array(const mla_size_t p_Length) {
-    return static_cast<mla_char_t*>(mla_malloc(sizeof(mla_char_t) * p_Length));
+    return static_cast<mla_char_t*>(mla_platform_malloc(sizeof(mla_char_t) * p_Length));
 }
 
 mla_string_t mla_string_empty() {
@@ -955,7 +955,7 @@ mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
 mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString) {
 
     if (p_CString.isOwner && p_CString.c_str != nullptr) {
-        mla_free(const_cast<mla_char_t*>(p_CString.c_str));
+        mla_platform_free(const_cast<mla_char_t*>(p_CString.c_str));
         p_CString.c_str = nullptr;
         return true;
     }

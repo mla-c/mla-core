@@ -357,7 +357,7 @@ mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_platform_pointer_
         return CLEAN_UP_SKIP;
     }
 
-    mla_free(fs->buffer);
+    mla_platform_free(fs->buffer);
     fs->buffer = nullptr;
     fs->capacity = 0;
 
@@ -366,7 +366,7 @@ mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_platform_pointer_
 
 mla_file_system_t mla_file_system_inmemory_create_from_buffer(mla_byte_t *buffer, mla_size_t capacity) {
 
-    mla_file_system_inmemory_t *fs = static_cast<mla_file_system_inmemory_t *>(mla_malloc(
+    mla_file_system_inmemory_t *fs = static_cast<mla_file_system_inmemory_t *>(mla_platform_malloc(
         sizeof(mla_file_system_inmemory_t)));
 
     if (fs == nullptr)
@@ -395,7 +395,7 @@ mla_file_system_t mla_file_system_inmemory_create_from_buffer(mla_byte_t *buffer
 
 mla_file_system_t mla_file_system_inmemory_create(mla_size_t capacity) {
 
-    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_malloc(capacity * sizeof(mla_byte_t)));
+    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_platform_malloc(capacity * sizeof(mla_byte_t)));
 
     if (buffer == nullptr) {
         return mla_file_system_empty();

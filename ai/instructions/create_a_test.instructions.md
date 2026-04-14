@@ -58,9 +58,9 @@ assert_not_null(pointer, "Pointer should be allocated");
 To ensure robust tests, you **must** check the return values of all fallible operations.
 
 ### 1. Memory Allocation
-Always check pointers after `mla_malloc`:
+Always check pointers after `mla_platform_malloc`:
 ```cpp
-mla_byte_t* buffer = (mla_byte_t*)mla_malloc(size);
+mla_byte_t* buffer = (mla_byte_t*)mla_platform_malloc(size);
 assert_not_null(buffer, "Memory allocation failed");
 ```
 

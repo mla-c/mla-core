@@ -166,7 +166,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     mla_platform_pointer_t input = nullptr;
 
     if (procedure.inputDefinition.data_size > 0) {
-        input = mla_malloc(procedure.inputDefinition.data_size);
+        input = mla_platform_malloc(procedure.inputDefinition.data_size);
 
         if (input == nullptr) {
             return false;
@@ -183,12 +183,12 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         // Calculate output size including content type and write function
         mla_size_t output_size = sizeof(mla_rpc_http_server_handler_content_writer_header_t) + procedure.outputDefinition.data_size;
 
-        output = mla_malloc(output_size);
+        output = mla_platform_malloc(output_size);
 
         if (output == nullptr) {
 
             if (input != nullptr) {
-                mla_free(input);
+                mla_platform_free(input);
             }
             return false;
         }
@@ -208,8 +208,8 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         if (!mla_deserializer_read_struct_read_function(deserializer, input, procedure.inputDefinition.read_function)) {
             response.statusCode = mla_http_status_bad_request;
             mla_error(mla_string_concat("Failed to deserialize input for procedure ", procedure_name));
-            mla_free(output);
-            mla_free(input);
+            mla_platform_free(output);
+            mla_platform_free(input);
             return false;
         }
     }
@@ -222,7 +222,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     }
 
     if (procedure.execute(input, outputData)) {
-        mla_free(input);
+        mla_platform_free(input);
 
         response.statusCode = mla_http_status_ok;
         response.statusMessage = mla_string_const("Success");
@@ -239,7 +239,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 mla_http_headers_add(response.headers, mla_string_const("Content-Type"), mla_string_const("application/octet-stream"));
             } else {
                 mla_error(mla_string_concat("Unsupported Content-Type for procedure ", procedure_name));
-                mla_free(output);
+                mla_platform_free(output);
                 return false;
             }
 
@@ -276,7 +276,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
 
 
 
-                mla_free(output);
+                mla_platform_free(output);
             } else {
 
                 mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
@@ -295,8 +295,8 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         }
 
     } else {
-        mla_free(input);
-        mla_free(output);
+        mla_platform_free(input);
+        mla_platform_free(output);
         response.statusCode = mla_http_status_internal_server_error;
     }
 

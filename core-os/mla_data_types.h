@@ -216,8 +216,8 @@ mla_global mla_low_level_operations_t g_low_level_access;
 // Memory allocation and deallocation
 mla_platform_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
-#define mla_malloc(size) mla_malloc_with_check(size, __FILE__, __func__)
-#define mla_free(ptr) g_low_level_access.free((ptr))
+#define mla_platform_malloc(size) mla_malloc_with_check(size, __FILE__, __func__)
+#define mla_platform_free(ptr) g_low_level_access.free((ptr))
 #define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function

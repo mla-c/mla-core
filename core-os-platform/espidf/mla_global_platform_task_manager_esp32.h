@@ -162,7 +162,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
         mla_buffer_reference_t* outTaskResourceOwner,
         mla_task_shared_states* shared_states) {
 
-    mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(mla_malloc(sizeof(mla_task_manager_esp32_native_data_t)));
+    mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_native_data_t)));
 
     if (thread_data == nullptr) {
         return false;
@@ -182,7 +182,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
     mla_bool_t success = xTaskCreate(__mla_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
 
     if (!success) {
-        mla_free(thread_data);
+        mla_platform_free(thread_data);
         return false; // Failed to create thread
     }
 
@@ -222,7 +222,7 @@ mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_platform_pointer_t* ou
     }
 
     mla_task_manager_esp32_native_mutex_t* mutex =
-    static_cast<mla_task_manager_esp32_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_esp32_native_mutex_t)));
+    static_cast<mla_task_manager_esp32_native_mutex_t*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_native_mutex_t)));
 
     if (mutex == nullptr) {
         return false;
@@ -237,7 +237,7 @@ mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_platform_pointer_t* ou
     }
 
     if (mutex->semaphore == nullptr) {
-        mla_free(mutex);
+        mla_platform_free(mutex);
         return false;
     }
 
@@ -257,7 +257,7 @@ mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_platform_pointer_t mu
     }
 
     vSemaphoreDelete(mutex->semaphore); // Delete the semaphore
-    mla_free(mutex); // Free the mutex memory
+    mla_platform_free(mutex); // Free the mutex memory
     return true;
 }
 
@@ -322,7 +322,7 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_platform_pointer_t* outT
         return false; // No free slots available
     }
 
-    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(mla_malloc(sizeof(mla_task_manager_esp32_task_local)));
+    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_task_local)));
 
     if (local == nullptr) {
         return false;
@@ -345,7 +345,7 @@ mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_platform_pointer_t task
 
     g_esp32_task_local_slots_used[local->index] = false;
     vTaskSetThreadLocalStoragePointer(nullptr, local->index, nullptr);
-    mla_free(local);
+    mla_platform_free(local);
     return true;
 }
 

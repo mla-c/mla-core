@@ -112,7 +112,7 @@ mla_size_t __mla_http_chunked_stream_input_read(mla_stream_input_t& input, mla_s
 
 mla_stream_input_t mla_http_chunked_stream_input(const mla_stream_input_t &baseStream, mla_int32_t timeout_ms) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(mla_malloc(sizeof(mla_http_chunked_stream_input_userdata_t)));
+    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(mla_platform_malloc(sizeof(mla_http_chunked_stream_input_userdata_t)));
 
     if (userdata == nullptr)
         return mla_stream_noop_input();
@@ -265,7 +265,7 @@ mla_bool_t mla_http_chunked_stream_output_finished(mla_http_chunked_stream_outpu
 #define mla_http_chunked_stream_output_chunk_size 1024
 
 mla_stream_output_t __mla_create_chunked_stream_output(const mla_stream_output_t &baseStream, mla_size_t bufferSize) {
-    mla_http_chunked_stream_output_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_output_userdata_t*>(mla_malloc(sizeof(mla_http_chunked_stream_output_userdata_t)));
+    mla_http_chunked_stream_output_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_output_userdata_t*>(mla_platform_malloc(sizeof(mla_http_chunked_stream_output_userdata_t)));
 
     if (userdata == nullptr) {
         return mla_stream_noop_output();
@@ -277,7 +277,7 @@ mla_stream_output_t __mla_create_chunked_stream_output(const mla_stream_output_t
     userdata->currentSize = 0;
 
     if (mla_bytes_is_empty(userdata->buffer)) {
-        mla_free(userdata);
+        mla_platform_free(userdata);
         return mla_stream_noop_output();
     }
 

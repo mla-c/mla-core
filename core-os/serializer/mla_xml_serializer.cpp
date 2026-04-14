@@ -588,7 +588,7 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where serializers
     // are expected to be short-lived
-    mla_xml_serializer_state_t *state = static_cast<mla_xml_serializer_state_t *>(mla_malloc(
+    mla_xml_serializer_state_t *state = static_cast<mla_xml_serializer_state_t *>(mla_platform_malloc(
         sizeof(mla_xml_serializer_state_t)));
 
     if (state == nullptr) {
@@ -1073,7 +1073,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where deserializers
     // are expected to be short-lived
-    mla_xml_deser_state_t *state = static_cast<mla_xml_deser_state_t *>(mla_malloc(sizeof(mla_xml_deser_state_t)));
+    mla_xml_deser_state_t *state = static_cast<mla_xml_deser_state_t *>(mla_platform_malloc(sizeof(mla_xml_deser_state_t)));
 
     if (state == nullptr) {
         return mla_deserializer_invalid();

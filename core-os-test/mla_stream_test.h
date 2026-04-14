@@ -117,14 +117,14 @@ void MemoryStreamAutoGrowTest() {
 
     mla_memory_stream_set_position(stream, 0); // Reset position to read from start
 
-    mla_byte_t* read_buffer = (mla_byte_t*)mla_malloc(test_string_length);
+    mla_byte_t* read_buffer = (mla_byte_t*)mla_platform_malloc(test_string_length);
 
     if (read_buffer != nullptr) {
         mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string_length, read_buffer);
 
         assert_equal(read_bytes, test_string_length, "Should read back the full string");
         assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, test_string_data, test_string_length), (mla_test_int32_t)0, "Read data should match after auto-grow");
-        mla_free(read_buffer);
+        mla_platform_free(read_buffer);
     } else {
         assert_fail("Memory allocation for read buffer failed");
     }
@@ -257,14 +257,14 @@ void StreamBufferedLargeDataTest() {
     mla_memory_stream_set_position(stream, 0);
     mla_stream_input_t buffered_in = mla_stream_input_buffered_wrapper(stream.input, 32);
 
-    mla_byte_t* read_buffer = (mla_byte_t*)mla_malloc(large_data_length);
+    mla_byte_t* read_buffer = (mla_byte_t*)mla_platform_malloc(large_data_length);
 
     if (read_buffer != nullptr) {
         mla_size_t read_bytes = buffered_in.read(buffered_in, 0, large_data_length, read_buffer);
 
         assert_equal(read_bytes, large_data_length, "Should read all data back");
         assert_equal((mla_test_int32_t)mla_memcmp(read_buffer, large_data_data, large_data_length), (mla_test_int32_t)0, "Buffered data should match");
-        mla_free(read_buffer);
+        mla_platform_free(read_buffer);
     } else {
         assert_fail("Memory allocation for read buffer failed");
     }

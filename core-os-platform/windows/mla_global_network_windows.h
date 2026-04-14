@@ -40,14 +40,14 @@ mla_bool_t __windows_resolve_host(mla_network_host_t &host, const mla_string_t &
     if (getaddrinfo(cHostName.c_str, nullptr, &hints, &result) != 0) {
 
         if (cHostName.isOwner) {
-            mla_free(const_cast<mla_char_t *>(cHostName.c_str));
+            mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
         }
 
         return false;
     }
 
     if (cHostName.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cHostName.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
     }
 
     // Extract IP address from first result
@@ -226,7 +226,7 @@ mla_bool_t __windows_connect(mla_network_connection_t &connection, const mla_net
     }
 
     if (cAddress.isOwner) {
-        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     // Attempt connection
@@ -418,7 +418,7 @@ mla_bool_t __windows_bind_and_listen(mla_network_listener_t &listener, const mla
     }
 
     if (cAddress.isOwner) {
-        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     if (bind(sock, reinterpret_cast<sockaddr*>(&ss), addrLen) == SOCKET_ERROR) {
@@ -458,7 +458,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
 
     // Retry with increasing buffer size (Microsoft recommended pattern)
     for (mla_int32_t attempt = 0; attempt < 3 && result == ERROR_BUFFER_OVERFLOW; ++attempt) {
-        adapterAddresses = (IP_ADAPTER_ADDRESSES*)mla_malloc(bufferSize);
+        adapterAddresses = (IP_ADAPTER_ADDRESSES*)mla_platform_malloc(bufferSize);
         if (adapterAddresses == nullptr) {
             return ipAddresses;
         }
@@ -472,14 +472,14 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
         );
 
         if (result == ERROR_BUFFER_OVERFLOW) {
-            mla_free(adapterAddresses);
+            mla_platform_free(adapterAddresses);
             adapterAddresses = nullptr;
         }
     }
 
     if (result != NO_ERROR || adapterAddresses == nullptr) {
         if (adapterAddresses != nullptr) {
-            mla_free(adapterAddresses);
+            mla_platform_free(adapterAddresses);
         }
         return ipAddresses;
     }
@@ -515,7 +515,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
         }
     }
 
-    mla_free(adapterAddresses);
+    mla_platform_free(adapterAddresses);
     return ipAddresses;
 }
 

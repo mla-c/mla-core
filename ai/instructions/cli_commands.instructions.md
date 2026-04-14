@@ -136,7 +136,7 @@ Use `mla_user_data_t` to pass state to the execute callback without globals:
 
 ```cpp
 // In your module builder:
-MyContext* ctx = static_cast<MyContext*>(mla_malloc(sizeof(MyContext)));
+MyContext* ctx = static_cast<MyContext*>(mla_platform_malloc(sizeof(MyContext)));
 // … initialise ctx …
 
 mla_user_data_t userData = mla_user_data_empty();

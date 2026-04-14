@@ -90,7 +90,7 @@ void SetupCArrayCleanUpBenchmark() {
 void CArrayCleanUpBenchmark() {
 
     for (int i = 0; i < 1000; ++i) {
-        mla_free(g_StringList[i]);
+        mla_platform_free(g_StringList[i]);
         g_StringList[i] = nullptr;
     }
 

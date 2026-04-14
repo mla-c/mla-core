@@ -81,7 +81,7 @@ template < mla_list_list_template >
 inline mla_link_list_data_t<T, TInit>* __mla_link_list_data() {
 
     // Allocate memory for the linked list data structure
-    mla_link_list_data_t<T, TInit>* data = static_cast<mla_link_list_data_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_data_t<T, TInit>)));
+    mla_link_list_data_t<T, TInit>* data = static_cast<mla_link_list_data_t<T, TInit>*>(mla_platform_malloc(sizeof(mla_link_list_data_t<T, TInit>)));
 
     if (data == nullptr) {
         return nullptr; // Return null if memory allocation fails
@@ -142,7 +142,7 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
     }
 
     // Create a new node
-    mla_link_list_node_t<T, TInit>* newNode = static_cast<mla_link_list_node_t<T, TInit>*>(mla_malloc(sizeof(mla_link_list_node_t<T, TInit>)));
+    mla_link_list_node_t<T, TInit>* newNode = static_cast<mla_link_list_node_t<T, TInit>*>(mla_platform_malloc(sizeof(mla_link_list_node_t<T, TInit>)));
 
     if (newNode == nullptr) {
         return false; // Return false if memory allocation fails

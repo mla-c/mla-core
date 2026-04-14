@@ -138,7 +138,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
         mla_buffer_reference_t* outTaskResourceOwner,
         mla_task_shared_states* shared_states) {
 
-    mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(mla_malloc(sizeof(mla_task_manager_windows_native_data_t)));
+    mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_data_t)));
 
     if (thread_data == nullptr) {
         return false;
@@ -153,7 +153,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
     thread_data->hThread = CreateThread(nullptr, stackSizeInBytes, __mla_task_manager_windows_native_worker, thread_data, 0, nullptr);
 
     if (thread_data->hThread == nullptr) {
-        mla_free(thread_data);
+        mla_platform_free(thread_data);
         return false; // Failed to create thread
     }
 
@@ -198,7 +198,7 @@ struct mla_task_manager_windows_native_mutex_t {
 
 mla_bool_t mla_task_manager_windows_native_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
 
-    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mla_malloc(sizeof(mla_task_manager_windows_native_mutex_t)));
+    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_mutex_t)));
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
@@ -284,7 +284,7 @@ mla_bool_t mla_task_manager_windows_native_destroy_mutex(mla_platform_pointer_t 
     }
 
     DeleteCriticalSection(&mutex->section); // Delete the critical section
-    mla_free(mutex); // Free the mutex memory
+    mla_platform_free(mutex); // Free the mutex memory
     return true;
 }
 
@@ -314,7 +314,7 @@ mla_bool_t mla_task_manager_windows_native_create_task_local(mla_platform_pointe
         return false;
     }
 
-    DWORD* index = static_cast<DWORD*>(mla_malloc(sizeof(DWORD)));
+    DWORD* index = static_cast<DWORD*>(mla_platform_malloc(sizeof(DWORD)));
     if (index == nullptr) {
         FlsFree(flsIndex);
         return false;
@@ -333,7 +333,7 @@ mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_platform_point
     }
 
     mla_bool_t success = FlsFree(*index) != 0;
-    mla_free(index);
+    mla_platform_free(index);
     return success;
 }
 

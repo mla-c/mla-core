@@ -90,7 +90,7 @@ mla_size_t __mla_stream_input_buffer_remaining_bytes(mla_stream_input_t& input) 
 
 mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager)));
+    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager)));
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
@@ -144,7 +144,7 @@ mla_size_t __mla_stream_output_buffer_available_bytes(mla_stream_output_t& outpu
 
 mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager)));
+    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager)));
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
@@ -167,7 +167,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t s
 mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
     // Allocate the buffer manager and the buffer in one allocation
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager) + size));
+    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager) + size));
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
@@ -190,7 +190,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
 mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_malloc(sizeof(__mla_stream_buffer_manager) + size));
+    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager) + size));
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
@@ -325,12 +325,12 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
             // Need to resize the buffer
             mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_global_config_stream_fast_read_buffer_size);
             // We can not use realloc so we need to use malloc and memcpy
-            mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_malloc(newSize));
+            mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(newSize));
             if (newBuffer != nullptr) {
 
                 if (memBuffer->buffer != nullptr) {
                     mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
-                    mla_free(memBuffer->buffer);
+                    mla_platform_free(memBuffer->buffer);
                     // Zero the new allocated part
                     if (newSize > memBuffer->size) {
                         mla_memset(newBuffer + memBuffer->size, 0, newSize - memBuffer->size);
@@ -345,7 +345,7 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
             } else {
 
                 if (memBuffer->buffer != nullptr) {
-                    mla_free(memBuffer->buffer);
+                    mla_platform_free(memBuffer->buffer);
                 }
 
                 memBuffer->buffer = nullptr;
@@ -412,7 +412,7 @@ mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_platform_pointer_t 
     }
 
     if (memBuffer->buffer != nullptr) {
-        mla_free(memBuffer->buffer);
+        mla_platform_free(memBuffer->buffer);
     }
 
     return CLEAN_UP_NEEDED;
@@ -424,7 +424,7 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
 
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_grow) {
 
-    mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_malloc(sizeof(mla_memory_stream_buffer_t)));
+    mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_platform_malloc(sizeof(mla_memory_stream_buffer_t)));
 
     if (memBuffer == nullptr) {
         return mla_memory_stream_invalid();
@@ -434,10 +434,10 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_gr
 
     if (initial_size > 0) {
 
-        memBuffer->buffer = static_cast<mla_byte_t*>(mla_malloc(initial_size));
+        memBuffer->buffer = static_cast<mla_byte_t*>(mla_platform_malloc(initial_size));
 
         if (memBuffer->buffer == nullptr) {
-            mla_free(memBuffer);
+            mla_platform_free(memBuffer);
             return mla_memory_stream_invalid();
         }
 

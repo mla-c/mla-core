@@ -94,7 +94,7 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
                                                                    const mla_string_t& pathPrefix,
                                                                    const mla_http_request_handler_t &executor) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
+    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_platform_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
 
     if (checker_userdata == nullptr) {
         return mla_http_server_handler_invalid();
@@ -202,7 +202,7 @@ mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_
     const mla_string_t& path, const mla_http_websocket_text_message_handler_t &text_message_handler,
     const mla_http_websocket_binary_message_handler_t &binary_message_handler) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
+    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_platform_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
 
     if (checker_userdata == nullptr) {
         return mla_http_server_websocket_handler_invalid();
@@ -923,7 +923,7 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 
     server.status = MLA_HTTP_SERVER_STATUS_RUNNING;
     mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = static_cast<
-        mla_http_server_internal_resource_cleanup_userdata *>(mla_malloc(
+        mla_http_server_internal_resource_cleanup_userdata *>(mla_platform_malloc(
         sizeof(mla_http_server_internal_resource_cleanup_userdata)));
 
     if (cleanup_userdata == nullptr) {

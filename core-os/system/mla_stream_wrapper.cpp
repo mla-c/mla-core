@@ -51,7 +51,7 @@ mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_le
         }
     }
 
-    mla_char_t *buffer = static_cast<mla_char_t *>(mla_malloc(buffer_length));
+    mla_char_t *buffer = static_cast<mla_char_t *>(mla_platform_malloc(buffer_length));
 
     if (buffer == nullptr) {
         return mla_string_empty(); // Allocation failed, return empty string
@@ -82,7 +82,7 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
         }
     }
 
-    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_malloc(buffer_length));
+    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_platform_malloc(buffer_length));
 
     if (buffer == nullptr) {
         return mla_bytes_empty(); // Allocation failed, return empty bytes
@@ -158,7 +158,7 @@ mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, m
     if (input.read == nullptr)
         return input;
 
-    mla_stream_input_timeout_wrapper_data_t *data = static_cast<mla_stream_input_timeout_wrapper_data_t *>(mla_malloc(
+    mla_stream_input_timeout_wrapper_data_t *data = static_cast<mla_stream_input_timeout_wrapper_data_t *>(mla_platform_malloc(
         sizeof(mla_stream_input_timeout_wrapper_data_t)));
 
     if (data == nullptr) {
@@ -246,7 +246,7 @@ mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, m
     if (input.read == nullptr)
         return input;
 
-    mla_stream_input_limited_wrapper_data_t *data = static_cast<mla_stream_input_limited_wrapper_data_t *>(mla_malloc(
+    mla_stream_input_limited_wrapper_data_t *data = static_cast<mla_stream_input_limited_wrapper_data_t *>(mla_platform_malloc(
         sizeof(mla_stream_input_limited_wrapper_data_t)));
 
     if (data == nullptr) {
@@ -344,7 +344,7 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
         return input;
     }
 
-    mla_stream_input_buffered_wrapper_data_t *data = static_cast<mla_stream_input_buffered_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_input_buffered_wrapper_data_t)));
+    mla_stream_input_buffered_wrapper_data_t *data = static_cast<mla_stream_input_buffered_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_input_buffered_wrapper_data_t)));
 
     if (data == nullptr) {
         return mla_stream_noop_input();
@@ -354,7 +354,7 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
     data->buffer = mla_bytes(buffer_size);
 
     if (mla_bytes_is_empty(data->buffer)) {
-        mla_free(data);
+        mla_platform_free(data);
         return input;
     }
 
@@ -448,7 +448,7 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
         return output;
     }
 
-    mla_stream_output_buffered_wrapper_data_t *data = static_cast<mla_stream_output_buffered_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_output_buffered_wrapper_data_t)));
+    mla_stream_output_buffered_wrapper_data_t *data = static_cast<mla_stream_output_buffered_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_output_buffered_wrapper_data_t)));
 
     if (data == nullptr) {
         return output;
@@ -458,7 +458,7 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
     data->buffer = mla_bytes(buffer_size);
 
     if (mla_bytes_is_empty(data->buffer)) {
-        mla_free(data);
+        mla_platform_free(data);
         return mla_stream_noop_output();
     }
 
@@ -564,7 +564,7 @@ mla_size_t __mla_stream_input_interceptor_wrapper_remaining_bytes(mla_stream_inp
 
 mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &input, mla_stream_input_interceptor_read intercept_read_function, mla_stream_input_interceptor_remaining_bytes intercept_remaining_bytes_function) {
 
-    mla_stream_input_interceptor_wrapper_data_t* data = static_cast<mla_stream_input_interceptor_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_input_interceptor_wrapper_data_t)));
+    mla_stream_input_interceptor_wrapper_data_t* data = static_cast<mla_stream_input_interceptor_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_input_interceptor_wrapper_data_t)));
 
     if (data == nullptr) {
         return mla_stream_noop_input();
@@ -656,7 +656,7 @@ mla_size_t __mla_stream_output_interceptor_wrapper_available_bytes(mla_stream_ou
 
 mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &output, mla_stream_output_interceptor_write intercept_write_function, mla_stream_output_interceptor_available_bytes intercept_available_bytes_function) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = static_cast<mla_stream_output_interceptor_wrapper_data_t *>(mla_malloc(sizeof(mla_stream_output_interceptor_wrapper_data_t)));
+    mla_stream_output_interceptor_wrapper_data_t* data = static_cast<mla_stream_output_interceptor_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_output_interceptor_wrapper_data_t)));
 
     if (data == nullptr) {
         return mla_stream_noop_output();

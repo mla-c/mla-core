@@ -15,7 +15,7 @@ mla_rw_lock_t mla_rw_lock_invalid() {
 
 mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive) {
 
-    mla_rw_lock_state_t* state_info = static_cast<mla_rw_lock_state_t*>(mla_malloc(sizeof(mla_rw_lock_state_t)));
+    mla_rw_lock_state_t* state_info = static_cast<mla_rw_lock_state_t*>(mla_platform_malloc(sizeof(mla_rw_lock_state_t)));
 
     if (state_info == nullptr)
         return mla_rw_lock_invalid();

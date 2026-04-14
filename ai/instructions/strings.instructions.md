@@ -62,10 +62,10 @@ mla_string_t copy = mla_string_copy(original);
 ### Transfer Ownership of an Existing Buffer
 
 ```cpp
-mla_char_t* buf = (mla_char_t*)mla_malloc(64);
+mla_char_t* buf = (mla_char_t*)mla_platform_malloc(64);
 // … fill buf …
 mla_string_t str = mla_string_from_buffer_with_ownership(buf, actualLength);
-// buf is now managed by str — do NOT call mla_free(buf)
+// buf is now managed by str — do NOT call mla_platform_free(buf)
 ```
 
 ### Empty / Sentinel

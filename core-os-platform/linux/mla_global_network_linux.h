@@ -42,13 +42,13 @@ mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     struct addrinfo *result = nullptr;
     if (getaddrinfo(cHostName.c_str, nullptr, &hints, &result) != 0) {
         if (cHostName.isOwner) {
-            mla_free(const_cast<mla_char_t *>(cHostName.c_str));
+            mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
         }
         return false;
     }
 
     if (cHostName.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cHostName.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
     }
 
     // Extract IP address from first result
@@ -206,7 +206,7 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
     }
 
     if (cAddress.isOwner) {
-        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     // Attempt connection
@@ -397,7 +397,7 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
     }
 
     if (cAddress.isOwner) {
-        mla_free(const_cast<mla_char_t*>(cAddress.c_str));
+        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     if (bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {

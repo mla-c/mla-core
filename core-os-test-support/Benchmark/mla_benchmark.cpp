@@ -199,7 +199,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     g_mla_benchmark_memory_arena_offset = 0;
     g_mla_benchmark_memory_arena_size = arena_size;
-    g_mla_benchmark_memory_arena = mla_malloc(arena_size);
+    g_mla_benchmark_memory_arena = mla_platform_malloc(arena_size);
     g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
     g_mla_benchmark_arena_mutex = g_test_mutex.create_mutex();
 
@@ -523,7 +523,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     }
 
-    mla_free(g_mla_benchmark_memory_arena);
+    mla_platform_free(g_mla_benchmark_memory_arena);
 
 }
 

@@ -192,7 +192,7 @@ for (mla_size_t i = 0; i < mla_array_list_size(procedures); i++) {
 
 - Procedure names are **dot-separated strings** (e.g., `"module.action"`).
 - Input/output structs must provide a `static metadata()` function for automatic serialisation.
-- Handler functions **must not** allocate memory that outlives the call unless they take ownership via `mla_malloc`.
+- Handler functions **must not** allocate memory that outlives the call unless they take ownership via `mla_platform_malloc`.
 - Return `true` on success, `false` on failure. The framework propagates the return value to the caller.
 - Unregister procedures when a module is torn down: `mla_rpc_unregister_procedure(name)`.
 

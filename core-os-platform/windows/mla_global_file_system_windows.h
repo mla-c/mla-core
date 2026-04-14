@@ -365,7 +365,7 @@ mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platform_pointer_t 
 
 mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
 
-    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_malloc(sizeof(mla_file_system_native_t)));
+    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_platform_malloc(sizeof(mla_file_system_native_t)));
 
     if (fs == nullptr)
         return mla_file_system_empty();

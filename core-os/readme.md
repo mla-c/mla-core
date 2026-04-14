@@ -25,8 +25,8 @@ The header also defines a number of useful macros.
 - **`mla_memset`**: A wrapper for `memset`.
 - **`mla_memcmp`**: A wrapper for `memcmp`.
 - **`mla_memmove`**: A wrapper for `memmove`.
-- **`mla_malloc`**: A wrapper for `malloc` that includes error checking.
-- **`mla_free`**: A wrapper for `free`.
+- **`mla_platform_malloc`**: A wrapper for `malloc` that includes error checking.
+- **`mla_platform_free`**: A wrapper for `free`.
 
 ### String Operations
 

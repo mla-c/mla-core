@@ -178,7 +178,7 @@ mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_wi
     }
     
     // Allocate resources wrapper
-    mla_opengl_font_resources* resources = (mla_opengl_font_resources*)mla_malloc(sizeof(mla_opengl_font_resources));
+    mla_opengl_font_resources* resources = (mla_opengl_font_resources*)mla_platform_malloc(sizeof(mla_opengl_font_resources));
     mla_memset(resources, 0, sizeof(mla_opengl_font_resources));
     resources->hFont = hFont;
     resources->displayListBase = displayListBase;
@@ -1471,7 +1471,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     mla_size_t len = wcslen((const WCHAR*)contentWide.data);
                     
                     // Convert to single-byte for display list rendering
-                    char* asciiText = (char*)mla_malloc(len + 1);
+                    char* asciiText = (char*)mla_platform_malloc(len + 1);
                     for (mla_size_t i = 0; i < len; i++) {
                         wchar_t wc = ((const WCHAR*)contentWide.data)[i];
                         asciiText[i] = (wc < 256) ? (char)wc : '?';
@@ -1484,7 +1484,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     // Restore matrix
                     glPopMatrix();
                     
-                    mla_free(asciiText);
+                    mla_platform_free(asciiText);
                     mla_string_utf16_buffer_destroy(contentWide);
                 }
                 
@@ -1635,7 +1635,7 @@ mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
 
 mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(mla_malloc(sizeof(mla_windows_window_surface_opengl_t)));
+    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_opengl_t)));
     
     if (window_surface == nullptr) {
         return false;

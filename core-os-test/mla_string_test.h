@@ -120,7 +120,7 @@ void ToCStringTest() {
     if (mla_c_str.c_str != nullptr) {
         assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
         assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-        mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+        mla_platform_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
@@ -142,7 +142,7 @@ void ToCStringFromBufferTest() {
     if (mla_c_str.c_str != nullptr) {
         assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
         assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-        mla_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+        mla_platform_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
@@ -1609,13 +1609,13 @@ void String_to_C_LayoutBenchmark() {
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
     if (cStr.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cStr.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cStr.c_str));
     }
 
     mla_c_string_t cStr2 = mla_string_to_cString(str, false);
 
     if (cStr2.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cStr2.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cStr2.c_str));
     }
 }
 
@@ -1624,13 +1624,13 @@ void String_to_Buffer_LayoutBenchmark() {
     mla_c_string_t cStr = mla_string_to_cString(str, false);
 
     if (cStr.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cStr.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cStr.c_str));
     }
 
     mla_c_string_t cStr2 = mla_string_to_cString(str, false);
 
     if (cStr2.isOwner) {
-        mla_free(const_cast<mla_char_t *>(cStr2.c_str));
+        mla_platform_free(const_cast<mla_char_t *>(cStr2.c_str));
     }
 }
 

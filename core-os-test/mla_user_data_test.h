@@ -172,7 +172,7 @@ inline void UserDataSetGetPointerWithoutOwnershipTest() {
 // Test setting and getting pointer values with ownership
 inline void UserDataSetGetPointerWithOwnershipTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_int32_t* testData = (mla_int32_t*)mla_malloc(sizeof(mla_int32_t));
+    mla_int32_t* testData = (mla_int32_t*)mla_platform_malloc(sizeof(mla_int32_t));
 
     if (testData == nullptr) {
         assert_fail("Failed to allocate memoryfor test data");

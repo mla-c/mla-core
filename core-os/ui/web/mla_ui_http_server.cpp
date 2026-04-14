@@ -285,7 +285,7 @@ mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_conne
 
     mla_ui_control_surface_t remoteSurface = mla_ui_control_surface_create(surface.surface, task_data->processTask);
 
-    mla_ui_http_server_web_surface_data_client_t* data_client = reinterpret_cast<mla_ui_http_server_web_surface_data_client_t*>(mla_malloc(sizeof(mla_ui_http_server_web_surface_data_client_t)));
+    mla_ui_http_server_web_surface_data_client_t* data_client = reinterpret_cast<mla_ui_http_server_web_surface_data_client_t*>(mla_platform_malloc(sizeof(mla_ui_http_server_web_surface_data_client_t)));
 
     if (data_client == nullptr) {
         mla_warning(mla_string_concat("Failed to allocate memory for client data for connection ", connection.id, " on surface ", task_data->surfaceName));
@@ -298,7 +298,7 @@ mla_bool_t __mla_ui_http_server_web_surface_open(mla_http_server_websocket_conne
     data_client->webRemoteSurface = surface;
 
     if (!mla_user_data_set_pointer_with_ownership<mla_ui_http_server_web_surface_data_client_t, mla_ui_http_server_web_surface_data_client_initializer>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name, data_client)) {
-        mla_free(data_client);
+        mla_platform_free(data_client);
         mla_warning(mla_string_concat("Failed to set client data for connection ", connection.id, " on surface ", task_data->surfaceName));
         return false; // Failed to set client data
     }
@@ -352,7 +352,7 @@ mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_t
 
 mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t& display_name, const mla_string_t& surface_name, mla_ui_control_surface_process_task_t processTask) {
 
-    mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(mla_malloc(sizeof(mla_ui_http_server_web_surface_data_t)));
+    mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(mla_platform_malloc(sizeof(mla_ui_http_server_web_surface_data_t)));
 
     if (taskData == nullptr) {
         return false; // Allocation failed

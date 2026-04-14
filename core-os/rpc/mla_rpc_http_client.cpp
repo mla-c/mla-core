@@ -137,7 +137,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_str
 
         } else {
 
-            mla_rpc_http_request_body_config* body_config = reinterpret_cast<mla_rpc_http_request_body_config*>(mla_malloc(sizeof(mla_rpc_http_request_body_config)));
+            mla_rpc_http_request_body_config* body_config = reinterpret_cast<mla_rpc_http_request_body_config*>(mla_platform_malloc(sizeof(mla_rpc_http_request_body_config)));
 
             if (body_config == nullptr) {
                 return false;
@@ -201,7 +201,7 @@ mla_rpc_remote_endpoint_t mla_rpc_http_register_endpoint(const mla_string_t& ser
         return mla_rpc_remote_endpoint_invalid();
     }
 
-    mla_rpc_http_client_config* config = static_cast<mla_rpc_http_client_config*>(mla_malloc(sizeof(mla_rpc_http_client_config)));
+    mla_rpc_http_client_config* config = static_cast<mla_rpc_http_client_config*>(mla_platform_malloc(sizeof(mla_rpc_http_client_config)));
 
     if (config == nullptr) {
         return mla_rpc_remote_endpoint_invalid();

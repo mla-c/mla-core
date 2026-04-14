@@ -11,7 +11,7 @@
 void MlaMemset16KbBenchmark() {
 
     const mla_size_t size = 16 * 1024; // 16 KB
-    mla_byte_t* buffer = (mla_byte_t*)mla_malloc(size);
+    mla_byte_t* buffer = (mla_byte_t*)mla_platform_malloc(size);
 
     mla_memset(buffer, 0, size);
 
@@ -19,7 +19,7 @@ void MlaMemset16KbBenchmark() {
     volatile mla_byte_t temp = buffer[0];
     (void)temp; // Prevent unused variable warning
 
-    mla_free(buffer);
+    mla_platform_free(buffer);
 }
 
 void NativeMemset16KbBenchmark() {

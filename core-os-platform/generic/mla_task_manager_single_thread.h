@@ -51,7 +51,7 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_platform_pointer_t* o
         return true;
     }
 
-    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mla_malloc(sizeof(mla_task_manager_single_thread_mutex)));
+    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mla_platform_malloc(sizeof(mla_task_manager_single_thread_mutex)));
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
@@ -111,7 +111,7 @@ mla_bool_t mla_task_manager_single_thread_destroy_mutex(mla_platform_pointer_t m
         return true;
     }
 
-    mla_free(mutex);
+    mla_platform_free(mutex);
     return true;
 
 }
@@ -241,7 +241,7 @@ struct mla_task_manager_single_thread_task_local {
 
 mla_bool_t mla_task_manager_single_thread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
 
-    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(mla_malloc(sizeof(mla_task_manager_single_thread_task_local)));
+    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(mla_platform_malloc(sizeof(mla_task_manager_single_thread_task_local)));
 
     if (local == nullptr) {
         return false;
@@ -262,7 +262,7 @@ mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_platform_pointe
         return true;
     }
 
-    mla_free(local);
+    mla_platform_free(local);
     return true;
 }
 

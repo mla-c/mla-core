@@ -62,7 +62,7 @@ mla_bool_t mla_logger_rpc_activate() {
         return false;
     }
 
-    g_rpc_log_cache.entries = reinterpret_cast<mla_logger_rpc_log_entry_t*>(mla_malloc(sizeof(mla_logger_rpc_log_entry_t) * mla_global_config_rpc_log_cache_size));
+    g_rpc_log_cache.entries = reinterpret_cast<mla_logger_rpc_log_entry_t*>(mla_platform_malloc(sizeof(mla_logger_rpc_log_entry_t) * mla_global_config_rpc_log_cache_size));
 
     if (g_rpc_log_cache.entries == nullptr) {
         mla_mutex_unlock(g_rpc_log_cache.lock);
@@ -94,7 +94,7 @@ mla_bool_t mla_logger_rpc_deactivate() {
         return false;
 
     if (g_rpc_log_cache.entries != nullptr) {
-        mla_free(g_rpc_log_cache.entries);
+        mla_platform_free(g_rpc_log_cache.entries);
         g_rpc_log_cache.entries = nullptr;
     }
 

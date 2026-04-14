@@ -230,9 +230,9 @@ mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
 // wrote data but never called mla_stream_output_deflate_finish(comp)
 
 // ❌ Destroying the underlying buffer before the wrapper
-mla_byte_t* buf = (mla_byte_t*)mla_malloc(1024);
+mla_byte_t* buf = (mla_byte_t*)mla_platform_malloc(1024);
 mla_stream_input_t in = mla_stream_input_from_buffer(buf, 1024);
-mla_free(buf); // in now points to freed memory!
+mla_platform_free(buf); // in now points to freed memory!
 
 // ❌ Using printf for output instead of stream writes
 printf("result: %d\n", value); // use mla_stream_output_write_string

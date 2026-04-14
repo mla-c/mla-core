@@ -132,7 +132,7 @@ inline void StreamDeflateCompressAndDecompressRepeatingDataTest() {
 inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     // Test with larger data that spans multiple blocks
     const mla_size_t data_size = 4096;
-    mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_malloc(data_size));
+    mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_platform_malloc(data_size));
     assert_not_null(test_data, "Should allocate test data");
 
     if (test_data != nullptr) {
@@ -160,7 +160,7 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     mla_memory_stream_set_position(compressed, 0);
     mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
 
-    mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_malloc(data_size + 64));
+    mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_platform_malloc(data_size + 64));
     assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
 
     if (decompressed_buf != nullptr)
@@ -177,8 +177,8 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     if (decompressed_buf != nullptr && test_data != nullptr)
         assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Decompressed data should match original");
 
-    mla_free(test_data);
-    mla_free(decompressed_buf);
+    mla_platform_free(test_data);
+    mla_platform_free(decompressed_buf);
 }
 
 inline void StreamDeflateCompressMultipleWritesTest() {
@@ -932,7 +932,7 @@ inline void StreamDeflateGzipCrc32MultiWriteTest() {
 inline void StreamDeflateGzipLargeRoundTripTest() {
     // Test with larger data that spans multiple blocks
     const mla_size_t data_size = 4096;
-    mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_malloc(data_size));
+    mla_byte_t *test_data = static_cast<mla_byte_t *>(mla_platform_malloc(data_size));
     assert_not_null(test_data, "Should allocate test data");
 
     if (test_data != nullptr) {
@@ -955,7 +955,7 @@ inline void StreamDeflateGzipLargeRoundTripTest() {
     mla_memory_stream_set_position(compressed, 0);
     mla_stream_input_t decompress_in = mla_stream_input_deflate_decompress_wrapper(compressed.input);
 
-    mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_malloc(data_size + 64));
+    mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_platform_malloc(data_size + 64));
     assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
 
     if (decompressed_buf != nullptr)
@@ -972,8 +972,8 @@ inline void StreamDeflateGzipLargeRoundTripTest() {
     if (decompressed_buf != nullptr && test_data != nullptr)
         assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Gzip large: decompressed data should match original");
 
-    mla_free(test_data);
-    mla_free(decompressed_buf);
+    mla_platform_free(test_data);
+    mla_platform_free(decompressed_buf);
 }
 
 inline void StreamDeflateGzipCompressedSizeCalculationTest() {

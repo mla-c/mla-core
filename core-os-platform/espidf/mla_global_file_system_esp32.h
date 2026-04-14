@@ -168,7 +168,7 @@ static inline mla_buffer_cleanup_mode __mla_file_system_native_close_file(mla_pl
     int fd = *reinterpret_cast<int*>(data);
 
     close(fd);
-    mla_free(data);
+    mla_platform_free(data);
 
     return CLEAN_UP_SKIP;
 }
@@ -257,7 +257,7 @@ static inline mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& f
     }
 
     // Allocate memory to store the file descriptor (needs to be freed in cleanup)
-    int* fdPtr = static_cast<int*>(mla_malloc(sizeof(int)));
+    int* fdPtr = static_cast<int*>(mla_platform_malloc(sizeof(int)));
     if (fdPtr == nullptr) {
         close(fd);
         mla_string_destroy(fullPath);
@@ -307,7 +307,7 @@ static inline mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& f
         };
     } else {
         close(fd);
-        mla_free(fdPtr);
+        mla_platform_free(fdPtr);
         mla_string_destroy(fullPath);
         return false;
     }
@@ -331,7 +331,7 @@ static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platf
 
 static inline mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
 
-    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_malloc(sizeof(mla_file_system_native_t)));
+    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_platform_malloc(sizeof(mla_file_system_native_t)));
 
     if (fs == nullptr)
         return mla_file_system_empty();

@@ -44,7 +44,7 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_globa
     }
 
     mla_size_t size = initialCapacity * sizeof(T);
-    T* items = static_cast<T*>(mla_malloc(size));
+    T* items = static_cast<T*>(mla_platform_malloc(size));
 
     if (items == nullptr) {
         return { 0, 0, nullptr, mla_buffer_reference_noOwner() }; // Memory allocation failed
@@ -80,7 +80,7 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
 
         // Resize the array if the new size exceeds the current capacity
         mla_size_t newSizeInBytes = newSize * sizeof(T);
-        T* newItems = static_cast<T*>(mla_malloc(newSizeInBytes));
+        T* newItems = static_cast<T*>(mla_platform_malloc(newSizeInBytes));
 
         if (newItems == nullptr)
             return false; // Memory allocation failed

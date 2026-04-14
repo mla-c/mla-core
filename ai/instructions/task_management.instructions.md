@@ -56,7 +56,7 @@ static mla_task_process_result_state sensor_poll_task(mla_user_data_t& p_UserDat
 }
 
 void sensor_module_init() {
-    SensorContext* ctx = static_cast<SensorContext*>(mla_malloc(sizeof(SensorContext)));
+    SensorContext* ctx = static_cast<SensorContext*>(mla_platform_malloc(sizeof(SensorContext)));
     // … initialise ctx …
 
     mla_user_data_t userData = mla_user_data_empty();

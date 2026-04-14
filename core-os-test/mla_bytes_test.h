@@ -43,7 +43,7 @@ inline void BytesFromExternalBufferTest() {
 
 inline void BytesFromBufferWithOwnershipTest() {
     mla_size_t size = 5;
-    mla_byte_t* data = (mla_byte_t*)mla_malloc(size);
+    mla_byte_t* data = (mla_byte_t*)mla_platform_malloc(size);
     assert_not_null(data, "Malloc failed");
     if (data != nullptr) {
         data[0] = 10;

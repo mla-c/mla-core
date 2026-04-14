@@ -62,7 +62,7 @@ Available for all integer types (e.g., `mla_int8_min`, `mla_int8_max`, `mla_uint
 - ✅ `mla_memcpy`, `mla_memset`, `mla_memcmp`, `mla_memmove`
 
 - ❌ `malloc`, `free`
-- ✅ `mla_malloc`, `mla_free`
+- ✅ `mla_platform_malloc`, `mla_platform_free`
 
 - ❌ `strcpy`, `strlen`, `strstr`
 - ✅ `mla_strcpy`, `mla_strlen`, `mla_strstr`
@@ -184,7 +184,7 @@ The framework uses a centralized configuration system to manage system-wide and 
 - Follow C-style naming with C++ references and templates
 - Use struct keyword and _t suffix for types
 - Prefix functions with mla_<module>_
-- Use MLA memory operations and low-level from the framework like mla_malloc, mla_memcpy, etc.
+- Use MLA memory operations and low-level from the framework like mla_platform_malloc, mla_memcpy, etc.
 - Never include standard library headers; use MLA equivalents instead.
-- Never use new or delete; use mla_malloc and mla_free instead.
+- Never use new or delete; use mla_platform_malloc and mla_platform_free instead.
 - **NEVER** access internal struct fields (e.g., `bytes.data`, `string.heap.data`) directly in external consumer code or tests if a corresponding API function is provided by the header file (e.g., `mla_bytes_get_data_readonly`, `mla_string_data`). External code must always use the provided API for data access and manipulation to ensure encapsulation. Internal framework implementation files (e.g., implementations like `mla_string*` and `mla_bytes*` functions) are permitted to access internal fields like `.heap.data` or `.heap.length` as needed for core operations.

@@ -412,7 +412,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 if (pointCount < 2) {
                     break;
                 }
-                Gdiplus::PointF *points = (Gdiplus::PointF *)mla_malloc(sizeof(Gdiplus::PointF) * pointCount);
+                Gdiplus::PointF *points = (Gdiplus::PointF *)mla_platform_malloc(sizeof(Gdiplus::PointF) * pointCount);
                 if (points == nullptr) {
                     break;
                 }
@@ -423,7 +423,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 }
                 Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.polyline.stroke), (Gdiplus::REAL)cmd.polyline.stroke_width);
                 graphics.DrawLines(&strokePen, points, (INT)pointCount);
-                mla_free(points);
+                mla_platform_free(points);
                 break;
             }
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_POLYGON: {
@@ -431,7 +431,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 if (pointCount < 3) {
                     break;
                 }
-                Gdiplus::PointF *points = (Gdiplus::PointF *)mla_malloc(sizeof(Gdiplus::PointF) * pointCount);
+                Gdiplus::PointF *points = (Gdiplus::PointF *)mla_platform_malloc(sizeof(Gdiplus::PointF) * pointCount);
                 if (points == nullptr) {
                     break;
                 }
@@ -447,7 +447,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                     Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.polygon.stroke), (Gdiplus::REAL)cmd.polygon.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
-                mla_free(points);
+                mla_platform_free(points);
                 break;
             }
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_PATH: {
@@ -565,7 +565,7 @@ mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_po
 
 mla_bool_t __windows_create_gdiplus_surface(mla_ui_surface_t &outSurface) {
     mla_windows_window_surface_gdiplus_t *window_surface =
-        static_cast<mla_windows_window_surface_gdiplus_t *>(mla_malloc(sizeof(mla_windows_window_surface_gdiplus_t)));
+        static_cast<mla_windows_window_surface_gdiplus_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_gdiplus_t)));
     if (window_surface == nullptr) {
         return false;
     }

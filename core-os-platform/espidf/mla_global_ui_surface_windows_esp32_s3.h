@@ -610,7 +610,7 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
     void *fb = nullptr;
     ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 1, &fb));
 
-    mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) mla_malloc(sizeof(mla_esp32_surface_t));
+    mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) mla_platform_malloc(sizeof(mla_esp32_surface_t));
 
     if (esp_surface == nullptr) {
         ESP_LOGE("LCD", "Failed to allocate memory for esp32 surface.");

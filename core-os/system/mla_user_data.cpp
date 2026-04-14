@@ -82,7 +82,7 @@ mla_buffer_cleanup_mode __mla_ser_data_data_into_list_cleanup(mla_platform_point
 mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &target, mla_bool_t addNewItem) {
 
     // Convert to list
-    mla_user_data_list_t* list = (mla_user_data_list_t*)mla_malloc(sizeof(mla_user_data_list_t));
+    mla_user_data_list_t* list = (mla_user_data_list_t*)mla_platform_malloc(sizeof(mla_user_data_list_t));
 
     if (list == nullptr) {
         return nullptr;
@@ -107,7 +107,7 @@ mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &targe
     if (addTarget) {
         if (!mla_array_list_add(list->datas, target)) {
             mla_error(mla_string_concat("Failed to add existing user data to list for name: ", __mla_string_from_mla_user_data_id(target.id)));
-            mla_free(list);
+            mla_platform_free(list);
             return nullptr;
         }
     }
@@ -116,7 +116,7 @@ mla_user_data_list_t* __mla_user_data_move_data_into_list(mla_user_data_t &targe
         mla_user_data_t newItem = mla_user_data_empty();
         if (!mla_array_list_add(list->datas, newItem)) {
             mla_error(mla_string_const("Failed to add new user data to list"));
-            mla_free(list);
+            mla_platform_free(list);
             return nullptr;
         }
     }
@@ -1418,7 +1418,7 @@ mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
             return copy; // No data to copy
         }
 
-        mla_user_data_list_t* newList = (mla_user_data_list_t*)mla_malloc(sizeof(mla_user_data_list_t));
+        mla_user_data_list_t* newList = (mla_user_data_list_t*)mla_platform_malloc(sizeof(mla_user_data_list_t));
         if (newList == nullptr) {
             return copy;
         }

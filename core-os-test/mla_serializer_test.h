@@ -16,11 +16,11 @@
 static mla_byte_t* mla_serializer_buffer = nullptr;
 
 inline void SetupSerializerTest() {
-    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(1024));
 }
 
 inline void TearDownSerializerTest() {
-    mla_free(mla_serializer_buffer);
+    mla_platform_free(mla_serializer_buffer);
 }
 
 struct mla_all_types_inner_struct {
@@ -376,7 +376,7 @@ static mla_all_types_struct g_benchmarkAllTypes = {
 
 inline void SetupSerializerBenchmark() {
 
-    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(1024));
     mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
 
     g_benchmarkAllTypes = {
@@ -436,7 +436,7 @@ inline void TearDownSerializerBenchmark() {
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
 
-    mla_free(mla_serializer_buffer);
+    mla_platform_free(mla_serializer_buffer);
 }
 
 
@@ -502,7 +502,7 @@ inline void TearDownDeserializerBenchmark() {
         mla_array_list_empty<mla_int32_t>(),
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
-    mla_free(mla_serializer_buffer);
+    mla_platform_free(mla_serializer_buffer);
 }
 
 
@@ -553,7 +553,7 @@ inline void BinarySerializerBenchmark() {
 
 inline void SetupBinaryDeserializerBenchmark() {
 
-    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(1024));
     mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
     mla_serializer_t serializer = mla_binary_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
@@ -581,7 +581,7 @@ inline void JsonSerializerBenchmark() {
 
 inline void SetupJsonDeserializerBenchmark() {
 
-    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(1024));
     mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
     mla_serializer_t serializer = mla_json_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
@@ -608,7 +608,7 @@ inline void XmlSerializerBenchmark() {
 
 inline void SetupXmlDeserializerBenchmark() {
 
-    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_malloc(1024));
+    mla_serializer_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(1024));
     mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
     mla_serializer_t serializer = mla_xml_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);

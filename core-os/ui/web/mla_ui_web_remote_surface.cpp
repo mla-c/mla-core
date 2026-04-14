@@ -307,7 +307,7 @@ mla_ui_web_remote_surface_message_result_t __mla_ui_web_remote_surface_handle_cl
 
 mla_ui_web_remote_surface_t mla_ui_web_remote_surface_create(const mla_http_server_websocket_connection_t& connection) {
 
-    mla_ui_web_remote_surface_data_t* surfaceData = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(mla_malloc(sizeof(mla_ui_web_remote_surface_data_t)));
+    mla_ui_web_remote_surface_data_t* surfaceData = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(mla_platform_malloc(sizeof(mla_ui_web_remote_surface_data_t)));
 
     if (surfaceData == nullptr) {
         return mla_ui_web_remote_surface_invalid();

@@ -42,18 +42,18 @@ mla_bool_t my_test2_free_hook(mla_platform_pointer_t ptr) {
 void InstallAndUninstallMemoryHookTest() {
 
     m_hook_called = false;
-    mla_platform_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_platform_malloc(24);
     assert_false(m_hook_called, "Memory hook should not be called on initial malloc");
-    mla_free(data);
+    mla_platform_free(data);
     assert_false(m_hook_called, "Memory hook should not be called on initial free");
 
     mla_memory_hook_t hook = mla_memory_hook_install(my_test_malloc_hook, my_test_free_hook);
 
     m_hook_called = false;
-    data = mla_malloc(24);
+    data = mla_platform_malloc(24);
     assert_true(m_hook_called, "Memory hook should be called on malloc after installation");
     m_hook_called = false;
-    mla_free(data);
+    mla_platform_free(data);
     assert_true(m_hook_called, "Memory hook should be called on free after installation");
 
 
@@ -61,12 +61,12 @@ void InstallAndUninstallMemoryHookTest() {
     m_hook2_called = false;
     m_hook_called = false;
     mla_memory_hook_t hook2 = mla_memory_hook_install(my_test2_malloc_hook, my_test2_free_hook);
-    data = mla_malloc(24);
+    data = mla_platform_malloc(24);
     assert_true(m_hook_called, "First memory hook should be called on malloc after second installation");
     assert_true(m_hook2_called, "Second memory hook should be called on malloc after second installation");
     m_hook_called = false;
     m_hook2_called = false;
-    mla_free(data);
+    mla_platform_free(data);
     assert_true(m_hook_called, "First memory hook should be called on free after second installation");
     assert_true(m_hook2_called, "Second memory hook should be called on free after second installation");
 
@@ -74,9 +74,9 @@ void InstallAndUninstallMemoryHookTest() {
     mla_memory_hook_uninstall(hook2);
     mla_memory_hook_uninstall(hook);
     m_hook_called = false;
-    data = mla_malloc(24);
+    data = mla_platform_malloc(24);
     assert_false(m_hook_called, "Memory hook should not be called after uninstallation");
-    mla_free(data);
+    mla_platform_free(data);
     assert_false(m_hook_called, "Memory hook should not be called after uninstallation");
 
 }
@@ -90,9 +90,9 @@ void RegisterMemoryHookTests(mla_test_executor_t &p_TestExecutor) {
 
 void NoMemoryHookBenchmark() {
 
-    mla_platform_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_platform_malloc(24);
     (void)data; // Prevent unused variable warning
-    mla_free(data);
+    mla_platform_free(data);
 
 }
 
@@ -109,9 +109,9 @@ void TeardownMemoryHookBenchmark() {
 
 void MemoryHookBenchmark() {
 
-    mla_platform_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_platform_malloc(24);
     (void)data; // Prevent unused variable warning
-    mla_free(data);
+    mla_platform_free(data);
 }
 
 void SetupTwoMemoryHookBenchmark() {
@@ -127,9 +127,9 @@ void TeardownTwoMemoryHookBenchmark() {
 void TwoMemoryHookBenchmark() {
 
 
-    mla_platform_pointer_t data = mla_malloc(24);
+    mla_platform_pointer_t data = mla_platform_malloc(24);
     (void)data; // Prevent unused variable warning
-    mla_free(data);
+    mla_platform_free(data);
 
 }
 

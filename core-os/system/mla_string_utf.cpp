@@ -96,7 +96,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
     // Allocate potentially more space for surrogate pairs
     mla_size_t maxSize = realCharCount * 2 + 1; // Max possible size (if all are surrogate pairs) + null terminator
-    mla_utf_16_char_t* buffer = static_cast<mla_utf_16_char_t*>(mla_malloc(sizeof(mla_utf_16_char_t) * maxSize));
+    mla_utf_16_char_t* buffer = static_cast<mla_utf_16_char_t*>(mla_platform_malloc(sizeof(mla_utf_16_char_t) * maxSize));
 
     if (buffer == nullptr) {
         mla_error(mla_string_const("Failed to allocate memory for UTF-16 buffer."));
@@ -287,7 +287,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer) {
 
     if (p_Buffer.data != nullptr) {
-        mla_free(p_Buffer.data); // Clean up allocated memory
+        mla_platform_free(p_Buffer.data); // Clean up allocated memory
     }
 
     p_Buffer.data = nullptr;
@@ -303,7 +303,7 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
     }
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
-    mla_utf_32_char_t* buffer = static_cast<mla_utf_32_char_t*>(mla_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1))); // +1 for null terminator
+    mla_utf_32_char_t* buffer = static_cast<mla_utf_32_char_t*>(mla_platform_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1))); // +1 for null terminator
 
     if (buffer == nullptr) {
         return {nullptr, 0};
@@ -465,7 +465,7 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer) {
 
     if (p_Buffer.data != nullptr) {
-        mla_free(p_Buffer.data); // Clean up allocated memory
+        mla_platform_free(p_Buffer.data); // Clean up allocated memory
     }
     p_Buffer.data = nullptr;
     p_Buffer.charCount = 0;

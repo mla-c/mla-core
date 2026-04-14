@@ -454,7 +454,7 @@ void FileSystemReadWriteDataTest() {
 
 
     // Read data back
-    mla_byte_t* readBuffer = (mla_byte_t*)mla_malloc(fileLength + 1);
+    mla_byte_t* readBuffer = (mla_byte_t*)mla_platform_malloc(fileLength + 1);
 
     if (readBuffer != nullptr && readStream.read != nullptr) {
         mla_size_t bytesRead = readStream.read(readStream, 0, fileLength, readBuffer);
@@ -474,7 +474,7 @@ void FileSystemReadWriteDataTest() {
     readStream = mla_file_system_stream_empty();
 
     // Clean up
-    mla_free(readBuffer);
+    mla_platform_free(readBuffer);
     mla_fs_delete_file(mla_string("/rwtest/data.txt"));
     mla_fs_delete_directory(mla_string("/rwtest/"));
 }

@@ -14,7 +14,7 @@ mla_buffer_t* mla_buffer(const mla_platform_pointer_t p_Data, mla_buffer_cleanup
         return nullptr; // Return null if data is null
     }
 
-    mla_buffer_t* buffer = static_cast<mla_buffer_t*>(mla_malloc(sizeof(mla_buffer_t)));
+    mla_buffer_t* buffer = static_cast<mla_buffer_t*>(mla_platform_malloc(sizeof(mla_buffer_t)));
 
     if (buffer == nullptr) {
         return nullptr; // Return null if allocation fails
@@ -43,11 +43,11 @@ void __mla_buffer_destroy(mla_buffer_t* p_Buffer, mla_bool_t executeCleanupHook)
 
                 // Free the data only if it was allocated
                 if (needCleanup == CLEAN_UP_NEEDED) {
-                    mla_free(l_Data);
+                    mla_platform_free(l_Data);
                 }
             }
             p_Buffer->data = nullptr; // Clear the pointer
-            mla_free(p_Buffer);
+            mla_platform_free(p_Buffer);
         }
     }
 }

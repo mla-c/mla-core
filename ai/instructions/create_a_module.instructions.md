@@ -83,7 +83,7 @@ mla_bool_t mla_my_feature_is_valid(const mla_my_feature_t& p_Feature) {
 ```
 
 ### Key points
-- Never use `new`/`delete` — use `mla_malloc` / `mla_free`.
+- Never use `new`/`delete` — use `mla_platform_malloc` / `mla_free`.
 - Never use `memcpy`, `strlen`, etc. — use `mla_memcpy`, `mla_strlen`, etc.
 - Never include `<string>`, `<vector>`, or any standard library header.
 
