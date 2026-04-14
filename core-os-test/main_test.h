@@ -11,6 +11,7 @@
 #include "../core-os-test-support/mla_benchmark_executor.h"
 
 #include "mla_data_types_test.h"
+#include "mla_pointer_test.h"
 #include "mla_string_test.h"
 #include "mla_number_test.h"
 #include "mla_buffer_test.h"
@@ -70,6 +71,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
     mla_test_executor_t l_TestExecutor = mla_test_executor();
     RegisterDataTypesTests(l_TestExecutor);
+    RegisterPointerTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
     RegisterBufferTests(l_TestExecutor);

@@ -3,6 +3,7 @@
 # Main source files
 set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_data_types.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_data_types_pointer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string_concat.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string_utf.cpp

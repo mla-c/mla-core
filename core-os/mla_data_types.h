@@ -42,6 +42,34 @@
 #define mla_void_t void
 #define mla_platform_pointer_t void*
 
+class mla_pointer_t {
+public:
+    // Copy constructor
+    mla_pointer_t(const mla_pointer_t& p_Other);
+
+    // Constructor that takes a buffer pointer
+    mla_pointer_t(mla_uint8_t* headData);
+
+    // Default constructor
+    ~mla_pointer_t();
+
+    // Assignment operator
+    mla_pointer_t& operator=(const mla_pointer_t& p_Other);
+
+public:
+    mla_uint8_t* headData;
+};
+
+mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr);
+
+template <typename T>
+T* mla_pointer_get_data(const mla_pointer_t& ptr) {
+    return static_cast<T*>(mla_pointer_get_platform_pointer(ptr));
+}
+
+mla_pointer_t mla_pointer_null();
+mla_bool_t mla_pointer_is_null(const mla_pointer_t& ptr);
+mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr);
 
 // Limits for the data types
 
@@ -108,6 +136,8 @@ mla_dynamic_data_t mla_dynamic_data_from_float(mla_float_t value);
 mla_dynamic_data_t mla_dynamic_data_from_double(mla_double_t value);
 mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_platform_pointer_t value);
 mla_dynamic_data_t mla_dynamic_data_from_char(mla_char_t value);
+
+typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla_dynamic_data_t& userData);
 
 #define mla_size_t mla_uint32_t
 #define mla_size_min mla_uint32_min
@@ -214,9 +244,13 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
-mla_platform_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
+mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
+mla_pointer_t mla_malloc_with_check(mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
 
-#define mla_platform_malloc(size) mla_malloc_with_check(size, __FILE__, __func__)
+#define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_check(size, cleanup_hook, cleanup_data, __FILE__, __func__)
+
+#define mla_platform_malloc(size) mla_platform_malloc_with_check(size, __FILE__, __func__)
+
 #define mla_platform_free(ptr) g_low_level_access.free((ptr))
 #define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
@@ -255,6 +289,21 @@ template<mla_size_t N>
 mla_size_t mla_print_const(const mla_char_t (&literal)[N]) {
     return mla_print(literal, N-1);  // N includes null terminator
 }
+
+template <typename T>
+void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+    (void)userData;
+
+    T* l_Data = reinterpret_cast<T*>(data);
+
+    if (l_Data == nullptr) {
+        return;
+    }
+
+    *l_Data = T::init();
+}
+
+#define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
 
 #endif

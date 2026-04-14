@@ -24,7 +24,7 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path) {
 
 }
 
-mla_platform_pointer_t mla_malloc_with_check(mla_size_t size, const mla_char_t* path, const mla_char_t* function_name) {
+mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* path, const mla_char_t* function_name) {
 
     mla_platform_pointer_t ptr = g_low_level_access.malloc(size);
     if (ptr == nullptr) {
