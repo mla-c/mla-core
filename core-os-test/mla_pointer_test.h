@@ -98,4 +98,61 @@ void RegisterPointerTests(mla_test_executor_t &p_TestExecutor) {
 
 }
 
+struct my_pointer_native_test_t {
+    mla_platform_pointer_t data;
+};
+
+void PointerMemoryManagementBenchmark() {
+
+    mla_pointer_t container1 = mla_malloc_struct(my_pointer_test_native_auto_test_t);
+    mla_pointer_t container2 = container1;
+    mla_pointer_t container3 = container2;
+
+    container1 = mla_pointer_null(); // Clear container1
+    container2 = mla_pointer_null(); // Clear container2
+    container3 = mla_pointer_null(); // Clear container3
+}
+
+void PointerNativeMemoryManagementBenchmark() {
+
+    mla_platform_pointer_t data = mla_platform_malloc(sizeof(my_pointer_test_native_auto_test_t));
+    my_pointer_native_test_t container1 = {data};
+    my_pointer_native_test_t container2 = container1;
+    my_pointer_native_test_t container3 = container2;
+
+    // Clear all containers
+    container1 = {nullptr};
+    container2 = {nullptr};
+    container3 = {nullptr};
+
+    // Free the memory
+    mla_platform_free(data);
+}
+
+void PointerNativeAutomaticMemoryManagementBenchmark() {
+
+    my_pointer_test_native_auto_test_t container1 = my_pointer_test_native_auto_test_t::init();
+    my_pointer_test_native_auto_test_t container2 = container1;
+    my_pointer_test_native_auto_test_t container3 = container2;
+
+    // Clear all containers
+    container1 = my_pointer_test_native_auto_test_t::init();
+    container2 = my_pointer_test_native_auto_test_t::init();
+    container3 = my_pointer_test_native_auto_test_t::init();
+
+}
+
+void RegisterPointerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+
+    mla_benchmark_t benchmark = mla_benchmark("PointerMemoryBenchmark", benchmark_category, PointerMemoryManagementBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("PointerNativeMemoryBenchmark", benchmark_category, PointerNativeMemoryManagementBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("PointerNativeAutoMemoryBenchmark", benchmark_category, PointerNativeAutomaticMemoryManagementBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+}
+
 #endif

@@ -123,9 +123,10 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 #endif
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor();
+    RegisterBufferBenchmarks(l_BenchmarkExecutor);
+    RegisterPointerBenchmarks(l_BenchmarkExecutor);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
     RegisterNumberBenchmarks(l_BenchmarkExecutor);
-    RegisterBufferBenchmarks(l_BenchmarkExecutor);
     RegisterMemoryHookBenchmarks(l_BenchmarkExecutor);
     RegisterArrayListBenchmarks(l_BenchmarkExecutor);
     RegisterLinkListBenchmarks(l_BenchmarkExecutor);
