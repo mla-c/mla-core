@@ -27,10 +27,14 @@ struct mla_string_utf16_buffer_t {
     mla_size_t charCount; // Length of the UTF-16 string without the null terminator
 };
 
+const mla_utf_16_char_t* mla_string_utf16_data(const mla_string_utf16_buffer_t &p_Utf16Buffer);
+
 struct mla_string_utf32_buffer_t {
     mla_pointer_t data;
     mla_size_t charCount; // Length of the UTF-32 string without the null terminator
 };
+
+const mla_utf_32_char_t* mla_string_utf32_data(const mla_string_utf32_buffer_t &p_Utf32Buffer);
 
 // Bitmasks for extracting information
 #define MLA_STRING_MEMORY_LOCATION_MASK 0xF0 // Mask for flags (11110000)
