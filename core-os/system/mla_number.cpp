@@ -14,16 +14,13 @@ mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
 
     mla_c_string_t c_str = mla_string_to_cString(str);
 
-    if (c_str.c_str == nullptr) {
+    const mla_char_t* c_str_data = mla_c_string_data(c_str);
+
+    if (c_str_data == nullptr) {
         return false;
     }
 
-    mla_bool_t success = mla_strtod(c_str.c_str, length, &out_value);
-
-    if (c_str.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(c_str.c_str));
-    }
-    return success;
+    return mla_strtod(c_str_data, length, &out_value);
 }
 
 mla_bool_t mla_parse_float(const mla_string_t &str, mla_float_t& out_value) {
@@ -47,16 +44,13 @@ mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
 
     mla_c_string_t c_str = mla_string_to_cString(str);
 
-    if (c_str.c_str == nullptr) {
+    const mla_char_t* c_str_data = mla_c_string_data(c_str);
+
+    if (c_str_data == nullptr) {
         return false;
     }
 
-    mla_bool_t success = mla_strtoll(c_str.c_str, length, &out_value);
-
-    if (c_str.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(c_str.c_str));
-    }
-    return success;
+    return mla_strtoll(c_str_data, length, &out_value);
 
 }
 
@@ -76,16 +70,13 @@ mla_bool_t mla_parse_uint64(const mla_string_t &str, mla_uint64_t& out_value) {
 
     mla_c_string_t c_str = mla_string_to_cString(str);
 
-    if (c_str.c_str == nullptr) {
+    const mla_char_t* c_str_data = mla_c_string_data(c_str);
+
+    if (c_str_data == nullptr) {
         return false;
     }
 
-    mla_bool_t success = mla_strtoull(c_str.c_str, length, &out_value);
-
-    if (c_str.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(c_str.c_str));
-    }
-    return success;
+    return mla_strtoull(c_str_data, length, &out_value);
 }
 
 mla_bool_t mla_parse_int32(const mla_string_t &str, mla_int32_t& out_value) {

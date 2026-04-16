@@ -44,25 +44,27 @@ mla_string_t mla_generate_uuid() {
     mla_uint16_t clock_seq = (rand3 & 0x3FFF) | 0x8000; // Variant 10
 
     // Build UUID directly in buffer: 36 chars + null terminator
-    mla_char_t *buffer = mla_create_char_array(37);
+    mla_pointer_t buffer= mla_create_char_array(37);
 
-    if (buffer == nullptr) {
+    if (mla_pointer_is_null(buffer)) {
         return mla_string_empty(); // Memory allocation failed
     }
 
-    __mla_string_from_uint32_hex(buffer, rand1, 8);
-    buffer[8] = '-';
-    __mla_string_from_uint16_hex(buffer + 9, (rand2 >> 16) & 0xFFFF, 4);
-    buffer[13] = '-';
-    __mla_string_from_uint16_hex(buffer + 14, time_hi, 4);
-    buffer[18] = '-';
-    __mla_string_from_uint16_hex(buffer + 19, clock_seq, 4);
-    buffer[23] = '-';
-    __mla_string_from_uint16_hex(buffer + 24, (rand3 >> 16) & 0xFFFF, 4);
-    __mla_string_from_uint32_hex(buffer + 28, rand4, 8);
-    buffer[36] = '\0';
+    mla_char_t* buffer_data = mla_pointer_get_data<mla_char_t>(buffer);
 
-    return mla_string_from_buffer_without_ownership(buffer, 36);
+    __mla_string_from_uint32_hex(buffer_data, rand1, 8);
+    buffer_data[8] = '-';
+    __mla_string_from_uint16_hex(buffer_data + 9, (rand2 >> 16) & 0xFFFF, 4);
+    buffer_data[13] = '-';
+    __mla_string_from_uint16_hex(buffer_data + 14, time_hi, 4);
+    buffer_data[18] = '-';
+    __mla_string_from_uint16_hex(buffer_data + 19, clock_seq, 4);
+    buffer_data[23] = '-';
+    __mla_string_from_uint16_hex(buffer_data + 24, (rand3 >> 16) & 0xFFFF, 4);
+    __mla_string_from_uint32_hex(buffer_data + 28, rand4, 8);
+    buffer_data[36] = '\0';
+
+    return mla_string_from_buffer_with_ownership(buffer, 36);
 }
 
 

@@ -51,13 +51,15 @@ mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_le
         }
     }
 
-    mla_char_t *buffer = static_cast<mla_char_t *>(mla_platform_malloc(buffer_length));
+    mla_pointer_t buffer = mla_malloc_buffer(sizeof(mla_char_t) * buffer_length);
 
-    if (buffer == nullptr) {
+    if (mla_pointer_is_null(buffer)) {
         return mla_string_empty(); // Allocation failed, return empty string
     }
 
-    mla_size_t read_length = input.read(input, 0, max_length, (mla_byte_t*)buffer);
+    mla_byte_t* buffer_data = mla_pointer_get_data<mla_byte_t>(buffer);
+
+    mla_size_t read_length = input.read(input, 0, max_length, buffer_data);
     return mla_string_from_buffer_with_ownership(buffer, read_length);
 }
 

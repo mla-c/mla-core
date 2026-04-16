@@ -124,8 +124,20 @@ mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
         return mla_string_empty();
     }
 
-    mla_string_t result = {p_Bytes.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
-    result.heap.data = reinterpret_cast<const mla_char_t*>(p_Bytes.data);
+    mla_pointer_t newBuffer = mla_malloc_buffer(p_Bytes.size);
+
+    if (mla_pointer_is_null(newBuffer)) {
+        return mla_string_empty();
+    }
+
+    mla_byte_t* new_buffer_data = mla_pointer_get_data<mla_byte_t>(newBuffer);
+    mla_memcmp(new_buffer_data, p_Bytes.data, p_Bytes.size);
+
+    // QQQ mla_pointer_t Change this to assign mla_pointer_t when mla_bytes have support for pointers
+    //mla_string_t result = {p_Bytes.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
+
+    mla_string_t result = {newBuffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
+    result.heap.char_offset = 0;
     result.heap.length = p_Bytes.size;
     return result;
 
@@ -139,6 +151,22 @@ mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String) {
     if (data == nullptr || length == 0) {
         return mla_bytes_empty();
     }
+
+    mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(length));
+
+    if (buffer == nullptr) {
+        return mla_bytes_empty();
+    }
+
+    mla_memcpy(buffer, data, length);
+    return {
+        buffer,
+        length,
+        mla_buffer_reference(buffer)
+    };
+
+    // QQQ mla_pointer_t
+    /*
 
     if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
         // We need to copy for case because the string is using SSO and we can't guarantee its lifetime
@@ -165,6 +193,7 @@ mla_bytes_t mla_bytes_from_string(const mla_string_t& p_String) {
             p_String.dataOwner
         };
     }
+    */
 }
 
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
@@ -178,10 +207,12 @@ mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
     // Calculate output length: (input_length * 4 + 2) / 3 rounded up
     mla_size_t output_length = ((p_Bytes.size + 2) / 3) * 4;
 
-    mla_char_t* buffer = mla_create_char_array(output_length + 1); // +1 for null terminator
-    if (buffer == nullptr) {
+    mla_pointer_t buffer = mla_create_char_array(output_length + 1); // +1 for null terminator
+    if (mla_pointer_is_null(buffer)) {
         return mla_string_empty();
     }
+
+    mla_char_t* buffer_data = mla_pointer_get_data<mla_char_t>(buffer);
 
     mla_size_t output_pos = 0;
 
@@ -199,13 +230,13 @@ mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
         triple <<= (3 - bytes_in_group) * 8;
 
         // Extract 4 6-bit values
-        buffer[output_pos++] = base64_chars[(triple >> 18) & 0x3F];
-        buffer[output_pos++] = base64_chars[(triple >> 12) & 0x3F];
-        buffer[output_pos++] = (bytes_in_group > 1) ? base64_chars[(triple >> 6) & 0x3F] : '=';
-        buffer[output_pos++] = (bytes_in_group > 2) ? base64_chars[triple & 0x3F] : '=';
+        buffer_data[output_pos++] = base64_chars[(triple >> 18) & 0x3F];
+        buffer_data[output_pos++] = base64_chars[(triple >> 12) & 0x3F];
+        buffer_data[output_pos++] = (bytes_in_group > 1) ? base64_chars[(triple >> 6) & 0x3F] : '=';
+        buffer_data[output_pos++] = (bytes_in_group > 2) ? base64_chars[triple & 0x3F] : '=';
     }
 
-    buffer[output_length] = '\0';
+    buffer_data[output_length] = '\0';
 
     return mla_string_from_buffer_with_ownership(buffer, output_length);
 

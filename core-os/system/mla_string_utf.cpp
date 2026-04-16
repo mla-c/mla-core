@@ -211,7 +211,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 
             // Handle surrogate pairs
             if (c >= 0xD800 && c <= 0xDBFF && utf16Index < p_Utf16Buffer.charCount) {
-                mla_utf_16_char_t low = p_Utf16Buffer.data[utf16Index];
+                mla_utf_16_char_t low = uft_16_data[utf16Index];
                 if (low >= 0xDC00 && low <= 0xDFFF) {
                     codePoint = 0x10000 + (((c - 0xD800) << 10) | (low - 0xDC00));
                     utf16Index++;
@@ -472,13 +472,4 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
     result.heap.char_offset = 0;
     result.heap.length = utf8Index;
     return result;
-}
-
-void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer) {
-
-    if (p_Buffer.data != nullptr) {
-        mla_platform_free(p_Buffer.data); // Clean up allocated memory
-    }
-    p_Buffer.data = nullptr;
-    p_Buffer.charCount = 0;
 }

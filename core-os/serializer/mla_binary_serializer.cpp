@@ -247,14 +247,16 @@ mla_string_t __mla_binary_deserializer_read_string_data(mla_deserializer_t& inst
         return mla_string_empty();
     }
 
-    mla_char_t* charBuffer = mla_create_char_array(length);
+    mla_pointer_t charBuffer = mla_create_char_array(length);
 
-    if (charBuffer == nullptr) {
+    if (mla_pointer_is_null(charBuffer)) {
         // No memory available
         return mla_string_empty();
     }
 
-    mla_size_t readed_bytes = instance.input.read(instance.input, 0, length, reinterpret_cast<mla_byte_t*>(charBuffer));
+    mla_char_t* char_data = mla_pointer_get_data<mla_char_t>(charBuffer);
+
+    mla_size_t readed_bytes = instance.input.read(instance.input, 0, length, reinterpret_cast<mla_byte_t*>(char_data));
 
     if (readed_bytes != length) {
         mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(readed_bytes), ") do not match expected length (", mla_string_from_uint32(length), ") in deserializer"));
