@@ -278,7 +278,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
         }
     }
 
-    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
     result.heap.data = utf8Buffer;
     result.heap.length = utf8Index;
     return result;
@@ -456,7 +456,7 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
         }
     }
 
-    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
     result.heap.data = utf8Buffer;
     result.heap.length = utf8Index;
     return result;

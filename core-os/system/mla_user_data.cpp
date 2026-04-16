@@ -1051,7 +1051,7 @@ mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, mla_user_
         return defaultValue;
     }
     const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
     result.heap.data = c_string;
     result.heap.length = mla_strlen(c_string);
     return result;
@@ -1341,7 +1341,7 @@ mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userDat
 
     if (found->id == id) {
         const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = c_string;
         result.heap.length = mla_strlen(c_string);
     } else {

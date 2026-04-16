@@ -73,7 +73,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result =  {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result =  {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -136,7 +136,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -209,7 +209,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -272,7 +272,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -345,7 +345,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -408,7 +408,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -482,7 +482,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -545,7 +545,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         }
 
         buffer[index] = '\0';
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -638,7 +638,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         }
         dest[totalLength] = '\0'; // Null terminator
 
-        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = dest;
         result.heap.length = totalLength;
     }
@@ -762,7 +762,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         }
         dest[totalLength] = '\0'; // Null terminator
 
-        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        result = {mla_buffer_reference(dest), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = dest;
         result.heap.length = totalLength;
     }
@@ -843,7 +843,7 @@ mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
         buffer[3] = hexDigits[p_Value & 0x0F];
         buffer[4] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 4;
         return result;
@@ -881,7 +881,7 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
         buffer[5] = hexDigits[p_Value & 0x0F];
         buffer[6] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 6;
         return result;
@@ -927,7 +927,7 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
         buffer[9] = hexDigits[p_Value & 0x0F];
         buffer[10] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 10;
         return result;
@@ -990,7 +990,7 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
         buffer[17] = hexDigits[p_Value & 0x0F];
         buffer[18] = '\0';
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = 18;
         return result;
@@ -1037,7 +1037,7 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
         if (p_Value == 0) {
             buffer[0] = '0';
             buffer[1] = '\0';
-            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
             result.heap.data = buffer;
             result.heap.length = 1;
             return result;
@@ -1059,7 +1059,7 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
             buffer[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -1105,7 +1105,7 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
         if (p_Value == 0) {
             buffer[0] = '0';
             buffer[1] = '\0';
-            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
             result.heap.data = buffer;
             result.heap.length = 1;
             return result;
@@ -1126,7 +1126,7 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
             buffer[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -1172,7 +1172,7 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
         if (p_Value == 0) {
             buffer[0] = '0';
             buffer[1] = '\0';
-            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
             result.heap.data = buffer;
             result.heap.length = 1;
             return result;
@@ -1193,7 +1193,7 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
             buffer[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;
@@ -1239,7 +1239,7 @@ mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
         if (p_Value == 0) {
             buffer[0] = '0';
             buffer[1] = '\0';
-            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+            mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
             result.heap.data = buffer;
             result.heap.length = 1;
             return result;
@@ -1260,7 +1260,7 @@ mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
             buffer[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        mla_string_t result = {mla_buffer_reference(buffer), {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
         result.heap.data = buffer;
         result.heap.length = index;
         return result;

@@ -15,35 +15,51 @@ struct mla_multi_byte_char_t;
 struct mla_string_t;
 
 struct mla_c_string_t {
-    const mla_char_t *c_str; // Pointer to the C-style string data
-    const mla_bool_t isOwner; // Indicates if this string owns the data
+    mla_pointer_t c_heap_str;
+    const mla_char_t* c_resource_str;
 };
 
 // UTF-16 and UTF-32 string representations
 // the data is owned by this struct.
 // So you need to free it when you are done
 struct mla_string_utf16_buffer_t {
-    mla_utf_16_char_t *data; // Pointer to the UTF-16 string data
+    mla_pointer_t data;
     mla_size_t charCount; // Length of the UTF-16 string without the null terminator
 };
 
-void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer);
-
 struct mla_string_utf32_buffer_t {
-    mla_utf_32_char_t *data; // Pointer to the UTF-32 string data
+    mla_pointer_t data;
     mla_size_t charCount; // Length of the UTF-32 string without the null terminator
 };
 
-void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer);
+// Bitmasks for extracting information
+#define MLA_STRING_MEMORY_LOCATION_MASK 0xF0 // Mask for flags (11110000)
+#define MLA_STRING_MEMORY_FORMAT_MASK   0x0F // Mask for type (00001111)
+
+// Location flags (high bits)
+#define MLA_STRING_LOCATION_EMBEDDED 0x10 // 00010000
+#define MLA_STRING_LOCATION_HEAP     0x20 // 00100000
+#define MLA_STRING_LOCATION_RESOURCE 0x40 // 01000000
+
+// Format types (low bits)
+#define MLA_STRING_FORMAT_RAW        0x00
+#define MLA_STRING_FORMAT_C_STRING   0x01
+#define MLA_STRING_FORMAT_BUFFER     0x02
+#define MLA_STRING_FORMAT_SUB_STRING 0x03
 
 enum mla_string_memory_layout_t: mla_uint8_t {
-    MLA_STRING_MEMORY_LAYOUT_EMBEDDED, // Embedded string (small string optimization)
-    MLA_STRING_MEMORY_LAYOUT_C_STRING, // C-style string (with null terminator)
-    MLA_STRING_MEMORY_LAYOUT_BUFFER, // Buffer-based string (without null terminator)
-    MLA_STRING_MEMORY_LAYOUT_SUB_STRING // Substring (view into another string)
+    MLA_STRING_MEMORY_LAYOUT_EMBEDDED = MLA_STRING_LOCATION_EMBEDDED | MLA_STRING_FORMAT_RAW, // Embedded string (small string optimization)
+
+    MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING   = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_C_STRING, // C-style string (with null terminator) which is located on in the heap
+    MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER     = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_BUFFER, // Buffer-based string (without null terminator) which is located on in the heap
+    MLA_STRING_MEMORY_LAYOUT_HEAP_SUB_STRING = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_SUB_STRING, // Substring (view into another string) which is located on in the heap
+
+    MLA_STRING_MEMORY_LAYOUT_RESOURCE_C_STRING   = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_C_STRING, // C-style string (with null terminator) which is located on in the resources
+    MLA_STRING_MEMORY_LAYOUT_RESOURCE_BUFFER     = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_BUFFER, // Buffer-based string (without null terminator) which is located on in the resources
+    MLA_STRING_MEMORY_LAYOUT_RESOURCE_SUB_STRING = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_SUB_STRING, // Substring (view into another string) which is located on in the resources
 };
 
-mla_char_t* mla_create_char_array(const mla_size_t p_Length);
+mla_pointer_t mla_create_char_array(const mla_size_t p_Length);
 
 
 struct mla_multi_byte_char_t {
@@ -54,6 +70,12 @@ struct mla_multi_byte_char_t {
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
 
 struct mla_string_internal_heap_t {
+    mla_string_memory_layout_t memoryLayout;
+    mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
+    mla_size_t char_offset; // Offset which we need to add to the char index to get the correct byte index in the buffer. This is needed for substrings which are views into other strings
+};
+
+struct mla_string_internal_resource_t {
     mla_string_memory_layout_t memoryLayout;
     mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
     const mla_char_t *data; // Pointer to the string data
@@ -67,10 +89,11 @@ struct mla_string_internal_embedded_t {
 
 
 struct mla_string_t {
-    mla_buffer_reference_t dataOwner;
+    mla_pointer_t data_storage;
     union {
         mla_string_internal_embedded_t embedded;
         mla_string_internal_heap_t heap;
+        mla_string_internal_resource_t resource;
     };
 
     mla_bool_t operator==(const mla_string_t &other) const {
@@ -96,7 +119,7 @@ mla_string_t mla_string_copy(const mla_string_t &p_String);
 
 // This function creates a string from a buffer and takes ownership of the buffer
 // You must not free the buffer after calling this function
-mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length);
+mla_string_t mla_string_from_buffer_with_ownership(mla_pointer_t& p_Data, mla_size_t p_Length);
 
 mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length);
 
@@ -159,9 +182,8 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 
 mla_string_memory_layout_t mla_string_get_memory_layout(const mla_string_t &p_String);
 mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_memory_layout_t p_NewLayout);
-mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy);
 mla_c_string_t mla_string_to_cString(const mla_string_t &p_String);
-mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString);
+const mla_char_t* mla_c_string_data(const mla_c_string_t &p_CString);
 
 // String creation from basic types
 mla_string_t mla_string_from_int8(mla_int8_t p_Value);
