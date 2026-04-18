@@ -272,6 +272,12 @@ static inline mla_int32_t __linux_wayland_iclamp(mla_int32_t val, mla_int32_t lo
     return val;
 }
 
+// Compare two C strings for equality without including <string.h>
+static inline mla_bool_t __linux_wayland_str_eq(const char *a, const char *b) {
+    while (*a && *b) { if (*a != *b) return false; a++; b++; }
+    return *a == *b;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Font Cache (FreeType + Fontconfig)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -475,6 +481,9 @@ static mla_bool_t __linux_wayland_create_shm_buffer(mla_linux_wayland_shm_buffer
         fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
         if (fd < 0) return false;
         shm_unlink(name);
+
+        // Set close-on-exec flag to prevent fd leaks in forked processes
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
     }
 
     if (ftruncate(fd, (off_t)size) < 0) {
@@ -1732,23 +1741,17 @@ static void __linux_wayland_registry_global(void *data, struct wl_registry *regi
                                               mla_uint32_t name, const char *interface, mla_uint32_t version) {
     (void)data; (void)version;
 
-    // Compare interface strings manually to avoid including <string.h>
-    auto str_eq = [](const char *a, const char *b) -> mla_bool_t {
-        while (*a && *b) { if (*a != *b) return false; a++; b++; }
-        return *a == *b;
-    };
-
-    if (str_eq(interface, "wl_compositor")) {
+    if (__linux_wayland_str_eq(interface, "wl_compositor")) {
         g_wl_compositor = static_cast<struct wl_compositor *>(
             wl_registry_bind(registry, name, &wl_compositor_interface, 4));
-    } else if (str_eq(interface, "wl_shm")) {
+    } else if (__linux_wayland_str_eq(interface, "wl_shm")) {
         g_wl_shm = static_cast<struct wl_shm *>(
             wl_registry_bind(registry, name, &wl_shm_interface, 1));
-    } else if (str_eq(interface, "xdg_wm_base")) {
+    } else if (__linux_wayland_str_eq(interface, "xdg_wm_base")) {
         g_xdg_wm_base = static_cast<struct xdg_wm_base *>(
             wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
         xdg_wm_base_add_listener(g_xdg_wm_base, &__linux_wayland_xdg_wm_base_listener, nullptr);
-    } else if (str_eq(interface, "wl_seat")) {
+    } else if (__linux_wayland_str_eq(interface, "wl_seat")) {
         g_wl_seat = static_cast<struct wl_seat *>(
             wl_registry_bind(registry, name, &wl_seat_interface, 5));
         wl_seat_add_listener(g_wl_seat, &__linux_wayland_seat_listener, nullptr);
