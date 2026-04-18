@@ -106,6 +106,7 @@ static const struct wl_message __xdg_wm_base_requests[] = {
     { "destroy", "", __xdg_shell_types + 0 },
     { "create_positioner", "n", __xdg_shell_types + 4 },
     { "get_xdg_surface", "no", __xdg_shell_types + 5 },
+    { "pong", "u", __xdg_shell_types + 0 },
 };
 
 static const struct wl_message __xdg_wm_base_events[] = {
@@ -114,7 +115,7 @@ static const struct wl_message __xdg_wm_base_events[] = {
 
 static const struct wl_interface xdg_wm_base_interface = {
     "xdg_wm_base", 6,
-    3, __xdg_wm_base_requests,
+    4, __xdg_wm_base_requests,
     1, __xdg_wm_base_events,
 };
 
@@ -171,10 +172,7 @@ static inline void xdg_wm_base_add_listener(struct xdg_wm_base *xdg_wm_base,
 }
 
 static inline void xdg_wm_base_pong(struct xdg_wm_base *xdg_wm_base, mla_uint32_t serial) {
-    // pong is not in requests, we send it as event response
-    // Actually pong IS a request (destroy=0, create_positioner=1, get_xdg_surface=2)
-    // We need an additional request. Let me redefine.
-    // Looking at the actual protocol: requests are destroy(0), create_positioner(1), get_xdg_surface(2), pong(3)
+    // Opcode 3: pong (destroy=0, create_positioner=1, get_xdg_surface=2, pong=3)
     wl_proxy_marshal((struct wl_proxy *)xdg_wm_base, 3, serial);
 }
 
@@ -228,25 +226,6 @@ static inline void xdg_toplevel_destroy(struct xdg_toplevel *xdg_toplevel) {
     wl_proxy_destroy((struct wl_proxy *)xdg_toplevel);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Corrected XDG WM Base protocol - pong is request opcode 3
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Update xdg_wm_base requests to include pong
-static const struct wl_message __xdg_wm_base_requests_full[] = {
-    { "destroy", "", __xdg_shell_types + 0 },
-    { "create_positioner", "n", __xdg_shell_types + 4 },
-    { "get_xdg_surface", "no", __xdg_shell_types + 5 },
-    { "pong", "u", __xdg_shell_types + 0 },
-};
-
-// Patched interface with pong included
-static const struct wl_interface xdg_wm_base_interface_full = {
-    "xdg_wm_base", 6,
-    4, __xdg_wm_base_requests_full,
-    1, __xdg_wm_base_events,
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Global Wayland State
@@ -1767,7 +1746,7 @@ static void __linux_wayland_registry_global(void *data, struct wl_registry *regi
             wl_registry_bind(registry, name, &wl_shm_interface, 1));
     } else if (str_eq(interface, "xdg_wm_base")) {
         g_xdg_wm_base = static_cast<struct xdg_wm_base *>(
-            wl_registry_bind(registry, name, &xdg_wm_base_interface_full, 1));
+            wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
         xdg_wm_base_add_listener(g_xdg_wm_base, &__linux_wayland_xdg_wm_base_listener, nullptr);
     } else if (str_eq(interface, "wl_seat")) {
         g_wl_seat = static_cast<struct wl_seat *>(
