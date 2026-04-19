@@ -237,6 +237,10 @@ static struct wl_compositor *g_wl_compositor = nullptr;
 static struct wl_shm *g_wl_shm = nullptr;
 static struct xdg_wm_base *g_xdg_wm_base = nullptr;
 static struct wl_seat *g_wl_seat = nullptr;
+static struct wl_output *g_wl_output = nullptr;
+
+// High DPI: compositor-reported output scale factor (1 = standard, 2 = HiDPI/Retina)
+static mla_int32_t g_wl_output_scale = 1;
 
 // FreeType globals
 static FT_Library g_ft_library = nullptr;
@@ -284,6 +288,7 @@ static inline mla_bool_t __linux_wayland_str_eq(const char *a, const char *b) {
 
 struct mla_linux_wayland_font_cache_item_t {
     mla_ui_surface_font_type_t font_type;
+    mla_int32_t cachedScale; // DPI scale at which this face was configured
     FT_Face face;
     mla_buffer_reference_t faceOwner;
 };
@@ -292,6 +297,7 @@ struct mla_linux_wayland_font_cache_item_initializer_t {
     static mla_linux_wayland_font_cache_item_t init() {
         return {
             mla_ui_surface_font_type_empty(),
+            1,
             nullptr,
             mla_buffer_reference_noOwner()
         };
@@ -354,13 +360,17 @@ static FT_Face __linux_wayland_font_cache_get_or_create(
     mla_array_list_t<mla_linux_wayland_font_cache_item_t, mla_linux_wayland_font_cache_item_initializer_t> &cache,
     const mla_ui_surface_font_type_t &fontType) {
 
+    mla_int32_t currentScale = g_wl_output_scale;
+
     if (mla_string_is_empty(fontType.family) || g_ft_library == nullptr)
         return nullptr;
 
-    // Check cache
+    // Check cache (must match font type AND scale factor for crisp HiDPI text)
     for (mla_size_t i = 0; i < mla_array_list_size(cache); i++) {
         const mla_linux_wayland_font_cache_item_t &item = mla_array_list_get_unsafe(cache, i);
         if (!mla_ui_surface_font_type_equals(item.font_type, fontType))
+            continue;
+        if (item.cachedScale != currentScale)
             continue;
         return item.face;
     }
@@ -384,12 +394,14 @@ static FT_Face __linux_wayland_font_cache_get_or_create(
         return nullptr;
     }
 
-    // Set character size (in 1/64th of points, at 96 DPI)
-    FT_Set_Char_Size(face, 0, (FT_F26Dot6)(fontType.size * 64.0), 96, 96);
+    // Set character size (in 1/64th of points) at scaled DPI for crisp HiDPI rendering
+    mla_uint32_t scaledDpi = (mla_uint32_t)(96 * currentScale);
+    FT_Set_Char_Size(face, 0, (FT_F26Dot6)(fontType.size * 64.0), scaledDpi, scaledDpi);
 
     // Add to cache
     mla_linux_wayland_font_cache_item_t newItem = {
         fontType,
+        currentScale,
         face,
         mla_buffer_reference_create(face, true, __linux_wayland_font_face_cleanup, mla_dynamic_data_empty())
     };
@@ -1393,6 +1405,9 @@ struct mla_linux_wayland_surface_t {
     mla_linux_wayland_shm_buffer_t buffers[2];
     mla_int32_t currentBuffer;
 
+    // High DPI: buffer scale factor (physical pixels = logical pixels * bufferScale)
+    mla_int32_t bufferScale;
+
     // Rendering
     mla_linux_wayland_render_cache_t renderCache;
 
@@ -1400,7 +1415,7 @@ struct mla_linux_wayland_surface_t {
     mla_linux_wayland_input_state_t input;
     mla_linux_wayland_pending_events_t pendingEvents;
 
-    // Configure state
+    // Configure state (logical dimensions from compositor)
     mla_int32_t pendingWidth;
     mla_int32_t pendingHeight;
     mla_bool_t hasPendingConfigure;
@@ -1736,6 +1751,41 @@ static const struct wl_seat_listener __linux_wayland_seat_listener = {
     __linux_wayland_seat_name
 };
 
+// wl_output listener for HiDPI scale detection
+static void __linux_wayland_output_geometry(void *data, struct wl_output *output,
+                                              mla_int32_t x, mla_int32_t y,
+                                              mla_int32_t physical_width, mla_int32_t physical_height,
+                                              mla_int32_t subpixel, const char *make, const char *model,
+                                              mla_int32_t transform) {
+    (void)data; (void)output; (void)x; (void)y;
+    (void)physical_width; (void)physical_height;
+    (void)subpixel; (void)make; (void)model; (void)transform;
+}
+
+static void __linux_wayland_output_mode(void *data, struct wl_output *output,
+                                          mla_uint32_t flags, mla_int32_t width, mla_int32_t height,
+                                          mla_int32_t refresh) {
+    (void)data; (void)output; (void)flags; (void)width; (void)height; (void)refresh;
+}
+
+static void __linux_wayland_output_done(void *data, struct wl_output *output) {
+    (void)data; (void)output;
+}
+
+static void __linux_wayland_output_scale(void *data, struct wl_output *output, mla_int32_t factor) {
+    (void)data; (void)output;
+    if (factor >= 1) {
+        g_wl_output_scale = factor;
+    }
+}
+
+static const struct wl_output_listener __linux_wayland_output_listener = {
+    __linux_wayland_output_geometry,
+    __linux_wayland_output_mode,
+    __linux_wayland_output_done,
+    __linux_wayland_output_scale
+};
+
 // Registry handler
 static void __linux_wayland_registry_global(void *data, struct wl_registry *registry,
                                               mla_uint32_t name, const char *interface, mla_uint32_t version) {
@@ -1755,6 +1805,10 @@ static void __linux_wayland_registry_global(void *data, struct wl_registry *regi
         g_wl_seat = static_cast<struct wl_seat *>(
             wl_registry_bind(registry, name, &wl_seat_interface, 5));
         wl_seat_add_listener(g_wl_seat, &__linux_wayland_seat_listener, nullptr);
+    } else if (__linux_wayland_str_eq(interface, "wl_output")) {
+        g_wl_output = static_cast<struct wl_output *>(
+            wl_registry_bind(registry, name, &wl_output_interface, 2));
+        wl_output_add_listener(g_wl_output, &__linux_wayland_output_listener, nullptr);
     }
 }
 
@@ -1780,11 +1834,13 @@ mla_ui_surface_size_t __linux_wayland_surface_get_size(const mla_ui_surface_t &s
 
     if (!ws->is_initialized) return ws->default_size;
 
-    // Return current buffer size
+    // Return logical size (physical buffer size / scale factor)
     mla_linux_wayland_shm_buffer_t &buf = ws->buffers[ws->currentBuffer];
     if (buf.width > 0 && buf.height > 0) {
-        size.width = (mla_uint32_t)buf.width;
-        size.height = (mla_uint32_t)buf.height;
+        mla_int32_t scale = ws->bufferScale;
+        if (scale < 1) scale = 1;
+        size.width = (mla_uint32_t)(buf.width / scale);
+        size.height = (mla_uint32_t)(buf.height / scale);
     } else {
         size = ws->default_size;
     }
@@ -1800,7 +1856,7 @@ mla_bool_t __linux_wayland_surface_set_size(const mla_ui_surface_t &surface, mla
 
     if (!ws->is_initialized) return true;
 
-    // Resize buffers
+    // Pending dimensions are in logical coordinates (compositor space)
     mla_int32_t w = (mla_int32_t)size.width;
     mla_int32_t h = (mla_int32_t)size.height;
 
@@ -1848,7 +1904,14 @@ mla_ui_surface_draw_size_t __linux_wayland_surface_calc_text_size(const mla_ui_s
     const mla_char_t *textData = mla_string_data(text);
     mla_size_t textLen = mla_string_length(text);
 
-    return __linux_wayland_calc_text_size_impl(face, textData, textLen);
+    // Font is rendered at scaled DPI, so the pixel metrics are in physical pixels.
+    // Convert back to logical coordinates by dividing by the scale factor.
+    mla_ui_surface_draw_size_t physicalSize = __linux_wayland_calc_text_size_impl(face, textData, textLen);
+    mla_int32_t scale = ws->bufferScale;
+    if (scale < 1) scale = 1;
+    size.width = physicalSize.width / (mla_double_t)scale;
+    size.height = physicalSize.height / (mla_double_t)scale;
+    return size;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1898,10 +1961,15 @@ static mla_bool_t __linux_wayland_create_window(mla_linux_wayland_surface_t *ws)
     // Initial commit to get the configure event
     wl_surface_commit(ws->wl_surface);
 
-    // Roundtrip to process configure
+    // Roundtrip to process configure and output scale events
     wl_display_roundtrip(g_wl_display);
 
-    // Set default size if compositor didn't configure one
+    // High DPI: apply the compositor's output scale factor
+    ws->bufferScale = g_wl_output_scale;
+    if (ws->bufferScale < 1) ws->bufferScale = 1;
+    wl_surface_set_buffer_scale(ws->wl_surface, ws->bufferScale);
+
+    // Set default logical size if compositor didn't configure one
     mla_int32_t w = ws->pendingWidth;
     mla_int32_t h = ws->pendingHeight;
     if (w <= 0) w = (ws->default_size.width > 0) ? (mla_int32_t)ws->default_size.width : 800;
@@ -1909,9 +1977,11 @@ static mla_bool_t __linux_wayland_create_window(mla_linux_wayland_surface_t *ws)
     ws->pendingWidth = w;
     ws->pendingHeight = h;
 
-    // Create initial SHM buffers
-    if (!__linux_wayland_create_shm_buffer(ws->buffers[0], w, h) ||
-        !__linux_wayland_create_shm_buffer(ws->buffers[1], w, h)) {
+    // Create initial SHM buffers at physical pixel dimensions
+    mla_int32_t physW = w * ws->bufferScale;
+    mla_int32_t physH = h * ws->bufferScale;
+    if (!__linux_wayland_create_shm_buffer(ws->buffers[0], physW, physH) ||
+        !__linux_wayland_create_shm_buffer(ws->buffers[1], physW, physH)) {
         mla_warning("Failed to create SHM buffers.");
         return false;
     }
@@ -1965,21 +2035,35 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
     }
     ws->pendingEvents.count = 0;
 
-    // Handle resize if pending
+    // High DPI: check if output scale changed at runtime (e.g. window moved to different monitor)
+    mla_int32_t newScale = g_wl_output_scale;
+    if (newScale < 1) newScale = 1;
+    if (newScale != ws->bufferScale) {
+        ws->bufferScale = newScale;
+        wl_surface_set_buffer_scale(ws->wl_surface, ws->bufferScale);
+        // Force buffer recreation at new physical size
+        ws->pendingWidth = ws->buffers[ws->currentBuffer].width / ws->bufferScale;
+        ws->pendingHeight = ws->buffers[ws->currentBuffer].height / ws->bufferScale;
+        if (ws->pendingWidth <= 0) ws->pendingWidth = 1;
+        if (ws->pendingHeight <= 0) ws->pendingHeight = 1;
+    }
+
+    // Handle resize if pending (pendingWidth/Height are in logical coordinates)
+    mla_int32_t scale = ws->bufferScale;
     mla_int32_t curW = ws->buffers[ws->currentBuffer].width;
     mla_int32_t curH = ws->buffers[ws->currentBuffer].height;
-    mla_int32_t newW = ws->pendingWidth;
-    mla_int32_t newH = ws->pendingHeight;
+    mla_int32_t newPhysW = ws->pendingWidth * scale;
+    mla_int32_t newPhysH = ws->pendingHeight * scale;
 
-    if (newW > 0 && newH > 0 && (newW != curW || newH != curH)) {
+    if (newPhysW > 0 && newPhysH > 0 && (newPhysW != curW || newPhysH != curH)) {
         // Wait for current buffers to not be busy
         for (mla_int32_t b = 0; b < 2; b++) {
             if (ws->buffers[b].busy) {
                 wl_display_roundtrip(g_wl_display);
             }
         }
-        __linux_wayland_create_shm_buffer(ws->buffers[0], newW, newH);
-        __linux_wayland_create_shm_buffer(ws->buffers[1], newW, newH);
+        __linux_wayland_create_shm_buffer(ws->buffers[0], newPhysW, newPhysH);
+        __linux_wayland_create_shm_buffer(ws->buffers[1], newPhysW, newPhysH);
         ws->currentBuffer = 0;
     }
 
@@ -2016,6 +2100,9 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
     mla_double_t lgX1 = 0, lgY1 = 0, lgX2 = 0, lgY2 = 0;
     mla_double_t rgCx = 0, rgCy = 0, rgR = 0;
 
+    // High DPI: scale factor to convert logical coordinates to physical pixels
+    mla_double_t s = (mla_double_t)ws->bufferScale;
+
     // Process draw commands
     for (mla_size_t i = 0; i < mla_array_list_size(drawCommands); i++) {
         const mla_ui_surface_draw_command_t &cmd = mla_array_list_get_unsafe(drawCommands, i);
@@ -2027,17 +2114,18 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
 
                 if (rect.rx > 0 || rect.ry > 0) {
                     __linux_wayland_fill_rounded_rect(pixels, bufW, bufH,
-                        rect.x, rect.y, rect.width, rect.height, rect.rx, rect.ry, fillColor);
+                        rect.x * s, rect.y * s, rect.width * s, rect.height * s,
+                        rect.rx * s, rect.ry * s, fillColor);
                 } else {
                     __linux_wayland_fill_rect(pixels, bufW, bufH,
-                        rect.x, rect.y, rect.width, rect.height, fillColor);
+                        rect.x * s, rect.y * s, rect.width * s, rect.height * s, fillColor);
                 }
 
                 if (rect.stroke_width > 0) {
                     mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(rect.stroke);
                     __linux_wayland_stroke_rect(pixels, bufW, bufH,
-                        rect.x, rect.y, rect.width, rect.height,
-                        rect.rx, rect.ry, rect.stroke_width, strokeColor);
+                        rect.x * s, rect.y * s, rect.width * s, rect.height * s,
+                        rect.rx * s, rect.ry * s, rect.stroke_width * s, strokeColor);
                 }
                 break;
             }
@@ -2046,13 +2134,13 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 const auto &circle = cmd.circle;
                 mla_uint32_t fillColor = __linux_wayland_color_to_pixel(circle.fill);
                 __linux_wayland_fill_ellipse(pixels, bufW, bufH,
-                    circle.cx, circle.cy, circle.r, circle.r, fillColor);
+                    circle.cx * s, circle.cy * s, circle.r * s, circle.r * s, fillColor);
 
                 if (circle.stroke_width > 0) {
                     mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(circle.stroke);
                     __linux_wayland_stroke_ellipse(pixels, bufW, bufH,
-                        circle.cx, circle.cy, circle.r, circle.r,
-                        circle.stroke_width, strokeColor);
+                        circle.cx * s, circle.cy * s, circle.r * s, circle.r * s,
+                        circle.stroke_width * s, strokeColor);
                 }
                 break;
             }
@@ -2061,13 +2149,13 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 const auto &ell = cmd.ellipse;
                 mla_uint32_t fillColor = __linux_wayland_color_to_pixel(ell.fill);
                 __linux_wayland_fill_ellipse(pixels, bufW, bufH,
-                    ell.cx, ell.cy, ell.rx, ell.ry, fillColor);
+                    ell.cx * s, ell.cy * s, ell.rx * s, ell.ry * s, fillColor);
 
                 if (ell.stroke_width > 0) {
                     mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(ell.stroke);
                     __linux_wayland_stroke_ellipse(pixels, bufW, bufH,
-                        ell.cx, ell.cy, ell.rx, ell.ry,
-                        ell.stroke_width, strokeColor);
+                        ell.cx * s, ell.cy * s, ell.rx * s, ell.ry * s,
+                        ell.stroke_width * s, strokeColor);
                 }
                 break;
             }
@@ -2076,8 +2164,8 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 const auto &line = cmd.line;
                 mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(line.stroke);
                 __linux_wayland_draw_line(pixels, bufW, bufH,
-                    line.x1, line.y1, line.x2, line.y2,
-                    line.stroke_width, strokeColor);
+                    line.x1 * s, line.y1 * s, line.x2 * s, line.y2 * s,
+                    line.stroke_width * s, strokeColor);
                 break;
             }
 
@@ -2086,20 +2174,19 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 mla_size_t numPoints = mla_array_list_size(polyline.points);
                 if (numPoints < 2) break;
 
-                // Extract point arrays (use heap for large polylines)
                 mla_double_t *xs = static_cast<mla_double_t *>(mla_platform_malloc(numPoints * sizeof(mla_double_t)));
                 mla_double_t *ys = static_cast<mla_double_t *>(mla_platform_malloc(numPoints * sizeof(mla_double_t)));
                 if (!xs || !ys) { if (xs) mla_platform_free(xs); if (ys) mla_platform_free(ys); break; }
 
                 for (mla_size_t j = 0; j < numPoints; j++) {
                     const mla_ui_surface_draw_point_t &pt = mla_array_list_get_unsafe(polyline.points, j);
-                    xs[j] = pt.x;
-                    ys[j] = pt.y;
+                    xs[j] = pt.x * s;
+                    ys[j] = pt.y * s;
                 }
 
                 mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(polyline.stroke);
                 __linux_wayland_stroke_polygon(pixels, bufW, bufH, xs, ys, numPoints,
-                    polyline.stroke_width, strokeColor, false);
+                    polyline.stroke_width * s, strokeColor, false);
 
                 mla_platform_free(xs);
                 mla_platform_free(ys);
@@ -2117,8 +2204,8 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
 
                 for (mla_size_t j = 0; j < numPoints; j++) {
                     const mla_ui_surface_draw_point_t &pt = mla_array_list_get_unsafe(polygon.points, j);
-                    xs[j] = pt.x;
-                    ys[j] = pt.y;
+                    xs[j] = pt.x * s;
+                    ys[j] = pt.y * s;
                 }
 
                 mla_uint32_t fillColor = __linux_wayland_color_to_pixel(polygon.fill);
@@ -2127,7 +2214,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 if (polygon.stroke_width > 0) {
                     mla_uint32_t strokeColor = __linux_wayland_color_to_pixel(polygon.stroke);
                     __linux_wayland_stroke_polygon(pixels, bufW, bufH, xs, ys, numPoints,
-                        polygon.stroke_width, strokeColor, true);
+                        polygon.stroke_width * s, strokeColor, true);
                 }
 
                 mla_platform_free(xs);
@@ -2140,7 +2227,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 mla_size_t numCmds = mla_array_list_size(path.commands);
                 if (numCmds == 0) break;
 
-                // Flatten path to points
+                // Flatten path to points (all coordinates scaled to physical pixels)
                 mla_size_t maxPts = numCmds * (mla_global_ui_surface_linux_wayland_bezier_segments + 2);
                 if (maxPts > 16384) maxPts = 16384;
 
@@ -2167,50 +2254,52 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                                     mla_uint32_t sc = __linux_wayland_color_to_pixel(path.stroke);
                                     __linux_wayland_stroke_polygon(pixels, bufW, bufH,
                                         xs + subpathStart, ys + subpathStart,
-                                        ptCount - subpathStart, path.stroke_width, sc, false);
+                                        ptCount - subpathStart, path.stroke_width * s, sc, false);
                                 }
                             }
                             subpathStart = ptCount;
-                            curX = pc.move_to.x;
-                            curY = pc.move_to.y;
+                            curX = pc.move_to.x * s;
+                            curY = pc.move_to.y * s;
                             if (ptCount < maxPts) { xs[ptCount] = curX; ys[ptCount] = curY; ptCount++; }
                             break;
 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_LINE_TO:
-                            curX = pc.line_to.x;
-                            curY = pc.line_to.y;
+                            curX = pc.line_to.x * s;
+                            curY = pc.line_to.y * s;
                             if (ptCount < maxPts) { xs[ptCount] = curX; ys[ptCount] = curY; ptCount++; }
                             break;
 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_QUADRATIC_CURVE_TO:
                             __linux_wayland_flatten_quadratic_bezier(
-                                curX, curY, pc.quadratic_curve_to.cpx, pc.quadratic_curve_to.cpy,
-                                pc.quadratic_curve_to.x, pc.quadratic_curve_to.y,
+                                curX, curY,
+                                pc.quadratic_curve_to.cpx * s, pc.quadratic_curve_to.cpy * s,
+                                pc.quadratic_curve_to.x * s, pc.quadratic_curve_to.y * s,
                                 xs, ys, &ptCount, maxPts);
-                            curX = pc.quadratic_curve_to.x;
-                            curY = pc.quadratic_curve_to.y;
+                            curX = pc.quadratic_curve_to.x * s;
+                            curY = pc.quadratic_curve_to.y * s;
                             break;
 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CUBIC_CURVE_TO:
                             __linux_wayland_flatten_cubic_bezier(
                                 curX, curY,
-                                pc.cubic_curve_to.cp1x, pc.cubic_curve_to.cp1y,
-                                pc.cubic_curve_to.cp2x, pc.cubic_curve_to.cp2y,
-                                pc.cubic_curve_to.x, pc.cubic_curve_to.y,
+                                pc.cubic_curve_to.cp1x * s, pc.cubic_curve_to.cp1y * s,
+                                pc.cubic_curve_to.cp2x * s, pc.cubic_curve_to.cp2y * s,
+                                pc.cubic_curve_to.x * s, pc.cubic_curve_to.y * s,
                                 xs, ys, &ptCount, maxPts);
-                            curX = pc.cubic_curve_to.x;
-                            curY = pc.cubic_curve_to.y;
+                            curX = pc.cubic_curve_to.x * s;
+                            curY = pc.cubic_curve_to.y * s;
                             break;
 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_ARC_TO:
                             __linux_wayland_flatten_arc(
-                                curX, curY, pc.arc_to.rx, pc.arc_to.ry,
+                                curX, curY,
+                                pc.arc_to.rx * s, pc.arc_to.ry * s,
                                 pc.arc_to.x_axis_rotation,
                                 pc.arc_to.large_arc_flag, pc.arc_to.sweep_flag,
-                                pc.arc_to.x, pc.arc_to.y,
+                                pc.arc_to.x * s, pc.arc_to.y * s,
                                 xs, ys, &ptCount, maxPts);
-                            curX = pc.arc_to.x;
-                            curY = pc.arc_to.y;
+                            curX = pc.arc_to.x * s;
+                            curY = pc.arc_to.y * s;
                             break;
 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH:
@@ -2236,7 +2325,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                         mla_uint32_t sc = __linux_wayland_color_to_pixel(path.stroke);
                         __linux_wayland_stroke_polygon(pixels, bufW, bufH,
                             xs + subpathStart, ys + subpathStart,
-                            ptCount - subpathStart, path.stroke_width, sc, false);
+                            ptCount - subpathStart, path.stroke_width * s, sc, false);
                     }
                 }
 
@@ -2248,6 +2337,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
                 if (mla_string_is_empty(cmd.text.content)) break;
 
+                // Font cache returns faces at scaled DPI, so text position must be in physical pixels
                 FT_Face face = __linux_wayland_font_cache_get_or_create(
                     ws->renderCache.fontCache, cmd.text.font_type);
 
@@ -2258,7 +2348,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
 
                     __linux_wayland_draw_text(pixels, bufW, bufH,
                         face, textData, textLen,
-                        cmd.text.x, cmd.text.y, textColor);
+                        cmd.text.x * s, cmd.text.y * s, textColor);
                 }
                 break;
             }
@@ -2267,8 +2357,8 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 const auto &lg = cmd.linear_gradient;
                 hasLinearGradient = true;
                 hasRadialGradient = false;
-                lgX1 = lg.x1; lgY1 = lg.y1;
-                lgX2 = lg.x2; lgY2 = lg.y2;
+                lgX1 = lg.x1 * s; lgY1 = lg.y1 * s;
+                lgX2 = lg.x2 * s; lgY2 = lg.y2 * s;
                 break;
             }
 
@@ -2276,7 +2366,7 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
                 const auto &rg = cmd.radial_gradient;
                 hasLinearGradient = false;
                 hasRadialGradient = true;
-                rgCx = rg.cx; rgCy = rg.cy; rgR = rg.r;
+                rgCx = rg.cx * s; rgCy = rg.cy * s; rgR = rg.r * s;
                 break;
             }
 
@@ -2401,6 +2491,7 @@ mla_bool_t __linux_wayland_create_surface(mla_ui_surface_t &outSurface) {
     ws->buffers[0] = __linux_wayland_shm_buffer_empty();
     ws->buffers[1] = __linux_wayland_shm_buffer_empty();
     ws->currentBuffer = 0;
+    ws->bufferScale = g_wl_output_scale > 0 ? g_wl_output_scale : 1;
     ws->renderCache = __linux_wayland_render_cache_empty();
     ws->input = __linux_wayland_input_state_empty();
     ws->pendingEvents = __linux_wayland_pending_events_empty();
@@ -2448,6 +2539,9 @@ void __linux_wayland_init() {
     wl_registry_add_listener(g_wl_registry, &__linux_wayland_registry_listener, nullptr);
     wl_display_roundtrip(g_wl_display);
 
+    // Second roundtrip to receive wl_output.scale and other deferred events
+    wl_display_roundtrip(g_wl_display);
+
     // Initialize FreeType
     if (FT_Init_FreeType(&g_ft_library) != 0) {
         mla_warning("Failed to initialize FreeType library.");
@@ -2477,6 +2571,7 @@ void __linux_wayland_shutdown() {
 
     // Cleanup Wayland globals
     if (g_wl_seat) { wl_seat_destroy(g_wl_seat); g_wl_seat = nullptr; }
+    if (g_wl_output) { wl_output_destroy(g_wl_output); g_wl_output = nullptr; }
     if (g_xdg_wm_base) { xdg_wm_base_destroy(g_xdg_wm_base); g_xdg_wm_base = nullptr; }
     if (g_wl_shm) { wl_shm_destroy(g_wl_shm); g_wl_shm = nullptr; }
     if (g_wl_compositor) { wl_compositor_destroy(g_wl_compositor); g_wl_compositor = nullptr; }
