@@ -6,9 +6,8 @@
 
 mla_bytes_t mla_bytes_empty() {
     return {
-        nullptr,
-        0,
-        mla_buffer_reference_noOwner()
+        mla_pointer_null(),
+        0
     };
 }
 
@@ -18,75 +17,63 @@ mla_bytes_t mla_bytes(mla_size_t p_Length) {
         return mla_bytes_empty();
     }
 
-    mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(p_Length));
+    mla_pointer_t buffer = mla_malloc_buffer(sizeof(mla_byte_t) * p_Length);
 
-    if (buffer == nullptr) {
+    if (mla_pointer_is_null(buffer)) {
         return mla_bytes_empty();
     }
 
-    mla_memset(buffer, 0, p_Length);
+    mla_byte_t* data = mla_pointer_get_data<mla_byte_t>(buffer);
+
+    mla_memset(data, 0, sizeof(mla_byte_t) * p_Length);
 
     return {
         buffer,
-        p_Length,
-        mla_buffer_reference(buffer)
+        p_Length
     };
 }
 
 
-mla_bytes_t mla_bytes_from_external_buffer(mla_byte_t* p_Data, const mla_size_t p_Size) {
+mla_bytes_t mla_bytes_from_external_buffer(mla_pointer_t p_Data, const mla_size_t p_Size) {
 
-    if (p_Data == nullptr || p_Size == 0) {
+    if (mla_pointer_is_null(p_Data) || p_Size == 0) {
         return mla_bytes_empty();
     }
 
     return {
         p_Data,
-        p_Size,
-        mla_buffer_reference_noOwner()
+        p_Size
     };
 
 }
 
-// This function creates bytes from a buffer and takes ownership of the buffer
-// You must not free the buffer after calling this function
-mla_bytes_t mla_bytes_from_buffer_with_ownership(mla_byte_t* p_Data, const mla_size_t p_Size) {
-
-    if (p_Data == nullptr) {
-        return mla_bytes_empty();
-    }
-
-    return {
-        p_Data,
-        p_Size,
-        mla_buffer_reference(p_Data)
-    };
-}
 
 mla_bytes_t mla_bytes_copy(const mla_bytes_t& p_Bytes) {
 
-    if (p_Bytes.size == 0 || p_Bytes.data == nullptr) {
+    if (mla_bytes_is_empty(p_Bytes)) {
         return mla_bytes_empty();
     }
 
-    mla_byte_t* buffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(p_Bytes.size));
+    mla_pointer_t newBuffer = mla_malloc_buffer(p_Bytes.size);
 
-    if (buffer == nullptr) {
+    if (mla_pointer_is_null(newBuffer)) {
         return mla_bytes_empty();
     }
 
-    mla_memcpy(buffer, p_Bytes.data, p_Bytes.size);
+    mla_byte_t* old_buffer_data = mla_pointer_get_data<mla_byte_t>(p_Bytes.heap_data);
+    mla_byte_t* new_buffer_data = mla_pointer_get_data<mla_byte_t>(newBuffer);
+
+    mla_memcpy(new_buffer_data, old_buffer_data, p_Bytes.size);
 
     return {
-        buffer,
-        p_Bytes.size,
-        mla_buffer_reference(buffer)
+        newBuffer,
+        p_Bytes.size
     };
 
 }
 
 const mla_byte_t* mla_bytes_get_data_readonly(const mla_bytes_t& p_Bytes) {
-    return p_Bytes.data;
+    return mla_pointer_get_data<mla_byte_t>(p_Bytes.heap_data);
 }
 
 mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes) {
