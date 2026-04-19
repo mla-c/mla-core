@@ -288,7 +288,7 @@ static inline mla_bool_t __linux_wayland_str_eq(const char *a, const char *b) {
 
 struct mla_linux_wayland_font_cache_item_t {
     mla_ui_surface_font_type_t font_type;
-    mla_int32_t cachedScale; // DPI scale at which this face was configured
+    mla_int32_t cached_scale; // DPI scale at which this face was configured
     FT_Face face;
     mla_buffer_reference_t faceOwner;
 };
@@ -370,7 +370,7 @@ static FT_Face __linux_wayland_font_cache_get_or_create(
         const mla_linux_wayland_font_cache_item_t &item = mla_array_list_get_unsafe(cache, i);
         if (!mla_ui_surface_font_type_equals(item.font_type, fontType))
             continue;
-        if (item.cachedScale != currentScale)
+        if (item.cached_scale != currentScale)
             continue;
         return item.face;
     }
@@ -2039,13 +2039,17 @@ mla_bool_t __linux_wayland_surface_render_draw_commands(const mla_ui_surface_t &
     mla_int32_t newScale = g_wl_output_scale;
     if (newScale < 1) newScale = 1;
     if (newScale != ws->bufferScale) {
+        mla_int32_t oldScale = ws->bufferScale;
         ws->bufferScale = newScale;
         wl_surface_set_buffer_scale(ws->wl_surface, ws->bufferScale);
-        // Force buffer recreation at new physical size
-        ws->pendingWidth = ws->buffers[ws->currentBuffer].width / ws->bufferScale;
-        ws->pendingHeight = ws->buffers[ws->currentBuffer].height / ws->bufferScale;
-        if (ws->pendingWidth <= 0) ws->pendingWidth = 1;
-        if (ws->pendingHeight <= 0) ws->pendingHeight = 1;
+        // Recompute logical dimensions from current physical buffer size using the OLD scale
+        // to avoid integer division precision loss with the new scale
+        mla_int32_t logicalW = ws->buffers[ws->currentBuffer].width / oldScale;
+        mla_int32_t logicalH = ws->buffers[ws->currentBuffer].height / oldScale;
+        if (logicalW <= 0) logicalW = 1;
+        if (logicalH <= 0) logicalH = 1;
+        ws->pendingWidth = logicalW;
+        ws->pendingHeight = logicalH;
     }
 
     // Handle resize if pending (pendingWidth/Height are in logical coordinates)
