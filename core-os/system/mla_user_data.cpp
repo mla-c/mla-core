@@ -698,7 +698,7 @@ mla_bool_t mla_user_data_dec_uint8(mla_user_data_t& target, mla_user_data_id id,
     } else {
         user_data->id = id;
         user_data->dataOwner = mla_buffer_reference_noOwner();
-        user_data->data.asUint8 = -step;
+        user_data->data.asUint8 = 0;
     }
 
     return true;
@@ -738,7 +738,7 @@ mla_bool_t mla_user_data_dec_uint16(mla_user_data_t& target, mla_user_data_id id
     } else {
         user_data->id = id;
         user_data->dataOwner = mla_buffer_reference_noOwner();
-        user_data->data.asUint16 = -step;
+        user_data->data.asUint16 = 0;
     }
 
     return true;
@@ -778,7 +778,7 @@ mla_bool_t mla_user_data_dec_uint32(mla_user_data_t& target, mla_user_data_id id
     } else {
         user_data->id = id;
         user_data->dataOwner = mla_buffer_reference_noOwner();
-        user_data->data.asUint32 = -step;
+        user_data->data.asUint32 = 0;
     }
 
     return true;
@@ -818,7 +818,7 @@ mla_bool_t mla_user_data_dec_uint64(mla_user_data_t& target, mla_user_data_id id
     } else {
         user_data->id = id;
         user_data->dataOwner = mla_buffer_reference_noOwner();
-        user_data->data.asUint64 = -step;
+        user_data->data.asUint64 = 0;
     }
 
     return true;

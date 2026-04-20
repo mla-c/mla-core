@@ -621,9 +621,9 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
             if (current_stream_size == 0) {
 
                 if (is_final_frame) {
-                    payload_data = mla_memory_stream(payload_length, true);
+                    payload_data = mla_memory_stream((mla_size_t)payload_length, true);
                 } else {
-                    payload_data = mla_memory_stream(mla_min(payload_length, mla_global_config_stream_fast_read_buffer_size), true);
+                    payload_data = mla_memory_stream((mla_size_t)mla_min(payload_length, mla_global_config_stream_fast_read_buffer_size), true);
                 }
             }
 

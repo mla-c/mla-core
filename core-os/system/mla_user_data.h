@@ -11,9 +11,9 @@
 typedef mla_uint16_t mla_user_data_id;
 
 struct mla_user_data_t {
+    mla_user_data_id id;
     mla_buffer_reference_t dataOwner;
     mla_dynamic_data_t data;
-    mla_user_data_id id;
 
     // Copy Constructor
     mla_user_data_t(const mla_user_data_t& p_Other);

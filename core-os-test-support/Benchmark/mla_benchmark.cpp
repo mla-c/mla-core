@@ -546,7 +546,7 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
         arena_size = (mla_test_uint64_t)((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
     }
 
-    arena_size = mla_align_up(arena_size, mla_test_global_config_benchmark_arena_alignment);
+    arena_size = mla_align_up((mla_test_uint32_t)arena_size, mla_test_global_config_benchmark_arena_alignment);
 
     // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {
@@ -666,6 +666,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print("|", 1);
         mla_test_char_t name_padded[31];
         mla_test_uint32_t name_len = mla_test_strlen(benchmark.name);
+        if (name_len > 30) {
+            name_len = 30;
+        }
         mla_test_memcpy(name_padded, benchmark.name, name_len);
         if (name_len < 30) {
             mla_test_memset(&name_padded[name_len], ' ', 30 - name_len);
@@ -735,6 +738,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print("|", 1);
         mla_test_char_t name_padded[31];
         mla_test_uint32_t name_len = mla_test_strlen(benchmark.name);
+        if (name_len > 30) {
+            name_len = 30;
+        }
         mla_test_memcpy(name_padded, benchmark.name, name_len);
         if (name_len < 30) {
             mla_test_memset(&name_padded[name_len], ' ', 30 - name_len);
