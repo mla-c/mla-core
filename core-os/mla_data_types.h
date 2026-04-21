@@ -42,13 +42,35 @@
 #define mla_void_t void
 #define mla_platform_pointer_t void*
 
+// Shortcut for common types
+struct mla_dynamic_data_t {
+    union {
+        mla_bool_t asBool;
+        mla_int8_t asInt8;
+        mla_uint8_t asUint8;
+        mla_int16_t asInt16;
+        mla_uint16_t asUint16;
+        mla_int32_t asInt32;
+        mla_uint32_t asUint32;
+        mla_int64_t asInt64;
+        mla_uint64_t asUint64;
+        mla_float_t asFloat;
+        mla_double_t asDouble;
+        mla_platform_pointer_t asPointer;
+        mla_char_t asChar;
+    };
+};
+
+class mla_pointer_t;
+struct mla_pointer_memory_manager_t;
+
 class mla_pointer_t {
 public:
     // Copy constructor
     mla_pointer_t(const mla_pointer_t& p_Other);
 
     // Constructor that takes a buffer pointer
-    mla_pointer_t(mla_uint8_t* headData);
+    mla_pointer_t(mla_dynamic_data_t payload, mla_pointer_memory_manager_t* memoryManager);
 
     // Default constructor
     ~mla_pointer_t();
@@ -57,7 +79,8 @@ public:
     mla_pointer_t& operator=(const mla_pointer_t& p_Other);
 
 public:
-    mla_uint8_t* headData;
+    mla_dynamic_data_t payload;
+    mla_pointer_memory_manager_t* memoryManager;
 };
 
 mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr);
@@ -102,25 +125,6 @@ mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr);
 
 #define mla_double_min (-1.79769313486231570e+308)
 #define mla_double_max (1.79769313486231570e+308)
-
-// Shortcut for common types
-struct mla_dynamic_data_t {
-    union {
-        mla_bool_t asBool;
-        mla_int8_t asInt8;
-        mla_uint8_t asUint8;
-        mla_int16_t asInt16;
-        mla_uint16_t asUint16;
-        mla_int32_t asInt32;
-        mla_uint32_t asUint32;
-        mla_int64_t asInt64;
-        mla_uint64_t asUint64;
-        mla_float_t asFloat;
-        mla_double_t asDouble;
-        mla_platform_pointer_t asPointer;
-        mla_char_t asChar;
-    };
-};
 
 mla_dynamic_data_t mla_dynamic_data_empty();
 mla_dynamic_data_t mla_dynamic_data_from_bool(mla_bool_t value);
@@ -244,11 +248,22 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 
 // Memory allocation and deallocation
-mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
-mla_pointer_t mla_malloc_with_check(mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
 
-#define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_check(size, cleanup_hook, cleanup_data, __FILE__, __func__)
+mla_global mla_pointer_memory_manager_t g_default_pointer_memory_manager;
+
+struct mla_pointer_memory_manager_instance_t {
+    mla_pointer_memory_manager_t* current;
+};
+
+mla_global mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance;
+
+mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
+mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
+
+#define mla_malloc_with_manager(memory_manager, size, cleanup_hook, cleanup_data) mla_malloc_with_check(memory_manager, size, cleanup_hook, cleanup_data, __FILE__, __func__)
+#define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, cleanup_hook, cleanup_data)
 #define mla_malloc_buffer(size) mla_malloc(size, nullptr, mla_dynamic_data_empty())
+#define mla_malloc_buffer_with_manager(memory_manager, size) mla_malloc_with_manager(memory_manager, size, nullptr, mla_dynamic_data_empty())
 
 #define mla_platform_malloc(size) mla_platform_malloc_with_check(size, __FILE__, __func__)
 
@@ -267,6 +282,17 @@ mla_pointer_t mla_malloc_with_check(mla_size_t size, mla_pointer_cleanup_hook_t 
 // Sleep function for timing
 #define mla_sleep(milliseconds) g_low_level_access.sleep((milliseconds))
 #define mla_system_time_ms() g_low_level_access.system_time_ms()
+
+
+struct mla_pointer_memory_manager_t {
+
+    mla_pointer_t (*malloc)(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
+    mla_bool_t (*is_null)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
+    mla_platform_pointer_t (*get_platform_pointer)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
+    void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
+    void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
+    mla_int32_t (*get_ref_count)(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload); // return -1 if not supported
+};
 
 // Default initializer for structs and classes which is used to initialize items in data structures like arrays or hash maps.
 // Is not really a macro but is part of multiple other macros
@@ -304,7 +330,9 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
     *l_Data = T::init();
 }
 
+#define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
+mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_pointer_t resource);
 
 #endif

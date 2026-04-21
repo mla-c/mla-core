@@ -165,8 +165,14 @@ inline void UserDataSetGetPointerWithoutOwnershipTest() {
     assert_true(success, "Should successfully set pointer without ownership");
 
     mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, mla_user_data_test_id);
-    assert_not_null(value, "Should retrieve non-null pointer");
-    assert_equal(*value, 12345, "Should retrieve correct pointer value");
+
+    if (value == nullptr) {
+        assert_fail("Failed to retrieve pointer value");
+
+    } else {
+        assert_equal(*value, 12345, "Should retrieve correct pointer value");
+    }
+
 }
 
 // Test setting and getting pointer values with ownership

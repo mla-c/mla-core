@@ -75,4 +75,19 @@ enum mla_test_output_format_t: mla_test_uint8_t {
     mla_test_output_format_json
 };
 
+/**
+ * @brief Prevents the compiler from optimizing away a benchmark result.
+ *
+ * Writes @p v to a volatile local, forcing the preceding computation to
+ * remain visible to the optimizer without measurable overhead.
+ *
+ * @tparam T Type of the value (deduced automatically).
+ * @param  v The value to sink.
+ */
+template <typename T>
+static inline void mla_test_bench_sink(T v) {
+    volatile T sink = v;
+    (void)sink;
+}
+
 #endif

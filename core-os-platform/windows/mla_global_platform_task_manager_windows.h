@@ -175,6 +175,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
     SetThreadPriority(thread_data->hThread, winPriority);
 
 
+#if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0A00)
     if (!mla_string_is_empty(task_name)) {
         mla_string_utf16_buffer_t utf16 = mla_string_to_utf16_buffer(task_name);
         if (utf16.data != nullptr) {
@@ -182,6 +183,10 @@ mla_bool_t mla_task_manager_windows_native_create_task(
         }
         mla_string_utf16_buffer_destroy(utf16);
     }
+#else
+    (void)task_name; // Unused parameter on older Windows versions
+#endif
+
 
     // Return the thread handle through outTaskResourceOwner
     *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_windows_native_cleanup, mla_dynamic_data_empty());
