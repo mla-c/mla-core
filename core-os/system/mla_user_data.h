@@ -11,18 +11,7 @@
 typedef mla_uint16_t mla_user_data_id;
 
 struct mla_user_data_t {
-    mla_user_data_id id;
-    mla_buffer_reference_t dataOwner;
-    mla_dynamic_data_t data;
-
-    // Copy Constructor
-    mla_user_data_t(const mla_user_data_t& p_Other);
-
-    // Default Constructor
-    mla_user_data_t(mla_user_data_id id, mla_buffer_reference_t dataOwner, mla_dynamic_data_t data);
-
-    // Assignment operator
-    mla_user_data_t& operator=(const mla_user_data_t& p_Other);
+    mla_pointer_t data;
 };
 
 mla_user_data_id mla_get_next_user_data_id();
@@ -101,7 +90,6 @@ mla_bool_t mla_user_data_set_callback(mla_user_data_t& target, mla_user_data_id 
 }
 
 mla_bool_t mla_user_data_equal(const mla_user_data_t& a, const mla_user_data_t& b);
-mla_user_data_t* mla_user_data_get(const mla_user_data_t& data, mla_user_data_id id);
 
 mla_platform_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id);
 mla_int8_t mla_user_data_get_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t defaultValue = 0);

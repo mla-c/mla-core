@@ -335,10 +335,8 @@ static mla_uint32_t __mla_deflate_adler32_update_byte(mla_uint32_t current, mla_
 ///////////////////////////////////////////////////////////////////
 
 static mla_uint32_t __mla_deflate_crc32_table[256];
-static mla_bool_t   __mla_deflate_crc32_table_initialized = false;
 
 static void __mla_deflate_crc32_build_table() {
-    if (__mla_deflate_crc32_table_initialized) return;
     for (mla_uint32_t i = 0; i < 256; i++) {
         mla_uint32_t c = i;
         for (mla_uint8_t k = 0; k < 8; k++) {
@@ -350,11 +348,9 @@ static void __mla_deflate_crc32_build_table() {
         }
         __mla_deflate_crc32_table[i] = c;
     }
-    __mla_deflate_crc32_table_initialized = true;
 }
 
 static mla_uint32_t __mla_deflate_crc32_update(mla_uint32_t crc, const mla_byte_t *data, mla_size_t length) {
-    __mla_deflate_crc32_build_table();
     crc = ~crc;
     for (mla_size_t i = 0; i < length; i++) {
         crc = __mla_deflate_crc32_table[(crc ^ data[i]) & 0xFFu] ^ (crc >> 8);
@@ -451,15 +447,11 @@ static void __mla_deflate_bit_writer_align(__mla_deflate_bit_writer_t &writer, m
 struct __mla_deflate_fixed_tables_t {
     mla_uint16_t lit_code[mla_deflate_fixed_lit_codes];
     mla_uint8_t lit_length[mla_deflate_fixed_lit_codes];
-    mla_bool_t initialized;
 };
 
-static __mla_deflate_fixed_tables_t __mla_deflate_fixed_tables = { {}, {}, false };
+static __mla_deflate_fixed_tables_t __mla_deflate_fixed_tables = { {}, {} };
 
 static void __mla_deflate_build_fixed_tables() {
-
-    if (__mla_deflate_fixed_tables.initialized)
-        return;
 
     // Build literal/length code lengths per RFC 1951 3.2.6:
     //   0..143   -> 8 bits
@@ -499,8 +491,6 @@ static void __mla_deflate_build_fixed_tables() {
             __mla_deflate_fixed_tables.lit_code[i] = next_code[len]++;
         }
     }
-
-    __mla_deflate_fixed_tables.initialized = true;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -782,8 +772,6 @@ static mla_size_t __mla_stream_deflate_compress_write(mla_stream_output_t &outpu
         return 0;
     }
 
-    __mla_deflate_build_fixed_tables();
-
     const mla_byte_t *input_data = buffer + offset;
 
     if (!__mla_deflate_compress_ensure_container_header(*state)) {
@@ -827,8 +815,6 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
         return mla_stream_noop_output();
     }
 
-    __mla_deflate_build_fixed_tables();
-
     __mla_deflate_compress_state_t *state = static_cast<__mla_deflate_compress_state_t *>(mla_platform_malloc(sizeof(__mla_deflate_compress_state_t)));
 
     if (state == nullptr) {
@@ -868,8 +854,6 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
     if (state == nullptr || state->finished) {
         return false;
     }
-
-    __mla_deflate_build_fixed_tables();
 
     if (!__mla_deflate_compress_ensure_container_header(*state)) {
         return false;
@@ -1075,12 +1059,8 @@ mla_user_data_id_init(__mla_stream_deflate_decompress_data_name)
 
 static __mla_deflate_huffman_t<mla_deflate_fixed_lit_codes> __mla_deflate_fixed_lit_decode_table;
 static __mla_deflate_huffman_t<mla_deflate_max_dist_codes> __mla_deflate_fixed_dist_decode_table;
-static mla_bool_t __mla_deflate_fixed_decode_tables_initialized = false;
 
 static void __mla_deflate_build_fixed_decode_tables_once() {
-    if (__mla_deflate_fixed_decode_tables_initialized)
-        return;
-
     mla_uint8_t lengths[mla_deflate_fixed_lit_codes];
     mla_uint16_t i;
 
@@ -1099,8 +1079,17 @@ static void __mla_deflate_build_fixed_decode_tables_once() {
         dist_lengths[i] = 5;
 
     __mla_deflate_huffman_build(__mla_deflate_fixed_dist_decode_table, dist_lengths, mla_deflate_max_dist_codes);
-    __mla_deflate_fixed_decode_tables_initialized = true;
 }
+
+struct mla_deflate_static_data_initializer_t {
+    mla_deflate_static_data_initializer_t() {
+        __mla_deflate_crc32_build_table();
+        __mla_deflate_build_fixed_tables();
+        __mla_deflate_build_fixed_decode_tables_once();
+    }
+};
+
+static mla_deflate_static_data_initializer_t g_mla_deflate_static_data_initializer_instance;
 
 // Decode dynamic Huffman tables from the stream
 static mla_bool_t __mla_deflate_decode_dynamic_tables(__mla_deflate_decompress_state_t &state) {
@@ -1368,7 +1357,6 @@ static mla_bool_t __mla_deflate_decompress_fill(__mla_deflate_decompress_state_t
 
                 state.uncompressed_remaining = len;
             } else if (btype == mla_deflate_block_fixed) {
-                __mla_deflate_build_fixed_decode_tables_once();
                 state.lit_table = __mla_deflate_fixed_lit_decode_table;
                 state.dist_table = __mla_deflate_fixed_dist_decode_table;
             } else if (btype == mla_deflate_block_dynamic) {
@@ -1597,7 +1585,7 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         return mla_stream_noop_input();
     }
     state->output_buf_pos = 0;
-    state->output_buf_len = 0;
+    state->output_buf_len =  0;
     state->pending_match_remaining = 0;
     state->pending_match_dist      = 0;
 
