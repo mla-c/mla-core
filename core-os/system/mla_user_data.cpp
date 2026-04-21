@@ -1400,8 +1400,7 @@ mla_user_data_t& mla_user_data_t::operator=(const mla_user_data_t& p_Other) {
 }
 
 mla_user_data_t::mla_user_data_t(mla_user_data_id id, mla_buffer_reference_t dataOwner, mla_dynamic_data_t data):
-    dataOwner(dataOwner),
-    data(data), id(id) {
+    id(id), dataOwner(dataOwner), data(data) {
 }
 
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {

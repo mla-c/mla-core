@@ -255,15 +255,13 @@ struct mla_pointer_memory_manager_instance_t {
     mla_pointer_memory_manager_t* current;
 };
 
-static mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance = {
-    &g_default_pointer_memory_manager
-};
+mla_global mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance;
 
 mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
 
 #define mla_malloc_with_manager(memory_manager, size, cleanup_hook, cleanup_data) mla_malloc_with_check(memory_manager, size, cleanup_hook, cleanup_data, __FILE__, __func__)
-#define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, cleanup_hook, cleanup_data, __FILE__, __func__)
+#define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, cleanup_hook, cleanup_data)
 
 #define mla_platform_malloc(size) mla_platform_malloc_with_check(size, __FILE__, __func__)
 

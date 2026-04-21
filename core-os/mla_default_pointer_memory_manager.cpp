@@ -103,3 +103,7 @@ mla_pointer_memory_manager_t g_default_pointer_memory_manager = {
     __default_pointer_memory_manager_decReferences,
     __default_pointer_memory_manager_get_ref_count
 };
+
+mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance = {
+    &g_default_pointer_memory_manager
+};
