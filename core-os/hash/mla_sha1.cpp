@@ -32,17 +32,20 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
     // Allocate padded message
     mla_bytes_t padded_message = mla_bytes((mla_size_t)padded_message_size);
-    if (padded_message.data == nullptr) return mla_bytes_empty();
 
     mla_byte_t *padded = mla_bytes_get_data_for_writing(padded_message);
+    const mla_byte_t * input_data = mla_bytes_get_data_readonly(input);
+
+    if (padded == nullptr)
+        return mla_bytes_empty();
 
     // Zero initialize
     for (mla_uint64_t k = 0; k < padded_message_size; ++k)
         padded[k] = 0x00;
 
     // Copy original input
-    if (input.data && msg_size > 0)
-        mla_memcpy(padded, input.data, (mla_size_t)msg_size);
+    if (input_data && msg_size > 0)
+        mla_memcpy(padded, input_data, (mla_size_t)msg_size);
 
     // Append 0x80
     padded[msg_size] = 0x80;
@@ -111,9 +114,11 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
     // Output SHA-1 digest
     mla_bytes_t signature = mla_bytes(20);
-    if (signature.data == nullptr) return mla_bytes_empty();
 
     mla_byte_t *out = mla_bytes_get_data_for_writing(signature);
+
+    if (out == nullptr)
+        return mla_bytes_empty();
 
     for (mla_uint8_t j = 0; j < 4; ++j) {
         out[j + 0]  = (h0 >> (24 - 8*j)) & 0xFF;

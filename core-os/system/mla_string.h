@@ -16,7 +16,6 @@ struct mla_string_t;
 
 struct mla_c_string_t {
     mla_pointer_t c_heap_str;
-    const mla_char_t* c_resource_str;
 };
 
 // UTF-16 and UTF-32 string representations
@@ -43,7 +42,7 @@ const mla_utf_32_char_t* mla_string_utf32_data(const mla_string_utf32_buffer_t &
 // Location flags (high bits)
 #define MLA_STRING_LOCATION_EMBEDDED 0x10 // 00010000
 #define MLA_STRING_LOCATION_HEAP     0x20 // 00100000
-#define MLA_STRING_LOCATION_RESOURCE 0x40 // 01000000
+//#define MLA_STRING_LOCATION_NEXT_EXAMPLE 0x40 // 01000000
 
 // Format types (low bits)
 #define MLA_STRING_FORMAT_RAW        0x00
@@ -54,13 +53,9 @@ const mla_utf_32_char_t* mla_string_utf32_data(const mla_string_utf32_buffer_t &
 enum mla_string_memory_layout_t: mla_uint8_t {
     MLA_STRING_MEMORY_LAYOUT_EMBEDDED = MLA_STRING_LOCATION_EMBEDDED | MLA_STRING_FORMAT_RAW, // Embedded string (small string optimization)
 
-    MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING   = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_C_STRING, // C-style string (with null terminator) which is located on in the heap
-    MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER     = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_BUFFER, // Buffer-based string (without null terminator) which is located on in the heap
-    MLA_STRING_MEMORY_LAYOUT_HEAP_SUB_STRING = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_SUB_STRING, // Substring (view into another string) which is located on in the heap
-
-    MLA_STRING_MEMORY_LAYOUT_RESOURCE_C_STRING   = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_C_STRING, // C-style string (with null terminator) which is located on in the resources
-    MLA_STRING_MEMORY_LAYOUT_RESOURCE_BUFFER     = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_BUFFER, // Buffer-based string (without null terminator) which is located on in the resources
-    MLA_STRING_MEMORY_LAYOUT_RESOURCE_SUB_STRING = MLA_STRING_LOCATION_RESOURCE | MLA_STRING_FORMAT_SUB_STRING, // Substring (view into another string) which is located on in the resources
+    MLA_STRING_MEMORY_LAYOUT_C_STRING   = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_C_STRING, // C-style string (with null terminator) which is located on in the heap
+    MLA_STRING_MEMORY_LAYOUT_BUFFER     = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_BUFFER, // Buffer-based string (without null terminator) which is located on in the heap
+    MLA_STRING_MEMORY_LAYOUT_SUB_STRING = MLA_STRING_LOCATION_HEAP | MLA_STRING_FORMAT_SUB_STRING, // Substring (view into another string) which is located on in the heap
 };
 
 mla_pointer_t mla_create_char_array(const mla_size_t p_Length);
@@ -79,12 +74,6 @@ struct mla_string_internal_heap_t {
     mla_size_t char_offset; // Offset which we need to add to the char index to get the correct byte index in the buffer. This is needed for substrings which are views into other strings
 };
 
-struct mla_string_internal_resource_t {
-    mla_string_memory_layout_t memoryLayout;
-    mla_size_t length; // Buffer Length of the string. Not real Char count. This can be different in UTF8
-    const mla_char_t *data; // Pointer to the string data
-};
-
 struct mla_string_internal_embedded_t {
     mla_string_memory_layout_t memoryLayout;
     mla_uint8_t length; // Length of the embedded string
@@ -97,7 +86,6 @@ struct mla_string_t {
     union {
         mla_string_internal_embedded_t embedded;
         mla_string_internal_heap_t heap;
-        mla_string_internal_resource_t resource;
     };
 
     mla_bool_t operator==(const mla_string_t &other) const {
@@ -115,17 +103,12 @@ struct mla_string_t {
 
 mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String);
 mla_string_t mla_string_empty();
-mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length);
+mla_string_t mla_string(const mla_pointer_t& data, mla_size_t p_Length);
+mla_string_t mla_string(const mla_pointer_t& data);
+mla_string_t mla_string(const mla_pointer_t& data, const mla_char_t *p_End);
 mla_string_t mla_string(const mla_char_t *p_Data);
-mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End);
 mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length);
 mla_string_t mla_string_copy(const mla_string_t &p_String);
-
-// This function creates a string from a buffer and takes ownership of the buffer
-// You must not free the buffer after calling this function
-mla_string_t mla_string_from_buffer_with_ownership(mla_pointer_t& p_Data, mla_size_t p_Length);
-
-mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length);
 
 void mla_string_destroy(mla_string_t &p_String);
 
@@ -229,7 +212,8 @@ struct mla_string_hash_t {
 // Usage: mla_string_const("Hello World")
 template<mla_size_t N>
 mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
-    return mla_string(literal, N-1);  // N includes null terminator
+    mla_pointer_t str_ptr = mla_platform_pointer_to_managed_pointer(literal);
+    return mla_string(str_ptr, N-1);  // N includes null terminator
 }
 
 # define mla_string_equals_const(value1, value2) mla_string_equals(value1, mla_string_const(value2))

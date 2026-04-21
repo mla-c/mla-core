@@ -43,12 +43,11 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
         // Fall back to heap allocation for longer strings
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
-        if (mla_pointer_is_null(buffer)) {
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -75,7 +74,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result =  {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result =  {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -114,11 +113,11 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_uint8_t value = p_Value;
@@ -140,7 +139,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -184,11 +183,11 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -215,7 +214,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -254,11 +253,11 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_uint16_t value = p_Value;
@@ -280,7 +279,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -324,11 +323,11 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -355,7 +354,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -394,11 +393,11 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_uint32_t value = p_Value;
@@ -420,7 +419,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -465,11 +464,11 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
@@ -496,7 +495,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -535,11 +534,11 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         mla_size_t index = 0;
         mla_uint64_t value = p_Value;
@@ -561,7 +560,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         }
 
         str_data[index] = '\0';
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -649,13 +648,15 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         // Initialize for Heap
         const mla_size_t bufferSize = totalLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
-        if (mla_pointer_is_null(buffer)) {
+        dest = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (dest == nullptr) {
             return mla_string_empty();
         }
-        dest = mla_pointer_get_data<mla_char_t>(buffer);
+
         dest[totalLength] = '\0'; // Null terminator
 
-        result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = totalLength;
     }
@@ -774,13 +775,15 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         // Initialize for Heap
         const mla_size_t bufferSize = totalLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
-        if (mla_pointer_is_null(buffer)) {
+        dest = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (dest == nullptr) {
             return mla_string_empty();
         }
-        dest = mla_pointer_get_data<mla_char_t>(buffer);
+
         dest[totalLength] = '\0'; // Null terminator
 
-        result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = totalLength;
     }
@@ -850,19 +853,19 @@ mla_string_t mla_string_from_uint8_hex(mla_uint8_t p_Value) {
     } else {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
-        if (mla_pointer_is_null(buffer)) {
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
 
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
         str_data[0] = '0';
         str_data[1] = 'x';
         str_data[2] = hexDigits[(p_Value >> 4) & 0x0F];
         str_data[3] = hexDigits[p_Value & 0x0F];
         str_data[4] = '\0';
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = 4;
         return result;
@@ -887,12 +890,12 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
     } else {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
-        if (mla_pointer_is_null(buffer)) {
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
 
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
         str_data[0] = '0';
         str_data[1] = 'x';
         str_data[2] = hexDigits[(p_Value >> 12) & 0x0F];
@@ -901,7 +904,7 @@ mla_string_t mla_string_from_uint16_hex(mla_uint16_t p_Value) {
         str_data[5] = hexDigits[p_Value & 0x0F];
         str_data[6] = '\0';
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = 6;
         return result;
@@ -931,11 +934,12 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
 
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
         str_data[0] = '0';
         str_data[1] = 'x';
         str_data[2] = hexDigits[(p_Value >> 28) & 0x0F];
@@ -948,7 +952,7 @@ mla_string_t mla_string_from_uint32_hex(mla_uint32_t p_Value) {
         str_data[9] = hexDigits[p_Value & 0x0F];
         str_data[10] = '\0';
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = 10;
         return result;
@@ -987,11 +991,12 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
 
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
         str_data[0] = '0';
         str_data[1] = 'x';
         str_data[2] = hexDigits[(p_Value >> 60) & 0x0F];
@@ -1012,7 +1017,7 @@ mla_string_t mla_string_from_uint64_hex(mla_uint64_t p_Value) {
         str_data[17] = hexDigits[p_Value & 0x0F];
         str_data[18] = '\0';
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = 18;
         return result;
@@ -1052,16 +1057,16 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         if (p_Value == 0) {
             str_data[0] = '0';
             str_data[1] = '\0';
-            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
             result.heap.char_offset = 0;
             result.heap.length = 1;
             return result;
@@ -1083,7 +1088,7 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
             str_data[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -1122,16 +1127,16 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         if (p_Value == 0) {
             str_data[0] = '0';
             str_data[1] = '\0';
-            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
             result.heap.char_offset = 0;
             result.heap.length = 1;
             return result;
@@ -1152,7 +1157,7 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
             str_data[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -1191,16 +1196,17 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
 
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         if (p_Value == 0) {
             str_data[0] = '0';
             str_data[1] = '\0';
-            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
             result.heap.char_offset = 0;
             result.heap.length = 1;
             return result;
@@ -1221,7 +1227,7 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
             str_data[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;
@@ -1260,16 +1266,16 @@ mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
         const mla_size_t bufferSize = maxLength + 1;
         mla_pointer_t buffer = mla_create_char_array(bufferSize);
 
-        if (mla_pointer_is_null(buffer)) {
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+        if (str_data == nullptr) {
             return mla_string_empty();
         }
-
-        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(buffer);
 
         if (p_Value == 0) {
             str_data[0] = '0';
             str_data[1] = '\0';
-            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+            mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
             result.heap.char_offset = 0;
             result.heap.length = 1;
             return result;
@@ -1290,7 +1296,7 @@ mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
             str_data[index - 1 - i] = temp;
         }
 
-        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        mla_string_t result = {buffer, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.char_offset = 0;
         result.heap.length = index;
         return result;

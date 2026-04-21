@@ -52,15 +52,14 @@ mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_le
     }
 
     mla_pointer_t buffer = mla_malloc_buffer(sizeof(mla_char_t) * buffer_length);
-
-    if (mla_pointer_is_null(buffer)) {
-        return mla_string_empty(); // Allocation failed, return empty string
-    }
-
     mla_byte_t* buffer_data = mla_pointer_get_data<mla_byte_t>(buffer);
 
+    if (buffer_data == nullptr) {
+        return mla_string_empty();
+    }
+
     mla_size_t read_length = input.read(input, 0, max_length, buffer_data);
-    return mla_string_from_buffer_with_ownership(buffer, read_length);
+    return mla_string(buffer, read_length);
 }
 
 mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
@@ -84,14 +83,15 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
         }
     }
 
-    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_platform_malloc(buffer_length));
+    mla_pointer_t buffer = mla_malloc_buffer(sizeof(mla_byte_t) * buffer_length);
+    mla_byte_t* buffer_data = mla_pointer_get_data<mla_byte_t>(buffer);
 
-    if (buffer == nullptr) {
+    if (buffer_data == nullptr) {
         return mla_bytes_empty(); // Allocation failed, return empty bytes
     }
 
-    mla_size_t read_length = input.read(input, 0, max_length, buffer);
-    return mla_bytes_from_buffer_with_ownership(buffer, read_length);
+    mla_size_t read_length = input.read(input, 0, max_length, buffer_data);
+    return mla_bytes_from_external_buffer(buffer, read_length);
 }
 
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms) {

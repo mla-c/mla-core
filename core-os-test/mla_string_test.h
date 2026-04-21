@@ -19,14 +19,14 @@ void SizeOfTest() {
 
 void ContainsCLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
 
 void ContainsBufferLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
@@ -78,7 +78,7 @@ void EqualsIgnoreCaseTest() {
 
 void IndexOfCLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
     assert_equal(mla_string_index_of(mla_str, mla_string("world")), (mla_int32_t)-1,
@@ -87,7 +87,7 @@ void IndexOfCLayoutTest() {
 
 void IndexOfBufferLayoutTest() {
     mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, "MlaString should be buffer layout");
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
     assert_equal(mla_string_index_of(mla_str, mla_string("world")), (mla_int32_t)-1,
@@ -251,7 +251,7 @@ void AutoMemoryManagementTest() {
 
 void SubStringTest() {
     mla_string_t mla_str = mla_string_concat(mla_string("Hello, "), mla_string("World, What are you doing today!"));
-    mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_BUFFER);
     mla_string_t sub_str = mla_string_substr(mla_str, 7, 31); // "World"
 
     // Check memory managemant
@@ -262,7 +262,7 @@ void SubStringTest() {
         assert_fail("Data buffer should not be null after concatenation");
     }
 
-    assert_equal(mla_string_get_memory_layout(sub_str), MLA_STRING_MEMORY_LAYOUT_HEAP_SUB_STRING, "Substring should have SUB_STRING layout");
+    assert_equal(mla_string_get_memory_layout(sub_str), MLA_STRING_MEMORY_LAYOUT_SUB_STRING, "Substring should have SUB_STRING layout");
     assert_equal(mla_string_length(sub_str), (mla_uint32_t)31, "Substring length should be 5");
     assert_true(mla_string_equals(sub_str, mla_string("World, What are you doing today")), "Substring should equal 'World, What are you doing today'");
 }

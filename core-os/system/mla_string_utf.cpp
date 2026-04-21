@@ -98,7 +98,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
     const mla_char_t* data = mla_string_data(p_String);
 
     if (length == 0) {
-        return {nullptr, 0}; // Empty string, return empty buffer
+        return {mla_pointer_null(), 0}; // Empty string, return empty buffer
     }
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
@@ -106,12 +106,13 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
     mla_size_t maxSize = realCharCount * 2 + 1; // Max possible size (if all are surrogate pairs) + null terminator
     mla_pointer_t buffer= mla_malloc(sizeof(mla_utf_16_char_t) * maxSize, nullptr, mla_dynamic_data_empty());
 
-    if (mla_pointer_is_null(buffer)) {
-        mla_error(mla_string_const("Failed to allocate memory for UTF-16 buffer."));
-        return {nullptr, 0};
-    }
 
     mla_utf_16_char_t* utf16_data = mla_pointer_get_data<mla_utf_16_char_t>(buffer);
+
+    if (utf16_data == nullptr) {
+        mla_error(mla_string_const("Failed to get data pointer for UTF-16 buffer."));
+        return {mla_pointer_null(), 0};
+    }
 
     mla_size_t byteIndex = 0;
     mla_size_t utf16Index = 0;
@@ -189,7 +190,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
 
 mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf16Buffer) {
 
-    if (mla_pointer_is_null(p_Utf16Buffer.data) || p_Utf16Buffer.charCount == 0) {
+    if (p_Utf16Buffer.charCount == 0) {
         return mla_string_empty();
     }
 
@@ -197,6 +198,10 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
     mla_size_t maxUtf8Size = p_Utf16Buffer.charCount * 4;
 
     mla_utf_16_char_t* uft_16_data = mla_pointer_get_data<mla_utf_16_char_t>(p_Utf16Buffer.data);
+
+    if (!uft_16_data) {
+        return mla_string_empty();
+    }
 
     // Try SSO first - use embedded buffer directly
     if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
@@ -249,11 +254,11 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
     // Allocate heap buffer for larger strings
     mla_pointer_t utf8Buffer = mla_create_char_array(maxUtf8Size);
 
-    if (mla_pointer_is_null(utf8Buffer)) {
+    mla_char_t* utf8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
+
+    if (!utf8_data) {
         return mla_string_empty();
     }
-
-    mla_char_t* utf8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
 
     mla_size_t utf8Index = 0;
     mla_size_t utf16Index = 0;
@@ -293,7 +298,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
         }
     }
 
-    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
+    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.char_offset = 0;
     result.heap.length = utf8Index;
     return result;
@@ -304,18 +309,18 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
     mla_size_t length = mla_string_length(p_String);
 
     if (length == 0) {
-        return {nullptr, 0}; // Empty string, return empty buffer
+        return {mla_pointer_null(), 0}; // Empty string, return empty buffer
     }
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
 
     mla_pointer_t buffer = mla_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1), nullptr, mla_dynamic_data_empty()); // +1 for null terminator
 
-    if (mla_pointer_is_null(buffer)) {
-        return {nullptr, 0};
-    }
-
     mla_utf_32_char_t* utf32_data = mla_pointer_get_data<mla_utf_32_char_t>(buffer);
+
+    if (utf32_data == nullptr) {
+        return {mla_pointer_null(), 0};
+    }
 
     mla_size_t byteIndex = 0;
     mla_size_t utf32Index = 0;
@@ -387,7 +392,7 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
 
 mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer) {
 
-    if (mla_pointer_is_null(p_Utf32Buffer.data) || p_Utf32Buffer.charCount == 0) {
+    if (p_Utf32Buffer.charCount == 0) {
         return mla_string_empty();
     }
 
@@ -395,6 +400,10 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
     mla_size_t maxUtf8Size = p_Utf32Buffer.charCount * 4;
 
     mla_utf_32_char_t* utf32_data = mla_pointer_get_data<mla_utf_32_char_t>(p_Utf32Buffer.data);
+
+    if (utf32_data == nullptr) {
+        return mla_string_empty();
+    }
 
     // Try SSO first - use embedded buffer directly
     if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
@@ -435,11 +444,11 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 
     // Allocate heap buffer for larger strings
     mla_pointer_t utf8Buffer = mla_create_char_array(maxUtf8Size);
-    if (mla_pointer_is_null(utf8Buffer)) {
+    mla_char_t* uft8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
+
+    if (uft8_data == nullptr) {
         return mla_string_empty();
     }
-
-    mla_char_t* uft8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
 
     mla_size_t utf8Index = 0;
     mla_size_t utf32Index = 0;
@@ -468,7 +477,7 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
         }
     }
 
-    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER, 0, {0}}}};
+    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.char_offset = 0;
     result.heap.length = utf8Index;
     return result;

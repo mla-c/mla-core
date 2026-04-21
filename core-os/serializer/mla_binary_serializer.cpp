@@ -202,8 +202,10 @@ mla_bool_t mla_binary_serializer_write_bytes(mla_serializer_t& instance, const m
         return false;
     }
 
-    if (bytes.size > 0) {
-        return instance.output.write(instance.output, 0, bytes.size, bytes.data) == bytes.size;
+    const mla_byte_t* bytes_buffer = mla_bytes_get_data_readonly(bytes);
+
+    if (bytes.size > 0 && bytes_buffer != nullptr) {
+        return instance.output.write(instance.output, 0, bytes.size, bytes_buffer) == bytes.size;
     }
 
     return true;
@@ -248,13 +250,11 @@ mla_string_t __mla_binary_deserializer_read_string_data(mla_deserializer_t& inst
     }
 
     mla_pointer_t charBuffer = mla_create_char_array(length);
+    mla_char_t* char_data = mla_pointer_get_data<mla_char_t>(charBuffer);
 
-    if (mla_pointer_is_null(charBuffer)) {
-        // No memory available
+    if (char_data == nullptr) {
         return mla_string_empty();
     }
-
-    mla_char_t* char_data = mla_pointer_get_data<mla_char_t>(charBuffer);
 
     mla_size_t readed_bytes = instance.input.read(instance.input, 0, length, reinterpret_cast<mla_byte_t*>(char_data));
 
@@ -262,7 +262,7 @@ mla_string_t __mla_binary_deserializer_read_string_data(mla_deserializer_t& inst
         mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(readed_bytes), ") do not match expected length (", mla_string_from_uint32(length), ") in deserializer"));
     }
 
-    return  mla_string_from_buffer_with_ownership(charBuffer, readed_bytes);
+    return  mla_string(charBuffer, readed_bytes);
 
 }
 
@@ -417,21 +417,21 @@ mla_bytes_t __mla_binary_deserializer_read_bytes(mla_deserializer_t& instance) {
         return mla_bytes_empty();
     }
 
-    mla_byte_t* bytesBuffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(sizeof(mla_byte_t) * size));
+    mla_pointer_t bytesBuffer = mla_malloc_buffer(sizeof(mla_byte_t) * size);
+    mla_byte_t* buffer_data = mla_pointer_get_data<mla_byte_t>(bytesBuffer);
 
-    if (bytesBuffer == nullptr) {
+    if (buffer_data == nullptr) {
         return mla_bytes_empty();
     }
 
-    read_bytes = instance.input.read(instance.input, 0, size, bytesBuffer);
+    read_bytes = instance.input.read(instance.input, 0, size, buffer_data);
 
     if (read_bytes != size) {
-        mla_platform_free(bytesBuffer);
         mla_warning(mla_string_concat("Readed bytes (", mla_string_from_uint32(read_bytes), ") do not match expected length (", mla_string_from_uint32(size), ") in deserializer"));
         return mla_bytes_empty();
     }
 
-    return mla_bytes_from_buffer_with_ownership(bytesBuffer, read_bytes);
+    return mla_bytes_from_external_buffer(bytesBuffer, read_bytes);
 
 }
 

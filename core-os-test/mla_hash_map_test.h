@@ -235,9 +235,9 @@ void HashMapItemMemoryManagementTest() {
 
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
-    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_BUFFER);
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
-    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
         assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");
@@ -302,9 +302,9 @@ void HashMapItemMemoryManagementDestroyTest() {
 
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
-    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_BUFFER);
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
-    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
         assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");
@@ -357,9 +357,9 @@ void HashMapItemMemoryManagementDestroy2Test() {
 
     // Make sure that the string has its own memory management
     mla_string_t mla_str1 = mla_string_concat(mla_string("Hel"), mla_string("lo"));
-    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str1, MLA_STRING_MEMORY_LAYOUT_BUFFER);
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
-    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_HEAP_BUFFER);
+    mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
     if (mla_str1.dataOwner.buffer != nullptr) {
         assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");

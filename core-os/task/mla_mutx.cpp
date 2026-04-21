@@ -53,7 +53,8 @@ mla_mutex_t mla_mutex(const mla_string_t& name, mla_bool_t support_recursive) {
 
 mla_mutex_t mla_mutex(const mla_char_t* name, mla_size_t size, mla_bool_t support_recursive) {
 
-    return  mla_mutex(mla_string(name, size), support_recursive);
+    mla_pointer_t namePtr = mla_platform_pointer_to_managed_pointer(name);
+    return  mla_mutex(mla_string(namePtr, size), support_recursive);
 }
 
 mla_bool_t mla_mutex_try_lock(const mla_mutex_t& mutex, mla_int32_t timeout, mla_bool_t silent, const mla_char_t* source, mla_uint32_t line) {

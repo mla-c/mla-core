@@ -45,12 +45,11 @@ mla_string_t mla_generate_uuid() {
 
     // Build UUID directly in buffer: 36 chars + null terminator
     mla_pointer_t buffer= mla_create_char_array(37);
-
-    if (mla_pointer_is_null(buffer)) {
-        return mla_string_empty(); // Memory allocation failed
-    }
-
     mla_char_t* buffer_data = mla_pointer_get_data<mla_char_t>(buffer);
+
+    if (buffer_data == nullptr) {
+        return mla_string_empty(); // Failed to get buffer data
+    }
 
     __mla_string_from_uint32_hex(buffer_data, rand1, 8);
     buffer_data[8] = '-';
@@ -64,7 +63,7 @@ mla_string_t mla_generate_uuid() {
     __mla_string_from_uint32_hex(buffer_data + 28, rand4, 8);
     buffer_data[36] = '\0';
 
-    return mla_string_from_buffer_with_ownership(buffer, 36);
+    return mla_string(buffer, 36);
 }
 
 

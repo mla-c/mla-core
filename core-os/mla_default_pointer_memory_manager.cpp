@@ -42,13 +42,13 @@ mla_pointer_t __default_pointer_memory_manager_malloc(mla_pointer_memory_manager
     };
 }
 
-mla_bool_t __default_pointer_memory_manager_is_null(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
-    (void)memory_manager;
-    return payload.asPointer == nullptr;
-}
-
 mla_platform_pointer_t __default_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
+
+    if (payload.asPointer == nullptr) {
+        return nullptr;
+    }
+
     return static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 }
 
@@ -97,7 +97,6 @@ mla_int32_t __default_pointer_memory_manager_get_ref_count(const mla_pointer_mem
 
 mla_pointer_memory_manager_t g_default_pointer_memory_manager = {
     __default_pointer_memory_manager_malloc,
-    __default_pointer_memory_manager_is_null,
     __default_pointer_memory_manager_get_platform_pointer,
     __default_pointer_memory_manager_incReferences,
     __default_pointer_memory_manager_decReferences,

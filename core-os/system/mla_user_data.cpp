@@ -105,10 +105,6 @@ mla_user_data_item_t* __mla_user_data_get_for_update(mla_user_data_t &target, ml
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id) {
 
-    if (mla_pointer_is_null(target.data)) {
-        return false; // No data, nothing to remove
-    }
-
     mla_user_data_list_t* list = mla_pointer_get_data<mla_user_data_list_t>(target.data);
 
     if (list == nullptr) {
@@ -352,7 +348,7 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, mla_user_data_id id
 
     user_data->id = id;
 
-    mla_c_string_t c_string = mla_string_to_cString(data, true);
+    mla_c_string_t c_string = mla_string_to_cString(data);
     user_data->data.asPointer = reinterpret_cast<mla_platform_pointer_t>(const_cast<char*>(c_string.c_str));
     user_data->dataOwner = mla_buffer_reference_create(c_string.c_str, false, nullptr, mla_dynamic_data_empty());
     return true;
@@ -806,9 +802,6 @@ mla_user_data_item_t* __mla_user_find_item(mla_user_data_list_t* list, mla_user_
 
 mla_user_data_item_t* mla_user_data_get(mla_user_data_t& data, mla_user_data_id id) {
 
-    if (mla_pointer_is_null(data.data))
-        return nullptr;
-
     mla_user_data_list_t* list = mla_pointer_get_data<mla_user_data_list_t>(data.data);
 
     return __mla_user_find_item(list, id);
@@ -972,7 +965,7 @@ mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, mla_user_
         return defaultValue;
     }
     const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
     result.heap.data = c_string;
     result.heap.length = mla_strlen(c_string);
     return result;
@@ -1262,7 +1255,7 @@ mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userDat
 
     if (found->id == id) {
         const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_HEAP_C_STRING, 0, {0}}}};
+        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
         result.heap.data = c_string;
         result.heap.length = mla_strlen(c_string);
     } else {
@@ -1293,10 +1286,6 @@ mla_dynamic_data_t mla_user_data_get_native_resource(const mla_user_data_t& user
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
 
     mla_user_data_t copy = mla_user_data_empty();
-
-    if (mla_pointer_is_null(other.data)) {
-        return copy; // No data to copy
-    }
 
     mla_user_data_list_t* otherList = mla_pointer_get_data<mla_user_data_list_t>(other.data);
 

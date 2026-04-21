@@ -287,7 +287,6 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
 struct mla_pointer_memory_manager_t {
 
     mla_pointer_t (*malloc)(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
-    mla_bool_t (*is_null)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     mla_platform_pointer_t (*get_platform_pointer)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
@@ -333,6 +332,6 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
-mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_pointer_t resource);
+mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
 
 #endif
