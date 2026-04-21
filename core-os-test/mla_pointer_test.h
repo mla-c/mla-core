@@ -136,6 +136,8 @@ void PointerNativeMemoryManagementBenchmark() {
     my_pointer_native_test_t container2 = container1;
     my_pointer_native_test_t container3 = container2;
 
+    mla_test_bench_sink(container3.data); // prevent DCE of the copy chain
+
     // Clear all containers
     container1 = {nullptr};
     container2 = {nullptr};
@@ -150,6 +152,8 @@ void PointerNativeAutomaticMemoryManagementBenchmark() {
     my_pointer_test_native_auto_test_t container1 = my_pointer_test_native_auto_test_t::init();
     my_pointer_test_native_auto_test_t container2 = container1;
     my_pointer_test_native_auto_test_t container3 = container2;
+
+    mla_test_bench_sink(container3.childData); // prevent DCE of the entire chain
 
     // Clear all containers
     container1 = my_pointer_test_native_auto_test_t::init();
