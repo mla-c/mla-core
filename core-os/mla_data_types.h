@@ -331,5 +331,6 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
+mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_pointer_t resource);
 
 #endif

@@ -49,7 +49,7 @@ mla_bool_t __default_pointer_memory_manager_is_null(mla_pointer_memory_manager_t
 
 mla_platform_pointer_t __default_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
-    return static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_platform_pointer_t);
+    return static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 }
 
 void __default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
@@ -72,7 +72,7 @@ void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t
     if (header) {
         if (mla_atomic_decrement(header->refCount) == 0) {
 
-            mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_platform_pointer_t);
+            mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 
             // Call the cleanup hook if it is set
             if (header->cleanupHook != nullptr) {

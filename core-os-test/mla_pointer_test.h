@@ -113,6 +113,22 @@ void PointerMemoryManagementBenchmark() {
     container3 = mla_pointer_null(); // Clear container3
 }
 
+void PointerNativeBridgeMemoryManagementBenchmark() {
+
+    mla_platform_pointer_t data = mla_platform_malloc(sizeof(my_pointer_test_native_auto_test_t));
+    mla_pointer_t container1 = mla_platform_pointer_to_managed_pointer(data);
+    mla_pointer_t container2 = container1;
+    mla_pointer_t container3 = container2;
+
+    container1 = mla_pointer_null(); // Clear container1
+    container2 = mla_pointer_null(); // Clear container2
+    container3 = mla_pointer_null(); // Clear container3
+
+    // Free the memory
+    mla_platform_free(data);
+}
+
+
 void PointerNativeMemoryManagementBenchmark() {
 
     mla_platform_pointer_t data = mla_platform_malloc(sizeof(my_pointer_test_native_auto_test_t));
@@ -144,13 +160,16 @@ void PointerNativeAutomaticMemoryManagementBenchmark() {
 
 void RegisterPointerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
-    mla_benchmark_t benchmark = mla_benchmark("PointerMemoryBenchmark", benchmark_category, PointerMemoryManagementBenchmark);
+    mla_benchmark_t benchmark = mla_benchmark("PointerMemory", benchmark_category, PointerMemoryManagementBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    benchmark = mla_benchmark("PointerNativeMemoryBenchmark", benchmark_category, PointerNativeMemoryManagementBenchmark);
+    benchmark = mla_benchmark("PointerNativeBridgeMemoryManagement", benchmark_category, PointerNativeBridgeMemoryManagementBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
-    benchmark = mla_benchmark("PointerNativeAutoMemoryBenchmark", benchmark_category, PointerNativeAutomaticMemoryManagementBenchmark);
+    benchmark = mla_benchmark("PointerNativeMemory", benchmark_category, PointerNativeMemoryManagementBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    benchmark = mla_benchmark("PointerNativeAutoMemory", benchmark_category, PointerNativeAutomaticMemoryManagementBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 }
