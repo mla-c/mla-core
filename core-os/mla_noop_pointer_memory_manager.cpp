@@ -40,7 +40,7 @@ mla_int32_t __noop_pointer_memory_manager_get_ref_count(const mla_pointer_memory
     return -1; // Not supported
 }
 
-// This Memory Manager only exists for external resource. We dont do any management here
+// This Memory Manager only exists for external heap data. We dont do any management here
 // is just a bridge between the worlds
 mla_pointer_memory_manager_t g_noop_pointer_memory_manager = {
     __noop_pointer_memory_manager_malloc,

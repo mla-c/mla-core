@@ -431,7 +431,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
         // Add more space in case of unicode parsing
         if (position + 4 >= mla_global_config_stream_fast_read_buffer_size) {
             // Buffer full, append to string
-            out_str = mla_string_concat(out_str, mla_string(charBuffer, position));
+            out_str = mla_string_concat(out_str, mla_string(mla_platform_pointer_to_managed_pointer(charBuffer), position));
             position = 0;
         }
 
@@ -605,7 +605,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
 
     // Append remaining data
     if (position > 0) {
-        out_str = mla_string_concat(out_str, mla_string(charBuffer, position));
+        out_str = mla_string_concat(out_str, mla_string(mla_platform_pointer_to_managed_pointer(charBuffer), position));
     }
 
 
@@ -693,7 +693,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
         // Parse as floating point
         mla_double_t value;
 
-        if (!mla_parse_double(mla_string(charBuffer, position), value)) {
+        if (!mla_parse_double(mla_string(mla_platform_pointer_to_managed_pointer(charBuffer), position), value)) {
             mla_error("Invalid floating point number");
             return false;
         }
@@ -709,7 +709,7 @@ mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance
     } else {
         // Parse as integer
         mla_int64_t value;
-        if (!mla_parse_int64(mla_string(charBuffer, position), value)) {
+        if (!mla_parse_int64(mla_string(mla_platform_pointer_to_managed_pointer(charBuffer), position), value)) {
             mla_error("Invalid integer number");
             return false;
         }

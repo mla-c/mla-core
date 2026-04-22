@@ -10,9 +10,6 @@ mla_user_data_id_init(mla_stream_input_timeout_wrapper_data_userdata_name)
 struct mla_stream_input_timeout_wrapper_data_t {
     mla_stream_input_t base_input;
     mla_int32_t timeout_ms;
-};
-
-struct mla_stream_input_timeout_wrapper_data_initializer {
 
     static mla_stream_input_timeout_wrapper_data_t init() {
         return {
@@ -21,6 +18,7 @@ struct mla_stream_input_timeout_wrapper_data_initializer {
         };
     }
 };
+
 
 mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string) {
     if (mla_string_is_empty(string)) {
@@ -120,7 +118,7 @@ mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_siz
 
 mla_size_t __mla_stream_input_timeout_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
 
-    mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);
+    mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);
 
     if (data == nullptr) {
         return 0; // No data, return 0
@@ -131,7 +129,7 @@ mla_size_t __mla_stream_input_timeout_wrapper_read(mla_stream_input_t &input, ml
 
 mla_size_t __mla_stream_input_timeout_wrapper_remaining_bytes(mla_stream_input_t &input) {
 
-    mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);
+    mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);
 
     if (data == nullptr)
         return 0;
@@ -160,8 +158,9 @@ mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, m
     if (input.read == nullptr)
         return input;
 
-    mla_stream_input_timeout_wrapper_data_t *data = static_cast<mla_stream_input_timeout_wrapper_data_t *>(mla_platform_malloc(
-        sizeof(mla_stream_input_timeout_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_timeout_wrapper_data_t);
+
+    mla_stream_input_timeout_wrapper_data_t *data = mla_pointer_get_data<mla_stream_input_timeout_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return mla_stream_noop_input(); // Allocation failed, return noop
@@ -172,7 +171,7 @@ mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, m
     data->timeout_ms = timeout_ms;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_input_timeout_wrapper_data_t, mla_stream_input_timeout_wrapper_data_initializer>(user_data, mla_stream_input_timeout_wrapper_data_userdata_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_input_timeout_wrapper_data_userdata_name, data_ptr);
 
     if (input.remaining_bytes != nullptr) {
         return {
@@ -196,9 +195,6 @@ struct mla_stream_input_limited_wrapper_data_t {
     mla_stream_input_t base_input;
     mla_size_t size;
     mla_size_t readed;
-};
-
-struct mla_stream_input_limited_wrapper_data_initializer {
 
     static mla_stream_input_limited_wrapper_data_t init() {
         return {
@@ -207,12 +203,14 @@ struct mla_stream_input_limited_wrapper_data_initializer {
             0
         };
     }
+
 };
+
 
 
 mla_size_t __mla_stream_input_limited_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
 
-    mla_stream_input_limited_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_limited_wrapper_data_t>(input.userdata, mla_stream_input_limited_wrapper_data_name);
+    mla_stream_input_limited_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_limited_wrapper_data_t>(input.userdata, mla_stream_input_limited_wrapper_data_name);
 
     if (data == nullptr) {
         return 0; // No data, return 0
@@ -232,7 +230,7 @@ mla_size_t __mla_stream_input_limited_wrapper_read(mla_stream_input_t &input, ml
 
 mla_size_t __mla_stream_input_limited_wrapper_remaining_bytes(mla_stream_input_t &input) {
 
-    mla_stream_input_limited_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_limited_wrapper_data_t>(input.userdata, mla_stream_input_limited_wrapper_data_name);
+    mla_stream_input_limited_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_limited_wrapper_data_t>(input.userdata, mla_stream_input_limited_wrapper_data_name);
 
     if (data == nullptr)
         return 0;
@@ -248,8 +246,9 @@ mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, m
     if (input.read == nullptr)
         return input;
 
-    mla_stream_input_limited_wrapper_data_t *data = static_cast<mla_stream_input_limited_wrapper_data_t *>(mla_platform_malloc(
-        sizeof(mla_stream_input_limited_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_limited_wrapper_data_t);
+
+    mla_stream_input_limited_wrapper_data_t *data = mla_pointer_get_data<mla_stream_input_limited_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return mla_stream_noop_input(); // Allocation failed, return noop
@@ -261,7 +260,7 @@ mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, m
     data->size = size;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_input_limited_wrapper_data_t, mla_stream_input_limited_wrapper_data_initializer>(user_data, mla_stream_input_limited_wrapper_data_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_input_limited_wrapper_data_name, data_ptr);
 
     return {
         user_data,
@@ -281,9 +280,6 @@ struct mla_stream_input_buffered_wrapper_data_t {
     mla_bytes_t buffer;
     mla_size_t buffer_offset;
     mla_size_t buffer_filled;
-};
-
-struct mla_stream_input_buffered_wrapper_data_initializer {
 
     static mla_stream_input_buffered_wrapper_data_t init() {
         return {
@@ -295,8 +291,9 @@ struct mla_stream_input_buffered_wrapper_data_initializer {
     }
 };
 
+
 mla_size_t __mla_stream_input_buffered_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
-    mla_stream_input_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_buffered_wrapper_data_t>(input.userdata, mla_stream_input_buffered_wrapper_data_name);
+    mla_stream_input_buffered_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_buffered_wrapper_data_t>(input.userdata, mla_stream_input_buffered_wrapper_data_name);
 
     if (data == nullptr || buffer == nullptr) {
         return 0;
@@ -326,7 +323,7 @@ mla_size_t __mla_stream_input_buffered_wrapper_read(mla_stream_input_t &input, m
 }
 
 mla_size_t __mla_stream_input_buffered_wrapper_remaining_bytes(mla_stream_input_t &input) {
-    mla_stream_input_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_input_buffered_wrapper_data_t>(input.userdata, mla_stream_input_buffered_wrapper_data_name);
+    mla_stream_input_buffered_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_buffered_wrapper_data_t>(input.userdata, mla_stream_input_buffered_wrapper_data_name);
 
     if (data == nullptr || data->base_input.remaining_bytes == nullptr) {
         return 0;
@@ -346,7 +343,9 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
         return input;
     }
 
-    mla_stream_input_buffered_wrapper_data_t *data = static_cast<mla_stream_input_buffered_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_input_buffered_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_buffered_wrapper_data_t);
+
+    mla_stream_input_buffered_wrapper_data_t *data = mla_pointer_get_data<mla_stream_input_buffered_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return mla_stream_noop_input();
@@ -365,7 +364,7 @@ mla_stream_input_t mla_stream_input_buffered_wrapper(mla_stream_input_t &input, 
     data->buffer_filled = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_input_buffered_wrapper_data_t, mla_stream_input_buffered_wrapper_data_initializer>(user_data, mla_stream_input_buffered_wrapper_data_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_input_buffered_wrapper_data_name, data_ptr);
 
     return {
         user_data,
@@ -384,9 +383,6 @@ struct mla_stream_output_buffered_wrapper_data_t {
     mla_stream_output_t base_output;
     mla_bytes_t buffer;
     mla_size_t buffer_used;
-};
-
-struct mla_stream_output_buffered_wrapper_data_initializer {
 
     static mla_stream_output_buffered_wrapper_data_t init() {
         return {
@@ -397,8 +393,9 @@ struct mla_stream_output_buffered_wrapper_data_initializer {
     }
 };
 
+
 mla_size_t __mla_stream_output_buffered_wrapper_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
-    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
+    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
 
     if (data == nullptr || buffer == nullptr) {
         return 0;
@@ -433,7 +430,7 @@ mla_size_t __mla_stream_output_buffered_wrapper_write(mla_stream_output_t &outpu
 
 mla_size_t __mla_stream_output_buffered_wrapper_available_bytes(mla_stream_output_t &output) {
 
-    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
+    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
 
     if (data == nullptr || data->base_output.available_bytes == nullptr) {
         return 0;
@@ -450,7 +447,9 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
         return output;
     }
 
-    mla_stream_output_buffered_wrapper_data_t *data = static_cast<mla_stream_output_buffered_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_output_buffered_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_output_buffered_wrapper_data_t);
+
+    mla_stream_output_buffered_wrapper_data_t *data = mla_pointer_get_data<mla_stream_output_buffered_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return output;
@@ -468,7 +467,7 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
     data->buffer_used = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_output_buffered_wrapper_data_t, mla_stream_output_buffered_wrapper_data_initializer>(user_data, mla_stream_output_buffered_wrapper_data_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_output_buffered_wrapper_data_name, data_ptr);
 
     return {
         user_data,
@@ -479,7 +478,7 @@ mla_stream_output_t mla_stream_output_buffered_wrapper(mla_stream_output_t &outp
 
 mla_bool_t mla_stream_output_flush_buffered_wrapper(const mla_stream_output_t &output) {
 
-    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
+    mla_stream_output_buffered_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_output_buffered_wrapper_data_t>(output.userdata, mla_stream_output_buffered_wrapper_data_name);
 
     if (data == nullptr || data->buffer_used == 0) {
         return true; // Nothing to flush
@@ -507,9 +506,6 @@ struct mla_stream_input_interceptor_wrapper_data_t {
     mla_stream_input_t base_input;
     mla_stream_input_interceptor_read read;
     mla_stream_input_interceptor_remaining_bytes remaining_bytes;
-};
-
-struct mla_stream_input_interceptor_wrapper_data_initializer {
 
     static mla_stream_input_interceptor_wrapper_data_t init() {
         return {
@@ -520,9 +516,10 @@ struct mla_stream_input_interceptor_wrapper_data_initializer {
     }
 };
 
+
 mla_size_t __mla_stream_input_interceptor_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
 
-    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
+    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer_data<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -544,7 +541,7 @@ mla_size_t __mla_stream_input_interceptor_wrapper_read(mla_stream_input_t &input
 
 mla_size_t __mla_stream_input_interceptor_wrapper_remaining_bytes(mla_stream_input_t &input) {
 
-    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
+    mla_stream_input_interceptor_wrapper_data_t* data = mla_user_data_get_pointer_data<mla_stream_input_interceptor_wrapper_data_t>(input.userdata, mla_stream_input_interceptor_wrapper_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -566,7 +563,9 @@ mla_size_t __mla_stream_input_interceptor_wrapper_remaining_bytes(mla_stream_inp
 
 mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &input, mla_stream_input_interceptor_read intercept_read_function, mla_stream_input_interceptor_remaining_bytes intercept_remaining_bytes_function) {
 
-    mla_stream_input_interceptor_wrapper_data_t* data = static_cast<mla_stream_input_interceptor_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_input_interceptor_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_interceptor_wrapper_data_t);
+
+    mla_stream_input_interceptor_wrapper_data_t* data = mla_pointer_get_data<mla_stream_input_interceptor_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return mla_stream_noop_input();
@@ -578,7 +577,7 @@ mla_stream_input_t mla_stream_input_interceptor_wrapper(mla_stream_input_t &inpu
     data->remaining_bytes = intercept_remaining_bytes_function;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_input_interceptor_wrapper_data_t, mla_stream_input_interceptor_wrapper_data_initializer>(user_data, mla_stream_input_interceptor_wrapper_data_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_input_interceptor_wrapper_data_name, data_ptr);
 
 
     return {
@@ -600,9 +599,6 @@ struct mla_stream_output_interceptor_wrapper_data_t {
     mla_stream_output_t base_output;
     mla_stream_output_interceptor_write write;
     mla_stream_output_interceptor_available_bytes available_bytes;
-};
-
-struct mla_stream_output_interceptor_wrapper_data_initializer {
 
     static mla_stream_output_interceptor_wrapper_data_t init() {
         return {
@@ -615,7 +611,7 @@ struct mla_stream_output_interceptor_wrapper_data_initializer {
 
 mla_size_t __mla_stream_output_interceptor_wrapper_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer_data<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -636,7 +632,7 @@ mla_size_t __mla_stream_output_interceptor_wrapper_write(mla_stream_output_t &ou
 
 mla_size_t __mla_stream_output_interceptor_wrapper_available_bytes(mla_stream_output_t &output) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_user_data_get_pointer_data<mla_stream_output_interceptor_wrapper_data_t>(output.userdata, mla_stream_output_interceptor_data_name);
 
     if (data == nullptr) {
         return 0; // No data or no interceptor, return 0
@@ -658,7 +654,9 @@ mla_size_t __mla_stream_output_interceptor_wrapper_available_bytes(mla_stream_ou
 
 mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &output, mla_stream_output_interceptor_write intercept_write_function, mla_stream_output_interceptor_available_bytes intercept_available_bytes_function) {
 
-    mla_stream_output_interceptor_wrapper_data_t* data = static_cast<mla_stream_output_interceptor_wrapper_data_t *>(mla_platform_malloc(sizeof(mla_stream_output_interceptor_wrapper_data_t)));
+    mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_output_interceptor_wrapper_data_t);
+
+    mla_stream_output_interceptor_wrapper_data_t* data = mla_pointer_get_data<mla_stream_output_interceptor_wrapper_data_t>(data_ptr);
 
     if (data == nullptr) {
         return mla_stream_noop_output();
@@ -670,7 +668,7 @@ mla_stream_output_t mla_stream_output_interceptor_wrapper(mla_stream_output_t &o
     data->available_bytes = intercept_available_bytes_function;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_stream_output_interceptor_wrapper_data_t, mla_stream_output_interceptor_wrapper_data_initializer>(user_data, mla_stream_output_interceptor_data_name, data);
+    mla_user_data_set_pointer(user_data, mla_stream_output_interceptor_data_name, data_ptr);
 
     return {
         user_data,

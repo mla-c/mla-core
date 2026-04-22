@@ -332,6 +332,20 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
+/**
+ * Create a mla_pointer_t from an external pointer. The memory manager will not take ownership of the pointer and will not attempt to free it.
+ **/
 mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
+
+/**
+ * Create a mla_pointer_t from an external resource represented as mla_dynamic_data_t.
+ * The memory manager will take ownership an call the clean up hook at the end
+ */
+typedef mla_dynamic_data_t mla_native_resource_t;
+mla_native_resource_t mla_native_resource_empty();
+
+typedef void(*mla_native_resource_clean_up_hook_t)(const mla_native_resource_t& userData);
+mla_pointer_t mla_native_resource_to_managed_pointer(mla_native_resource_t& resource, mla_native_resource_clean_up_hook_t cleanup_hook);
+mla_native_resource_t* mla_native_resource_from_managed_pointer(mla_pointer_t pointer);
 
 #endif

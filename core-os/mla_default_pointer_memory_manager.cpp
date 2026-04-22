@@ -69,18 +69,20 @@ void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t
 
     mla_pointer_header_t* header = __mla_pointer_get_header(payload);
 
-    if (header) {
-        if (mla_atomic_decrement(header->refCount) == 0) {
+    if (header == nullptr) {
+        return;
+    }
 
-            mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
+    if (mla_atomic_decrement(header->refCount) == 0) {
 
-            // Call the cleanup hook if it is set
-            if (header->cleanupHook != nullptr) {
-                header->cleanupHook(l_Data, header->cleanupHookUserData);
-            }
+        mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 
-            mla_platform_free(payload.asPointer);
+        // Call the cleanup hook if it is set
+        if (header->cleanupHook != nullptr) {
+            header->cleanupHook(l_Data, header->cleanupHookUserData);
         }
+
+        mla_platform_free(payload.asPointer);
     }
 }
 

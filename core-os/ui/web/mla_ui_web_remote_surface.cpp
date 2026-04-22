@@ -133,7 +133,7 @@ mla_user_data_id_init(mla_ui_web_remote_surface_timestamp_user_data_name)
 
 mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator(mla_stream_output_t& output, mla_user_data_t& user_data) {
 
-    mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>* drawCommands = mla_user_data_get_pointer<mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>>(user_data, mla_ui_web_remote_surface_draw_commands_message_user_data_name);
+    mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>* drawCommands = mla_user_data_get_pointer_data<mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>>(user_data, mla_ui_web_remote_surface_draw_commands_message_user_data_name);
     mla_uint64_t timestamp = mla_user_data_get_uint64(user_data, mla_ui_web_remote_surface_timestamp_user_data_name);
 
     if (drawCommands == nullptr) {
@@ -176,7 +176,8 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
     }
 
     mla_user_data_t messageData = mla_user_data_empty();
-    mla_user_data_set_pointer_without_ownership(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, &drawCommands);
+    mla_pointer_t drawCommands_ptr = mla_platform_pointer_to_managed_pointer(&drawCommands);
+    mla_user_data_set_pointer(messageData, mla_ui_web_remote_surface_draw_commands_message_user_data_name, drawCommands_ptr);
     mla_user_data_set_uint64(messageData, mla_ui_web_remote_surface_timestamp_user_data_name, mla_system_time_ms());
 
     // Serialize the commands to JSON

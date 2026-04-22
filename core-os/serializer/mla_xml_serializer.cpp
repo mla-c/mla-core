@@ -24,9 +24,7 @@ struct mla_xml_serializer_state_t {
     mla_bool_t in_open_tag;
     mla_string_t pending_property_name;
     mla_array_list_t<mla_string_t, mla_string_initializer> tag_stack; // Stack to track tag names
-};
 
-struct mla_xml_serializer_state_initializer {
     static mla_xml_serializer_state_t init() {
         return {
             false,
@@ -36,8 +34,9 @@ struct mla_xml_serializer_state_initializer {
     }
 };
 
+
 mla_xml_serializer_state_t *__mla_xml_ser_get_state(mla_serializer_t &inst) {
-    return mla_user_data_get_pointer<mla_xml_serializer_state_t>(inst.user_data, mla_xml_serializer_state_user_data_name);
+    return mla_user_data_get_pointer_data<mla_xml_serializer_state_t>(inst.user_data, mla_xml_serializer_state_user_data_name);
 }
 
 mla_bool_t __mla_xml_write_str(mla_stream_output_t &out, const mla_string_t str) {
@@ -588,8 +587,9 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where serializers
     // are expected to be short-lived
-    mla_xml_serializer_state_t *state = static_cast<mla_xml_serializer_state_t *>(mla_platform_malloc(
-        sizeof(mla_xml_serializer_state_t)));
+    mla_pointer_t state_ptr = mla_malloc_struct(mla_xml_serializer_state_t);
+
+    mla_xml_serializer_state_t *state = mla_pointer_get_data<mla_xml_serializer_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_serializer_invalid();
@@ -601,7 +601,7 @@ mla_serializer_t mla_xml_serializer(const mla_stream_output_t &output) {
     state->tag_stack = mla_array_list<mla_string_t, mla_string_initializer>();
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_xml_serializer_state_t, mla_xml_serializer_state_initializer>(user_data, mla_xml_serializer_state_user_data_name, state);
+    mla_user_data_set_pointer(user_data, mla_xml_serializer_state_user_data_name, state_ptr);
 
     return {
         output,
@@ -653,9 +653,7 @@ struct mla_xml_deser_state_t {
     mla_bool_t pending_tag_is_struct;
     mla_bool_t pending_tag_is_list;
     mla_bool_t pending_struct_end;
-};
 
-struct mla_xml_deser_state_initializer {
     static mla_xml_deser_state_t init() {
         return {
             mla_array_list_empty<mla_bool_t>(),
@@ -675,7 +673,7 @@ struct mla_xml_deser_state_initializer {
 mla_user_data_id_init(mla_deserializer_state_user_data_name)
 
 static mla_xml_deser_state_t *__mla_xml_deser_get_state(mla_deserializer_t &inst) {
-    return mla_user_data_get_pointer<mla_xml_deser_state_t>(inst.user_data, mla_deserializer_state_user_data_name);
+    return mla_user_data_get_pointer_data<mla_xml_deser_state_t>(inst.user_data, mla_deserializer_state_user_data_name);
 }
 
 static mla_bool_t __mla_xml_read_char(mla_deserializer_t &inst, mla_char_t &c) {
@@ -708,7 +706,7 @@ static void __mla_xml_skip_ws(mla_deserializer_t &inst) {
 
 static mla_string_t __mla_xml_read_until(mla_deserializer_t &inst, mla_char_t stop) {
     mla_string_t result = mla_string_empty();
-    mla_char_t buf[256];
+    mla_char_t buf[mla_global_config_stream_fast_read_buffer_size];
     mla_size_t pos = 0;
     mla_char_t c;
 
@@ -718,15 +716,15 @@ static mla_string_t __mla_xml_read_until(mla_deserializer_t &inst, mla_char_t st
             break;
         }
 
-        if (pos >= 255) {
-            result = mla_string_concat(result, mla_string(buf, pos));
+        if (pos >= sizeof(buf) - 1) {
+            result = mla_string_concat(result, mla_string(mla_platform_pointer_to_managed_pointer(buf), pos));
             pos = 0;
         }
         buf[pos++] = c;
     }
 
     if (pos > 0) {
-        result = mla_string_concat(result, mla_string(buf, pos));
+        result = mla_string_concat(result, mla_string(mla_platform_pointer_to_managed_pointer(buf), pos));
     }
 
     return result;
@@ -756,10 +754,10 @@ static mla_string_t __mla_xml_unescape(const mla_string_t &str) {
                 result = mla_string_concat(result, mla_string_const("'"));
                 i += 5;
             } else {
-                result = mla_string_concat(result, mla_string(&str_data[i], 1));
+                result = mla_string_concat(result, mla_string(mla_platform_pointer_to_managed_pointer(&str_data[i]), 1));
             }
         } else {
-            result = mla_string_concat(result, mla_string(&str_data[i], 1));
+            result = mla_string_concat(result, mla_string(mla_platform_pointer_to_managed_pointer(&str_data[i]), 1));
         }
     }
 
@@ -907,13 +905,13 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
                 break;
             }
             if (pos >= 255) {
-                tag_name = mla_string_concat(tag_name, mla_string(buf, pos));
+                tag_name = mla_string_concat(tag_name, mla_string(mla_platform_pointer_to_managed_pointer(buf), pos));
                 pos = 0;
             }
             buf[pos++] = c;
         }
         if (pos > 0) {
-            tag_name = mla_string_concat(tag_name, mla_string(buf, pos));
+            tag_name = mla_string_concat(tag_name, mla_string(mla_platform_pointer_to_managed_pointer(buf), pos));
         }
     }
 
@@ -1073,7 +1071,9 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     // Note: state memory is allocated but framework has no destructor pattern
     // This is consistent with the overall framework design where deserializers
     // are expected to be short-lived
-    mla_xml_deser_state_t *state = static_cast<mla_xml_deser_state_t *>(mla_platform_malloc(sizeof(mla_xml_deser_state_t)));
+    mla_pointer_t state_ptr = mla_malloc_struct(mla_xml_deser_state_t);
+
+    mla_xml_deser_state_t *state = mla_pointer_get_data<mla_xml_deser_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_deserializer_invalid();
@@ -1091,7 +1091,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     state->pending_struct_end = false;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_xml_deser_state_t, mla_xml_deser_state_initializer>(user_data, mla_deserializer_state_user_data_name, state);
+    mla_user_data_set_pointer(user_data, mla_deserializer_state_user_data_name, state_ptr);
 
     return {
         input,

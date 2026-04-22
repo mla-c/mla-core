@@ -517,9 +517,6 @@ struct __mla_deflate_compress_state_t {
     mla_bool_t block_started;
     mla_bool_t finished;
     mla_deflate_mode_t mode;
-};
-
-struct __mla_deflate_compress_state_initializer {
 
     static __mla_deflate_compress_state_t init() {
         __mla_deflate_compress_state_t result = {
@@ -766,7 +763,7 @@ static void __mla_deflate_compress_block(__mla_deflate_compress_state_t &state, 
 mla_user_data_id_init(__mla_stream_deflate_compress_data_name)
 
 static mla_size_t __mla_stream_deflate_compress_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
-    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
+    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer_data<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
 
     if (state == nullptr || buffer == nullptr || state->finished) {
         return 0;
@@ -797,7 +794,7 @@ static mla_size_t __mla_stream_deflate_compress_write(mla_stream_output_t &outpu
 }
 
 static mla_size_t __mla_stream_deflate_compress_available_bytes(mla_stream_output_t &output) {
-    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
+    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer_data<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
 
     if (state == nullptr || state->finished) {
         return 0;
@@ -815,13 +812,14 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
         return mla_stream_noop_output();
     }
 
-    __mla_deflate_compress_state_t *state = static_cast<__mla_deflate_compress_state_t *>(mla_platform_malloc(sizeof(__mla_deflate_compress_state_t)));
+    mla_pointer_t state_ptr = mla_malloc_struct(__mla_deflate_compress_state_t);
+
+    __mla_deflate_compress_state_t *state = mla_pointer_get_data<__mla_deflate_compress_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_stream_noop_output();
     }
 
-    mla_memset(state, 0, sizeof(__mla_deflate_compress_state_t));
     state->base_output = output;
     __mla_deflate_bit_writer_init(state->writer);
     state->block_started = false;
@@ -839,7 +837,7 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
     mla_memset(state->hash_prev, 0xFF, sizeof(state->hash_prev));
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_deflate_compress_state_t, __mla_deflate_compress_state_initializer>(user_data, __mla_stream_deflate_compress_data_name, state);
+    mla_user_data_set_pointer(user_data, __mla_stream_deflate_compress_data_name, state_ptr);
 
     return {
         user_data,
@@ -849,7 +847,7 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
 }
 
 mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
-    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
+    __mla_deflate_compress_state_t *state = mla_user_data_get_pointer_data<__mla_deflate_compress_state_t>(output.userdata, __mla_stream_deflate_compress_data_name);
 
     if (state == nullptr || state->finished) {
         return false;
@@ -968,9 +966,6 @@ struct __mla_deflate_decompress_state_t {
     __mla_deflate_container_mode_t container_mode;
     mla_bool_t finished;
     mla_bool_t error;
-};
-
-struct __mla_deflate_decompress_state_initializer {
 
     static __mla_deflate_decompress_state_t init() {
 
@@ -990,6 +985,7 @@ struct __mla_deflate_decompress_state_initializer {
         return result;
     }
 };
+
 
 static mla_bool_t __mla_deflate_decompress_consume_zlib_trailer(__mla_deflate_decompress_state_t &state) {
     __mla_deflate_bit_reader_align(state.reader);
@@ -1397,7 +1393,7 @@ static mla_bool_t __mla_deflate_decompress_fill(__mla_deflate_decompress_state_t
 }
 
 static mla_size_t __mla_stream_deflate_decompress_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
-    __mla_deflate_decompress_state_t *state = mla_user_data_get_pointer<__mla_deflate_decompress_state_t>(input.userdata, __mla_stream_deflate_decompress_data_name);
+    __mla_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<__mla_deflate_decompress_state_t>(input.userdata, __mla_stream_deflate_decompress_data_name);
 
     if (state == nullptr || buffer == nullptr) {
         return 0;
@@ -1438,7 +1434,7 @@ static mla_size_t __mla_stream_deflate_decompress_read(mla_stream_input_t &input
 }
 
 static mla_size_t __mla_stream_deflate_decompress_remaining_bytes(mla_stream_input_t &input) {
-    __mla_deflate_decompress_state_t *state = mla_user_data_get_pointer<__mla_deflate_decompress_state_t>(input.userdata, __mla_stream_deflate_decompress_data_name);
+    __mla_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<__mla_deflate_decompress_state_t>(input.userdata, __mla_stream_deflate_decompress_data_name);
 
     if (state == nullptr) {
         return 0;
@@ -1465,13 +1461,14 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         return mla_stream_noop_input();
     }
 
-    __mla_deflate_decompress_state_t *state = static_cast<__mla_deflate_decompress_state_t *>(mla_platform_malloc(sizeof(__mla_deflate_decompress_state_t)));
+    mla_pointer_t state_ptr = mla_malloc_struct(__mla_deflate_decompress_state_t);
+
+    __mla_deflate_decompress_state_t *state = mla_pointer_get_data<__mla_deflate_decompress_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_stream_noop_input();
     }
 
-    mla_memset(state, 0, sizeof(__mla_deflate_decompress_state_t));
     state->base_input = input;
     __mla_deflate_bit_reader_init(state->reader);
     state->window_pos = 0;
@@ -1593,7 +1590,7 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
     __mla_deflate_huffman_init(state->dist_table);
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_deflate_decompress_state_t, __mla_deflate_decompress_state_initializer>(user_data, __mla_stream_deflate_decompress_data_name, state);
+    mla_user_data_set_pointer(user_data, __mla_stream_deflate_decompress_data_name, state_ptr);
 
     return {
         user_data,

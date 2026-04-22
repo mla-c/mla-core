@@ -145,7 +145,7 @@ mla_user_data_id_init(mla_websocket_transport_mask_user_data_name)
 
 mla_size_t __mla_websocket_transport_masked_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
-    mla_websocket_masking_state_t* state = mla_user_data_get_pointer<mla_websocket_masking_state_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
+    mla_websocket_masking_state_t* state = mla_user_data_get_pointer_data<mla_websocket_masking_state_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
 
     if (state == nullptr) {
         return 0;
