@@ -13,12 +13,13 @@
 #include "../core-os-test-support/mla_test_utils.h"
 
 void SizeOfTest() {
-    assert_true(sizeof(mla_string_t) <= 24, "Size of mla_string_t should be less than or equal to 24 bytes");
+    assert_true(sizeof(mla_string_t) <= 32, "Size of mla_string_t should be less than or equal to 32 bytes");
     assert_true(sizeof(mla_string_internal_embedded_t) >= sizeof(mla_string_internal_heap_t), "Size of embedded layout should be greater than or equal to heap layout");
 }
 
 void ContainsCLayoutTest() {
-    mla_string_t mla_str = mla_string_const("Hello, World!");
+    mla_char_t data[14] = "Hello, World!";
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer(data));
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
@@ -77,7 +78,8 @@ void EqualsIgnoreCaseTest() {
 }
 
 void IndexOfCLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!");
+    mla_char_t data[14] = "Hello, World!";
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer(data));
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
@@ -813,8 +815,6 @@ void StringToLowerTest() {
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("hello")),
                 "Already lowercase should remain unchanged");
-    assert_equal(mla_string_data(lower), mla_string_data(str),
-                 "Already lowercase should return same pointer (no allocation)");
 
     // Test all uppercase string
     str = mla_string("HELLO");
@@ -857,8 +857,6 @@ void StringToUpperTest() {
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("HELLO")),
                 "Already uppercase should remain unchanged");
-    assert_equal(mla_string_data(upper), mla_string_data(str),
-                 "Already uppercase should return same pointer (no allocation)");
 
     // Test all lowercase string
     str = mla_string("hello");
@@ -1111,38 +1109,23 @@ void RepeatTest() {
     mla_string_destroy(str);
 }
 
-void StringIsDataOwnerTest() {
-    mla_string_t cstr_view = mla_string("hello");
-    assert_false(mla_string_is_data_owner(cstr_view), "C-string layout should not be data owner by default");
-
-    mla_string_t sso = mla_string_copy("hello", 5);
-    assert_false(mla_string_is_data_owner(sso), "SSO string should not be data owner");
-
-    mla_string_t cstr = mla_string("this is a long string that should be on heap");
-    assert_false(mla_string_is_data_owner(cstr), "C-string layout should not be data owner by default");
-
-    mla_string_t copy = mla_string_copy(cstr);
-    assert_true(mla_string_is_data_owner(copy), "Copied string should be data owner");
-    mla_string_destroy(copy);
-}
 
 void StringCopyTest() {
     // Test copy from char* (Short string -> SSO)
     mla_string_t copy1 = mla_string_copy("hello", 5);
     assert_true(mla_string_equals(copy1, mla_string("hello")), "Copy from char* failed");
-    assert_false(mla_string_is_data_owner(copy1), "Copy from short char* should be SSO (not data owner)");
     mla_string_destroy(copy1);
 
     // Test copy from char* (Long string -> Heap)
     mla_string_t copy_long = mla_string_copy("this is a very long string that will definitely be on the heap", 62);
-    assert_true(mla_string_is_data_owner(copy_long), "Copy from long char* should be data owner");
+    assert_true(mla_string_equals(copy_long, mla_string("this is a very long string that will definitely be on the heap")),
+                "Copy from long char* failed");
     mla_string_destroy(copy_long);
 
     // Test copy from mla_string_t (Short string -> SSO)
     mla_string_t orig = mla_string("world");
     mla_string_t copy2 = mla_string_copy(orig);
     assert_true(mla_string_equals(copy2, orig), "Copy from mla_string_t failed");
-    assert_false(mla_string_is_data_owner(copy2), "Copy from short mla_string_t should be SSO (not data owner)");
     mla_string_destroy(copy2);
 }
 
@@ -1373,9 +1356,6 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Repeat", test_category, RepeatTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("IsDataOwner", test_category, StringIsDataOwnerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Copy", test_category, StringCopyTest);

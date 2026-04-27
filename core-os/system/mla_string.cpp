@@ -75,10 +75,6 @@ mla_string_t mla_string_copy(const mla_string_t &p_String) {
     }
 }
 
-mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String) {
-    return !mla_pointer_is_null(p_String.data_storage);
-}
-
 mla_string_t mla_string(const mla_pointer_t& data, mla_size_t p_Length) {
     mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.length = p_Length;
@@ -693,6 +689,22 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     return -1; // Substring not found
 }
 
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start) {
+
+    if (p_Start == 0) {
+        return p_String; // Return the original string if start index is 0
+    }
+
+    mla_size_t length = mla_string_length(p_String);
+
+    if (p_Start >= length) {
+        return mla_string_empty(); // Invalid start index
+    }
+
+    return mla_string_substr(p_String, p_Start, length - p_Start);
+
+}
+
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length) {
 
     mla_size_t length = mla_string_length(p_String);
@@ -712,7 +724,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, p_String.embedded.data + p_Start, p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String), p_Length);
         return result;
     }
 
@@ -723,13 +735,13 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_String.heap.char_offset, p_Length);
         return result;
     }
 
     mla_string_t result =  {p_String.data_storage, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
     result.heap.length = p_Length;
-    result.heap.char_offset = p_Start;
+    result.heap.char_offset = p_Start + p_String.heap.char_offset; // Adjust char offset for the substring view
     return result;
 }
 
@@ -855,7 +867,7 @@ mla_string_t mla_string_trim(const mla_string_t &p_String) {
     }
 
     mla_string_t result =  {p_String.data_storage, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
-    result.heap.char_offset = start;
+    result.heap.char_offset = start + p_String.heap.char_offset; // Adjust char offset for the trimmed view
     result.heap.length = end - start;
     return result;
 }

@@ -117,19 +117,9 @@ void mla_log_message(const mla_log_level level, const mla_string_t& message, con
 
                 // Copy the temp strings into owned data only once
                 if (!data_copied) {
-
-                    if (mla_string_is_data_owner(message)) {
-                        message_copy = message;
-                    } else {
-                        message_copy = mla_string_copy(message);
-                    }
-
-                    if (mla_string_is_data_owner(context1)) {
-                        context1_copy = context1;
-                    } else {
-                        context1_copy = mla_string_copy(context1);
-                    }
-
+                    // I am not sure if its really needed to copy here
+                    message_copy = mla_string_copy(message);
+                    context1_copy = mla_string_copy(context1);
                     data_copied = true;
                 }
 

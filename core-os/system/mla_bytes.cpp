@@ -163,7 +163,7 @@ mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes) {
         return mla_string_empty();
     }
 
-    mla_byte_t* bytes_data = mla_pointer_get_data<mla_byte_t>(buffer);
+    const mla_byte_t* bytes_data = mla_bytes_get_data_readonly(p_Bytes);
 
     if (bytes_data == nullptr) {
         return mla_string_empty();

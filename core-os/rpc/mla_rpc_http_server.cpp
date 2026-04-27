@@ -125,7 +125,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     (void)http_server;
 
     // Remove "/rpc/" prefix
-    mla_string_t procedure_name = mla_string_substr(request.url, 5, mla_string_length(request.url) - 5);
+    mla_string_t procedure_name = mla_string_substr(request.url, 5);
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
