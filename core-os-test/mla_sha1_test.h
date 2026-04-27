@@ -10,14 +10,16 @@ void Sha1EmptyStringTest() {
 
     mla_string_t empty = mla_string_empty();
     mla_bytes_t hash = mla_sha1(mla_bytes_from_string(empty));
+    const mla_byte_t* hash_data = mla_bytes_get_data_readonly(hash);
 
-    if (hash.data != nullptr) {
+
+    if (hash_data != nullptr) {
         // Expected hash for empty string: da39a3ee5e6b4b0d3255bfef95601890afd80709
-        assert_equal(hash.data[0], (mla_uint8_t)0xda, "Byte 0 should be 0xda");
-        assert_equal(hash.data[1], (mla_uint8_t)0x39, "Byte 1 should be 0x39");
-        assert_equal(hash.data[2], (mla_uint8_t)0xa3, "Byte 2 should be 0xa3");
-        assert_equal(hash.data[3], (mla_uint8_t)0xee, "Byte 3 should be 0xee");
-        assert_equal(hash.data[19], (mla_uint8_t)0x09, "Byte 19 should be 0x09");
+        assert_equal(hash_data[0], (mla_uint8_t)0xda, "Byte 0 should be 0xda");
+        assert_equal(hash_data[1], (mla_uint8_t)0x39, "Byte 1 should be 0x39");
+        assert_equal(hash_data[2], (mla_uint8_t)0xa3, "Byte 2 should be 0xa3");
+        assert_equal(hash_data[3], (mla_uint8_t)0xee, "Byte 3 should be 0xee");
+        assert_equal(hash_data[19], (mla_uint8_t)0x09, "Byte 19 should be 0x09");
     } else {
         assert_fail("SHA1 hash of empty string returned null data");
     }
@@ -28,13 +30,14 @@ void Sha1SimpleStringTest() {
 
     mla_string_t str = mla_string_const("abc");
     mla_bytes_t hash = mla_sha1(mla_bytes_from_string(str));
+    const mla_byte_t* hash_data = mla_bytes_get_data_readonly(hash);
 
-    if (hash.data != nullptr) {
+    if (hash_data != nullptr) {
         // Expected hash for "abc": a9993e364706816aba3e25717850c26c9cd0d89d
-        assert_equal(hash.data[0], (mla_uint8_t)0xa9, "Byte 0 should be 0xa9");
-        assert_equal(hash.data[1], (mla_uint8_t)0x99, "Byte 1 should be 0x99");
-        assert_equal(hash.data[2], (mla_uint8_t)0x3e, "Byte 2 should be 0x3e");
-        assert_equal(hash.data[19], (mla_uint8_t)0x9d, "Byte 19 should be 0x9d");
+        assert_equal(hash_data[0], (mla_uint8_t)0xa9, "Byte 0 should be 0xa9");
+        assert_equal(hash_data[1], (mla_uint8_t)0x99, "Byte 1 should be 0x99");
+        assert_equal(hash_data[2], (mla_uint8_t)0x3e, "Byte 2 should be 0x3e");
+        assert_equal(hash_data[19], (mla_uint8_t)0x9d, "Byte 19 should be 0x9d");
     } else {
         assert_fail("SHA1 hash of empty string returned null data");
     }
@@ -44,13 +47,14 @@ void Sha1SimpleStringTest() {
 void Sha1LongerStringTest() {
     mla_string_t str = mla_string_const("The quick brown fox jumps over the lazy dog");
     mla_bytes_t hash = mla_sha1(mla_bytes_from_string(str));
+    const mla_byte_t* hash_data = mla_bytes_get_data_readonly(hash);
     
     // Expected hash: 2fd4e1c67a2d28fced849ee1bb76e7391b93eb12
 
-    if (hash.data != nullptr) {
-        assert_equal(hash.data[0], (mla_uint8_t)0x2f, "Byte 0 should be 0x2f");
-        assert_equal(hash.data[1], (mla_uint8_t)0xd4, "Byte 1 should be 0xd4");
-        assert_equal(hash.data[19], (mla_uint8_t)0x12, "Byte 19 should be 0x12");
+    if (hash_data != nullptr) {
+        assert_equal(hash_data[0], (mla_uint8_t)0x2f, "Byte 0 should be 0x2f");
+        assert_equal(hash_data[1], (mla_uint8_t)0xd4, "Byte 1 should be 0xd4");
+        assert_equal(hash_data[19], (mla_uint8_t)0x12, "Byte 19 should be 0x12");
     } else {
         assert_fail("SHA1 hash of longer string returned null data");
     }
@@ -67,10 +71,11 @@ void Sha1LargeInputTest() {
     );
     // Just verify it completes without crashing and produces a valid hash
     mla_bytes_t hash = mla_sha1(mla_bytes_from_string(large));
-    if (hash.data != nullptr) {
+    const mla_byte_t* hash_data = mla_bytes_get_data_readonly(hash);
+    if (hash_data != nullptr) {
         // Check the first and last byte of the hash for validity
         assert_true(hash.size == 20, "SHA1 hash size should be 20 bytes");
-        assert_true(hash.data[0] != 0 || hash.data[19] != 0, "SHA1 hash should not be all zeros");
+        assert_true(hash_data[0] != 0 || hash_data[19] != 0, "SHA1 hash should not be all zeros");
     } else {
         assert_fail("SHA1 hash of large input returned null data");
     }

@@ -332,6 +332,39 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
+
+template <typename T>
+using mla_malloc_struct_ex_clean_up_hook_t = void(*)(const T& userData);
+
+template <typename T>
+void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+    (void)userData;
+
+    T* data_ptr = reinterpret_cast<T*>(data);
+
+    if (data_ptr == nullptr) {
+        return;
+    }
+
+    T data_resolved = *data_ptr;
+
+    if (userData.asPointer != nullptr) {
+        mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook = reinterpret_cast<mla_malloc_struct_ex_clean_up_hook_t<T>>(userData.asPointer);
+        clean_up_hook(data_resolved);
+    }
+
+    data_resolved = T::init();
+}
+
+template <typename T>
+mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook) {
+    return mla_dynamic_data_from_pointer(reinterpret_cast<mla_platform_pointer_t>(clean_up_hook));
+}
+
+
+#define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
+#define mla_malloc_struct_cleanup_hook(T, clean_up_hook) mla_malloc_struct_cleanup_hook_with_manager(g_pointer_memory_manager_instance.current, T, clean_up_hook)
+
 /**
  * Create a mla_pointer_t from an external pointer. The memory manager will not take ownership of the pointer and will not attempt to free it.
  **/

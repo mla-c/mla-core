@@ -239,14 +239,14 @@ void HashMapItemMemoryManagementTest() {
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
     mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1");
     } else {
         assert_fail("String 1 dataOwner buffer is null");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1");
     } else {
         assert_fail("String 2 dataOwner buffer is null");
     }
@@ -256,42 +256,42 @@ void HashMapItemMemoryManagementTest() {
     mla_hash_map_push(mla_map, mla_str1, mla_str2);
     mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 1 should have refCount of 2 after adding to list");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)3, "String 1 should have refCount of 2 after adding to list");
     } else {
         assert_fail("String 1 dataOwner buffer is null after adding to list");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 2 should have refCount of 2 after adding to list");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)3, "String 2 should have refCount of 2 after adding to list");
     } else {
         assert_fail("String 2 dataOwner buffer is null after adding to list");
     }
 
     mla_hash_map_remove(mla_map, mla_str1);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)2, "String 1 should have refCount of 1 after removal from list");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)2, "String 1 should have refCount of 1 after removal from list");
     } else {
         assert_fail("String 1 dataOwner buffer is null after removal from list");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)2, "String 2 should still have refCount of 2 after removal of String 1");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)2, "String 2 should still have refCount of 2 after removal of String 1");
     } else {
         assert_fail("String 2 dataOwner buffer is null after removal of String 1");
     }
 
     mla_hash_map_clear(mla_map);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1 after clearing list");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1 after clearing list");
     } else {
         assert_fail("String 1 dataOwner buffer is null after clearing list");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1 after clearing list");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1 after clearing list");
     } else {
         assert_fail("String 2 dataOwner buffer is null after clearing list");
     }
@@ -306,14 +306,14 @@ void HashMapItemMemoryManagementDestroyTest() {
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
     mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1");
     } else {
         assert_fail("String 1 dataOwner buffer is null");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1");
     } else {
         assert_fail("String 2 dataOwner buffer is null");
     }
@@ -323,14 +323,14 @@ void HashMapItemMemoryManagementDestroyTest() {
         mla_hash_map_push(mla_map, mla_str1, mla_str2);
         mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-        if (mla_str1.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 1 should have refCount of 2 after adding to list");
+        if (!mla_pointer_is_null(mla_str1.data_storage)) {
+            assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)3, "String 1 should have refCount of 2 after adding to list");
         } else {
             assert_fail("String 1 dataOwner buffer is null after adding to list");
         }
 
-        if (mla_str2.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 2 should have refCount of 2 after adding to list");
+        if (!mla_pointer_is_null(mla_str2.data_storage)) {
+            assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)3, "String 2 should have refCount of 2 after adding to list");
         } else {
             assert_fail("String 2 dataOwner buffer is null after adding to list");
         }
@@ -338,14 +338,14 @@ void HashMapItemMemoryManagementDestroyTest() {
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1 after array list destruction");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 1 dataOwner buffer is null after array list destruction");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1 after array list destruction");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 2 dataOwner buffer is null after array list destruction");
     }
@@ -361,14 +361,14 @@ void HashMapItemMemoryManagementDestroy2Test() {
     mla_string_t mla_str2 = mla_string_concat(mla_string("Wor"), mla_string("ld"));
     mla_string_change_memory_layout(mla_str2, MLA_STRING_MEMORY_LAYOUT_BUFFER);
 
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1");
     } else {
         assert_fail("String 1 dataOwner buffer is null");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1");
     } else {
         assert_fail("String 2 dataOwner buffer is null");
     }
@@ -382,14 +382,14 @@ void HashMapItemMemoryManagementDestroy2Test() {
             mla_hash_map_push(mla_map, mla_str1, mla_str2);
             mla_hash_map_push(mla_map, mla_str2, mla_str1);
 
-            if (mla_str1.dataOwner.buffer != nullptr) {
-                assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
+            if (!mla_pointer_is_null(mla_str1.data_storage)) {
+                assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
             } else {
                 assert_fail("String 1 dataOwner buffer is null after adding to list");
             }
 
-            if (mla_str2.dataOwner.buffer != nullptr) {
-                assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
+            if (!mla_pointer_is_null(mla_str2.data_storage)) {
+                assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
             } else {
                 assert_fail("String 2 dataOwner buffer is null after adding to list");
             }
@@ -410,14 +410,14 @@ void HashMapItemMemoryManagementDestroy2Test() {
 
             // Ref COunter should not change because we are assigning the map to another variable
             // The strings are still owned by the internal array
-            if (mla_str1.dataOwner.buffer != nullptr) {
-                assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
+            if (!mla_pointer_is_null(mla_str1.data_storage)) {
+                assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
             } else {
                 assert_fail("String 1 dataOwner buffer is null after adding to list");
             }
 
-            if (mla_str2.dataOwner.buffer != nullptr) {
-                assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
+            if (!mla_pointer_is_null(mla_str2.data_storage)) {
+                assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
             } else {
                 assert_fail("String 2 dataOwner buffer is null after adding to list");
             }
@@ -432,14 +432,14 @@ void HashMapItemMemoryManagementDestroy2Test() {
 
         assert_equal(mla_hash_map_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        if (mla_str1.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
+        if (!mla_pointer_is_null(mla_str1.data_storage)) {
+            assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)3, "String 1 should have refCount of 3 after assignment to other list");
         } else {
             assert_fail("String 1 dataOwner buffer is null after adding to list");
         }
 
-        if (mla_str2.dataOwner.buffer != nullptr) {
-            assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
+        if (!mla_pointer_is_null(mla_str2.data_storage)) {
+            assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)3, "String 2 should have refCount of 3 after assignment to other list");
         } else {
             assert_fail("String 2 dataOwner buffer is null after adding to list");
         }
@@ -447,14 +447,14 @@ void HashMapItemMemoryManagementDestroy2Test() {
     }
 
     // After the array list is destroyed, the strings should be destroyed as well
-    if (mla_str1.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str1.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 1 should have refCount of 1 after array list destruction");
+    if (!mla_pointer_is_null(mla_str1.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str1.data_storage), (mla_int32_t)1, "String 1 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 1 dataOwner buffer is null after array list destruction");
     }
 
-    if (mla_str2.dataOwner.buffer != nullptr) {
-        assert_equal(mla_str2.dataOwner.buffer->refCount.value, (mla_int32_t)1, "String 2 should have refCount of 1 after array list destruction");
+    if (!mla_pointer_is_null(mla_str2.data_storage)) {
+        assert_equal(mla_pointer_ref_count(mla_str2.data_storage), (mla_int32_t)1, "String 2 should have refCount of 1 after array list destruction");
     } else {
         assert_fail("String 2 dataOwner buffer is null after array list destruction");
     }

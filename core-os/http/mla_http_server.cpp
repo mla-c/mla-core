@@ -36,9 +36,6 @@ mla_http_server_handler_item_t mla_http_server_handler(const mla_string_t &http_
 
 struct mla_http_server_path_checker_userdata_t {
     mla_string_t path_data;
-};
-
-struct mla_http_server_path_checker_userdata_initializer {
 
     static mla_http_server_path_checker_userdata_t init() {
         return {
@@ -52,18 +49,20 @@ mla_user_data_id_init(mla_http_server_handler_path_data_user_data_name)
 mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
                                                          const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = mla_user_data_get_pointer<mla_http_server_path_checker_userdata_t>(userdata, mla_http_server_handler_path_data_user_data_name);
+    mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
 
-    if (checker_userdata == nullptr) {
+    mla_http_server_path_checker_userdata_t *checker_userdata_ptr = mla_pointer_get_data<mla_http_server_path_checker_userdata_t>(checker_userdata);
+
+    if (checker_userdata_ptr == nullptr) {
         return false;
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
-        return mla_string_starts_with(url, checker_userdata->path_data);
+        return mla_string_starts_with(url, checker_userdata_ptr->path_data);
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
-        return mla_string_starts_with(checker_userdata->path_data, url);
+        return mla_string_starts_with(checker_userdata_ptr->path_data, url);
     }
 
     return false;
@@ -73,18 +72,20 @@ mla_bool_t __mla_http_server_handler_starts_with_checker(const mla_user_data_t& 
 mla_bool_t __mla_http_server_handler_equals_checker(const mla_user_data_t &userdata,
                                                     const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = mla_user_data_get_pointer<mla_http_server_path_checker_userdata_t>(userdata, mla_http_server_handler_path_data_user_data_name);
+    mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
 
-    if (checker_userdata == nullptr) {
+    mla_http_server_path_checker_userdata_t *checker_userdata_ptr = mla_pointer_get_data<mla_http_server_path_checker_userdata_t>(checker_userdata);
+
+    if (checker_userdata_ptr == nullptr) {
         return false;
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
-        return mla_string_equals(url, checker_userdata->path_data);
+        return mla_string_equals(url, checker_userdata_ptr->path_data);
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
-        return mla_string_starts_with(url, checker_userdata->path_data);
+        return mla_string_starts_with(url, checker_userdata_ptr->path_data);
     }
 
     return false;
@@ -94,18 +95,18 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
                                                                    const mla_string_t& pathPrefix,
                                                                    const mla_http_request_handler_t &executor) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_platform_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
+    mla_pointer_t checker_userdata = mla_malloc_struct(mla_http_server_path_checker_userdata_t);
 
-    if (checker_userdata == nullptr) {
+    mla_http_server_path_checker_userdata_t *checker_userdata_ptr = mla_pointer_get_data<mla_http_server_path_checker_userdata_t>(checker_userdata);
+
+    if (checker_userdata_ptr == nullptr) {
         return mla_http_server_handler_invalid();
     }
 
-    mla_memset(checker_userdata, 0, sizeof(mla_http_server_path_checker_userdata_t));
-
-    checker_userdata->path_data = pathPrefix;
+    checker_userdata_ptr->path_data = pathPrefix;
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_http_server_path_checker_userdata_t, mla_http_server_path_checker_userdata_initializer>(userData, mla_http_server_handler_path_data_user_data_name, checker_userdata);
+    mla_user_data_set_pointer(userData, mla_http_server_handler_path_data_user_data_name, checker_userdata);
 
     return {
         userData,
@@ -202,17 +203,18 @@ mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_
     const mla_string_t& path, const mla_http_websocket_text_message_handler_t &text_message_handler,
     const mla_http_websocket_binary_message_handler_t &binary_message_handler) {
 
-    mla_http_server_path_checker_userdata_t *checker_userdata = static_cast<mla_http_server_path_checker_userdata_t *>(mla_platform_malloc(sizeof(mla_http_server_path_checker_userdata_t)));
+    mla_pointer_t checker_userdata = mla_malloc_struct(mla_http_server_path_checker_userdata_t);
 
-    if (checker_userdata == nullptr) {
+    mla_http_server_path_checker_userdata_t *checker_userdata_ptr = mla_pointer_get_data<mla_http_server_path_checker_userdata_t>(checker_userdata);
+
+    if (checker_userdata_ptr == nullptr) {
         return mla_http_server_websocket_handler_invalid();
     }
 
-    mla_memset(checker_userdata, 0, sizeof(mla_http_server_path_checker_userdata_t));
-    checker_userdata->path_data = path;
+    checker_userdata_ptr->path_data = path;
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_http_server_path_checker_userdata_t, mla_http_server_path_checker_userdata_initializer>(userData, mla_http_server_handler_path_data_user_data_name, checker_userdata);
+    mla_user_data_set_pointer(userData, mla_http_server_handler_path_data_user_data_name, checker_userdata);
 
 
     return {
@@ -463,7 +465,9 @@ mla_string_t __mla_http_server_compute_websocket_accept(const mla_string_t& secW
 
 mla_task_process_result_state __mla_http_server_handler_new_request(mla_user_data_t& userData) {
 
-    mla_http_server_t* http_server_ptr = mla_user_data_get_pointer<mla_http_server_t>(userData, mla_http_task_user_data_server_name);
+    mla_pointer_t http_server = mla_user_data_get_pointer(userData, mla_http_task_user_data_server_name);
+
+    mla_http_server_t* http_server_ptr = mla_pointer_get_data<mla_http_server_t>(http_server);
 
     if (http_server_ptr == nullptr) {
         return TASK_PROCESS_RESULT_DONE; // Server reference lost, exit task
@@ -736,7 +740,9 @@ mla_bool_t __http_server_remove_websocket_connection(mla_http_server_t &server,
 
 mla_task_process_result_state __mla_http_server_handler_websocket_messages(mla_user_data_t& userData) {
 
-    mla_http_server_t* http_server_ptr = mla_user_data_get_pointer<mla_http_server_t>(userData, mla_http_task_user_data_server_name);
+    mla_pointer_t http_server = mla_user_data_get_pointer(userData, mla_http_task_user_data_server_name);
+
+    mla_http_server_t* http_server_ptr = mla_pointer_get_data<mla_http_server_t>(http_server);
 
     if (http_server_ptr == nullptr) {
         return TASK_PROCESS_RESULT_DONE; // Server reference lost, exit task
@@ -941,7 +947,9 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
     mla_string_t runtime_id = mla_generate_runtime_id();
 
     mla_user_data_t taskUserData = mla_user_data_empty();
-    mla_user_data_set_pointer_without_ownership(taskUserData, mla_http_task_user_data_server_name, &server);
+    mla_pointer_t http_server_ptr = mla_platform_pointer_to_managed_pointer(&server);
+
+    mla_user_data_set_pointer(taskUserData, mla_http_task_user_data_server_name, http_server_ptr);
 
     for (mla_uint8_t i = 0; i < number_of_tasks; i++) {
         mla_string_t task_name = mla_string_concat("HttpServerTask_", server.host.address.address, ":",

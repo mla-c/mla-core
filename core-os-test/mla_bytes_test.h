@@ -35,7 +35,7 @@ inline void BytesAllocTest() {
 inline void BytesFromExternalBufferTest() {
     mla_byte_t data[] = {1, 2, 3, 4, 5};
     mla_size_t size = sizeof(data);
-    mla_bytes_t bytes = mla_bytes_from_external_buffer(data, size);
+    mla_bytes_t bytes = mla_bytes_from_external_buffer(mla_platform_pointer_to_managed_pointer(data), size);
 
     assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to external buffer");
     assert_equal(mla_bytes_length(bytes), size, "Bytes size should match external buffer size");
@@ -43,20 +43,24 @@ inline void BytesFromExternalBufferTest() {
 
 inline void BytesFromBufferWithOwnershipTest() {
     mla_size_t size = 5;
-    mla_byte_t* data = (mla_byte_t*)mla_platform_malloc(size);
+
+    mla_pointer_t data_ptr = mla_malloc_buffer(size);
+
+    mla_byte_t* data = mla_pointer_get_data<mla_byte_t>(data_ptr);
+
     assert_not_null(data, "Malloc failed");
     if (data != nullptr) {
         data[0] = 10;
     }
 
-    mla_bytes_t bytes = mla_bytes_from_buffer_with_ownership(data, size);
+    mla_bytes_t bytes = mla_bytes_from_external_buffer(data_ptr, size);
     assert_equal(mla_bytes_get_data_readonly(bytes), data, "Bytes data should point to provided buffer");
     assert_equal(mla_bytes_length(bytes), size, "Bytes size should match provided size");
 }
 
 inline void BytesBase64Test() {
     mla_byte_t raw_data[] = {0x48, 0x65, 0x6c, 0x6c, 0x6f}; // "Hello"
-    mla_bytes_t bytes = mla_bytes_from_external_buffer(raw_data, sizeof(raw_data));
+    mla_bytes_t bytes = mla_bytes_from_external_buffer(mla_platform_pointer_to_managed_pointer(raw_data), sizeof(raw_data));
 
     mla_string_t base64 = mla_bytes_to_base64(bytes);
     mla_string_t expected = mla_string("SGVsbG8=");
@@ -76,7 +80,7 @@ inline void BytesBase64Test() {
 inline void BytesStringConversionTest() {
     mla_byte_t raw_data[] = "Test Data";
     mla_size_t size = sizeof(raw_data) - 1;
-    mla_bytes_t bytes = mla_bytes_from_external_buffer(raw_data, size);
+    mla_bytes_t bytes = mla_bytes_from_external_buffer(mla_platform_pointer_to_managed_pointer(raw_data), size);
 
     mla_string_t str = mla_bytes_to_string(bytes);
     assert_equal(mla_string_length(str), size, "String length mismatch");

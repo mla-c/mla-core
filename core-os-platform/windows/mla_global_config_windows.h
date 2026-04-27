@@ -137,17 +137,25 @@ mla_bool_t __windows_commit_config_output(mla_bytes_t& output, mla_size_t unused
     );
 
     if (hTempFile == INVALID_HANDLE_VALUE) {
-        mla_bytes_destroy(output);
         return false;
     }
 
     mla_size_t bytesToWrite = mla_min(output.size, unused_bytes);
 
+    const mla_byte_t* dataToWrite = mla_bytes_get_data_readonly(output);
+
+    if (dataToWrite == nullptr) {
+        CloseHandle(hTempFile);
+        DeleteFile(tempPath);
+        return false;
+    }
+
+
     // Write data to temporary file
     DWORD bytesWritten;
     BOOL writeResult = WriteFile(
         hTempFile,           // File handle
-        output.data,         // Buffer with data to write
+        dataToWrite,         // Buffer with data to write
         bytesToWrite,         // Number of bytes to write
         &bytesWritten,       // Number of bytes written
         nullptr              // No overlapped I/O

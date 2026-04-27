@@ -64,9 +64,7 @@ struct mla_ui_http_server_web_surface_data_t {
     mla_string_t surfaceName;
     mla_ui_control_surface_process_task_t processTask;
     mla_http_server_t* server;
-};
 
-struct mla_ui_http_server_web_surface_data_initializer {
     static mla_ui_http_server_web_surface_data_t init() {
         return {
             mla_string_empty(),
@@ -75,8 +73,8 @@ struct mla_ui_http_server_web_surface_data_initializer {
             nullptr
         };
     }
-};
 
+};
 
 mla_bool_t __mla_ui_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
 
@@ -240,19 +238,6 @@ mla_bool_t __mla_ui_http_server_web_surface_path_checker(const mla_user_data_t &
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_ui_http_server_web_surface_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void)userData;
-    mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(data);
-
-    if (taskData == nullptr) {
-        return CLEAN_UP_SKIP; // Nothing to clean up
-    }
-
-    mla_task_manager_abort_task(taskData->surfaceName);
-    *taskData = mla_ui_http_server_web_surface_data_initializer::init(); // Reset the structure to release resources
-    return CLEAN_UP_NEEDED;
-}
-
 
 #define mla_web_surface_max_connected_clients 5
 
@@ -346,23 +331,27 @@ mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_t
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
+void __mla_ui_http_server_web_surface_cleanup(const mla_ui_http_server_web_surface_data_t& data) {
+    mla_task_manager_abort_task(data.surfaceName);
+}
 
 mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t& display_name, const mla_string_t& surface_name, mla_ui_control_surface_process_task_t processTask) {
 
-    mla_ui_http_server_web_surface_data_t* taskData = reinterpret_cast<mla_ui_http_server_web_surface_data_t*>(mla_platform_malloc(sizeof(mla_ui_http_server_web_surface_data_t)));
+    mla_pointer_t task_data_ptr = mla_malloc_struct_cleanup_hook(mla_ui_http_server_web_surface_data_t, __mla_ui_http_server_web_surface_cleanup);
+
+    mla_ui_http_server_web_surface_data_t* taskData = mla_pointer_get_data<mla_ui_http_server_web_surface_data_t>(task_data_ptr);
 
     if (taskData == nullptr) {
         return false; // Allocation failed
     }
 
-    mla_memset(taskData, 0, sizeof(mla_ui_http_server_web_surface_data_t));
     taskData->displayName = display_name;
     taskData->surfaceName = surface_name;
     taskData->processTask = processTask;
     taskData->server = &http_server;
 
     mla_user_data_t ui_http_user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership_ex(ui_http_user_data, mla_ui_http_server_web_surface_data_user_data_name, taskData, __mla_ui_http_server_web_surface_cleanup, true);
+    mla_user_data_set_pointer(ui_http_user_data, mla_ui_http_server_web_surface_data_user_data_name, task_data_ptr);
 
     mla_http_server_websocket_handler_item_t handler = mla_http_server_websocket_handler(ui_http_user_data,
             __mla_ui_http_server_web_surface_path_checker,

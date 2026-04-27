@@ -44,7 +44,7 @@ void SimpleGetRequestWithoutDeflateTest() {
         mla_size_t readed = response.response.content.read(response.response.content, 0, sizeof(buffer), buffer);
         assert_true(readed > 0, "Should read some bytes from response content");
 
-        mla_string_t content = mla_string_from_buffer_without_ownership((mla_char_t *)buffer, sizeof(buffer));
+        mla_string_t content = mla_string(mla_platform_pointer_to_managed_pointer (buffer), sizeof(buffer));
         assert_true(mla_string_contains(content, mla_string_const("<html")),"Response content should contain HTML");
 
         mla_size_t totalRead = readed;
@@ -108,7 +108,7 @@ void SimpleGetRequestTest() {
         mla_size_t readed = response.response.content.read(response.response.content, 0, sizeof(buffer), buffer);
         assert_true(readed > 0, "Should read some bytes from response content");
 
-        mla_string_t content = mla_string_from_buffer_without_ownership((mla_char_t *)buffer, sizeof(buffer));
+        mla_string_t content = mla_string(mla_platform_pointer_to_managed_pointer (buffer), sizeof(buffer));
         assert_true(mla_string_contains(content, mla_string_const("<html")),"Response content should contain HTML");
 
         mla_size_t totalRead = readed;

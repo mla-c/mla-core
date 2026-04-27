@@ -178,10 +178,12 @@ mla_bool_t mla_task_manager_windows_native_create_task(
 #if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0A00)
     if (!mla_string_is_empty(task_name)) {
         mla_string_utf16_buffer_t utf16 = mla_string_to_utf16_buffer(task_name);
-        if (utf16.data != nullptr) {
-            SetThreadDescription(thread_data->hThread, reinterpret_cast<PCWSTR>(utf16.data));
+
+        PCWSTR thread_name = mla_pointer_get_data<WCHAR>(utf16.data);
+
+        if (thread_name != nullptr) {
+            SetThreadDescription(thread_data->hThread, thread_name);
         }
-        mla_string_utf16_buffer_destroy(utf16);
     }
 #else
     (void)task_name; // Unused parameter on older Windows versions
