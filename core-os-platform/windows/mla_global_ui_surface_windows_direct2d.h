@@ -116,7 +116,9 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
 
     mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontType.family);
 
-    if (fontFamilyWide.data == nullptr) {
+    const mla_utf_16_char_t* fontFamilyWide_data = mla_string_utf16_data(fontFamilyWide);
+
+    if (fontFamilyWide_data == nullptr) {
         return nullptr;
     }
 
@@ -136,7 +138,7 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
     }
 
     g_pDWriteFactory->CreateTextFormat(
-        (const WCHAR *) fontFamilyWide.data,
+        (const WCHAR *) fontFamilyWide_data,
         nullptr,
         fontWeight,
         fontStyle,
@@ -145,8 +147,6 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
         L"en-us",
         &textFormat
     );
-
-    mla_string_utf16_buffer_destroy(fontFamilyWide);
 
     if (textFormat == nullptr) {
         return nullptr;
@@ -414,8 +414,14 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
     if (textFormat) {
         mla_string_utf16_buffer_t textWide = mla_string_to_utf16_buffer(text);
 
+        const mla_utf_16_char_t* textWide_data = mla_string_utf16_data(textWide);
+
+        if (textWide_data == nullptr) {
+            return size;
+        }
+
         // Calculate text length
-        const WCHAR *textPtr = (const WCHAR *) textWide.data;
+        const WCHAR *textPtr = (const WCHAR *) textWide_data;
         UINT32 textLength = (UINT32) wcslen(textPtr);
 
         IDWriteTextLayout *textLayout = nullptr;
@@ -438,8 +444,6 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
             }
             textLayout->Release();
         }
-
-        mla_string_utf16_buffer_destroy(textWide);
     }
 
     return size;
@@ -942,8 +946,14 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
 
                     mla_string_utf16_buffer_t contentWide = mla_string_to_utf16_buffer(cmd.text.content);
 
+                    const mla_utf_16_char_t* contentWide_data = mla_string_utf16_data(contentWide);
+
+                    if (contentWide_data == nullptr) {
+                        break;
+                    }
+
                     // Calculate text length
-                    const WCHAR *textPtr = (const WCHAR *) contentWide.data;
+                    const WCHAR *textPtr = (const WCHAR *) contentWide_data;
                     UINT32 textLength = (UINT32) wcslen(textPtr);
 
                     renderTarget->DrawText(
@@ -953,8 +963,6 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                         D2D1::RectF((FLOAT) cmd.text.x, (FLOAT) cmd.text.y, 10000.0f, 10000.0f),
                         solidBrush
                     );
-
-                    mla_string_utf16_buffer_destroy(contentWide);
                 }
 
                 break;
