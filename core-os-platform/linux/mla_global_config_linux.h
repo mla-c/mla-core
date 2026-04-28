@@ -132,7 +132,10 @@ mla_bool_t __linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_b
     }
 
     mla_size_t bytesToWrite = mla_min(output.size, output.size - unused_bytes);
-    ssize_t bytesWritten = write(fd, output.data, bytesToWrite);
+
+    const mla_byte_t* output_ptr = mla_bytes_get_data_readonly(output);
+
+    ssize_t bytesWritten = write(fd, output_ptr, bytesToWrite);
     close(fd);
 
     if (bytesWritten != (ssize_t)bytesToWrite) {

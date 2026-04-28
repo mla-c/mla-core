@@ -19,7 +19,8 @@ struct TestOutputData {
 mla_user_data_id_init(mla_cli_module_TestOutputData_user_data_name)
 
 inline void test_output_write(const mla_user_data_t& userdata, const mla_string_t &data) {
-    auto* output = mla_user_data_get_pointer<TestOutputData>(userdata, mla_cli_module_TestOutputData_user_data_name);
+    mla_pointer_t output_ptr = mla_user_data_get_pointer(userdata, mla_cli_module_TestOutputData_user_data_name);
+    TestOutputData* output = mla_pointer_get_data<TestOutputData>(output_ptr);
     mla_size_t dataLen = mla_string_length(data);
     if (output->position + dataLen < 1024) {
         mla_memcpy(output->buffer + output->position, mla_string_data(data), dataLen);
@@ -29,7 +30,8 @@ inline void test_output_write(const mla_user_data_t& userdata, const mla_string_
 }
 
 inline void test_output_write_cstring(const mla_user_data_t& userdata, const mla_char_t* data) {
-    auto* output = mla_user_data_get_pointer<TestOutputData>(userdata, mla_cli_module_TestOutputData_user_data_name);
+    mla_pointer_t output_ptr = mla_user_data_get_pointer(userdata, mla_cli_module_TestOutputData_user_data_name);
+    TestOutputData* output = mla_pointer_get_data<TestOutputData>(output_ptr);
     mla_size_t dataLen = mla_strlen(data);
     if (output->position + dataLen < 1024) {
         mla_memcpy(output->buffer + output->position, data, dataLen);
@@ -70,7 +72,8 @@ inline void ListTaskCliTaskTest() {
         test_output_write,
         test_output_write_cstring
     };
-    mla_user_data_set_pointer_without_ownership(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, &outputData);
+    mla_pointer_t outputData_ptr = mla_platform_pointer_to_managed_pointer(&outputData);
+    mla_user_data_set_pointer(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, outputData_ptr);
 
     // Execute the list command
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> parameters =
@@ -84,7 +87,7 @@ inline void ListTaskCliTaskTest() {
     }
 
     // Verify the output contains our task
-    mla_string_t output = mla_string(reinterpret_cast<mla_char_t*>(outputData.buffer), outputData.position);
+    mla_string_t output = mla_string(mla_platform_pointer_to_managed_pointer(outputData.buffer), outputData.position);
     assert_true(mla_string_contains(output, taskName), "Output should contain the test task name");
     assert_true(mla_string_contains(output, mla_string_const("Listing all tasks:")), "Output should contain listing header");
 
@@ -115,7 +118,8 @@ inline void KillCliTaskTest() {
         test_output_write,
         test_output_write_cstring
     };
-    mla_user_data_set_pointer_without_ownership(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, &outputData);
+    mla_pointer_t outputData_ptr = mla_platform_pointer_to_managed_pointer(&outputData);
+    mla_user_data_set_pointer(outStream.userdata, mla_cli_module_TestOutputData_user_data_name, outputData_ptr);
 
     // Set up parameters for kill command
     mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer> parameters =
@@ -131,7 +135,7 @@ inline void KillCliTaskTest() {
     }
 
     // Verify the output indicates successful kill
-    mla_string_t output = mla_string(reinterpret_cast<mla_char_t*>(outputData.buffer), outputData.position);
+    mla_string_t output = mla_string(mla_platform_pointer_to_managed_pointer(outputData.buffer), outputData.position);
     assert_true(mla_string_contains(output, mla_string_const("Killing task")), "Output should contain killing message");
     assert_true(mla_string_contains(output, taskName), "Output should contain the task name");
     assert_true(mla_string_contains(output, mla_string_const("[OK]")), "Output should indicate success");

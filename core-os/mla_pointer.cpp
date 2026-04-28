@@ -12,7 +12,7 @@ mla_pointer_t mla_pointer_null() {
 }
 
 mla_bool_t mla_pointer_is_null(const mla_pointer_t& ptr) {
-    return ptr.memoryManager == nullptr || ptr.memoryManager->is_null(*ptr.memoryManager, ptr.payload);
+    return ptr.memoryManager == nullptr || ptr.memoryManager->get_platform_pointer(*ptr.memoryManager, ptr.payload) == nullptr;
 }
 
 mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr) {

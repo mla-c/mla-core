@@ -268,8 +268,11 @@ inline void AllTypesTest(mla_serializer_t& serializer, mla_deserializer_t& deser
 
     if (original.bytes.size == deserialized.bytes.size) {
 
+        const mla_byte_t* original_data = mla_bytes_get_data_readonly(original.bytes);
+        const mla_byte_t* deserialized_data = mla_bytes_get_data_readonly(deserialized.bytes);
+
         for (mla_size_t i = 0; i < original.bytes.size; ++i) {
-            assert_equal(original.bytes.data[i], deserialized.bytes.data[i], "Value 'bytes' at index does not match");
+            assert_equal(original_data[i], deserialized_data[i], "Value 'bytes' at index does not match");
         }
     }
 

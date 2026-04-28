@@ -8,20 +8,16 @@ struct __mla_stream_buffer_manager {
     mla_byte_t* buffer;
     mla_size_t size;
     mla_size_t position;
-};
-
-struct __mla_stream_buffer_manager_initializer {
 
     static __mla_stream_buffer_manager init() {
         return {
-        nullptr,
-            0,
-            0
-        };
+            nullptr,
+                0,
+                0
+            };
     }
 
 };
-
 
 mla_size_t __mla_stream_noop_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void) output;
@@ -58,7 +54,7 @@ mla_user_data_id_init(mla_stream_buffer_manager_userdata_name)
 
 mla_size_t __mla_stream_input_read_from_buffer(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
-    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
+    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer_data<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
 
     if (manager == nullptr) {
         return 0; // No manager, no data
@@ -79,7 +75,7 @@ mla_size_t __mla_stream_input_read_from_buffer(mla_stream_input_t& input, mla_si
 
 mla_size_t __mla_stream_input_buffer_remaining_bytes(mla_stream_input_t& input) {
 
-    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
+    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer_data<__mla_stream_buffer_manager>(input.userdata, mla_stream_buffer_manager_userdata_name);
 
     if (manager == nullptr) {
         return 0; // No manager, no data
@@ -90,7 +86,9 @@ mla_size_t __mla_stream_input_buffer_remaining_bytes(mla_stream_input_t& input) 
 
 mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager)));
+    mla_pointer_t bufferManager_ptr = mla_malloc_struct(__mla_stream_buffer_manager);
+
+    __mla_stream_buffer_manager* bufferManager = mla_pointer_get_data<__mla_stream_buffer_manager>(bufferManager_ptr);
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
@@ -101,7 +99,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t s
     bufferManager->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_stream_buffer_manager, __mla_stream_buffer_manager_initializer>(user_data, mla_stream_buffer_manager_userdata_name, bufferManager);
+    mla_user_data_set_pointer(user_data, mla_stream_buffer_manager_userdata_name, bufferManager_ptr);
 
     return {
         user_data,
@@ -112,7 +110,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_byte_t* buffer, mla_size_t s
 
 mla_size_t __mla_stream_output_write_to_buffer(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
-    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
+    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer_data<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
 
     if (manager == nullptr) {
         return 0; // No manager, cannot write
@@ -133,7 +131,7 @@ mla_size_t __mla_stream_output_write_to_buffer(mla_stream_output_t& output, mla_
 
 mla_size_t __mla_stream_output_buffer_available_bytes(mla_stream_output_t& output) {
 
-    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
+    __mla_stream_buffer_manager* manager = mla_user_data_get_pointer_data<__mla_stream_buffer_manager>(output.userdata, mla_stream_buffer_manager_userdata_name);
 
     if (manager == nullptr) {
         return 0; // No manager, no space
@@ -144,7 +142,9 @@ mla_size_t __mla_stream_output_buffer_available_bytes(mla_stream_output_t& outpu
 
 mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager)));
+    mla_pointer_t bufferManager_ptr = mla_malloc_struct(__mla_stream_buffer_manager);
+
+    __mla_stream_buffer_manager* bufferManager = mla_pointer_get_data<__mla_stream_buffer_manager>(bufferManager_ptr);
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
@@ -155,7 +155,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t s
     bufferManager->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_stream_buffer_manager, __mla_stream_buffer_manager_initializer>(user_data, mla_stream_buffer_manager_userdata_name, bufferManager);
+    mla_user_data_set_pointer(user_data, mla_stream_buffer_manager_userdata_name, bufferManager_ptr);
 
     return {
         user_data,
@@ -166,8 +166,8 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_byte_t* buffer, mla_size_t s
 
 mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
-    // Allocate the buffer manager and the buffer in one allocation
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager) + size));
+    mla_pointer_t bufferManager_ptr = mla_malloc_buffer(sizeof(__mla_stream_buffer_manager) + size);
+    __mla_stream_buffer_manager* bufferManager = mla_pointer_get_data<__mla_stream_buffer_manager>(bufferManager_ptr);
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
@@ -178,7 +178,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
     bufferManager->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_stream_buffer_manager, __mla_stream_buffer_manager_initializer>(user_data, mla_stream_buffer_manager_userdata_name, bufferManager);
+    mla_user_data_set_pointer(user_data, mla_stream_buffer_manager_userdata_name, bufferManager_ptr);
 
     return {
         user_data,
@@ -190,7 +190,8 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
 
 mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
 
-    __mla_stream_buffer_manager* bufferManager = static_cast<__mla_stream_buffer_manager*>(mla_platform_malloc(sizeof(__mla_stream_buffer_manager) + size));
+    mla_pointer_t bufferManager_ptr = mla_malloc_buffer(sizeof(__mla_stream_buffer_manager) + size);
+    __mla_stream_buffer_manager* bufferManager = mla_pointer_get_data<__mla_stream_buffer_manager>(bufferManager_ptr);
 
     if (bufferManager == nullptr) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
@@ -201,7 +202,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
     bufferManager->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<__mla_stream_buffer_manager, __mla_stream_buffer_manager_initializer>(user_data, mla_stream_buffer_manager_userdata_name, bufferManager);
+    mla_user_data_set_pointer(user_data, mla_stream_buffer_manager_userdata_name, bufferManager_ptr);
 
     return {
         user_data,
@@ -258,35 +259,38 @@ mla_stream_output_t mla_stream_output_stdout() {
 }
 
 struct mla_memory_stream_buffer_t {
-    mla_byte_t* buffer;
+
+    mla_bytes_t buffer;
     mla_size_t size;
-    mla_size_t capacity;
     mla_size_t position;
     mla_bool_t can_grow;
-};
-
-struct mla_memory_stream_buffer_initializer {
 
     static mla_memory_stream_buffer_t init() {
         return {
-        nullptr,
-            0,
-            0,
-            0,
-            false
-        };
+            mla_bytes_empty(),
+                0,
+                0,
+                false
+            };
     }
 
 };
+
 
 mla_user_data_id_init(mla_memory_stream_buffer_userdata_name)
 
 mla_size_t __mla_memory_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0; // No buffer, no data
+    }
+
+    const mla_byte_t* data_buffer = mla_bytes_get_data_readonly(memBuffer->buffer);
+
+    if (data_buffer == nullptr) {
+        return 0; // No data, cannot read
     }
 
     if (memBuffer->position + length > memBuffer->size) {
@@ -294,14 +298,14 @@ mla_size_t __mla_memory_stream_input_read(mla_stream_input_t& input, mla_size_t 
     }
 
     // Copy data to the buffer
-    mla_memcpy(buffer + offset, memBuffer->buffer + memBuffer->position, length);
+    mla_memcpy(buffer + offset, data_buffer + memBuffer->position, length);
     memBuffer->position += length;
     return length;
 }
 
 mla_size_t __mla_memory_stream_input_remaining_bytes(mla_stream_input_t& input) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0; // No buffer, no data
@@ -312,44 +316,43 @@ mla_size_t __mla_memory_stream_input_remaining_bytes(mla_stream_input_t& input) 
 
 mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0; // No buffer, cannot write
     }
 
-    if (memBuffer->position + length > memBuffer->capacity) {
+    if (memBuffer->position + length > mla_bytes_length(memBuffer->buffer)) {
 
         if (memBuffer->can_grow) {
 
             // Need to resize the buffer
-            mla_size_t newSize = mla_max(mla_max(memBuffer->capacity * 2, memBuffer->position + length), mla_global_config_stream_fast_read_buffer_size);
+            mla_size_t newSize = mla_max(mla_max(mla_bytes_length(memBuffer->buffer) * 2, memBuffer->position + length), mla_global_config_stream_fast_read_buffer_size);
             // We can not use realloc so we need to use malloc and memcpy
-            mla_byte_t* newBuffer = reinterpret_cast<mla_byte_t*>(mla_platform_malloc(newSize));
-            if (newBuffer != nullptr) {
+            mla_bytes_t newBuffer = mla_bytes(newSize);
 
-                if (memBuffer->buffer != nullptr) {
-                    mla_memcpy(newBuffer, memBuffer->buffer, memBuffer->size);
-                    mla_platform_free(memBuffer->buffer);
+            mla_byte_t* new_data = mla_bytes_get_data_for_writing(newBuffer);
+            const mla_byte_t* old_data = mla_bytes_get_data_readonly(memBuffer->buffer);
+
+            if (new_data != nullptr) {
+
+                if (old_data != nullptr) {
+
+                    mla_memcpy(new_data, old_data, memBuffer->size);
+                    memBuffer->buffer = mla_bytes_empty();
                     // Zero the new allocated part
                     if (newSize > memBuffer->size) {
-                        mla_memset(newBuffer + memBuffer->size, 0, newSize - memBuffer->size);
+                        mla_memset(new_data + memBuffer->size, 0, newSize - memBuffer->size);
                     }
                 } else {
-                    mla_memset(newBuffer, 0, newSize);
+                    mla_memset(new_data, 0, newSize);
                 }
 
                 memBuffer->buffer = newBuffer;
-                memBuffer->capacity = newSize;
 
             } else {
 
-                if (memBuffer->buffer != nullptr) {
-                    mla_platform_free(memBuffer->buffer);
-                }
-
-                memBuffer->buffer = nullptr;
-                memBuffer->capacity = 0;
+                memBuffer->buffer = mla_bytes_empty();
                 memBuffer->position = 0;
                 memBuffer->size = 0;
                 return 0; // Reallocation failed
@@ -357,16 +360,19 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
             }
 
         } else {
+
             // Cannot grow, limit the length
-            length = memBuffer->capacity - memBuffer->position;
+            length = mla_bytes_length(memBuffer->buffer) - memBuffer->position;
             if (length == 0) {
                 return 0; // No space available
             }
         }
     }
 
+    mla_byte_t* data_buffer = mla_bytes_get_data_for_writing(memBuffer->buffer);
+
     // Copy the data
-    mla_memcpy(memBuffer->buffer + memBuffer->position, buffer + offset, length);
+    mla_memcpy(data_buffer + memBuffer->position, buffer + offset, length);
     memBuffer->position += length;
     if (memBuffer->position > memBuffer->size) {
         memBuffer->size = memBuffer->position;
@@ -377,14 +383,14 @@ mla_size_t __mla_memory_stream_output_write(mla_stream_output_t& output, mla_siz
 
 mla_size_t __mla_memory_stream_output_available_bytes(mla_stream_output_t& output) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(output.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0;
     }
 
     if (!memBuffer->can_grow) {
-        return memBuffer->capacity - memBuffer->position;
+        return mla_bytes_length(memBuffer->buffer) - memBuffer->position;
     }
 
     // The only limit is the heap
@@ -402,55 +408,35 @@ mla_memory_stream_t mla_memory_stream_empty() {
     return mla_memory_stream(0, true);
 }
 
-mla_buffer_cleanup_mode __mla_memory_stream_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-
-    (void)userData;
-    mla_memory_stream_buffer_t* memBuffer = reinterpret_cast<mla_memory_stream_buffer_t*>(data);
-
-    if (memBuffer == nullptr) {
-        return CLEAN_UP_SKIP;
-    }
-
-    if (memBuffer->buffer != nullptr) {
-        mla_platform_free(memBuffer->buffer);
-    }
-
-    return CLEAN_UP_NEEDED;
-}
-
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size) {
     return mla_memory_stream(initial_size, true);
 }
 
 mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_grow) {
 
-    mla_memory_stream_buffer_t* memBuffer = static_cast<mla_memory_stream_buffer_t*>(mla_platform_malloc(sizeof(mla_memory_stream_buffer_t)));
+    mla_pointer_t memBuffer_ptr = mla_malloc_struct(mla_memory_stream_buffer_t);
+
+    mla_memory_stream_buffer_t* memBuffer = mla_pointer_get_data<mla_memory_stream_buffer_t>(memBuffer_ptr);
 
     if (memBuffer == nullptr) {
         return mla_memory_stream_invalid();
     }
 
-    mla_memset(memBuffer, 0, sizeof(mla_memory_stream_buffer_t));
-
     if (initial_size > 0) {
 
-        memBuffer->buffer = static_cast<mla_byte_t*>(mla_platform_malloc(initial_size));
+        memBuffer->buffer = mla_bytes(initial_size);
 
-        if (memBuffer->buffer == nullptr) {
-            mla_platform_free(memBuffer);
+        if (mla_bytes_is_empty(memBuffer->buffer)) {
             return mla_memory_stream_invalid();
         }
-
-        mla_memset(memBuffer->buffer, 0, initial_size);
     }
 
     memBuffer->can_grow = can_grow;
     memBuffer->size = 0;
-    memBuffer->capacity = initial_size;
     memBuffer->position = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership_ex(user_data, mla_memory_stream_buffer_userdata_name, memBuffer, __mla_memory_stream_cleanup_hook, false);
+    mla_user_data_set_pointer(user_data, mla_memory_stream_buffer_userdata_name, memBuffer_ptr);
 
     return {
         {
@@ -468,7 +454,7 @@ mla_memory_stream_t mla_memory_stream(mla_size_t initial_size, mla_bool_t can_gr
 
 mla_size_t mla_memory_stream_get_size(const mla_memory_stream_t &memoryStream) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0;
@@ -479,7 +465,7 @@ mla_size_t mla_memory_stream_get_size(const mla_memory_stream_t &memoryStream) {
 
 mla_size_t mla_memory_stream_get_position(const mla_memory_stream_t &memoryStream) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return 0;
@@ -490,7 +476,7 @@ mla_size_t mla_memory_stream_get_position(const mla_memory_stream_t &memoryStrea
 
 mla_bool_t mla_memory_stream_set_position(mla_memory_stream_t &memoryStream, mla_size_t position) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return false;
@@ -506,7 +492,7 @@ mla_bool_t mla_memory_stream_set_position(mla_memory_stream_t &memoryStream, mla
 
 void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
 
-    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
+    mla_memory_stream_buffer_t* memBuffer = mla_user_data_get_pointer_data<mla_memory_stream_buffer_t>(memoryStream.input.userdata, mla_memory_stream_buffer_userdata_name);
 
     if (memBuffer == nullptr) {
         return;
@@ -516,12 +502,15 @@ void mla_memory_stream_reset(mla_memory_stream_t &memoryStream) {
     memBuffer->size = 0;
     memBuffer->position = 0;
 
-    if (memBuffer->buffer == nullptr) {
+    mla_byte_t* data_buffer = mla_bytes_get_data_for_writing(memBuffer->buffer);
+
+    if (data_buffer == nullptr) {
         return;
     }
 
-    mla_memset(memBuffer->buffer, 0, oldSize);
-
+    if (oldSize > 0) {
+        mla_memset(data_buffer, 0, oldSize);
+    }
 }
 
 mla_user_data_id_init(mla_stream_output_size_calculation_user_data_name)

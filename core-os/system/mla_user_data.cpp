@@ -14,14 +14,14 @@ static mla_user_data_id mla_user_data_name_nextId = 1; // Start from 2 since 0 a
 
 struct mla_user_data_item_t {
     mla_user_data_id id;
-    mla_buffer_reference_t dataOwner; // If the data is owned by MLA, this will be a valid reference. If it's an external resource, this will be a noOwner reference.
+    mla_pointer_t external_data;
     mla_dynamic_data_t data;
 };
 
 mla_user_data_item_t mla_user_data_item_empty() {
     return {
         mla_user_data_name_empty,
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
         mla_dynamic_data_empty()
     };
 }
@@ -58,19 +58,6 @@ mla_string_t __mla_string_from_mla_user_data_id(mla_user_data_id id) {
     return mla_string_from_uint16(id);
 }
 
-mla_bool_t __mla_user_data_manage_external_resource(mla_user_data_list_t* list) {
-    for (mla_size_t i = 0; i < mla_array_list_size(list->datas); ++i) {
-
-        mla_user_data_item_t& item = mla_array_list_get_unsafe(list->datas, i);
-
-        if (!mla_buffer_reference_is_noOwner(item.dataOwner)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 mla_user_data_item_t* __mla_user_data_get_for_update(mla_user_data_t &target, mla_user_data_id id) {
 
     if (mla_pointer_is_null(target.data)) {
@@ -105,10 +92,6 @@ mla_user_data_item_t* __mla_user_data_get_for_update(mla_user_data_t &target, ml
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id) {
 
-    if (mla_pointer_is_null(target.data)) {
-        return false; // No data, nothing to remove
-    }
-
     mla_user_data_list_t* list = mla_pointer_get_data<mla_user_data_list_t>(target.data);
 
     if (list == nullptr) {
@@ -128,10 +111,7 @@ mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id) {
     return false; // Not found
 }
 
-
-mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, mla_user_data_id id,
-                                     mla_platform_pointer_t data, mla_buffer_cleanup_hook_t cleanup_hook,
-                                     mla_bool_t mangedExternalResource) {
+mla_bool_t mla_user_data_set_pointer(mla_user_data_t& target, mla_user_data_id id, mla_pointer_t& data) {
 
     mla_user_data_item_t* user_data = __mla_user_data_get_for_update(target, id);
 
@@ -140,23 +120,9 @@ mla_bool_t mla_user_data_set_pointer_with_ownership_ex(mla_user_data_t &target, 
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_create(data, mangedExternalResource, cleanup_hook,mla_dynamic_data_empty());
-    user_data->data.asPointer = data;
+    user_data->external_data = data;
+    user_data->data = mla_dynamic_data_empty();
 
-    return true;
-}
-
-mla_bool_t mla_user_data_set_pointer_without_ownership_ex(mla_user_data_t& target, mla_user_data_id id, mla_platform_pointer_t data) {
-
-    mla_user_data_item_t* user_data = __mla_user_data_get_for_update(target, id);
-
-    if (user_data == nullptr) {
-        return false;
-    }
-
-    user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
-    user_data->data.asPointer = data;
     return true;
 
 }
@@ -171,7 +137,7 @@ mla_bool_t mla_user_data_set_int8(mla_user_data_t &target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asInt8 = data;
     return true;
 
@@ -186,7 +152,7 @@ mla_bool_t mla_user_data_set_uint8(mla_user_data_t& target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asUint8 = data;
     return true;
 
@@ -201,7 +167,7 @@ mla_bool_t mla_user_data_set_int16(mla_user_data_t& target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asInt16 = data;
     return true;
 
@@ -216,7 +182,7 @@ mla_bool_t mla_user_data_set_uint16(mla_user_data_t& target, mla_user_data_id id
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asUint16 = data;
     return true;
 
@@ -231,7 +197,7 @@ mla_bool_t mla_user_data_set_int32(mla_user_data_t& target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asInt32 = data;
     return true;
 
@@ -246,7 +212,7 @@ mla_bool_t mla_user_data_set_uint32(mla_user_data_t& target, mla_user_data_id id
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asUint32 = data;
     return true;
 
@@ -261,7 +227,7 @@ mla_bool_t mla_user_data_set_int64(mla_user_data_t& target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asInt64 = data;
     return true;
 
@@ -276,7 +242,7 @@ mla_bool_t mla_user_data_set_uint64(mla_user_data_t& target, mla_user_data_id id
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asUint64 = data;
     return true;
 
@@ -291,7 +257,7 @@ mla_bool_t mla_user_data_set_float(mla_user_data_t& target, mla_user_data_id id,
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asFloat = data;
     return true;
 
@@ -306,7 +272,7 @@ mla_bool_t mla_user_data_set_double(mla_user_data_t& target, mla_user_data_id id
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asDouble = data;
     return true;
 
@@ -321,7 +287,7 @@ mla_bool_t mla_user_data_set_bool(mla_user_data_t& target, mla_user_data_id id, 
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asBool = data;
     return true;
 
@@ -336,7 +302,7 @@ mla_bool_t mla_user_data_set_char(mla_user_data_t& target, mla_user_data_id id, 
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_noOwner();
+    user_data->external_data = mla_pointer_null();
     user_data->data.asChar = data;
     return true;
 
@@ -352,9 +318,8 @@ mla_bool_t mla_user_data_set_string(mla_user_data_t& target, mla_user_data_id id
 
     user_data->id = id;
 
-    mla_c_string_t c_string = mla_string_to_cString(data, true);
-    user_data->data.asPointer = reinterpret_cast<mla_platform_pointer_t>(const_cast<char*>(c_string.c_str));
-    user_data->dataOwner = mla_buffer_reference_create(c_string.c_str, false, nullptr, mla_dynamic_data_empty());
+    mla_c_string_t c_string = mla_string_to_cString(data);
+    user_data->external_data = c_string.c_heap_str;
     return true;
 }
 
@@ -370,7 +335,7 @@ mla_bool_t mla_user_data_inc_int8(mla_user_data_t& target, mla_user_data_id id, 
         user_data->data.asInt8 = user_data->data.asInt8 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt8 = step;
     }
 
@@ -389,7 +354,7 @@ mla_bool_t mla_user_data_inc_uint8(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asUint8 = user_data->data.asUint8 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint8 = step;
     }
 
@@ -409,7 +374,7 @@ mla_bool_t mla_user_data_inc_int16(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt16 = user_data->data.asInt16 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt16 = step;
     }
 
@@ -429,7 +394,7 @@ mla_bool_t mla_user_data_inc_uint16(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint16 = user_data->data.asUint16 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint16 = step;
     }
 
@@ -449,7 +414,7 @@ mla_bool_t mla_user_data_inc_int32(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt32 = user_data->data.asInt32 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt32 = step;
     }
 
@@ -469,7 +434,7 @@ mla_bool_t mla_user_data_inc_uint32(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint32 = user_data->data.asUint32 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint32 = step;
     }
 
@@ -489,7 +454,7 @@ mla_bool_t mla_user_data_inc_int64(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt64 = user_data->data.asInt64 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt64 = step;
     }
 
@@ -509,7 +474,7 @@ mla_bool_t mla_user_data_inc_uint64(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint64 = user_data->data.asUint64 + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint64 = step;
     }
 
@@ -529,7 +494,7 @@ mla_bool_t mla_user_data_inc_float(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asFloat = user_data->data.asFloat + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asFloat = step;
     }
 
@@ -549,7 +514,7 @@ mla_bool_t mla_user_data_inc_double(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asDouble = user_data->data.asDouble + step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asDouble = step;
     }
 
@@ -569,7 +534,7 @@ mla_bool_t mla_user_data_dec_int8(mla_user_data_t& target, mla_user_data_id id, 
         user_data->data.asInt8 = user_data->data.asInt8 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt8 = -step;
     }
 
@@ -589,7 +554,7 @@ mla_bool_t mla_user_data_dec_uint8(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asUint8 = user_data->data.asUint8 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint8 = 0;
     }
 
@@ -609,7 +574,7 @@ mla_bool_t mla_user_data_dec_int16(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt16 = user_data->data.asInt16 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt16 = -step;
     }
 
@@ -629,7 +594,7 @@ mla_bool_t mla_user_data_dec_uint16(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint16 = user_data->data.asUint16 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint16 = 0;
     }
 
@@ -649,7 +614,7 @@ mla_bool_t mla_user_data_dec_int32(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt32 = user_data->data.asInt32 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt32 = -step;
     }
 
@@ -669,7 +634,7 @@ mla_bool_t mla_user_data_dec_uint32(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint32 = user_data->data.asUint32 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint32 = 0;
     }
 
@@ -689,7 +654,7 @@ mla_bool_t mla_user_data_dec_int64(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asInt64 = user_data->data.asInt64 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asInt64 = -step;
     }
 
@@ -709,7 +674,7 @@ mla_bool_t mla_user_data_dec_uint64(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asUint64 = user_data->data.asUint64 - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asUint64 = 0;
     }
 
@@ -729,7 +694,7 @@ mla_bool_t mla_user_data_dec_float(mla_user_data_t& target, mla_user_data_id id,
         user_data->data.asFloat = user_data->data.asFloat - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asFloat = -step;
     }
 
@@ -749,7 +714,7 @@ mla_bool_t mla_user_data_dec_double(mla_user_data_t& target, mla_user_data_id id
         user_data->data.asDouble = user_data->data.asDouble - step;
     } else {
         user_data->id = id;
-        user_data->dataOwner = mla_buffer_reference_noOwner();
+        user_data->external_data = mla_pointer_null();
         user_data->data.asDouble = -step;
     }
 
@@ -757,21 +722,7 @@ mla_bool_t mla_user_data_dec_double(mla_user_data_t& target, mla_user_data_id id
 
 }
 
-mla_buffer_cleanup_mode __mla_user_data_set_native_resource_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-
-    mla_user_data_set_native_resource_hook_t orginal_cleanup_function = reinterpret_cast<mla_user_data_set_native_resource_hook_t>(data);
-
-    if (orginal_cleanup_function != nullptr) {
-        orginal_cleanup_function(userData);
-    }
-
-    // We return CLEAN_UP_SKIP here because the cleanup function is responsible for cleaning up the resource,
-    // and we don't want to perform any additional cleanup in this function.
-    return CLEAN_UP_SKIP;
-}
-
-
-mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, mla_user_data_id id, mla_dynamic_data_t data, mla_user_data_set_native_resource_hook_t cleanup) {
+mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, mla_user_data_id id, mla_native_resource_t resource, mla_native_resource_clean_up_hook_t clean_up_hook) {
 
     mla_user_data_item_t* user_data = __mla_user_data_get_for_update(target, id);
 
@@ -780,8 +731,8 @@ mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, mla_user_d
     }
 
     user_data->id = id;
-    user_data->dataOwner = mla_buffer_reference_create(reinterpret_cast<mla_platform_pointer_t>(cleanup), true, __mla_user_data_set_native_resource_cleanup, data);
-    user_data->data = data;
+    user_data->data = mla_dynamic_data_empty();
+    user_data->external_data = mla_native_resource_to_managed_pointer(resource, clean_up_hook);
 
     return true;
 }
@@ -805,9 +756,6 @@ mla_user_data_item_t* __mla_user_find_item(mla_user_data_list_t* list, mla_user_
 }
 
 mla_user_data_item_t* mla_user_data_get(mla_user_data_t& data, mla_user_data_id id) {
-
-    if (mla_pointer_is_null(data.data))
-        return nullptr;
 
     mla_user_data_list_t* list = mla_pointer_get_data<mla_user_data_list_t>(data.data);
 
@@ -857,13 +805,15 @@ mla_bool_t mla_user_data_equal(const mla_user_data_t& a, const mla_user_data_t& 
 
 }
 
-mla_platform_pointer_t mla_user_data_get_mla_pointer(const mla_user_data_t& userData, mla_user_data_id id) {
+mla_pointer_t mla_user_data_get_pointer(const mla_user_data_t& userData, mla_user_data_id id) {
 
     const mla_user_data_item_t* found = mla_user_data_get((mla_user_data_t&)userData, id);
+
     if (found == nullptr) {
-        return nullptr;
+        return mla_pointer_null();
     }
-    return found->data.asPointer;
+
+    return found->external_data;
 }
 
 mla_int8_t mla_user_data_get_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t defaultValue) {
@@ -968,14 +918,18 @@ mla_bool_t mla_user_data_get_bool(const mla_user_data_t& userData, mla_user_data
 mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, mla_user_data_id id, mla_string_t defaultValue) {
 
     const mla_user_data_item_t* found = mla_user_data_get((mla_user_data_t&)userData, id);
+
     if (found == nullptr) {
         return defaultValue;
     }
-    const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-    mla_string_t result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-    result.heap.data = c_string;
-    result.heap.length = mla_strlen(c_string);
-    return result;
+
+    mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(found->external_data);
+
+    if (str_data == nullptr) {
+        return defaultValue;
+    }
+
+    return mla_string(found->external_data, mla_strlen(str_data));
 }
 
 mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, mla_user_data_id id, mla_char_t defaultValue) {
@@ -1000,7 +954,7 @@ mla_int8_t mla_user_data_get_and_replace_int8(const mla_user_data_t& userData, m
         result = found->data.asInt8;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1022,7 +976,7 @@ mla_uint8_t mla_user_data_get_and_replace_uint8(const mla_user_data_t& userData,
         result = found->data.asUint8;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1044,7 +998,7 @@ mla_int16_t mla_user_data_get_and_replace_int16(const mla_user_data_t& userData,
         result = found->data.asInt16;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1066,7 +1020,7 @@ mla_uint16_t mla_user_data_get_and_replace_uint16(const mla_user_data_t& userDat
         result = found->data.asUint16;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1088,7 +1042,7 @@ mla_int32_t mla_user_data_get_and_replace_int32(const mla_user_data_t& userData,
         result = found->data.asInt32;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1110,7 +1064,7 @@ mla_uint32_t mla_user_data_get_and_replace_uint32(const mla_user_data_t& userDat
         result = found->data.asUint32;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1132,7 +1086,7 @@ mla_int64_t mla_user_data_get_and_replace_int64(const mla_user_data_t& userData,
         result = found->data.asInt64;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1154,7 +1108,7 @@ mla_uint64_t mla_user_data_get_and_replace_uint64(const mla_user_data_t& userDat
         result = found->data.asUint64;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1175,7 +1129,7 @@ mla_float_t mla_user_data_get_and_replace_float(const mla_user_data_t& userData,
         result = found->data.asFloat;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1197,7 +1151,7 @@ mla_double_t mla_user_data_get_and_replace_double(const mla_user_data_t& userDat
         result = found->data.asDouble;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1219,7 +1173,7 @@ mla_bool_t mla_user_data_get_and_replace_bool(const mla_user_data_t& userData, m
         result = found->data.asBool;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1241,7 +1195,7 @@ mla_char_t mla_user_data_get_and_replace_char(const mla_user_data_t& userData, m
         result = found->data.asChar;
     } else {
         found->id = id;
-        found->dataOwner = mla_buffer_reference_noOwner();
+        found->external_data = mla_pointer_null();
         result = defaultValue;
     }
 
@@ -1261,42 +1215,46 @@ mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userDat
     mla_string_t result = mla_string_empty();
 
     if (found->id == id) {
-        const char* c_string = reinterpret_cast<const char*>(found->data.asPointer);
-        result = {found->dataOwner, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-        result.heap.data = c_string;
-        result.heap.length = mla_strlen(c_string);
+
+        mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(found->external_data);
+
+        if (str_data != nullptr) {
+            result = mla_string(found->external_data, mla_strlen(str_data));
+        }
+
     } else {
+
         found->id = id;
         result = defaultValue;
     }
 
     // Now replace with new value
-    mla_c_string_t c_new_string = mla_string_to_cString(newValue, true);
-    found->data.asPointer = reinterpret_cast<mla_platform_pointer_t>(const_cast<char*>(c_new_string.c_str));
-    found->dataOwner = mla_buffer_reference_create(c_new_string.c_str, false, nullptr, mla_dynamic_data_empty());
-
+    mla_c_string_t c_new_string = mla_string_to_cString(newValue);
+    found->external_data = c_new_string.c_heap_str;
     return result;
 
 }
 
 
-mla_dynamic_data_t mla_user_data_get_native_resource(const mla_user_data_t& userData, mla_user_data_id id, mla_dynamic_data_t defaultValue) {
+mla_native_resource_t mla_user_data_get_native_resource(const mla_user_data_t& userData, mla_user_data_id id, mla_native_resource_t defaultValue) {
 
     const mla_user_data_item_t* found = mla_user_data_get((mla_user_data_t&)userData, id);
     if (found == nullptr) {
         return defaultValue;
     }
-    return found->data;
+
+    mla_native_resource_t* resource = mla_native_resource_from_managed_pointer(found->external_data);
+
+    if (resource == nullptr)
+        return defaultValue;
+
+    return *resource;
 }
 
 
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other) {
 
     mla_user_data_t copy = mla_user_data_empty();
-
-    if (mla_pointer_is_null(other.data)) {
-        return copy; // No data to copy
-    }
 
     mla_user_data_list_t* otherList = mla_pointer_get_data<mla_user_data_list_t>(other.data);
 

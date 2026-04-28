@@ -10,7 +10,7 @@
 #include "../serializer/mla_serializer.h"
 #include "../lifecycle/mla_lifecycle_events.h"
 
-static mla_string_t RPC_CACHE_LOGGER_NAME = mla_string("RpcConsole", 10);
+static mla_string_t RPC_CACHE_LOGGER_NAME = mla_string_const("RpcConsole");
 
 struct mla_logger_rpc_log_level_t {
     mla_log_level level;

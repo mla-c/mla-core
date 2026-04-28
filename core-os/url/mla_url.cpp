@@ -193,7 +193,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
 
     // Use small string optimization if possible
     if (totalLength <= mla_global_config_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
 
         mla_size_t offset = 0;
@@ -259,8 +259,10 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
         return result;
     }
 
+    mla_pointer_t buffer_ptr = mla_create_char_array(totalLength);
+
     // Fall back to heap allocation for larger strings
-    mla_char_t *buffer = mla_create_char_array(totalLength);
+    mla_char_t *buffer = mla_pointer_get_data<mla_char_t>(buffer_ptr);
 
     if (buffer == nullptr) {
         return mla_string_empty(); // Memory allocation failed
@@ -326,7 +328,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
         offset += fragmentLength;
     }
 
-    return mla_string_from_buffer_with_ownership(buffer, offset);
+    return mla_string(buffer_ptr, offset);
 }
 
 mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
@@ -347,7 +349,7 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
 
     // Use small string optimization if possible
     if (totalLength <= mla_global_config_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(totalLength);
 
         mla_size_t offset = 0;
@@ -387,8 +389,10 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
         return result;
     }
 
+    mla_pointer_t buffer_ptr = mla_create_char_array(totalLength);
+
     // Fall back to heap allocation for larger strings
-    mla_char_t *buffer = mla_create_char_array(totalLength);
+    mla_char_t *buffer = mla_pointer_get_data<mla_char_t>(buffer_ptr);
 
     if (buffer == nullptr) {
         return mla_string_empty(); // Memory allocation failed
@@ -428,6 +432,6 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
         }
     }
 
-    return mla_string_from_buffer_with_ownership(buffer, offset);
+    return mla_string(buffer_ptr, offset);
 }
 

@@ -11,9 +11,6 @@ struct mla_http_chunked_stream_input_userdata_t {
     mla_int32_t timeout_ms;
     mla_bool_t endOfStream;
     mla_size_t chunkSizeRemaining;
-};
-
-struct mla_http_chunked_stream_input_userdata_initializer {
 
     static mla_http_chunked_stream_input_userdata_t init() {
         return {
@@ -23,15 +20,15 @@ struct mla_http_chunked_stream_input_userdata_initializer {
             0
         };
     }
-
 };
+
 
 mla_user_data_id_init(mla_http_chunked_stream_input_user_data_name)
 
 
 mla_size_t __mla_http_chunked_stream_input_available_bytes(mla_stream_input_t& input) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
+    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
     if (userdata == nullptr || userdata->endOfStream) {
         return 0;
@@ -76,7 +73,7 @@ mla_bool_t __mla_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stre
 
 mla_size_t __mla_http_chunked_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
+    mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
     if (userdata == nullptr || userdata->endOfStream) {
         return 0;
@@ -112,19 +109,20 @@ mla_size_t __mla_http_chunked_stream_input_read(mla_stream_input_t& input, mla_s
 
 mla_stream_input_t mla_http_chunked_stream_input(const mla_stream_input_t &baseStream, mla_int32_t timeout_ms) {
 
-    mla_http_chunked_stream_input_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_input_userdata_t*>(mla_platform_malloc(sizeof(mla_http_chunked_stream_input_userdata_t)));
+    mla_pointer_t userdata_ptr = mla_malloc_struct(mla_http_chunked_stream_input_userdata_t);
+
+    mla_http_chunked_stream_input_userdata_t* userdata = mla_pointer_get_data<mla_http_chunked_stream_input_userdata_t>(userdata_ptr);
 
     if (userdata == nullptr)
         return mla_stream_noop_input();
 
-    mla_memset(userdata, 0, sizeof(mla_http_chunked_stream_input_userdata_t));
     userdata->baseStream = baseStream;
     userdata->timeout_ms = timeout_ms;
     userdata->endOfStream = false;
     userdata->chunkSizeRemaining = 0;
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_http_chunked_stream_input_userdata_t, mla_http_chunked_stream_input_userdata_initializer>(user_data, mla_http_chunked_stream_input_user_data_name, userdata);
+    mla_user_data_set_pointer(user_data, mla_http_chunked_stream_input_user_data_name, userdata_ptr);
 
     return {
         user_data,
@@ -155,9 +153,6 @@ struct mla_http_chunked_stream_output_userdata_t {
     mla_stream_output_t baseStream;
     mla_bytes_t buffer;
     mla_size_t currentSize;
-};
-
-struct mla_http_chunked_stream_output_userdata_initializer {
 
     static mla_http_chunked_stream_output_userdata_t init() {
         return {
@@ -166,8 +161,8 @@ struct mla_http_chunked_stream_output_userdata_initializer {
             0
         };
     }
-
 };
+
 
 mla_user_data_id_init(mla_http_chunked_stream_output_user_data_name)
 
@@ -209,7 +204,7 @@ mla_bool_t __mla_http_chunked_stream_output_flush(mla_http_chunked_stream_output
 mla_size_t __mla_http_chunked_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     // Get the base stream
-    mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_output_userdata_t>(output.userdata, mla_http_chunked_stream_output_user_data_name);
+    mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_output_userdata_t>(output.userdata, mla_http_chunked_stream_output_user_data_name);
 
     if (userdata == nullptr) {
         return 0;
@@ -246,7 +241,7 @@ mla_bool_t mla_http_chunked_stream_output_finished(mla_http_chunked_stream_outpu
     mla_stream_output_deflate_finish(chunkedOutput.output);
 
     // Flush the chunked stream buffer
-    mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer<mla_http_chunked_stream_output_userdata_t>(chunkedOutput.chunkedStream.userdata, mla_http_chunked_stream_output_user_data_name);
+    mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_output_userdata_t>(chunkedOutput.chunkedStream.userdata, mla_http_chunked_stream_output_user_data_name);
     if (userdata != nullptr) {
         if (!__mla_http_chunked_stream_output_flush(userdata)) {
             return false;
@@ -265,7 +260,10 @@ mla_bool_t mla_http_chunked_stream_output_finished(mla_http_chunked_stream_outpu
 #define mla_http_chunked_stream_output_chunk_size 1024
 
 mla_stream_output_t __mla_create_chunked_stream_output(const mla_stream_output_t &baseStream, mla_size_t bufferSize) {
-    mla_http_chunked_stream_output_userdata_t* userdata = reinterpret_cast<mla_http_chunked_stream_output_userdata_t*>(mla_platform_malloc(sizeof(mla_http_chunked_stream_output_userdata_t)));
+
+    mla_pointer_t user_data_ptr = mla_malloc_struct(mla_http_chunked_stream_output_userdata_t);
+
+    mla_http_chunked_stream_output_userdata_t* userdata = mla_pointer_get_data<mla_http_chunked_stream_output_userdata_t>(user_data_ptr);
 
     if (userdata == nullptr) {
         return mla_stream_noop_output();
@@ -282,7 +280,7 @@ mla_stream_output_t __mla_create_chunked_stream_output(const mla_stream_output_t
     }
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer_with_ownership<mla_http_chunked_stream_output_userdata_t, mla_http_chunked_stream_output_userdata_initializer>(user_data, mla_http_chunked_stream_output_user_data_name, userdata);
+    mla_user_data_set_pointer(user_data, mla_http_chunked_stream_output_user_data_name, user_data_ptr);
 
     return {
         user_data,

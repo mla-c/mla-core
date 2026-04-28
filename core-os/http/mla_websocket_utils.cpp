@@ -145,7 +145,7 @@ mla_user_data_id_init(mla_websocket_transport_mask_user_data_name)
 
 mla_size_t __mla_websocket_transport_masked_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
-    mla_websocket_masking_state_t* state = mla_user_data_get_pointer<mla_websocket_masking_state_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
+    mla_websocket_masking_state_t* state = mla_user_data_get_pointer_data<mla_websocket_masking_state_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
 
     if (state == nullptr) {
         return 0;
@@ -200,7 +200,8 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
             return false;
 
         final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-        mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+        mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+        mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
     }
 
     if (final_out.write(final_out, 0, response_length, close_payload) != response_length)
@@ -257,7 +258,8 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
 
                 // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
                 final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-                mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+                mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+                mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
             }
 
             final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_mode_raw_websocket);
@@ -289,7 +291,8 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
 
                 // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
                 final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-                mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+                mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+                mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
             }
 
             if (!mla_stream_copy(temp_stream.input, final_out)) {
@@ -339,7 +342,8 @@ mla_bool_t __mla_websocket_transport_send_with_generator(mla_stream_output_t &ou
 
             // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
             final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-            mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+            mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+            mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
 
         if (use_deflate_compression) {
@@ -406,7 +410,8 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
                 return false;
 
             final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-            mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+            mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+            mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
 
         final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_mode_raw_websocket);
@@ -433,7 +438,8 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
                 return false;
 
             final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-            mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+            mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+            mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
 
         if (final_out.write(final_out, 0, payload_length, (const mla_byte_t *) mla_string_data(message)) != payload_length)
@@ -488,7 +494,8 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
                 return false;
 
             final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-            mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+            mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+            mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
 
         final_out = mla_stream_output_deflate_compress_wrapper(final_out, mla_deflate_mode_raw_websocket);
@@ -515,7 +522,8 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
                 return false;
 
             final_out = mla_stream_output_interceptor_wrapper(final_out, __mla_websocket_transport_masked_write, nullptr);
-            mla_user_data_set_pointer_without_ownership(final_out.userdata, mla_websocket_transport_mask_user_data_name, &masking_state);
+            mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
+            mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
 
         if (final_out.write(final_out, 0, payload_length, payload) != payload_length)

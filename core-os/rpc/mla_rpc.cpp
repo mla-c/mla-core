@@ -226,9 +226,7 @@ mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_ex
 
 struct mla_rpc_remote_endpoint_start_with_user_data_t {
     mla_string_t prefix;
-};
 
-struct mla_rpc_remote_endpoint_start_with_user_data_initializer {
     static mla_rpc_remote_endpoint_start_with_user_data_t init() {
         return { mla_string_empty() };
     }
@@ -239,7 +237,7 @@ mla_user_data_id_init(mla_rpc_endpoint_start_with_user_data_name)
 mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& user_data,
                                                     const mla_string_t &procedure_name) {
 
-    mla_rpc_remote_endpoint_start_with_user_data_t *pathPrefix = mla_user_data_get_pointer<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data, mla_rpc_endpoint_start_with_user_data_name);
+    mla_rpc_remote_endpoint_start_with_user_data_t *pathPrefix = mla_user_data_get_pointer_data<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data, mla_rpc_endpoint_start_with_user_data_name);
 
     if (pathPrefix == nullptr)
         return false;
@@ -250,7 +248,9 @@ mla_bool_t __mla_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& u
 
 mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t& start_string, mla_rpc_remote_endpoint_execute_procedure execute_procedure_handler, mla_user_data_t& user_data) {
 
-    mla_rpc_remote_endpoint_start_with_user_data_t* user_data_payload = reinterpret_cast<mla_rpc_remote_endpoint_start_with_user_data_t*>(mla_platform_malloc(sizeof(mla_rpc_remote_endpoint_start_with_user_data_t)));
+    mla_pointer_t user_data_payload_ptr = mla_malloc_struct(mla_rpc_remote_endpoint_start_with_user_data_t);
+
+    mla_rpc_remote_endpoint_start_with_user_data_t* user_data_payload = mla_pointer_get_data<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data_payload_ptr);
 
     if (user_data_payload == nullptr) {
         return mla_rpc_remote_endpoint_invalid();
@@ -259,7 +259,7 @@ mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t&
     user_data_payload->prefix = start_string;
 
 
-    mla_user_data_set_pointer_with_ownership<mla_rpc_remote_endpoint_start_with_user_data_t, mla_rpc_remote_endpoint_start_with_user_data_initializer>(user_data, mla_rpc_endpoint_start_with_user_data_name, user_data_payload);
+    mla_user_data_set_pointer(user_data, mla_rpc_endpoint_start_with_user_data_name, user_data_payload_ptr);
 
     return {
         user_data,

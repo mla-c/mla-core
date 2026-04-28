@@ -83,6 +83,14 @@ mla_size_t mla_string_multi_byte_char_count(const mla_string_t &p_String) {
 
 }
 
+const mla_utf_16_char_t* mla_string_utf16_data(const mla_string_utf16_buffer_t &p_Utf16Buffer) {
+    return mla_pointer_get_data<mla_utf_16_char_t>(p_Utf16Buffer.data);
+}
+
+const mla_utf_32_char_t* mla_string_utf32_data(const mla_string_utf32_buffer_t &p_Utf32Buffer) {
+    return mla_pointer_get_data<mla_utf_32_char_t>(p_Utf32Buffer.data);
+}
+
 
 mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_String) {
 
@@ -90,17 +98,20 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
     const mla_char_t* data = mla_string_data(p_String);
 
     if (length == 0) {
-        return {nullptr, 0}; // Empty string, return empty buffer
+        return {mla_pointer_null(), 0}; // Empty string, return empty buffer
     }
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
     // Allocate potentially more space for surrogate pairs
     mla_size_t maxSize = realCharCount * 2 + 1; // Max possible size (if all are surrogate pairs) + null terminator
-    mla_utf_16_char_t* buffer = static_cast<mla_utf_16_char_t*>(mla_platform_malloc(sizeof(mla_utf_16_char_t) * maxSize));
+    mla_pointer_t buffer= mla_malloc(sizeof(mla_utf_16_char_t) * maxSize, nullptr, mla_dynamic_data_empty());
 
-    if (buffer == nullptr) {
-        mla_error(mla_string_const("Failed to allocate memory for UTF-16 buffer."));
-        return {nullptr, 0};
+
+    mla_utf_16_char_t* utf16_data = mla_pointer_get_data<mla_utf_16_char_t>(buffer);
+
+    if (utf16_data == nullptr) {
+        mla_error(mla_string_const("Failed to get data pointer for UTF-16 buffer."));
+        return {mla_pointer_null(), 0};
     }
 
     mla_size_t byteIndex = 0;
@@ -159,17 +170,17 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
         // Convert codePoint to UTF-16
         if (codePoint <= 0xFFFF) {
             // BMP character - single UTF-16 code unit
-            buffer[utf16Index++] = static_cast<mla_utf_16_char_t>(codePoint);
+            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(codePoint);
         } else {
             // Supplementary plane - surrogate pair
             codePoint -= 0x10000;
-            buffer[utf16Index++] = static_cast<mla_utf_16_char_t>(0xD800 + (codePoint >> 10));
-            buffer[utf16Index++] = static_cast<mla_utf_16_char_t>(0xDC00 + (codePoint & 0x3FF));
+            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(0xD800 + (codePoint >> 10));
+            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(0xDC00 + (codePoint & 0x3FF));
         }
     }
 
     // Add null terminator
-    buffer[utf16Index] = 0;
+    utf16_data[utf16Index] = 0;
 
     return {
         buffer,
@@ -179,27 +190,33 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
 
 mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf16Buffer) {
 
-    if (p_Utf16Buffer.data == nullptr || p_Utf16Buffer.charCount == 0) {
+    if (p_Utf16Buffer.charCount == 0) {
         return mla_string_empty();
     }
 
     // Calculate maximum possible UTF-8 size (worst case: 4 bytes per character)
     mla_size_t maxUtf8Size = p_Utf16Buffer.charCount * 4;
 
+    mla_utf_16_char_t* uft_16_data = mla_pointer_get_data<mla_utf_16_char_t>(p_Utf16Buffer.data);
+
+    if (!uft_16_data) {
+        return mla_string_empty();
+    }
+
     // Try SSO first - use embedded buffer directly
     if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t utf8Index = 0;
         mla_size_t utf16Index = 0;
 
-        while (utf16Index < p_Utf16Buffer.charCount && p_Utf16Buffer.data[utf16Index] != 0) {
+        while (utf16Index < p_Utf16Buffer.charCount && uft_16_data[utf16Index] != 0) {
             mla_uint32_t codePoint;
-            mla_utf_16_char_t c = p_Utf16Buffer.data[utf16Index++];
+            mla_utf_16_char_t c = uft_16_data[utf16Index++];
 
             // Handle surrogate pairs
             if (c >= 0xD800 && c <= 0xDBFF && utf16Index < p_Utf16Buffer.charCount) {
-                mla_utf_16_char_t low = p_Utf16Buffer.data[utf16Index];
+                mla_utf_16_char_t low = uft_16_data[utf16Index];
                 if (low >= 0xDC00 && low <= 0xDFFF) {
                     codePoint = 0x10000 + (((c - 0xD800) << 10) | (low - 0xDC00));
                     utf16Index++;
@@ -235,20 +252,23 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
     }
 
     // Allocate heap buffer for larger strings
-    mla_char_t* utf8Buffer = mla_create_char_array(maxUtf8Size);
-    if (utf8Buffer == nullptr) {
+    mla_pointer_t utf8Buffer = mla_create_char_array(maxUtf8Size);
+
+    mla_char_t* utf8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
+
+    if (!utf8_data) {
         return mla_string_empty();
     }
 
     mla_size_t utf8Index = 0;
     mla_size_t utf16Index = 0;
 
-    while (utf16Index < p_Utf16Buffer.charCount && p_Utf16Buffer.data[utf16Index] != 0) {
+    while (utf16Index < p_Utf16Buffer.charCount && uft_16_data[utf16Index] != 0) {
         mla_uint32_t codePoint;
-        mla_utf_16_char_t c = p_Utf16Buffer.data[utf16Index++];
+        mla_utf_16_char_t c = uft_16_data[utf16Index++];
 
         if (c >= 0xD800 && c <= 0xDBFF && utf16Index < p_Utf16Buffer.charCount) {
-            mla_utf_16_char_t low = p_Utf16Buffer.data[utf16Index];
+            mla_utf_16_char_t low = uft_16_data[utf16Index];
             if (low >= 0xDC00 && low <= 0xDFFF) {
                 codePoint = 0x10000 + (((c - 0xD800) << 10) | (low - 0xDC00));
                 utf16Index++;
@@ -262,36 +282,26 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
         }
 
         if (codePoint < 0x80) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(codePoint);
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(codePoint);
         } else if (codePoint < 0x800) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else if (codePoint < 0x10000) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         }
     }
 
-    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = utf8Buffer;
+    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.char_offset = 0;
     result.heap.length = utf8Index;
     return result;
-}
-
-void mla_string_utf16_buffer_destroy(mla_string_utf16_buffer_t &p_Buffer) {
-
-    if (p_Buffer.data != nullptr) {
-        mla_platform_free(p_Buffer.data); // Clean up allocated memory
-    }
-
-    p_Buffer.data = nullptr;
-    p_Buffer.charCount = 0;
 }
 
 mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_String) {
@@ -299,14 +309,17 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
     mla_size_t length = mla_string_length(p_String);
 
     if (length == 0) {
-        return {nullptr, 0}; // Empty string, return empty buffer
+        return {mla_pointer_null(), 0}; // Empty string, return empty buffer
     }
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
-    mla_utf_32_char_t* buffer = static_cast<mla_utf_32_char_t*>(mla_platform_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1))); // +1 for null terminator
 
-    if (buffer == nullptr) {
-        return {nullptr, 0};
+    mla_pointer_t buffer = mla_malloc(sizeof(mla_utf_32_char_t) * (realCharCount + 1), nullptr, mla_dynamic_data_empty()); // +1 for null terminator
+
+    mla_utf_32_char_t* utf32_data = mla_pointer_get_data<mla_utf_32_char_t>(buffer);
+
+    if (utf32_data == nullptr) {
+        return {mla_pointer_null(), 0};
     }
 
     mla_size_t byteIndex = 0;
@@ -364,11 +377,11 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
         }
 
         // For UTF-32, we just store the code point directly
-        buffer[utf32Index++] = static_cast<mla_utf_32_char_t>(codePoint);
+        utf32_data[utf32Index++] = static_cast<mla_utf_32_char_t>(codePoint);
     }
 
     // Add null terminator
-    buffer[utf32Index] = 0;
+    utf32_data[utf32Index] = 0;
 
     return {
         buffer,
@@ -379,22 +392,28 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
 
 mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf32Buffer) {
 
-    if (p_Utf32Buffer.data == nullptr || p_Utf32Buffer.charCount == 0) {
+    if (p_Utf32Buffer.charCount == 0) {
         return mla_string_empty();
     }
 
     // Calculate maximum possible UTF-8 size (worst case: 4 bytes per character)
     mla_size_t maxUtf8Size = p_Utf32Buffer.charCount * 4;
 
+    mla_utf_32_char_t* utf32_data = mla_pointer_get_data<mla_utf_32_char_t>(p_Utf32Buffer.data);
+
+    if (utf32_data == nullptr) {
+        return mla_string_empty();
+    }
+
     // Try SSO first - use embedded buffer directly
     if (maxUtf8Size <= mla_global_config_string_sso_max_length) {
-        mla_string_t result = {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 
         mla_size_t utf8Index = 0;
         mla_size_t utf32Index = 0;
 
-        while (utf32Index < p_Utf32Buffer.charCount && p_Utf32Buffer.data[utf32Index] != 0) {
-            mla_uint32_t codePoint = p_Utf32Buffer.data[utf32Index++];
+        while (utf32Index < p_Utf32Buffer.charCount && utf32_data[utf32Index] != 0) {
+            mla_uint32_t codePoint = utf32_data[utf32Index++];
 
             // Validate code point
             if (codePoint > 0x10FFFF || (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
@@ -424,49 +443,42 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
     }
 
     // Allocate heap buffer for larger strings
-    mla_char_t* utf8Buffer = mla_create_char_array(maxUtf8Size);
-    if (utf8Buffer == nullptr) {
+    mla_pointer_t utf8Buffer = mla_create_char_array(maxUtf8Size);
+    mla_char_t* uft8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
+
+    if (uft8_data == nullptr) {
         return mla_string_empty();
     }
 
     mla_size_t utf8Index = 0;
     mla_size_t utf32Index = 0;
 
-    while (utf32Index < p_Utf32Buffer.charCount && p_Utf32Buffer.data[utf32Index] != 0) {
-        mla_uint32_t codePoint = p_Utf32Buffer.data[utf32Index++];
+    while (utf32Index < p_Utf32Buffer.charCount && utf32_data[utf32Index] != 0) {
+        mla_uint32_t codePoint = utf32_data[utf32Index++];
 
         if (codePoint > 0x10FFFF || (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
             codePoint = 0xFFFD;
         }
 
         if (codePoint < 0x80) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(codePoint);
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(codePoint);
         } else if (codePoint < 0x800) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else if (codePoint < 0x10000) {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else {
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8Buffer[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         }
     }
 
-    mla_string_t result = {mla_buffer_reference(utf8Buffer), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = utf8Buffer;
+    mla_string_t result = {utf8Buffer, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.char_offset = 0;
     result.heap.length = utf8Index;
     return result;
-}
-
-void mla_string_utf32_buffer_destroy(mla_string_utf32_buffer_t &p_Buffer) {
-
-    if (p_Buffer.data != nullptr) {
-        mla_platform_free(p_Buffer.data); // Clean up allocated memory
-    }
-    p_Buffer.data = nullptr;
-    p_Buffer.charCount = 0;
 }

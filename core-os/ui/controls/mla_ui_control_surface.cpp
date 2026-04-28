@@ -127,7 +127,7 @@ mla_user_data_id_init(mla_ui_control_surface_text_size_user_data_name)
 
 mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
-    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(context.userData, mla_ui_control_surface_text_size_user_data_name);
+    mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(context.userData, mla_ui_control_surface_text_size_user_data_name);
 
     if (connector == nullptr || connector->surface.calc_text_size == nullptr) {
         return {0, 0};
@@ -154,7 +154,7 @@ mla_user_data_id_init(mla_ui_control_surface_connector_user_data_name)
 
 mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data_t& userData) {
 
-    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
+    mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
     mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> unprocessedInputEvents = mla_array_list_empty<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>();
 
@@ -189,7 +189,8 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
     mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector->drawing.lastFrameTimeMs);
 
     mla_user_data_t context_user_data = mla_user_data_copy(connector->userData);
-    mla_user_data_set_pointer_without_ownership(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector);
+    mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(connector);
+    mla_user_data_set_pointer(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector_ptr);
 
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
@@ -233,7 +234,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
 
 mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_user_data_t& userData) {
 
-    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
+    mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
     if (!mla_mutex_trylock(connector->lock, mla_ui_control_surface_drawing_lock_timeout_ms)) {
         return TASK_PROCESS_RESULT_CONTINUE;
@@ -269,7 +270,7 @@ mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_user_dat
 
 mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_user_data_t& userData) {
 
-    mla_ui_control_surface_t* connector = mla_user_data_get_pointer<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
+    mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
     if (connector == nullptr) {
         return TASK_PROCESS_RESULT_DONE;
@@ -293,8 +294,8 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
 
     mla_string_t id = mla_generate_runtime_id();
 
-
-    mla_user_data_set_pointer_without_ownership(connector.userData, mla_ui_control_surface_connector_user_data_name, &connector);
+    mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(&connector);
+    mla_user_data_set_pointer(connector.userData, mla_ui_control_surface_connector_user_data_name, connector_ptr);
 
     // Create rendering task
     mla_task_t render_task = mla_task_repeating(
@@ -345,7 +346,8 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
 
     mla_string_t id = mla_generate_runtime_id();
 
-    mla_user_data_set_pointer_without_ownership(connector.userData, mla_ui_control_surface_connector_user_data_name, &connector);
+    mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(&connector);
+    mla_user_data_set_pointer(connector.userData, mla_ui_control_surface_connector_user_data_name, connector_ptr);
 
     // Create rendering task
     mla_task_t render_draw_task = mla_task_repeating(
@@ -392,7 +394,8 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
     mla_uint64_t timeSinceLastFrameMs = mla_max(1, currentTimeMs - connector.drawing.lastFrameTimeMs);
 
     mla_user_data_t context_user_data = mla_user_data_copy(connector.userData);
-    mla_user_data_set_pointer_without_ownership(context_user_data, mla_ui_control_surface_text_size_user_data_name, &connector);
+    mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(&connector);
+    mla_user_data_set_pointer(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector_ptr);
 
     mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
 

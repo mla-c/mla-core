@@ -81,8 +81,19 @@ static mla_char_t* g_StringList[1000];
 void SetupCArrayCleanUpBenchmark() {
 
     for (int i = 0; i < 1000; ++i) {
-        mla_string_t data = mla_string_concat(mla_string("Test"), mla_string("String"));
-        g_StringList[i] = const_cast<mla_char_t*>(mla_string_to_cString(data, true).c_str);
+        g_StringList[i] = reinterpret_cast<mla_char_t*>(mla_platform_malloc(sizeof(mla_char_t) * 12));
+        g_StringList[i][0] = 'T';
+        g_StringList[i][1] = 'e';
+        g_StringList[i][2] = 's';
+        g_StringList[i][3] = 't';
+        g_StringList[i][4] = 'S';
+        g_StringList[i][5] = 't';
+        g_StringList[i][6] = 'r';
+        g_StringList[i][7] = 'i';
+        g_StringList[i][8] = 'n';
+        g_StringList[i][9] = 'g';
+        g_StringList[i][10] = '\0';
+
     }
 
 }

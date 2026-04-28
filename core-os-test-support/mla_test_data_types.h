@@ -85,7 +85,7 @@ enum mla_test_output_format_t: mla_test_uint8_t {
  * @param  v The value to sink.
  */
 template <typename T>
-static inline void mla_test_bench_sink(T v) {
+static inline void mla_test_bench_sink(const T& v) {
     volatile T sink = v;
     (void)sink;
 }

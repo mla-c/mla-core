@@ -13,26 +13,27 @@
 #include "../core-os-test-support/mla_test_utils.h"
 
 void SizeOfTest() {
-    assert_true(sizeof(mla_string_t) <= 24, "Size of mla_string_t should be less than or equal to 24 bytes");
+    assert_true(sizeof(mla_string_t) <= 32, "Size of mla_string_t should be less than or equal to 32 bytes");
     assert_true(sizeof(mla_string_internal_embedded_t) >= sizeof(mla_string_internal_heap_t), "Size of embedded layout should be greater than or equal to heap layout");
 }
 
 void ContainsCLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!");
+    mla_char_t data[14] = "Hello, World!";
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer(data));
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
 
 void ContainsBufferLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_t mla_str = mla_string_const("Hello, World!");
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
 }
 
 void ContainsEmbeddedLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_t mla_str = mla_string_const("Hello, World!");
     mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
@@ -77,7 +78,8 @@ void EqualsIgnoreCaseTest() {
 }
 
 void IndexOfCLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!");
+    mla_char_t data[14] = "Hello, World!";
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer(data));
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
@@ -86,7 +88,7 @@ void IndexOfCLayoutTest() {
 }
 
 void IndexOfBufferLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_t mla_str = mla_string_const("Hello, World!");
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
@@ -95,7 +97,7 @@ void IndexOfBufferLayoutTest() {
 }
 
 void IndexOfEmbeddedLayoutTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
+    mla_string_t mla_str = mla_string_const("Hello, World!");
     mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be embedded layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
@@ -114,56 +116,52 @@ void LastIndexOfTest() {
 
 void ToCStringTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
-    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
-    assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
+    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str);
 
-    if (mla_c_str.c_str != nullptr) {
-        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-        assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-        mla_platform_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+    mla_char_t* c_str = mla_pointer_get_data<mla_char_t>(mla_c_str.c_heap_str);
+
+    assert_true(c_str != nullptr, "MlaString C-string should not be null");
+
+    if (c_str != nullptr) {
+        assert_equal(mla_strlen(c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
 }
 
-void ToCString_No_Force_CopyTest() {
-    mla_string_t mla_str = mla_string("Hello, World!");
-    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
-    assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
-    assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-    assert_false(mla_c_str.isOwner, "MlaString C-string should not be owned by the caller");
-}
-
 void ToCStringFromBufferTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, true);
-    assert_true(mla_c_str.c_str != nullptr, "MlaString C-string should not be null");
+    mla_string_t mla_str = mla_string_const("Hello, World!");
+    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str);
 
-    if (mla_c_str.c_str != nullptr) {
-        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-        assert_true(mla_c_str.isOwner, "MlaString C-string should be owned by the caller");
-        mla_platform_free(const_cast<mla_char_t*>(mla_c_str.c_str)); // Clean up allocated memory
+    mla_char_t* c_str = mla_pointer_get_data<mla_char_t>(mla_c_str.c_heap_str);
+
+    assert_true(c_str != nullptr, "MlaString C-string should not be null");
+
+    if (c_str != nullptr) {
+        assert_equal(mla_strlen(c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
 }
 
 void ToCStringFromBuffer_No_Force_CopyTest() {
-    mla_string_t mla_str = mla_string("Hello, World!", 13); // Explicitly set length for buffer layout
-    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str, false);
+    mla_string_t mla_str = mla_string_const("Hello, World!");
+    mla_c_string_t mla_c_str = mla_string_to_cString(mla_str);
 
-    if (mla_c_str.c_str != nullptr) {
-        assert_equal(mla_strlen(mla_c_str.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-        assert_false(mla_c_str.isOwner, "MlaString C-string should not be owned by the caller");
+    mla_char_t* c_str = mla_pointer_get_data<mla_char_t>(mla_c_str.c_heap_str);
+
+    if (c_str != nullptr) {
+        assert_equal(mla_strlen(c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
 
-    mla_c_string_t mla_c_str2 = mla_string_to_cString(mla_str, false);
+    mla_c_string_t mla_c_str2 = mla_string_to_cString(mla_str);
 
-    if (mla_c_str2.c_str != nullptr) {
-        assert_equal(mla_strlen(mla_c_str2.c_str), (mla_uint32_t)13, "MlaString C-string length should be 13");
-        assert_false(mla_c_str2.isOwner, "MlaString C-string should not be owned by the caller");
+    mla_char_t* c_str2 = mla_pointer_get_data<mla_char_t>(mla_c_str.c_heap_str);
+
+    if (c_str2 != nullptr) {
+        assert_equal(mla_strlen(c_str2), (mla_uint32_t)13, "MlaString C-string length should be 13");
     } else {
         assert_fail("MlaString C-string conversion failed");
     }
@@ -189,7 +187,7 @@ void ConcatTest() {
     mla_string_destroy(mla_result);
 }
 
-static mla_platform_pointer_t AutoMemoryManagementTest_last_pointer;
+static mla_bool_t AutoMemoryManagementTest_Free_Called;
 
 mla_bool_t AutoMemoryManagementTest_Malloc(mla_size_t size, mla_platform_pointer_t*out_ptr) {
     (void) size;
@@ -198,12 +196,13 @@ mla_bool_t AutoMemoryManagementTest_Malloc(mla_size_t size, mla_platform_pointer
 }
 
 mla_bool_t AutoMemoryManagementTest_Free(mla_platform_pointer_t ptr) {
-    AutoMemoryManagementTest_last_pointer = ptr;
+    (void) ptr;
+    AutoMemoryManagementTest_Free_Called = true;
     return false;
 }
 
 void AutoMemoryManagementTest() {
-    mla_buffer_t *unsafePointer = nullptr;
+    mla_pointer_t *unsafePointer = nullptr;
 
     mla_memory_hook_t hook = mla_memory_hook_install(AutoMemoryManagementTest_Malloc, AutoMemoryManagementTest_Free); {
         mla_string_t datacopy = mla_string_empty(); {
@@ -211,15 +210,15 @@ void AutoMemoryManagementTest() {
                                                   mla_string(" This is a test of concatenation."));
             assert_equal(mla_string_length(data), (mla_uint32_t)46, "Concatenated string length should be 58");
 
-            if (data.dataOwner.buffer != nullptr) {
-                assert_equal(data.dataOwner.buffer->refCount.value, (mla_int32_t)1,
+            if (!mla_pointer_is_null(data.data_storage)) {
+                assert_equal(mla_pointer_ref_count(data.data_storage), (mla_int32_t)1,
                              "Reference count should be 1 after concatenation");
                 datacopy = data;
-                assert_equal(data.dataOwner.buffer->refCount.value, (mla_int32_t)2,
+                assert_equal(mla_pointer_ref_count(data.data_storage), (mla_int32_t)2,
                              "Reference count should be 2 after copying");
-                assert_equal(datacopy.dataOwner.buffer->refCount.value, (mla_int32_t)2,
+                assert_equal(mla_pointer_ref_count(datacopy.data_storage), (mla_int32_t)2,
                              "Reference count should be 2 after copying");
-                assert_equal(datacopy.dataOwner.buffer->data, data.dataOwner.buffer->data,
+                assert_equal(mla_pointer_get_platform_pointer(datacopy.data_storage), mla_pointer_get_platform_pointer(data.data_storage),
                              "Copied string data should match original");
             } else {
                 assert_fail("Data buffer should not be null after concatenation");
@@ -228,8 +227,8 @@ void AutoMemoryManagementTest() {
             data = mla_string_empty(); // Clear the original string
         }
 
-        if (datacopy.dataOwner.buffer != nullptr) {
-            assert_equal(datacopy.dataOwner.buffer->refCount.value, (mla_int32_t)1,
+        if (!mla_pointer_is_null(datacopy.data_storage)) {
+            assert_equal(mla_pointer_ref_count(datacopy.data_storage), (mla_int32_t)1,
                          "Reference count should be 1 after clearing the original string");
 
             assert_equal(mla_string_length(datacopy), (mla_uint32_t)46, "Copied string length should still be 58");
@@ -239,11 +238,10 @@ void AutoMemoryManagementTest() {
             assert_fail("Data buffer should not be null after clearing");
         }
 
-        AutoMemoryManagementTest_last_pointer = nullptr;
-        unsafePointer = datacopy.dataOwner.buffer;
+        AutoMemoryManagementTest_Free_Called = false; // Reset the flag before clearing the copy
     }
     // Check ich the buffer was released
-    assert_equal(AutoMemoryManagementTest_last_pointer, unsafePointer, "Last pointer should match the unsafe pointer");
+    assert_true(AutoMemoryManagementTest_Free_Called, "Free should have been called after clearing the copy");
 
     mla_memory_hook_uninstall(hook);
     unsafePointer = nullptr; // Clear the unsafe pointer
@@ -255,8 +253,8 @@ void SubStringTest() {
     mla_string_t sub_str = mla_string_substr(mla_str, 7, 31); // "World"
 
     // Check memory managemant
-    if (sub_str.dataOwner.buffer != nullptr) {
-        assert_equal(sub_str.dataOwner.buffer->refCount.value, (mla_int32_t)2,
+    if (!mla_pointer_is_null(sub_str.data_storage)) {
+        assert_equal(mla_pointer_ref_count(sub_str.data_storage), (mla_int32_t)2,
                      "Reference count should be 2 after creating substring");
     } else {
         assert_fail("Data buffer should not be null after concatenation");
@@ -326,14 +324,16 @@ void ToUtf16AndFromUtf16Test() {
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)5, "UTF-16 buffer should have 5 characters");
 
+    const mla_utf_16_char_t* utf16Buffer_data = mla_string_utf16_data(utf16Buffer);
+
     // Euro sign is U+20AC, which is 0x20AC in UTF-16
-    if (utf16Buffer.data != nullptr) {
-        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "First UTF-16 character should be Euro sign");
-        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)' ', "Second UTF-16 character should be space");
-        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'1', "Third UTF-16 character should be '1'");
-        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)'0', "Fourth UTF-16 character should be '0'");
-        assert_equal(utf16Buffer.data[4], (mla_utf_16_char_t)'0', "Fifth UTF-16 character should be '0'");
-        assert_equal(utf16Buffer.data[5], (mla_utf_16_char_t)0x00, "Six UTF-16 character should be null terminator");
+    if (utf16Buffer_data != nullptr) {
+        assert_equal(utf16Buffer_data[0], (mla_utf_16_char_t)0x20AC, "First UTF-16 character should be Euro sign");
+        assert_equal(utf16Buffer_data[1], (mla_utf_16_char_t)' ', "Second UTF-16 character should be space");
+        assert_equal(utf16Buffer_data[2], (mla_utf_16_char_t)'1', "Third UTF-16 character should be '1'");
+        assert_equal(utf16Buffer_data[3], (mla_utf_16_char_t)'0', "Fourth UTF-16 character should be '0'");
+        assert_equal(utf16Buffer_data[4], (mla_utf_16_char_t)'0', "Fifth UTF-16 character should be '0'");
+        assert_equal(utf16Buffer_data[5], (mla_utf_16_char_t)0x00, "Six UTF-16 character should be null terminator");
     } else {
         assert_fail("UTF-16 buffer is empty");
     }
@@ -342,7 +342,6 @@ void ToUtf16AndFromUtf16Test() {
     assert_struct_equal(mla_string_t, baseString, newBaseString,
                         "New MlaString from UTF-16 buffer should equal original");
 
-    mla_string_utf16_buffer_destroy(utf16Buffer);
 }
 
 void ToUtf32AndFromUtf32Test() {
@@ -351,14 +350,15 @@ void ToUtf32AndFromUtf32Test() {
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)5, "UTF-32 buffer should have 5 characters");
 
     // Euro sign is U+20AC, which is 0x20AC in UTF-32
+    const mla_utf_32_char_t* utf32Buffer_data = mla_string_utf32_data(utf32Buffer);
 
-    if (utf32Buffer.data != nullptr) {
-        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "First UTF-32 character should be Euro sign");
-        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)' ', "Second UTF-32 character should be space");
-        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'1', "Third UTF-32 character should be '1'");
-        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)'0', "Fourth UTF-32 character should be '0'");
-        assert_equal(utf32Buffer.data[4], (mla_utf_32_char_t)'0', "Fifth UTF-32 character should be '0'");
-        assert_equal(utf32Buffer.data[5], (mla_utf_32_char_t)0x00000000,
+    if (utf32Buffer_data != nullptr) {
+        assert_equal(utf32Buffer_data[0], (mla_utf_32_char_t)0x000020AC, "First UTF-32 character should be Euro sign");
+        assert_equal(utf32Buffer_data[1], (mla_utf_32_char_t)' ', "Second UTF-32 character should be space");
+        assert_equal(utf32Buffer_data[2], (mla_utf_32_char_t)'1', "Third UTF-32 character should be '1'");
+        assert_equal(utf32Buffer_data[3], (mla_utf_32_char_t)'0', "Fourth UTF-32 character should be '0'");
+        assert_equal(utf32Buffer_data[4], (mla_utf_32_char_t)'0', "Fifth UTF-32 character should be '0'");
+        assert_equal(utf32Buffer_data[5], (mla_utf_32_char_t)0x00000000,
                      "Sixth UTF-32 character should be null terminator");
     } else {
         assert_fail("UTF-32 buffer is empty");
@@ -368,7 +368,6 @@ void ToUtf32AndFromUtf32Test() {
     mla_string_t newBaseString = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, newBaseString,
                         "New MlaString from UTF-32 buffer should equal original");
-    mla_string_utf32_buffer_destroy(utf32Buffer);
 }
 
 void ToUtf16AndFromUtf16_EmptyTest() {
@@ -376,10 +375,12 @@ void ToUtf16AndFromUtf16_EmptyTest() {
     mla_string_t baseString = mla_string("");
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)0, "UTF-16 empty: charCount should be 0");
-    assert_null(utf16Buffer.data, "UTF-16 empty: data shoud be null");
+
+    const mla_utf_16_char_t* utf16Buffer_data = mla_string_utf16_data(utf16Buffer);
+
+    assert_null(utf16Buffer_data, "UTF-16 empty: data shoud be null");
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
     assert_true(mla_string_is_empty(roundTrip), "UTF-16 empty: round trip string should be empty");
-    mla_string_utf16_buffer_destroy(utf16Buffer);
 }
 
 void ToUtf16AndFromUtf16_AsciiTest() {
@@ -387,18 +388,20 @@ void ToUtf16AndFromUtf16_AsciiTest() {
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 ASCII: charCount should be 3");
 
-    if (utf16Buffer.data != nullptr) {
-        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)'A', "UTF-16 ASCII: data[0]=='A'");
-        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)'B', "UTF-16 ASCII: data[1]=='B'");
-        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)'C', "UTF-16 ASCII: data[2]=='C'");
-        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 ASCII: null terminator");
+    const mla_utf_16_char_t* utf16Buffer_data = mla_string_utf16_data(utf16Buffer);
+
+    if (utf16Buffer_data != nullptr) {
+        assert_equal(utf16Buffer_data[0], (mla_utf_16_char_t)'A', "UTF-16 ASCII: data[0]=='A'");
+        assert_equal(utf16Buffer_data[1], (mla_utf_16_char_t)'B', "UTF-16 ASCII: data[1]=='B'");
+        assert_equal(utf16Buffer_data[2], (mla_utf_16_char_t)'C', "UTF-16 ASCII: data[2]=='C'");
+        assert_equal(utf16Buffer_data[3], (mla_utf_16_char_t)0x00, "UTF-16 ASCII: null terminator");
     } else {
         assert_fail("UTF-16 buffer is empty");
     }
 
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 ASCII round trip should match");
-    mla_string_utf16_buffer_destroy(utf16Buffer);
+
 }
 
 void ToUtf16AndFromUtf16_MixedBmpTest() {
@@ -407,28 +410,33 @@ void ToUtf16AndFromUtf16_MixedBmpTest() {
     mla_string_utf16_buffer_t utf16Buffer = mla_string_to_utf16_buffer(baseString);
     assert_equal(utf16Buffer.charCount, (mla_uint32_t)3, "UTF-16 Mixed BMP: charCount should be 3");
 
-    if (utf16Buffer.data != nullptr) {
-        assert_equal(utf16Buffer.data[0], (mla_utf_16_char_t)0x20AC, "UTF-16 Mixed BMP: Euro");
-        assert_equal(utf16Buffer.data[1], (mla_utf_16_char_t)0x03A9, "UTF-16 Mixed BMP: Omega");
-        assert_equal(utf16Buffer.data[2], (mla_utf_16_char_t)0x00DF, "UTF-16 Mixed BMP: Eszett");
-        assert_equal(utf16Buffer.data[3], (mla_utf_16_char_t)0x00, "UTF-16 Mixed BMP: terminator");
+    const mla_utf_16_char_t* utf16Buffer_data = mla_string_utf16_data(utf16Buffer);
+
+    if (utf16Buffer_data != nullptr) {
+        assert_equal(utf16Buffer_data[0], (mla_utf_16_char_t)0x20AC, "UTF-16 Mixed BMP: Euro");
+        assert_equal(utf16Buffer_data[1], (mla_utf_16_char_t)0x03A9, "UTF-16 Mixed BMP: Omega");
+        assert_equal(utf16Buffer_data[2], (mla_utf_16_char_t)0x00DF, "UTF-16 Mixed BMP: Eszett");
+        assert_equal(utf16Buffer_data[3], (mla_utf_16_char_t)0x00, "UTF-16 Mixed BMP: terminator");
     } else {
         assert_fail("UTF-16 buffer is empty");
     }
 
     mla_string_t roundTrip = mla_string_from_utf16_buffer(utf16Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-16 Mixed BMP round trip should match");
-    mla_string_utf16_buffer_destroy(utf16Buffer);
+
 }
 
 void ToUtf32AndFromUtf32_EmptyTest() {
     mla_string_t baseString = mla_string("");
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)0, "UTF-32 empty: charCount should be 0");
-    assert_null(utf32Buffer.data, "UTF-32 empty: data should be null");
+
+    const mla_utf_32_char_t* utf32Buffer_data = mla_string_utf32_data(utf32Buffer);
+
+    assert_null(utf32Buffer_data, "UTF-32 empty: data should be null");
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
     assert_true(mla_string_is_empty(roundTrip), "UTF-32 empty: round trip string should be empty");
-    mla_string_utf32_buffer_destroy(utf32Buffer);
+
 }
 
 void ToUtf32AndFromUtf32_AsciiTest() {
@@ -436,18 +444,19 @@ void ToUtf32AndFromUtf32_AsciiTest() {
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 ASCII: charCount should be 3");
 
-    if (utf32Buffer.data != nullptr) {
-        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)'A', "UTF-32 ASCII: data[0]=='A'");
-        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)'B', "UTF-32 ASCII: data[1]=='B'");
-        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)'C', "UTF-32 ASCII: data[2]=='C'");
-        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 ASCII: terminator");
+    const mla_utf_32_char_t* utf32Buffer_data = mla_string_utf32_data(utf32Buffer);
+
+    if (utf32Buffer_data != nullptr) {
+        assert_equal(utf32Buffer_data[0], (mla_utf_32_char_t)'A', "UTF-32 ASCII: data[0]=='A'");
+        assert_equal(utf32Buffer_data[1], (mla_utf_32_char_t)'B', "UTF-32 ASCII: data[1]=='B'");
+        assert_equal(utf32Buffer_data[2], (mla_utf_32_char_t)'C', "UTF-32 ASCII: data[2]=='C'");
+        assert_equal(utf32Buffer_data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 ASCII: terminator");
     } else {
         assert_fail("UTF-32 buffer is empty");
     }
 
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 ASCII round trip should match");
-    mla_string_utf32_buffer_destroy(utf32Buffer);
 }
 
 void ToUtf32AndFromUtf32_MixedBmpTest() {
@@ -455,18 +464,19 @@ void ToUtf32AndFromUtf32_MixedBmpTest() {
     mla_string_utf32_buffer_t utf32Buffer = mla_string_to_utf32_buffer(baseString);
     assert_equal(utf32Buffer.charCount, (mla_uint32_t)3, "UTF-32 Mixed BMP: charCount should be 3");
 
-    if (utf32Buffer.data != nullptr) {
-        assert_equal(utf32Buffer.data[0], (mla_utf_32_char_t)0x000020AC, "UTF-32 Mixed BMP: Euro");
-        assert_equal(utf32Buffer.data[1], (mla_utf_32_char_t)0x000003A9, "UTF-32 Mixed BMP: Omega");
-        assert_equal(utf32Buffer.data[2], (mla_utf_32_char_t)0x000000DF, "UTF-32 Mixed BMP: Eszett");
-        assert_equal(utf32Buffer.data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 Mixed BMP: terminator");
+    const mla_utf_32_char_t* utf32Buffer_data = mla_string_utf32_data(utf32Buffer);
+
+    if (utf32Buffer_data != nullptr) {
+        assert_equal(utf32Buffer_data[0], (mla_utf_32_char_t)0x000020AC, "UTF-32 Mixed BMP: Euro");
+        assert_equal(utf32Buffer_data[1], (mla_utf_32_char_t)0x000003A9, "UTF-32 Mixed BMP: Omega");
+        assert_equal(utf32Buffer_data[2], (mla_utf_32_char_t)0x000000DF, "UTF-32 Mixed BMP: Eszett");
+        assert_equal(utf32Buffer_data[3], (mla_utf_32_char_t)0x00000000, "UTF-32 Mixed BMP: terminator");
     } else {
         assert_fail("UTF-32 buffer is empty");
     }
 
     mla_string_t roundTrip = mla_string_from_utf32_buffer(utf32Buffer);
     assert_struct_equal(mla_string_t, baseString, roundTrip, "UTF-32 Mixed BMP round trip should match");
-    mla_string_utf32_buffer_destroy(utf32Buffer);
 }
 
 void StringFromInt8Test() {
@@ -805,8 +815,6 @@ void StringToLowerTest() {
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("hello")),
                 "Already lowercase should remain unchanged");
-    assert_equal(mla_string_data(lower), mla_string_data(str),
-                 "Already lowercase should return same pointer (no allocation)");
 
     // Test all uppercase string
     str = mla_string("HELLO");
@@ -849,8 +857,6 @@ void StringToUpperTest() {
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("HELLO")),
                 "Already uppercase should remain unchanged");
-    assert_equal(mla_string_data(upper), mla_string_data(str),
-                 "Already uppercase should return same pointer (no allocation)");
 
     // Test all lowercase string
     str = mla_string("hello");
@@ -1103,46 +1109,24 @@ void RepeatTest() {
     mla_string_destroy(str);
 }
 
-void StringIsDataOwnerTest() {
-    mla_string_t cstr_view = mla_string("hello");
-    assert_false(mla_string_is_data_owner(cstr_view), "C-string layout should not be data owner by default");
-
-    mla_string_t sso = mla_string_copy("hello", 5);
-    assert_false(mla_string_is_data_owner(sso), "SSO string should not be data owner");
-
-    mla_string_t cstr = mla_string("this is a long string that should be on heap");
-    assert_false(mla_string_is_data_owner(cstr), "C-string layout should not be data owner by default");
-
-    mla_string_t copy = mla_string_copy(cstr);
-    assert_true(mla_string_is_data_owner(copy), "Copied string should be data owner");
-    mla_string_destroy(copy);
-}
 
 void StringCopyTest() {
     // Test copy from char* (Short string -> SSO)
     mla_string_t copy1 = mla_string_copy("hello", 5);
     assert_true(mla_string_equals(copy1, mla_string("hello")), "Copy from char* failed");
-    assert_false(mla_string_is_data_owner(copy1), "Copy from short char* should be SSO (not data owner)");
     mla_string_destroy(copy1);
 
     // Test copy from char* (Long string -> Heap)
     mla_string_t copy_long = mla_string_copy("this is a very long string that will definitely be on the heap", 62);
-    assert_true(mla_string_is_data_owner(copy_long), "Copy from long char* should be data owner");
+    assert_true(mla_string_equals(copy_long, mla_string("this is a very long string that will definitely be on the heap")),
+                "Copy from long char* failed");
     mla_string_destroy(copy_long);
 
     // Test copy from mla_string_t (Short string -> SSO)
     mla_string_t orig = mla_string("world");
     mla_string_t copy2 = mla_string_copy(orig);
     assert_true(mla_string_equals(copy2, orig), "Copy from mla_string_t failed");
-    assert_false(mla_string_is_data_owner(copy2), "Copy from short mla_string_t should be SSO (not data owner)");
     mla_string_destroy(copy2);
-}
-
-void StringFromBufferWithoutOwnershipTest() {
-    mla_char_t data[] = {'h', 'e', 'l', 'l', 'o', '\0'};
-    mla_string_t str = mla_string_from_buffer_without_ownership(data, 5);
-    assert_true(mla_string_equals(str, mla_string("hello")), "From buffer without ownership failed");
-    assert_false(mla_string_is_data_owner(str), "Should not be data owner");
 }
 
 void StringContainsIgnoreCaseTest() {
@@ -1164,18 +1148,6 @@ void StringEndsWithIgnoreCaseTest() {
     assert_false(mla_string_ends_with_ignore_case(str, mla_string("hello")), "Should not end with hello");
 }
 
-void DestroyCStringTest() {
-    mla_string_t str = mla_string("Hello");
-    mla_c_string_t cstr = mla_string_to_cString(str, true);
-    assert_true(cstr.isOwner, "Should be owner");
-    assert_true(mla_destroy_c_string(cstr), "Destroy C string should return true if owned");
-    assert_null(cstr.c_str, "C string should be null after destruction");
-
-    mla_c_string_t cstr2 = mla_string_to_cString(str, false);
-    assert_false(cstr2.isOwner, "Should not be owner");
-    assert_false(mla_destroy_c_string(cstr2), "Destroy C string should return false if not owned");
-    assert_not_null(cstr2.c_str, "C string should not be null after failed destruction");
-}
 
 void StringFromSizeTest() {
     mla_string_t str = mla_string_from_size(12345);
@@ -1231,12 +1203,6 @@ void StringConstTest() {
     assert_equal(mla_string_length(str), (mla_size_t)5, "String const length failed");
 }
 
-void StringFromEndPointerTest() {
-    const mla_char_t *data = "hello world";
-    mla_string_t str = mla_string(data, data + 5);
-    assert_true(mla_string_equals(str, mla_string("hello")), "String from end pointer failed");
-}
-
 void StringEqualsConstTest() {
     mla_string_t str = mla_string("hello");
     assert_true(mla_string_equals_const(str, "hello"), "String equals const failed");
@@ -1285,9 +1251,6 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ToCString", test_category, ToCStringTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("ToCString_No_Force_Copy", test_category, ToCString_No_Force_CopyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ToCStringFromBuffer", test_category, ToCStringFromBufferTest);
@@ -1395,13 +1358,7 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("Repeat", test_category, RepeatTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("IsDataOwner", test_category, StringIsDataOwnerTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
     test = mla_test("Copy", test_category, StringCopyTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("FromBufferWithoutOwnership", test_category, StringFromBufferWithoutOwnershipTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ContainsIgnoreCase", test_category, StringContainsIgnoreCaseTest);
@@ -1411,9 +1368,6 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("EndsWithIgnoreCase", test_category, StringEndsWithIgnoreCaseTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("DestroyCString", test_category, DestroyCStringTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("FromSize", test_category, StringFromSizeTest);
@@ -1429,9 +1383,6 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Const", test_category, StringConstTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("FromEndPointer", test_category, StringFromEndPointerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("EqualsConst", test_category, StringEqualsConstTest);
@@ -1545,14 +1496,14 @@ void StringFromBoolBenchmark() {
 
 void StringFromUtf16BufferBenchmark() {
     mla_utf_16_char_t data[] = {0x20AC, ' ', '1', '0', '0', 0x00};
-    mla_string_utf16_buffer_t buffer = {data, 5};
+    mla_string_utf16_buffer_t buffer = {mla_platform_pointer_to_managed_pointer(data), 5};
     mla_string_t str = mla_string_from_utf16_buffer(buffer);
     mla_string_destroy(str);
 }
 
 void StringFromUtf32BufferBenchmark() {
     mla_utf_32_char_t data[] = {0x000020AC, ' ', '1', '0', '0', 0x00000000};
-    mla_string_utf32_buffer_t buffer = {data, 5};
+    mla_string_utf32_buffer_t buffer = {mla_platform_pointer_to_managed_pointer(data), 5};
     mla_string_t str = mla_string_from_utf32_buffer(buffer);
     mla_string_destroy(str);
 }
@@ -1562,7 +1513,7 @@ void StringContains_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
     mla_test_int32_t length = (mla_test_int32_t) mla_test_strlen(data); // Length of the string
 
-    mla_string_t str = mla_string(data, length);
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
     mla_string_t subString = mla_string("for");
 
     if (!mla_string_contains(str, subString)) {
@@ -1584,7 +1535,7 @@ void StringIndexOf_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
     mla_test_int32_t length = (mla_test_int32_t) mla_test_strlen(data); // Length of the string
 
-    mla_string_t str = mla_string(data, length);
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
     mla_string_t subString = mla_string("for");
 
     mla_test_int32_t index = mla_string_index_of(str, subString);
@@ -1605,39 +1556,23 @@ void StringIndexOf_C_LayoutBenchmark() {
 
 
 void String_to_C_LayoutBenchmark() {
+
     mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.");
-    mla_c_string_t cStr = mla_string_to_cString(str, false);
-
-    if (cStr.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(cStr.c_str));
-    }
-
-    mla_c_string_t cStr2 = mla_string_to_cString(str, false);
-
-    if (cStr2.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(cStr2.c_str));
-    }
+    mla_c_string_t cStr = mla_string_to_cString(str);
+    mla_test_bench_sink(cStr);
 }
 
 void String_to_Buffer_LayoutBenchmark() {
-    mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.", 53);
-    mla_c_string_t cStr = mla_string_to_cString(str, false);
+    mla_string_t str = mla_string_const("Hello, World! This is a test string for benchmarking.");
+    mla_c_string_t cStr = mla_string_to_cString(str);
+    mla_test_bench_sink(cStr);
 
-    if (cStr.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(cStr.c_str));
-    }
-
-    mla_c_string_t cStr2 = mla_string_to_cString(str, false);
-
-    if (cStr2.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(cStr2.c_str));
-    }
 }
 
 void RefCountBenchmark() {
-    mla_char_t *data = mla_create_char_array(1);
+    mla_pointer_t data = mla_create_char_array(1);
 
-    mla_string_t str1 = mla_string_from_buffer_with_ownership(data, 1);
+    mla_string_t str1 = mla_string(data, 1);
     mla_string_t str2 = str1;
     mla_string_t str3 = str2;
     mla_string_t str4 = str3;

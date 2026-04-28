@@ -262,6 +262,8 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
 
 #define mla_malloc_with_manager(memory_manager, size, cleanup_hook, cleanup_data) mla_malloc_with_check(memory_manager, size, cleanup_hook, cleanup_data, __FILE__, __func__)
 #define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, cleanup_hook, cleanup_data)
+#define mla_malloc_buffer(size) mla_malloc(size, nullptr, mla_dynamic_data_empty())
+#define mla_malloc_buffer_with_manager(memory_manager, size) mla_malloc_with_manager(memory_manager, size, nullptr, mla_dynamic_data_empty())
 
 #define mla_platform_malloc(size) mla_platform_malloc_with_check(size, __FILE__, __func__)
 
@@ -285,7 +287,6 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
 struct mla_pointer_memory_manager_t {
 
     mla_pointer_t (*malloc)(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
-    mla_bool_t (*is_null)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     mla_platform_pointer_t (*get_platform_pointer)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
@@ -331,6 +332,53 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
-mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_pointer_t resource);
+
+template <typename T>
+using mla_malloc_struct_ex_clean_up_hook_t = void(*)(const T& userData);
+
+template <typename T>
+void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+    (void)userData;
+
+    T* data_ptr = reinterpret_cast<T*>(data);
+
+    if (data_ptr == nullptr) {
+        return;
+    }
+
+    T data_resolved = *data_ptr;
+
+    if (userData.asPointer != nullptr) {
+        mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook = reinterpret_cast<mla_malloc_struct_ex_clean_up_hook_t<T>>(userData.asPointer);
+        clean_up_hook(data_resolved);
+    }
+
+    data_resolved = T::init();
+}
+
+template <typename T>
+mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook) {
+    return mla_dynamic_data_from_pointer(reinterpret_cast<mla_platform_pointer_t>(clean_up_hook));
+}
+
+
+#define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
+#define mla_malloc_struct_cleanup_hook(T, clean_up_hook) mla_malloc_struct_cleanup_hook_with_manager(g_pointer_memory_manager_instance.current, T, clean_up_hook)
+
+/**
+ * Create a mla_pointer_t from an external pointer. The memory manager will not take ownership of the pointer and will not attempt to free it.
+ **/
+mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
+
+/**
+ * Create a mla_pointer_t from an external resource represented as mla_dynamic_data_t.
+ * The memory manager will take ownership an call the clean up hook at the end
+ */
+typedef mla_dynamic_data_t mla_native_resource_t;
+mla_native_resource_t mla_native_resource_empty();
+
+typedef void(*mla_native_resource_clean_up_hook_t)(const mla_native_resource_t& userData);
+mla_pointer_t mla_native_resource_to_managed_pointer(mla_native_resource_t& resource, mla_native_resource_clean_up_hook_t cleanup_hook);
+mla_native_resource_t* mla_native_resource_from_managed_pointer(mla_pointer_t pointer);
 
 #endif

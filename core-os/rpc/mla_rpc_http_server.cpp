@@ -69,7 +69,8 @@ mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type
 
 mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
-    mla_platform_pointer_t buffer = mla_user_data_get_mla_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
+    mla_pointer_t buffer_ptr = mla_user_data_get_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
+    mla_platform_pointer_t buffer = mla_pointer_get_platform_pointer(buffer_ptr);
 
     if (buffer == nullptr) {
         return false;
@@ -124,7 +125,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     (void)http_server;
 
     // Remove "/rpc/" prefix
-    mla_string_t procedure_name = mla_string_substr(request.url, 5, mla_string_length(request.url) - 5);
+    mla_string_t procedure_name = mla_string_substr(request.url, 5);
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
@@ -163,66 +164,55 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
     }
 
     // Prepare Input data
-    mla_platform_pointer_t input = nullptr;
+    mla_pointer_t input = mla_pointer_null();
 
     if (procedure.inputDefinition.data_size > 0) {
-        input = mla_platform_malloc(procedure.inputDefinition.data_size);
+        input = mla_malloc_buffer(procedure.inputDefinition.data_size);
 
-        if (input == nullptr) {
+        if (mla_pointer_is_null(input)) {
             return false;
         }
-
-        mla_memset(input, 0, procedure.inputDefinition.data_size);
     }
 
     // Prepare Output data
-    mla_platform_pointer_t output = nullptr;
+    mla_pointer_t output = mla_pointer_null();
 
     if (procedure.outputDefinition.data_size > 0) {
 
         // Calculate output size including content type and write function
         mla_size_t output_size = sizeof(mla_rpc_http_server_handler_content_writer_header_t) + procedure.outputDefinition.data_size;
 
-        output = mla_platform_malloc(output_size);
+        output = mla_malloc_buffer(output_size);
 
-        if (output == nullptr) {
 
-            if (input != nullptr) {
-                mla_platform_free(input);
-            }
-            return false;
-        }
-
-        mla_memset(output, 0, output_size);
-
-        mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+        mla_rpc_http_server_handler_content_writer_header_t* header = mla_pointer_get_data<mla_rpc_http_server_handler_content_writer_header_t>(output);
         header->contentType = contentType;
         header->write_function = procedure.outputDefinition.write_function;
         header->support_deflate_compression = mla_http_headers_has_header_value(request.headers, mla_string_const("Accept-Encoding"), mla_string_const("deflate"), mla_string_const(","));
     }
 
-    if (input != nullptr && procedure.inputDefinition.read_function != nullptr) {
+    mla_platform_pointer_t input_ptr = mla_pointer_get_platform_pointer(input);
+
+    if (input_ptr != nullptr && procedure.inputDefinition.read_function != nullptr) {
 
         // Start reading
         deserializer.read_next(deserializer);
-        if (!mla_deserializer_read_struct_read_function(deserializer, input, procedure.inputDefinition.read_function)) {
+        if (!mla_deserializer_read_struct_read_function(deserializer, input_ptr, procedure.inputDefinition.read_function)) {
             response.statusCode = mla_http_status_bad_request;
             mla_error(mla_string_concat("Failed to deserialize input for procedure ", procedure_name));
-            mla_platform_free(output);
-            mla_platform_free(input);
             return false;
         }
     }
 
     // Store content type and write function at the beginning of output buffer
-    mla_platform_pointer_t outputData = nullptr;
+    mla_platform_pointer_t output_ptr = mla_pointer_get_platform_pointer(output);
+    mla_platform_pointer_t output_content = nullptr;
 
-    if (output != nullptr) {
-        outputData = reinterpret_cast<mla_uint8_t*>(output) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+    if (output_ptr != nullptr) {
+        output_content = reinterpret_cast<mla_uint8_t*>(output_ptr) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
     }
 
-    if (procedure.execute(input, outputData)) {
-        mla_platform_free(input);
+    if (procedure.execute(input_ptr, output_content)) {
 
         response.statusCode = mla_http_status_ok;
         response.statusMessage = mla_string_const("Success");
@@ -230,7 +220,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         // Add CORS header for actual request
         mla_http_headers_add(response.headers, mla_string_const("Access-Control-Allow-Origin"), mla_string_const("*"));
 
-        if (output != nullptr) {
+        if (output_ptr != nullptr) {
 
             // Set Content-Type header
             if (contentType == mla_http_rpc_content_type_json) {
@@ -239,19 +229,18 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 mla_http_headers_add(response.headers, mla_string_const("Content-Type"), mla_string_const("application/octet-stream"));
             } else {
                 mla_error(mla_string_concat("Unsupported Content-Type for procedure ", procedure_name));
-                mla_platform_free(output);
                 return false;
             }
 
             // If its an short input we can optimize by writing it directly
             mla_memory_stream_t temp_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, false);
 
-            if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, outputData, procedure.outputDefinition.write_function)) {
+            if (__mla_rpc_http_server_handler_content_write(contentType, temp_stream.output, output_content, procedure.outputDefinition.write_function)) {
 
                 mla_size_t content_size = mla_memory_stream_get_size(temp_stream);
 
                 mla_memory_stream_set_position(temp_stream, 0);
-                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
                 if (__mla_rpc_http_server_support_deflate_compression(*header) && content_size > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
@@ -274,12 +263,9 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                     response.content = temp_stream.input;
                 }
 
-
-
-                mla_platform_free(output);
             } else {
 
-                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output);
+                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_content);
 
                 if (__mla_rpc_http_server_support_deflate_compression(*header)) {
                     mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
@@ -288,15 +274,13 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
                 mla_http_headers_add(response.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
 
                 mla_user_data_t writer_user_data = mla_user_data_empty();
-                mla_user_data_set_pointer_with_ownership_ex(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output, nullptr, false);
+                mla_user_data_set_pointer(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output);
 
                 response.contentWriter = mla_http_response_content_writer(writer_user_data, __mla_rpc_http_server_handler_content_writer);
             }
         }
 
     } else {
-        mla_platform_free(input);
-        mla_platform_free(output);
         response.statusCode = mla_http_status_internal_server_error;
     }
 

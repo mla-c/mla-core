@@ -156,29 +156,14 @@ inline void UserDataSetGetCharTest() {
     assert_equal(value, 'A', "Should retrieve correct char value");
 }
 
-// Test setting and getting pointer values without ownership
-inline void UserDataSetGetPointerWithoutOwnershipTest() {
-    mla_user_data_t userData = mla_user_data_empty();
-    mla_int32_t testData = 12345;
-
-    mla_bool_t success = mla_user_data_set_pointer_without_ownership(userData, mla_user_data_test_id, &testData);
-    assert_true(success, "Should successfully set pointer without ownership");
-
-    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, mla_user_data_test_id);
-
-    if (value == nullptr) {
-        assert_fail("Failed to retrieve pointer value");
-
-    } else {
-        assert_equal(*value, 12345, "Should retrieve correct pointer value");
-    }
-
-}
 
 // Test setting and getting pointer values with ownership
 inline void UserDataSetGetPointerWithOwnershipTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_int32_t* testData = (mla_int32_t*)mla_platform_malloc(sizeof(mla_int32_t));
+
+    mla_pointer_t test_data_ptr = mla_malloc_buffer(sizeof(mla_int32_t));
+
+    mla_int32_t* testData = mla_pointer_get_data<mla_int32_t>(test_data_ptr);
 
     if (testData == nullptr) {
         assert_fail("Failed to allocate memoryfor test data");
@@ -187,10 +172,12 @@ inline void UserDataSetGetPointerWithOwnershipTest() {
 
     *testData = 54321;
 
-    mla_bool_t success = mla_user_data_set_pointer_with_ownership<mla_int32_t, mla_default_init(mla_int32_t)>(userData, mla_user_data_test_id, testData);
+    mla_bool_t success = mla_user_data_set_pointer(userData, mla_user_data_test_id, test_data_ptr);
     assert_true(success, "Should successfully set pointer with ownership");
 
-    mla_int32_t* value = mla_user_data_get_pointer<mla_int32_t>(userData, mla_user_data_test_id);
+    mla_pointer_t value_ptr = mla_user_data_get_pointer(userData, mla_user_data_test_id);
+
+    mla_int32_t* value = mla_pointer_get_data<mla_int32_t>(value_ptr);
     assert_not_null(value, "Should retrieve non-null pointer");
     assert_equal(*value, 54321, "Should retrieve correct pointer value");
 }
@@ -256,8 +243,8 @@ inline void UserDataEmptyTest() {
     mla_int32_t value = mla_user_data_get_int32(userData, mla_user_data_test_missing, 999);
     assert_equal(value, 999, "Should return default value for missing key in empty user data");
 
-    mla_platform_pointer_t ptr = mla_user_data_get_mla_pointer(userData, mla_user_data_test_missing);
-    assert_null(ptr, "Should return null pointer for missing key in empty user data");
+    mla_pointer_t ptr = mla_user_data_get_pointer(userData, mla_user_data_test_missing);
+    assert_true(mla_pointer_is_null(ptr), "Should return null pointer for missing key in empty user data");
 }
 
 
@@ -330,9 +317,6 @@ inline void RegisterUserDataTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("UserDataSetGetChar", test_category, UserDataSetGetCharTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("UserDataSetGetPointerWithoutOwnership", test_category, UserDataSetGetPointerWithoutOwnershipTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("UserDataSetGetPointerWithOwnership", test_category, UserDataSetGetPointerWithOwnershipTest);

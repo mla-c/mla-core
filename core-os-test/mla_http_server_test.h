@@ -95,7 +95,7 @@ inline void HttpServerMultiHandlerTest() {
 
         mla_char_t body_buffer[5] = {0};
         response1.response.content.read(response1.response.content, 0, 4, (mla_byte_t *) body_buffer);
-        mla_string_t body_string = mla_string_from_buffer_without_ownership(body_buffer, 4);
+        mla_string_t body_string = mla_string(mla_platform_pointer_to_managed_pointer (body_buffer), 4);
         assert_struct_equal(mla_string_t, mla_string_const("test"), body_string,
                             "Should receive 'test' body from multi handler server");
 
@@ -111,7 +111,7 @@ inline void HttpServerMultiHandlerTest() {
 
         mla_char_t body_2_buffer[12] = {0};
         response2.response.content.read(response2.response.content, 0, 12, (mla_byte_t *) body_2_buffer);
-        mla_string_t body_2_string = mla_string_from_buffer_without_ownership(body_2_buffer, 11);
+        mla_string_t body_2_string = mla_string(mla_platform_pointer_to_managed_pointer(body_2_buffer), 11);
 
         assert_struct_equal(mla_string_t, mla_string_const("hello world"), body_2_string,
                             "Should receive echoed body from multi handler server");

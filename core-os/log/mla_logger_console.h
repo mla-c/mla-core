@@ -7,7 +7,7 @@
 
 #include "mla_logger.h"
 
-static mla_string_t CONSOLE_LOGGER_NAME = mla_string("Console", 7);
+static mla_string_t CONSOLE_LOGGER_NAME = mla_string_const("Console");
 
 mla_bool_t mla_log_to_console_activate();
 

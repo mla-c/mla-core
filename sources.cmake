@@ -6,6 +6,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_pointer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_default_pointer_memory_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_noop_pointer_memory_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/mla_native_resource_pointer_memory_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string_concat.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core-os/system/mla_string_utf.cpp

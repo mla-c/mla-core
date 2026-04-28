@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Natvis visualizer for mla_link_list_t  (mla_link_list.h)
+
+  Struct layout:
+    mla_link_list_t<T, TInit>
+      mla_size_t                    size       – number of elements
+      mla_buffer_reference_t        headOwner
+      mla_buffer_reference_t        tailOwner
+      mla_link_list_data_t<T>*      data       – heap struct holding head/tail pointers
+      mla_buffer_reference_t        dataOwner
+
+    mla_link_list_data_t<T, TInit>
+      mla_link_list_node_t<T>*  head
+      mla_link_list_node_t<T>*  tail
+
+    mla_link_list_node_t<T, TInit>
+      mla_link_list_node_t<T>*  next
+      mla_link_list_node_t<T>*  prev
+      mla_buffer_reference_t    nextOwner
+      mla_buffer_reference_t    prevOwner
+      T                         data          ← the user value
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_link_list_t<T, TInit>
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_link_list_t&lt;*&gt;">
+
+    <!-- Empty / uninitialized -->
+    <DisplayString Condition="size == 0 || data == 0">[empty]</DisplayString>
+
+    <!-- Non-empty: show size and head element as preview -->
+    <DisplayString Condition="size > 0 &amp;&amp; data != 0">size={size,d} {{ {data->head->data}, ... }}</DisplayString>
+
+    <Expand>
+      <Item Name="[size]">size,d</Item>
+      <Item Name="[head]" Condition="data != 0 &amp;&amp; data->head != 0">data->head->data</Item>
+      <Item Name="[tail]" Condition="data != 0 &amp;&amp; data->tail != 0">data->tail->data</Item>
+
+      <!-- Walk the list via next pointers, showing each node's data field -->
+      <LinkedListItems>
+        <Size>size</Size>
+        <HeadPointer>data->head</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>data</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_link_list_node_t<T, TInit>  – shown when drilling into a node
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_link_list_node_t&lt;*&gt;">
+    <DisplayString>{data}</DisplayString>
+    <Expand>
+      <Item Name="[data]">data</Item>
+      <Item Name="[next]" Condition="next != 0">next->data</Item>
+      <Item Name="[prev]" Condition="prev != 0">prev->data</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
+

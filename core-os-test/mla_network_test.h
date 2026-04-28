@@ -12,9 +12,6 @@
 
 extern mla_network_low_level_operations_t g_network_low_level_operations;
 
-#undef test_category
-#define test_category "Network"
-
 static mla_bool_t mock_resolve_host_called = false;
 static mla_bool_t mock_resolve_host_result = true;
 static mla_network_host_t mock_resolved_host = mla_network_host_invalid();

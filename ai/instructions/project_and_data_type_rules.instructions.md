@@ -83,7 +83,7 @@ Available for all integer types (e.g., `mla_int8_min`, `mla_int8_max`, `mla_uint
 **Usage rules:**
 - ✅ **Always** use `mla_pointer_t` when your code **owns** heap-allocated data.
 - ✅ Use `mla_malloc(size, cleanup_hook, cleanup_data)` or `mla_malloc_struct(T)` to allocate a managed pointer via the active memory manager.
-- ✅ Use `mla_pointer_get_data<T>(ptr)` to obtain a typed raw pointer for reading or writing the payload. This function can return `nullptr` even if the `mla_pointer_is_null` check returns false, so always check the result before dereferencing.
+- ✅ Use `mla_pointer_get_data<T>(ptr)` to obtain a typed raw pointer for reading or writing the payload. This function can return `nullptr` so always check the result before dereferencing.
 - ❌ **Never** use `mla_platform_malloc` / `new` for data that should be owned — wrap the result in `mla_pointer_t` instead.
 - ❌ **Never** store a raw `mla_platform_pointer_t` as a long-lived owning reference.
 

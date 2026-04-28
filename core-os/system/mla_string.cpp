@@ -7,19 +7,32 @@
 #include "../log/mla_logging.h"
 #include "../utils/mla_char_utils.h"
 
-mla_char_t * mla_create_char_array(const mla_size_t p_Length) {
-    return static_cast<mla_char_t*>(mla_platform_malloc(sizeof(mla_char_t) * p_Length));
+mla_bool_t mla_string_is_embedded(const mla_string_t &p_String) {
+    return (p_String.embedded.memoryLayout & MLA_STRING_MEMORY_LOCATION_MASK) == MLA_STRING_LOCATION_EMBEDDED;
+}
+
+mla_bool_t mla_string_is_heap(const mla_string_t &p_String) {
+    return (p_String.embedded.memoryLayout & MLA_STRING_MEMORY_LOCATION_MASK) == MLA_STRING_LOCATION_HEAP;
+}
+
+mla_bool_t mla_string_is_c_string(const mla_string_t &p_String) {
+    return (p_String.embedded.memoryLayout & MLA_STRING_MEMORY_FORMAT_MASK) == MLA_STRING_FORMAT_C_STRING;
+}
+
+mla_bool_t mla_string_is_sub_string(const mla_string_t &p_String) {
+    return (p_String.embedded.memoryLayout & MLA_STRING_MEMORY_FORMAT_MASK) == MLA_STRING_FORMAT_SUB_STRING;
+}
+
+const mla_char_t* mla_c_string_data(const mla_c_string_t &p_CString) {
+    return mla_pointer_get_data<mla_char_t>(p_CString.c_heap_str);
+}
+
+mla_pointer_t mla_create_char_array(const mla_size_t p_Length) {
+    return mla_malloc(sizeof(mla_char_t) * p_Length, nullptr, mla_dynamic_data_empty());
 }
 
 mla_string_t mla_string_empty() {
-    return  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-}
-
-mla_string_t mla_string(const mla_char_t *p_Data, mla_size_t p_Length) {
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = p_Data;
-    result.heap.length = p_Length;
-    return result;
+    return  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
 }
 
 mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
@@ -30,84 +43,105 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
 
     if (p_Length <= mla_global_config_string_sso_max_length) {
         // Use embedded storage for small strings
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, p_Data, p_Length);
         return result;
     }
 
-    mla_char_t *newData = mla_create_char_array(p_Length);
+    mla_pointer_t newData = mla_create_char_array(p_Length);
+    mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
 
-    if (newData == nullptr) {
+    if (new_data_ptr == nullptr) {
         return mla_string_empty(); // Memory allocation failed
     }
 
-    mla_memcpy(newData, p_Data, p_Length);
+    mla_memcpy(new_data_ptr, p_Data, p_Length);
 
-    mla_string_t result =  {mla_buffer_reference_create(newData, false, nullptr, mla_dynamic_data_empty()), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = newData;
+    mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.length = p_Length;
+    result.heap.char_offset = 0;
     return result;
 }
 
 mla_string_t mla_string_copy(const mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
         return p_String; // Embedded strings can be returned as-is
     } else {
-        return mla_string_copy(p_String.heap.data, p_String.heap.length);
+        const mla_char_t* data = mla_string_data(p_String);
+        mla_size_t length = mla_string_length(p_String);
+        return mla_string_copy(data, length);
     }
 }
 
-mla_bool_t mla_string_is_data_owner(const mla_string_t &p_String) {
-    return !mla_buffer_reference_is_noOwner(p_String.dataOwner);
+mla_string_t mla_string(const mla_pointer_t& data, mla_size_t p_Length) {
+    mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.length = p_Length;
+    return result;
+}
+
+mla_string_t mla_string(const mla_pointer_t& data) {
+
+    mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(data);
+
+    if (str_data == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.length = mla_strlen(str_data);
+    return result;
+}
+
+mla_string_t mla_string(const mla_pointer_t& data, const mla_char_t *p_End) {
+
+    mla_char_t* str_data = mla_pointer_get_data<mla_char_t>(data);
+
+    if (str_data == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.length = static_cast<mla_size_t>(p_End - str_data);
+    return result;
 }
 
 mla_string_t mla_string(const mla_char_t *p_Data) {
 
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-    result.heap.data = p_Data;
-    result.heap.length = mla_strlen(p_Data);
-    return result;
-}
+    if (p_Data == nullptr) {
+        return mla_string_empty();
+    }
 
-mla_string_t mla_string(const mla_char_t *p_Data, const mla_char_t *p_End) {
+    mla_size_t length = mla_strlen(p_Data);
 
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = p_Data;
-    result.heap.length = static_cast<mla_size_t>(p_End - p_Data);
-    return result;
-}
+    if (length <= mla_global_config_string_sso_max_length) {
+        // Use embedded storage for small strings
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = static_cast<mla_uint8_t>(mla_strlen(p_Data));
+        mla_memcpy(result.embedded.data, p_Data, result.embedded.length);
+        return result;
+    }
 
-mla_string_t mla_string_from_buffer_with_ownership(const mla_char_t *p_Data, mla_size_t p_Length) {
+    mla_pointer_t str_ptr = mla_platform_pointer_to_managed_pointer(p_Data);
 
-    mla_string_t result =  {mla_buffer_reference(p_Data), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = p_Data;
-    result.heap.length = p_Length;
-    return  result;
-}
-
-mla_string_t mla_string_from_buffer_without_ownership(mla_char_t *p_Data, mla_size_t p_Length) {
-
-    mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = p_Data;
-    result.heap.length = p_Length;
+    mla_string_t result =  {str_ptr, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.length = length;
     return result;
 }
 
 void mla_string_destroy(mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
         return; // Nothing to destroy for embedded strings
     }
 
-    if (p_String.heap.data == nullptr) {
-        return; // Nothing to destroy
+    if (!mla_pointer_is_null(p_String.data_storage)) {
+        p_String.data_storage = mla_pointer_null(); // Clear the data storage pointer
     }
 
-    p_String.heap.data = nullptr; // Clear the pointer
-    p_String.dataOwner = mla_buffer_reference_noOwner();
     p_String.heap.length = 0; // Reset the length
+    p_String.heap.char_offset = 0;
 }
 
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2) {
@@ -139,24 +173,30 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
 
 mla_size_t mla_string_length(const mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
         return p_String.embedded.length;
     } else {
         return p_String.heap.length;
     }
+
 }
 
 const mla_char_t *mla_string_data(const mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
 
         if (p_String.embedded.length == 0) {
             return nullptr;
         }
 
         return p_String.embedded.data;
-    } else {
-        return p_String.heap.data;
+    }  else {
+
+        if (p_String.heap.length == 0) {
+            return nullptr;
+        }
+
+        return mla_pointer_get_data<mla_char_t>(p_String.data_storage) + p_String.heap.char_offset;
     }
 }
 
@@ -237,9 +277,9 @@ mla_string_t mla_string_to_lower(const mla_string_t &p_String) {
         return p_String; // Return as-is, no conversion needed
     }
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = p_String.embedded.length;
         for (mla_uint8_t i = 0; i < p_String.embedded.length; ++i) {
             result.embedded.data[i] = mla_char_toLower(p_String.embedded.data[i]);
@@ -248,19 +288,23 @@ mla_string_t mla_string_to_lower(const mla_string_t &p_String) {
 
     } else {
 
-        mla_char_t *newData = mla_create_char_array(p_String.heap.length);
+        mla_pointer_t newData = mla_create_char_array(p_String.heap.length);
 
-        if (newData == nullptr) {
+        mla_char_t* newData_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+        if (newData_ptr == nullptr) {
             return mla_string_empty(); // Memory allocation failed
         }
 
+        mla_char_t* oldData_ptr = mla_pointer_get_data<mla_char_t>(p_String.data_storage);
+
         for (mla_size_t i = 0; i < p_String.heap.length; ++i) {
-            newData[i] = mla_char_toLower(p_String.heap.data[i]);
+            newData_ptr[i] = mla_char_toLower(oldData_ptr[i]);
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-        result.heap.data = newData;
+        mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.length = p_String.heap.length;
+        result.heap.char_offset = 0;
         return result;
     }
 
@@ -283,9 +327,9 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
         return p_String; // Return as-is, no conversion needed
     }
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = p_String.embedded.length;
         for (mla_uint8_t i = 0; i < p_String.embedded.length; ++i) {
             result.embedded.data[i] = mla_char_toUpper(p_String.embedded.data[i]);
@@ -294,19 +338,23 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
 
     } else {
 
-        mla_char_t *newData = mla_create_char_array(p_String.heap.length);
+        mla_pointer_t newData = mla_create_char_array(p_String.heap.length);
 
-        if (newData == nullptr) {
+        mla_char_t* newData_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+        if (newData_ptr == nullptr) {
             return mla_string_empty(); // Memory allocation failed
         }
 
+        mla_char_t* oldData_ptr = mla_pointer_get_data<mla_char_t>(p_String.data_storage);
+
         for (mla_size_t i = 0; i < p_String.heap.length; ++i) {
-            newData[i] = mla_char_toUpper(p_String.heap.data[i]);
+            newData_ptr[i] = mla_char_toUpper(oldData_ptr[i]);
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-        result.heap.data = newData;
+        mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.length = p_String.heap.length;
+        result.heap.char_offset = 0;
         return result;
     }
 }
@@ -314,11 +362,7 @@ mla_string_t mla_string_to_upper(const mla_string_t &p_String) {
 
 mla_bool_t mla_string_is_empty(const mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
-        return p_String.embedded.length == 0;
-    } else {
-        return p_String.heap.length == 0;
-    }
+    return mla_string_length(p_String) == 0;
 }
 
 mla_bool_t mla_string_equals_ignore_case(const mla_string_t &p_String1, const mla_string_t &p_String2) {
@@ -366,10 +410,11 @@ mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t 
         return false; // Substring cannot be longer than the string
     }
 
-    if (p_String.heap.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING && p_Substring.heap.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+    if (mla_string_is_c_string(p_String) && mla_string_is_c_string(p_Substring)) {
+
         // If both strings are C-style strings, use strstr for substring search
         // because it is more efficient and optimized for this purpose
-        return mla_strstr(p_String.heap.data, p_Substring.heap.data) != nullptr; // Use strstr for substring search
+        return mla_strstr(mla_string_data(p_String), mla_string_data(p_Substring)) != nullptr; // Use strstr for substring search
     }
 
     const mla_char_t* data = mla_string_data(p_String);
@@ -454,7 +499,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
 
     if (resultLength <= mla_global_config_string_sso_max_length) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = (mla_uint8_t)resultLength;
         mla_size_t sourcePos = 0;
         mla_size_t destPos = 0;
@@ -479,8 +524,11 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
     } else {
 
         // Allocate new buffer
-        mla_char_t *newData = mla_create_char_array(resultLength);
-        if (newData == nullptr) {
+        mla_pointer_t newData = mla_create_char_array(resultLength);
+
+        mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+        if (new_data_ptr == nullptr) {
             return mla_string_empty(); // Memory allocation failed
         }
 
@@ -495,19 +543,19 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
 
                 // Copy new substring
                 if (lengthNewSub > 0) {
-                    mla_memcpy(newData + destPos, dataNewSub, lengthNewSub);
+                    mla_memcpy(new_data_ptr + destPos, dataNewSub, lengthNewSub);
                     destPos += lengthNewSub;
                 }
                 sourcePos += lengthOldSub;
                 } else {
                     // Copy single character
-                    newData[destPos++] = data[sourcePos++];
+                    new_data_ptr[destPos++] = data[sourcePos++];
                 }
         }
 
-        mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-        result.heap.data = newData;
+        mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
         result.heap.length = resultLength;
+        result.heap.char_offset = 0;
         return result;
     }
 }
@@ -597,7 +645,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataSub = mla_string_data(p_Substring);
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING && p_Substring.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+    if (mla_string_is_c_string(p_String) && mla_string_is_c_string(p_Substring)) {
         const mla_char_t *found = mla_strstr(data, dataSub);
 
         if (found) {
@@ -641,6 +689,22 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     return -1; // Substring not found
 }
 
+mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start) {
+
+    if (p_Start == 0) {
+        return p_String; // Return the original string if start index is 0
+    }
+
+    mla_size_t length = mla_string_length(p_String);
+
+    if (p_Start >= length) {
+        return mla_string_empty(); // Invalid start index
+    }
+
+    return mla_string_substr(p_String, p_Start, length - p_Start);
+
+}
+
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length) {
 
     mla_size_t length = mla_string_length(p_String);
@@ -656,11 +720,11 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         p_Length = length - p_Start; // Adjust length to the maximum possible
     }
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, p_String.embedded.data + p_Start, p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
 
@@ -669,15 +733,15 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         // I am not sure if this is a good idea to copy substrings into embedded strings
         // Maybe its faster just to create a substring view
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, p_String.heap.data + p_Start, p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
 
-    mla_string_t result =  {p_String.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
+    mla_string_t result =  {p_String.data_storage, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
     result.heap.length = p_Length;
-    result.heap.data = p_String.heap.data + p_Start;
+    result.heap.char_offset = p_Start + p_String.heap.char_offset; // Adjust char offset for the substring view
     return result;
 }
 
@@ -693,7 +757,7 @@ mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times)
 
     if (resultLength <= mla_global_config_string_sso_max_length) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(resultLength);
 
         for (mla_size_t i = 0; i < p_Times; ++i) {
@@ -702,19 +766,21 @@ mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times)
         return result;
     }
 
-    mla_char_t *newData = mla_create_char_array(resultLength);
+    mla_pointer_t newData = mla_create_char_array(resultLength);
 
-    if (newData == nullptr) {
+    mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+    if (new_data_ptr == nullptr) {
         return mla_string_empty(); // Memory allocation failed
     }
 
     for (mla_size_t i = 0; i < p_Times; ++i) {
-        mla_memcpy(newData + i * length, mla_string_data(p_String), length);
+        mla_memcpy(new_data_ptr + i * length, mla_string_data(p_String), length);
     }
 
-    mla_string_t result =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.data = newData;
+    mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.length = resultLength;
+    result.heap.char_offset = 0;
     return result;
 }
 
@@ -792,16 +858,16 @@ mla_string_t mla_string_trim(const mla_string_t &p_String) {
         return p_String; // No trimming needed
     }
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
+    if (mla_string_is_embedded(p_String)) {
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(end - start);
         mla_memcpy(result.embedded.data, p_String.embedded.data + start, end - start);
         return result;
     }
 
-    mla_string_t result =  {p_String.dataOwner, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
-    result.heap.data = p_String.heap.data + start;
+    mla_string_t result =  {p_String.data_storage, {{MLA_STRING_MEMORY_LAYOUT_SUB_STRING, 0, {0}}}};
+    result.heap.char_offset = start + p_String.heap.char_offset; // Adjust char offset for the trimmed view
     result.heap.length = end - start;
     return result;
 }
@@ -816,7 +882,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
         return true; // No change needed
     }
 
-    if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_SUB_STRING) {
+    if ((p_NewLayout & MLA_STRING_MEMORY_FORMAT_MASK) == MLA_STRING_FORMAT_SUB_STRING) {
         // Substrings are views into other strings, so we cannot convert to this layout directly
         mla_error("Cannot convert to substring layout directly.");
         return false;
@@ -829,16 +895,18 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
 
         // Convert to C-style string
         mla_size_t newLength = length + 1; // +1 for null terminator
-        mla_char_t *newData = mla_create_char_array(newLength);
+        mla_pointer_t newData = mla_create_char_array(newLength);
 
-        if (newData == nullptr) {
+        mla_char_t* newData_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+        if (newData_ptr == nullptr) {
             return false; // Memory allocation failed
         }
 
-        mla_memcpy(newData, data, length);
-        newData[length] = '\0'; // Null-terminate the string
-        p_String =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
-        p_String.heap.data = newData;
+        mla_memcpy(newData_ptr, data, length);
+        newData_ptr[length] = '\0'; // Null-terminate the string
+        p_String =  {newData, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+        p_String.heap.char_offset = 0;
         p_String.heap.length = newLength -1;
         return true;
     } else if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_BUFFER) {
@@ -849,26 +917,32 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
 
         if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
             // For embedded strings, we need to copy the data to a new buffer
-            mla_char_t *newData = mla_create_char_array(length);
+            mla_pointer_t newData = mla_create_char_array(length);
 
-            if (newData == nullptr) {
+            mla_char_t* newData_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+            if (newData_ptr == nullptr) {
                 return false; // Memory allocation failed
             }
 
-            mla_memcpy(newData, data, length);
-            p_String =  {mla_buffer_reference(newData), {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-            p_String.heap.data = newData;
+            mla_memcpy(newData_ptr, data, length);
+            p_String =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+            p_String.heap.char_offset = 0;
             p_String.heap.length = length;
             return true;
+
         } else if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+
             // For C-style strings, we can just adjust the length and keep the same data
             p_String.heap.length = length; // Exclude null terminator
             p_String.embedded.memoryLayout = MLA_STRING_MEMORY_LAYOUT_BUFFER;
             return true;
+
         } else {
             // Already a buffer-based string, no change needed
             return true;
         }
+
     } else if (p_NewLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
         // Convert to embedded string if possible
         mla_size_t length = mla_string_length(p_String);
@@ -879,86 +953,39 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
             return false; // Cannot convert to embedded layout
         }
 
-        mla_string_t result =  {mla_buffer_reference_noOwner(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(length);
         mla_memcpy(result.embedded.data, data, length);
         p_String = result;
         return true;
+
     } else {
+
         mla_error("Unknown target memory layout.");
         return false; // Unknown target layout
     }
 }
 
-mla_c_string_t mla_string_to_cString(mla_string_t &p_String, mla_bool_t p_ForceCopy) {
-
-    if (!p_ForceCopy) {
-
-        if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
-            // Embedded strings we can null terminate in place if there is enough space
-            if (p_String.embedded.length < mla_global_config_string_sso_max_length) {
-                p_String.embedded.data[p_String.embedded.length] = '\0';
-                return {p_String.embedded.data, false};
-            }
-        }
-
-        // convert the instance into a C-style string
-        // because we need now to copy any way and this will speed the data handling later
-        // because c string are more efficient for string operations
-        if (mla_string_change_memory_layout(p_String, MLA_STRING_MEMORY_LAYOUT_C_STRING)) {
-            return {p_String.heap.data, false};
-        }
-
-    }
-
-    mla_size_t length = mla_string_length(p_String);
-    const mla_char_t* data = mla_string_data(p_String);
-
-    mla_char_t *cString = mla_create_char_array(length + 1); // +1 for null terminator
-
-    if (cString == nullptr) {
-        return {nullptr, false}; // Memory allocation failed
-    }
-
-    mla_memcpy(cString, data, length);
-    cString[length] = '\0'; // Null-terminate the string
-    return { cString, true};
-}
-
 mla_c_string_t mla_string_to_cString(const mla_string_t &p_String) {
 
-    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_EMBEDDED) {
-
-        // If there is enough space in the embedded data and there is already a null terminator
-        if (p_String.embedded.length < mla_global_config_string_sso_max_length && p_String.embedded.data[p_String.embedded.length] == '\0') {
-            return {p_String.embedded.data, false}; // Already a C-style string, no need to copy
-        }
-
-    } else if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
-        return {p_String.heap.data, false}; // Already a C-style string, no need to copy
+    if (p_String.embedded.memoryLayout == MLA_STRING_MEMORY_LAYOUT_C_STRING) {
+        return {p_String.data_storage}; // Already a C-style string, no need to copy
     }
+
 
     mla_size_t length = mla_string_length(p_String);
     const mla_char_t* data = mla_string_data(p_String);
 
-    mla_char_t *cString = mla_create_char_array(length + 1); // +1 for null terminator
+    mla_pointer_t cString = mla_create_char_array(length + 1); // +1 for null terminator
 
-    if (cString == nullptr) {
-        return {nullptr, false}; // Memory allocation failed
+    mla_char_t* cString_ptr = mla_pointer_get_data<mla_char_t>(cString);
+
+    if (cString_ptr == nullptr) {
+        return {mla_pointer_null()}; // Memory allocation failed
     }
 
-    mla_memcpy(cString, data, length);
-    cString[length] = '\0'; // Null-terminate the string
-    return { cString, true};
-}
+    mla_memcpy(cString_ptr, data, length);
+    cString_ptr[length] = '\0'; // Null-terminate the string
+    return { cString };
 
-mla_bool_t mla_destroy_c_string(mla_c_string_t &p_CString) {
-
-    if (p_CString.isOwner && p_CString.c_str != nullptr) {
-        mla_platform_free(const_cast<mla_char_t*>(p_CString.c_str));
-        p_CString.c_str = nullptr;
-        return true;
-    }
-
-    return false; // Nothing to destroy
 }

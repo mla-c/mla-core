@@ -45,9 +45,14 @@ mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, 
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
-    DWORD attribs = GetFileAttributesW((LPCWSTR)wideBuffer.data);
+
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    DWORD attribs = GetFileAttributesW(wide_path);
     mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
-    mla_string_utf16_buffer_destroy(wideBuffer);
 
     return result;
 }
@@ -58,9 +63,14 @@ mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, 
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
-    mla_bool_t result = DeleteFileW((LPCWSTR)wideBuffer.data) != 0;
-    mla_string_utf16_buffer_destroy(wideBuffer);
 
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr) {
+        return false;
+    }
+
+    mla_bool_t result = DeleteFileW(wide_path) != 0;
 
     return result;
 }
@@ -70,8 +80,14 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
-    mla_bool_t result = CreateDirectoryW((LPCWSTR)wideBuffer.data, nullptr) != 0;
-    mla_string_utf16_buffer_destroy(wideBuffer);
+
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    mla_bool_t result = CreateDirectoryW(wide_path, nullptr) != 0;
+
 
     return result;
 }
@@ -81,10 +97,14 @@ mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_sys
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
-    DWORD attribs = GetFileAttributesW((LPCWSTR)wideBuffer.data);
-    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
-    mla_string_utf16_buffer_destroy(wideBuffer);
 
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    DWORD attribs = GetFileAttributesW(wide_path);
+    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
 
     return result;
 }
@@ -94,8 +114,13 @@ mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_sys
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
-    mla_bool_t result = RemoveDirectoryW((LPCWSTR)wideBuffer.data) != 0;
-    mla_string_utf16_buffer_destroy(wideBuffer);
+
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    mla_bool_t result = RemoveDirectoryW(wide_path) != 0;
 
     return result;
 }
@@ -110,9 +135,14 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(searchPath);
 
     WIN32_FIND_DATAW findData;
-    HANDLE hFind = FindFirstFileW((LPCWSTR)wideBuffer.data, &findData);
 
-    mla_string_utf16_buffer_destroy(wideBuffer);
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    HANDLE hFind = FindFirstFileW(wide_path, &findData);
+
     mla_string_destroy(searchPath);
     mla_string_destroy(fullPath);
 
@@ -123,7 +153,7 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
     do {
         // Skip directories and special entries (. and ..)
         if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-            mla_string_utf16_buffer_t entryBuffer = {(mla_utf_16_char_t*)findData.cFileName, (mla_size_t)wcslen(findData.cFileName)};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }
@@ -143,9 +173,14 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(searchPath);
 
     WIN32_FIND_DATAW findData;
-    HANDLE hFind = FindFirstFileW((LPCWSTR)wideBuffer.data, &findData);
 
-    mla_string_utf16_buffer_destroy(wideBuffer);
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+    HANDLE hFind = FindFirstFileW(wide_path, &findData);
+
     mla_string_destroy(searchPath);
     mla_string_destroy(fullPath);
 
@@ -161,7 +196,7 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
 
         // Only include directories
         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            mla_string_utf16_buffer_t entryBuffer = {(mla_utf_16_char_t*)findData.cFileName, (mla_size_t)wcslen(findData.cFileName)};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }
@@ -259,6 +294,13 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
+
+    LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
+
+    if (wide_path == nullptr)
+        return false;
+
+
     // Determine access mode and creation disposition
     DWORD desiredAccess = 0;
     DWORD creationDisposition = 0;
@@ -283,13 +325,12 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             canWrite = true;
             break;
         default:
-            mla_string_utf16_buffer_destroy(wideBuffer);
             mla_string_destroy(fullPath);
             return false;
     }
 
     HANDLE hFile = CreateFileW(
-        (LPCWSTR)wideBuffer.data,
+        wide_path,
         desiredAccess,
         FILE_SHARE_READ,
         nullptr,
@@ -297,8 +338,6 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
         FILE_ATTRIBUTE_NORMAL,
         nullptr
     );
-
-    mla_string_utf16_buffer_destroy(wideBuffer);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         mla_string_destroy(fullPath);
@@ -402,7 +441,7 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Create UTF-16 buffer from TCHAR path
     mla_string_utf16_buffer_t moduleBuffer = {
-        (mla_utf_16_char_t*)moduleFileName,
+        mla_platform_pointer_to_managed_pointer(moduleFileName),
         (mla_size_t)wcslen(moduleFileName)
     };
 
@@ -415,9 +454,14 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Create the data directory if it doesn't exist
     mla_string_utf16_buffer_t dataWideBuffer = mla_string_to_utf16_buffer(dataPath);
-    BOOL dataCreated = CreateDirectoryW((LPCWSTR)dataWideBuffer.data, nullptr);
+
+    LPCWSTR dataWideBuffer_ptr = mla_pointer_get_data<WCHAR>(dataWideBuffer.data);
+
+    if (dataWideBuffer_ptr == nullptr)
+        return mla_file_system_empty();
+
+    BOOL dataCreated = CreateDirectoryW(dataWideBuffer_ptr, nullptr);
     DWORD dataError = GetLastError();
-    mla_string_utf16_buffer_destroy(dataWideBuffer);
 
     // Check if creation failed (and not because it already exists)
     if (!dataCreated && dataError != ERROR_ALREADY_EXISTS) {
@@ -431,9 +475,14 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Create the final directory if it doesn't exist
     mla_string_utf16_buffer_t fullWideBuffer = mla_string_to_utf16_buffer(fullPath);
-    BOOL fullCreated = CreateDirectoryW((LPCWSTR)fullWideBuffer.data, nullptr);
+
+    LPCWSTR fullWideBuffer_ptr = mla_pointer_get_data<WCHAR>(dataWideBuffer.data);
+
+    if (fullWideBuffer_ptr == nullptr)
+        return mla_file_system_empty();
+
+    BOOL fullCreated = CreateDirectoryW(fullWideBuffer_ptr, nullptr);
     DWORD fullError = GetLastError();
-    mla_string_utf16_buffer_destroy(fullWideBuffer);
 
     // Check if creation failed (and not because it already exists)
     if (!fullCreated && fullError != ERROR_ALREADY_EXISTS) {
