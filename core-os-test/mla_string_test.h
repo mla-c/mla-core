@@ -202,7 +202,6 @@ mla_bool_t AutoMemoryManagementTest_Free(mla_platform_pointer_t ptr) {
 }
 
 void AutoMemoryManagementTest() {
-    mla_pointer_t *unsafePointer = nullptr;
 
     mla_memory_hook_t hook = mla_memory_hook_install(AutoMemoryManagementTest_Malloc, AutoMemoryManagementTest_Free); {
         mla_string_t datacopy = mla_string_empty(); {
@@ -244,7 +243,6 @@ void AutoMemoryManagementTest() {
     assert_true(AutoMemoryManagementTest_Free_Called, "Free should have been called after clearing the copy");
 
     mla_memory_hook_uninstall(hook);
-    unsafePointer = nullptr; // Clear the unsafe pointer
 }
 
 void SubStringTest() {
