@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Natvis visualizer for mla_array_list_t  (mla_array_list.h)
+
+  Struct layout:
+    mla_size_t  size       – number of active elements
+    mla_size_t  capacity   – total allocated slots
+    T*          items      – pointer to the element array
+    mla_buffer_reference_t itemsOwner – ownership token (not visualised here)
+
+  The template parameter wildcard <*> matches every instantiation of
+  mla_array_list_t regardless of element type or initializer.
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_array_list_t<T, TInit>
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_array_list_t&lt;*&gt;">
+
+    <!-- Empty / uninitialized list -->
+    <DisplayString Condition="size == 0 &amp;&amp; items == 0">[empty, no alloc]</DisplayString>
+    <DisplayString Condition="size == 0">[empty] cap={capacity,d}</DisplayString>
+
+    <!-- Normal list -->
+    <DisplayString Condition="size > 0">size={size,d} cap={capacity,d} {{ {items[0]}, ... }}</DisplayString>
+
+    <Expand>
+      <Item Name="[size]">size,d</Item>
+      <Item Name="[capacity]">capacity,d</Item>
+
+      <!-- Inline array of all active elements -->
+      <ArrayItems>
+        <Size>size</Size>
+        <ValuePointer>items</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
+

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Natvis visualizer for mla_hash_map_t  (mla_hash_map.h)
+
+  Struct layout:
+    mla_hash_map_t<TKey, TValue, Hasher, TKeyInit, TValueInit>
+      mla_size_t    size         – number of key-value pairs currently stored
+      mla_size_t    bucketCount  – number of buckets allocated
+      mla_float_t   loadFactor   – rehash threshold (default 0.75)
+      mla_array_list_t<mla_hash_map_bucket_t<...>>  buckets
+
+    mla_hash_map_bucket_t<TKey, TValue, TKeyInit, TValueInit>
+      mla_array_list_t<mla_hash_map_bucket_item_t<...>>  items
+
+    mla_hash_map_bucket_item_t<TKey, TValue, TKeyInit, TValueInit>
+      TKey    key
+      TValue  value
+
+  Navigation to pair (i=bucket index, j=item index):
+    buckets.items[i].items.items[j].key
+    buckets.items[i].items.items[j].value
+    buckets.items[i].items.size      ← item count for bucket i
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_hash_map_t<TKey, TValue, Hasher, TKeyInit, TValueInit>
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_hash_map_t&lt;*&gt;">
+
+    <!-- Empty -->
+    <DisplayString Condition="size == 0">[empty] buckets={bucketCount,d} lf={loadFactor,g}</DisplayString>
+
+    <!-- Non-empty -->
+    <DisplayString Condition="size > 0">size={size,d} buckets={bucketCount,d} lf={loadFactor,g}</DisplayString>
+
+    <Expand>
+      <Item Name="[size]">size,d</Item>
+      <Item Name="[bucketCount]">bucketCount,d</Item>
+      <Item Name="[loadFactor]">loadFactor,g</Item>
+
+      <!--
+        Flat key→value view.
+        Two loop variables walk every bucket (bi) and every item per bucket (ii).
+        The Item Name uses {expr} to show the key via its own visualizer (e.g. mla_string_t).
+      -->
+      <CustomListItems MaxItemsPerView="1024">
+        <Variable Name="bi" InitialValue="0"/>
+        <Variable Name="ii" InitialValue="0"/>
+        <Loop>
+          <Break Condition="bi >= bucketCount"/>
+          <Exec>ii = 0</Exec>
+          <Loop>
+            <Break Condition="ii >= buckets.items[bi].items.size"/>
+            <Item Name="[{buckets.items[bi].items.items[ii].key}]">buckets.items[bi].items.items[ii].value</Item>
+            <Exec>ii++</Exec>
+          </Loop>
+          <Exec>bi++</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_hash_map_bucket_item_t  – shown when drilling into a raw bucket
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_hash_map_bucket_item_t&lt;*&gt;">
+    <DisplayString>{key} → {value}</DisplayString>
+    <Expand>
+      <Item Name="[key]">key</Item>
+      <Item Name="[value]">value</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
+

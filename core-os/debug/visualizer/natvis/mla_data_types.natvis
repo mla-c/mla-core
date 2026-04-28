@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Natvis visualizer for core MLA data types defined in mla_data_types.h.
+
+  Covered types:
+    mla_dynamic_data_t          – tagged union of all scalar MLA types
+    mla_pointer_t               – reference-counted smart pointer (two managers)
+    mla_atomic_int32_t          – atomic 32-bit integer
+
+  Pointer managers:
+    g_noop_pointer_memory_manager    – payload.asPointer IS the user data (no header)
+    g_default_pointer_memory_manager – user data starts after mla_pointer_header_t
+                                       (char*)((mla_pointer_header_t*)payload.asPointer + 1)
+                                       sizeof(mla_pointer_header_t) = 24 B (64-bit) / 16 B (32-bit)
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_dynamic_data_t  – show the pointer interpretation by default;
+       expand shows every union member so the real value is always visible.
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_dynamic_data_t">
+    <DisplayString>ptr={payload.asPointer,X} | i64={asInt64,d} | f64={asDouble,g}</DisplayString>
+    <Expand>
+      <Item Name="asBool">asBool</Item>
+      <Item Name="asInt8">asInt8,d</Item>
+      <Item Name="asUint8">asUint8,u</Item>
+      <Item Name="asInt16">asInt16,d</Item>
+      <Item Name="asUint16">asUint16,u</Item>
+      <Item Name="asInt32">asInt32,d</Item>
+      <Item Name="asUint32">asUint32,u</Item>
+      <Item Name="asInt64">asInt64,d</Item>
+      <Item Name="asUint64">asUint64,u</Item>
+      <Item Name="asFloat">asFloat,g</Item>
+      <Item Name="asDouble">asDouble,g</Item>
+      <Item Name="asPointer">asPointer</Item>
+      <Item Name="asChar">asChar,c</Item>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_atomic_int32_t
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_atomic_int32_t">
+    <DisplayString>{value,d}</DisplayString>
+    <Expand>
+      <Item Name="value">value,d</Item>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_pointer_t
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_pointer_t">
+
+    <!-- Null -->
+    <DisplayString Condition="payload.asPointer == 0">null</DisplayString>
+
+    <!-- Noop manager: payload.asPointer IS the resource -->
+    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_noop_pointer_memory_manager">[ext] @ {payload.asPointer,X}</DisplayString>
+
+    <!-- Default manager: skip mla_pointer_header_t, show refcount -->
+    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager">[owned] rc={((mla_pointer_header_t*)payload.asPointer)->refCount.value,d} data @ {(char*)((mla_pointer_header_t*)payload.asPointer + 1),X}</DisplayString>
+
+    <Expand>
+      <!-- data pointer -->
+      <Item Name="[data ptr]"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_noop_pointer_memory_manager"
+            >payload.asPointer</Item>
+      <Item Name="[data ptr]"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
+            >(char*)((mla_pointer_header_t*)payload.asPointer + 1)</Item>
+
+      <!-- ref count (owned only) -->
+      <Item Name="[ref count]"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
+            >((mla_pointer_header_t*)payload.asPointer)->refCount.value,d</Item>
+
+      <!-- raw allocation base (owned only) -->
+      <Item Name="[alloc base]"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
+            >payload.asPointer</Item>
+
+      <!-- manager tag -->
+      <Item Name="[manager]"
+            Condition="memoryManager == &amp;g_noop_pointer_memory_manager"
+            >"noop (external)"</Item>
+      <Item Name="[manager]"
+            Condition="memoryManager != &amp;g_noop_pointer_memory_manager"
+            >"default (owned)"</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
+

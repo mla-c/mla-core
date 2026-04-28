@@ -724,7 +724,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, mla_string_data(p_String), p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
 
@@ -735,7 +735,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(p_Length);
-        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_String.heap.char_offset, p_Length);
+        mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
 
