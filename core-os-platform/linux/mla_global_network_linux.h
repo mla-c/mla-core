@@ -35,20 +35,15 @@ mla_bool_t __linux_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     };
 
     mla_c_string_t cHostName = mla_string_to_cString(hostname);
-    if (cHostName.c_str == nullptr) {
+    const mla_char_t* cHostName_c_str = mla_c_string_data(cHostName);
+
+    if (cHostName_c_str == nullptr) {
         return false;
     }
 
     struct addrinfo *result = nullptr;
-    if (getaddrinfo(cHostName.c_str, nullptr, &hints, &result) != 0) {
-        if (cHostName.isOwner) {
-            mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
-        }
+    if (getaddrinfo(cHostName_c_str, nullptr, &hints, &result) != 0) {
         return false;
-    }
-
-    if (cHostName.isOwner) {
-        mla_platform_free(const_cast<mla_char_t *>(cHostName.c_str));
     }
 
     // Extract IP address from first result
@@ -186,7 +181,10 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
     socklen_t addrLen;
 
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
-    if (cAddress.c_str == nullptr) {
+    const mla_char_t* cAddress_c_str = mla_c_string_data(cAddress);
+
+
+    if (cAddress_c_str == nullptr) {
         close(sock);
         return false;
     }
@@ -195,18 +193,14 @@ mla_bool_t __linux_connect(mla_network_connection_t &connection, const mla_netwo
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6*)&addr;
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = htons(host.port);
-        inet_pton(AF_INET6, cAddress.c_str, &addr6->sin6_addr);
+        inet_pton(AF_INET6, cAddress_c_str, &addr6->sin6_addr);
         addrLen = sizeof(struct sockaddr_in6);
     } else {
         struct sockaddr_in *addr4 = (struct sockaddr_in*)&addr;
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
-        inet_pton(AF_INET, cAddress.c_str, &addr4->sin_addr);
+        inet_pton(AF_INET, cAddress_c_str, &addr4->sin_addr);
         addrLen = sizeof(struct sockaddr_in);
-    }
-
-    if (cAddress.isOwner) {
-        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     // Attempt connection
@@ -371,7 +365,9 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
     socklen_t addrLen = 0;
 
     mla_c_string_t cAddress = mla_string_to_cString(host.address.address);
-    if (cAddress.c_str == nullptr) {
+    const mla_char_t* cAddress_c_str = mla_c_string_data(cAddress);
+
+    if (cAddress_c_str == nullptr) {
         close(sock);
         return false;
     }
@@ -380,7 +376,7 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
         struct sockaddr_in6* addr6 = (struct sockaddr_in6*)&ss;
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = htons(host.port);
-        mla_bool_t ok = (inet_pton(AF_INET6, cAddress.c_str, &addr6->sin6_addr) == 1);
+        mla_bool_t ok = (inet_pton(AF_INET6, cAddress_c_str, &addr6->sin6_addr) == 1);
         if (!ok) {
             addr6->sin6_addr = in6addr_any;
         }
@@ -389,15 +385,11 @@ mla_bool_t __linux_bind_and_listen(mla_network_listener_t &listener, const mla_n
         struct sockaddr_in* addr4 = (struct sockaddr_in*)&ss;
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
-        mla_bool_t ok = (inet_pton(AF_INET, cAddress.c_str, &addr4->sin_addr) == 1);
+        mla_bool_t ok = (inet_pton(AF_INET, cAddress_c_str, &addr4->sin_addr) == 1);
         if (!ok) {
             addr4->sin_addr.s_addr = htonl(INADDR_ANY);
         }
         addrLen = sizeof(struct sockaddr_in);
-    }
-
-    if (cAddress.isOwner) {
-        mla_platform_free(const_cast<mla_char_t*>(cAddress.c_str));
     }
 
     if (bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {

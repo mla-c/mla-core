@@ -91,6 +91,10 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
             break;
         }
 
+        if (commandLength <= paramNameEnd) {
+            break;
+        }
+
         if (commandData[paramNameEnd] != ' ') {
             // Not finished
             break;
