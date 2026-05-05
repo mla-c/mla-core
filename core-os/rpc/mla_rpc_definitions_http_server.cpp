@@ -17,7 +17,7 @@
 // Name-conversion helpers
 // ---------------------------------------------------------------------------
 
-// Capitalise the first ASCII letter of a string segment (e.g. "logger" -> "Logger").
+// Capitalize the first ASCII letter of a string segment (e.g. "logger" -> "Logger").
 static mla_string_t __mla_rpc_ts_capitalise_first(const mla_string_t& segment) {
 
     mla_size_t len = mla_string_length(segment);
