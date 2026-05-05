@@ -15,6 +15,8 @@ typedef mla_bool_t (*mla_rpc_procedure_handler_unsafe_t)(const mla_platform_poin
 
 struct mla_rpc_procedure_unsafe_t {
     mla_string_t procedureName;
+    mla_string_t inputStructName;
+    mla_string_t outputStructName;
     mla_serialize_definition_t inputDefinition;
     mla_serialize_definition_t outputDefinition;
     mla_rpc_procedure_handler_unsafe_t execute;
@@ -56,6 +58,8 @@ struct mla_rpc_remote_endpoint_initializer {
 
 mla_rpc_procedure_unsafe_t mla_rpc_procedure_unsafe(
         const mla_string_t &procedure_name,
+        const mla_string_t &input_struct_name,
+        const mla_string_t &output_struct_name,
         const mla_serialize_definition_t &input_definition,
         const mla_serialize_definition_t &output_definition,
         const mla_rpc_procedure_handler_unsafe_t &execute_handler
@@ -108,6 +112,8 @@ template<mla_rpc_safe_template_parameters>
 mla_rpc_procedure_unsafe_t mla_rpc_procedure_safe_to_unsafe(const mla_rpc_procedure_safe_t<TInput, TOutput> &safe_procedure) {
     return {
         safe_procedure.procedureName,
+        mla_string_empty(),
+        mla_string_empty(),
         safe_procedure.inputDefinition,
         safe_procedure.outputDefinition,
         reinterpret_cast<mla_rpc_procedure_handler_unsafe_t>(safe_procedure.execute)
@@ -195,17 +201,23 @@ void mla_rpc_auto_register_procedure_##handler() { \
     auto input_definition = mla_serialize_definition<input>(); \
     auto output_defintion = mla_serialize_definition<output>(); \
     auto procedure = mla_rpc_procedure_safe<input, output>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
-    mla_rpc_register_procedure<input, output>(procedure); \
+    mla_rpc_procedure_unsafe_t unsafe_proc = mla_rpc_procedure_safe_to_unsafe(procedure); \
+    unsafe_proc.inputStructName  = mla_reflection_struct_name_as_string(input); \
+    unsafe_proc.outputStructName = mla_reflection_struct_name_as_string(output); \
+    mla_rpc_register_procedure(unsafe_proc); \
 } \
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
 
 #define mla_rpc_auto_register_procedure_void_output(procedure_name, input, handler) \
 void mla_rpc_auto_register_procedure_##handler() { \
-    auto input_definition = mla_serialize_definition<input>(); \
     mla_reflection_register_struct<input>(); \
+    auto input_definition = mla_serialize_definition<input>(); \
     auto output_defintion = mla_serialize_definition_void(); \
     auto procedure = mla_rpc_procedure_safe<input, void>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
-    mla_rpc_register_procedure<input, void>(procedure); \
+    mla_rpc_procedure_unsafe_t unsafe_proc = mla_rpc_procedure_safe_to_unsafe(procedure); \
+    unsafe_proc.inputStructName  = mla_reflection_struct_name_as_string(input); \
+    unsafe_proc.outputStructName = mla_string_empty(); \
+    mla_rpc_register_procedure(unsafe_proc); \
 } \
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
 
@@ -215,7 +227,10 @@ void mla_rpc_auto_register_procedure_##handler() { \
     auto input_definition = mla_serialize_definition_void(); \
     auto output_defintion = mla_serialize_definition<output>(); \
     auto procedure = mla_rpc_procedure_safe<void, output>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
-    mla_rpc_register_procedure<void, output>(procedure); \
+    mla_rpc_procedure_unsafe_t unsafe_proc = mla_rpc_procedure_safe_to_unsafe(procedure); \
+    unsafe_proc.inputStructName  = mla_string_empty(); \
+    unsafe_proc.outputStructName = mla_reflection_struct_name_as_string(output); \
+    mla_rpc_register_procedure(unsafe_proc); \
 } \
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
 
@@ -224,7 +239,10 @@ void mla_rpc_auto_register_procedure_##handler() { \
     auto input_definition = mla_serialize_definition_void(); \
     auto output_defintion = mla_serialize_definition_void(); \
     auto procedure = mla_rpc_procedure_safe<void, void>(mla_string_const(procedure_name), input_definition, output_defintion, handler); \
-    mla_rpc_register_procedure<void, void>(procedure); \
+    mla_rpc_procedure_unsafe_t unsafe_proc = mla_rpc_procedure_safe_to_unsafe(procedure); \
+    unsafe_proc.inputStructName  = mla_string_empty(); \
+    unsafe_proc.outputStructName = mla_string_empty(); \
+    mla_rpc_register_procedure(unsafe_proc); \
 } \
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_preSetup, mla_rpc_auto_register_procedure_##handler) \
 

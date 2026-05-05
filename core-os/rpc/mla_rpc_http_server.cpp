@@ -3,6 +3,7 @@
 //
 
 #include "mla_rpc_http_server.h"
+#include "mla_rpc_definitions_http_server.h"
 #include "mla_rpc.h"
 #include "../url/mla_url.h"
 #include "../serializer/mla_serializer.h"
@@ -292,5 +293,7 @@ mla_bool_t mla_rpc_http_server_initialize(mla_http_server_t &server) {
     mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, mla_string_const("/rpc/"), __mla_rpc_http_server_handler);
     mla_bool_t result1 = mla_http_server_register_handler(server, handler);
     mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, mla_string_const("/rpc/"), __mla_rpc_http_server_handler_options);
-    return result1 && mla_http_server_register_handler(server, handlerOptions);
+    mla_bool_t result2 = mla_http_server_register_handler(server, handlerOptions);
+    mla_bool_t result3 = mla_rpc_definitions_http_server_initialize(server);
+    return result1 && result2 && result3;
 }

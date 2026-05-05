@@ -83,6 +83,7 @@ mla_bool_t mla_reflection_register_struct(const mla_string_t &name, mla_reflecti
 mla_bool_t mla_reflection_is_struct_registered(const mla_string_t &name);
 mla_bool_t mla_reflection_get_struct_metadata(const mla_string_t &name, mla_reflection_struct_metadata_t& out_metadata);
 void mla_reflection_register_inner_structs(const mla_reflection_struct_metadata_t& metadata);
+mla_array_list_t<mla_string_t, mla_string_initializer> mla_reflection_list_struct_names();
 
 template<typename T>
 mla_bool_t mla_reflection_register_struct()

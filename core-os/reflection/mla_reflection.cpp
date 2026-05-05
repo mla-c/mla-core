@@ -103,3 +103,7 @@ void mla_reflection_register_inner_structs(const mla_reflection_struct_metadata_
         }
     }
 }
+
+mla_array_list_t<mla_string_t, mla_string_initializer> mla_reflection_list_struct_names() {
+    return mla_hash_map_keys(g_reflection_container.structs);
+}
