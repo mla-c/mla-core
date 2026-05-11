@@ -15,6 +15,7 @@
 static mla_byte_t g_config_storage[mla_max_config_size];
 static mla_size_t g_used_config_size = 0;
 
+
 mla_bytes_t __generic_inmemory_read_config_input() {
 
     if (g_used_config_size == 0) {
