@@ -21,7 +21,7 @@ mla_bytes_t __generic_inmemory_read_config_input() {
         return mla_bytes_empty();
     }
 
-    return  mla_bytes_from_external_buffer(g_config_storage, g_used_config_size);
+    return  mla_bytes_from_external_buffer(mla_platform_pointer_to_managed_pointer(g_config_storage), g_used_config_size);
 }
 
 mla_bytes_t __generic_inmemory_create_config_output_buffer() {
