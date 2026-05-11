@@ -265,7 +265,7 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
 
             } else {
 
-                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_content);
+                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
                 if (__mla_rpc_http_server_support_deflate_compression(*header)) {
                     mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
