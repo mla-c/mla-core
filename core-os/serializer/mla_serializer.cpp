@@ -86,7 +86,7 @@ mla_bool_t mla_deserializer_token_type_is_value(const mla_deserializer_token_typ
            token_type == MLA_DESERIALIZER_VALUE_BYTES;
 }
 
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_platform_pointer_t value,
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
 
     if (!serializer.write_start_struct(serializer))
@@ -102,7 +102,7 @@ mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const 
     return true;
 }
 
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_platform_pointer_t value,
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
     if (!serializer.write_property_name(serializer, name))
         return false;
@@ -307,14 +307,14 @@ mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const ml
     return true;
 }
 
-mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
     (void)serializer;
     (void)obj;
     // Nothing to serialize for void
     return true;
 }
 
-mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
+mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
 
     (void)deserializer;
     (void)obj;
@@ -325,7 +325,7 @@ mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer
 }
 
 
-mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t &deserializer, mla_platform_pointer_t data,
+mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t &deserializer, mla_pointer_t& data,
                                         const mla_serialize_definition_read_function_t &read_function) {
     if (deserializer.current_token.type != MLA_DESERIALIZER_STRUCT_START) {
         // Not a struct start

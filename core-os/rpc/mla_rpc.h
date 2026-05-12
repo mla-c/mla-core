@@ -29,7 +29,7 @@ struct mla_rpc_procedure_unsafe_initializer {
 };
 
 typedef mla_bool_t (*mla_rpc_remote_endpoint_can_handle)(const mla_user_data_t &userdata, const mla_string_t &procedure_name);
-typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data);
+typedef mla_bool_t (*mla_rpc_remote_endpoint_execute_procedure)(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition,  const mla_pointer_t& input_data, mla_pointer_t& output_data);
 
 struct mla_rpc_remote_endpoint_t {
     mla_user_data_t user_data;
@@ -64,8 +64,8 @@ mla_bool_t mla_rpc_register_procedure(const mla_rpc_procedure_unsafe_t &procedur
 mla_bool_t mla_rpc_unregister_procedure(const mla_string_t &procedure_name);
 mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_procedure_unsafe_t& out_procedure);
 mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name);
-mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data);
-mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data);
+mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data);
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data);
 mla_array_list_t<mla_rpc_procedure_unsafe_t, mla_rpc_procedure_unsafe_initializer> mla_rpc_list_procedures();
 
 
@@ -124,54 +124,70 @@ template<mla_rpc_safe_template_parameters>
 mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const TInput *input_data, TOutput *output_data) {
     auto input_definition = mla_serialize_definition<TInput>();
     auto output_definition = mla_serialize_definition<TOutput>();
-    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, static_cast<const mla_platform_pointer_t>(input_data), static_cast<mla_platform_pointer_t>(output_data));
+    const mla_pointer_t input_ptr = mla_platform_pointer_to_managed_pointer(input_data);
+    mla_pointer_t output_ptr = mla_platform_pointer_to_managed_pointer(output_data);
+    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 template<typename TInput>
 mla_bool_t mla_rpc_execute_procedure_void_output(const mla_string_t &procedure_name, const TInput *input_data) {
     auto input_definition = mla_serialize_definition<TInput>();
     auto output_definition = mla_serialize_definition_invalid();
-    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, static_cast<const mla_platform_pointer_t>(input_data), nullptr);
+    const mla_pointer_t input_ptr =  mla_platform_pointer_to_managed_pointer(input_data);
+    mla_pointer_t output_ptr = mla_pointer_null();
+    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 template<typename TOutput>
 mla_bool_t mla_rpc_execute_procedure_void_input(const mla_string_t &procedure_name, TOutput *output_data) {
     auto input_definition = mla_serialize_definition_invalid();
     auto output_definition = mla_serialize_definition<TOutput>();
-    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, nullptr, static_cast<mla_platform_pointer_t>(output_data));
+    const mla_pointer_t input_ptr = mla_pointer_null();
+    mla_pointer_t output_ptr = mla_platform_pointer_to_managed_pointer(output_data);
+    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 inline mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name) {
     auto input_definition = mla_serialize_definition_invalid();
     auto output_definition = mla_serialize_definition_invalid();
-    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, nullptr, nullptr);
+    mla_pointer_t out = mla_pointer_null();
+    const mla_pointer_t input_ptr = mla_pointer_null();
+    return mla_rpc_execute_procedure(procedure_name, input_definition, output_definition, input_ptr, out);
 }
 
 template<mla_rpc_safe_template_parameters>
 mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const TInput *input_data, TOutput *output_data) {
     auto input_definition = mla_serialize_definition<TInput>();
     auto output_definition = mla_serialize_definition<TOutput>();
-    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, static_cast<const mla_platform_pointer_t>(input_data), static_cast<mla_platform_pointer_t>(output_data));
+    const mla_pointer_t input_ptr = mla_platform_pointer_to_managed_pointer(input_data);
+    mla_pointer_t output_ptr = mla_platform_pointer_to_managed_pointer(output_data);
+    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 template<typename TInput>
 mla_bool_t mla_rpc_execute_procedure_remote_void_output(const mla_string_t &procedure_name, const TInput *input_data) {
     auto input_definition = mla_serialize_definition<TInput>();
     auto output_definition = mla_serialize_definition_invalid();
-    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, static_cast<const mla_platform_pointer_t>(input_data), nullptr);
+    const mla_pointer_t input_ptr = mla_platform_pointer_to_managed_pointer(input_data);
+    mla_pointer_t output_ptr = mla_pointer_null();
+    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 template<typename TOutput>
 mla_bool_t mla_rpc_execute_procedure_remote_void_input(const mla_string_t &procedure_name, TOutput *output_data) {
     auto input_definition = mla_serialize_definition_invalid();
     auto output_definition = mla_serialize_definition<TOutput>();
-    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, nullptr, static_cast<mla_platform_pointer_t>(output_data));
+    const mla_pointer_t input_ptr = mla_pointer_null();
+    mla_pointer_t output_ptr = mla_platform_pointer_to_managed_pointer(output_data);
+    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 inline mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name) {
     auto input_definition = mla_serialize_definition_invalid();
     auto output_definition = mla_serialize_definition_invalid();
-    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, nullptr, nullptr);
+    const mla_pointer_t input_ptr = mla_pointer_null();
+    mla_pointer_t output_ptr = mla_pointer_null();
+    return mla_rpc_execute_procedure_remote(procedure_name, input_definition, output_definition, input_ptr, output_ptr);
 }
 
 template<mla_rpc_safe_template_parameters>

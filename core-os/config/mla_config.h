@@ -21,8 +21,8 @@ struct mla_config_definition_t {
     const mla_serialize_definition_t definition;
 };
 
-mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_platform_pointer_t config);
-mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, mla_platform_pointer_t config);
+mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, mla_pointer_t& config);
+mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, const mla_pointer_t& config);
 mla_bool_t mla_config_manager_reset();
 
 
@@ -39,12 +39,14 @@ mla_config_definition_t mla_config_definition(const mla_string_t& name, const ml
 
 template <typename T>
 mla_bool_t mla_config_manager_read(const mla_config_definition_t& definition, T& config) {
-    return mla_config_manager_read(definition, &config);
+    mla_pointer_t config_ptr = mla_platform_pointer_to_managed_pointer(&config);
+    return mla_config_manager_read(definition, config_ptr);
 }
 
 template <typename T>
-mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, T& config) {
-    return mla_config_manager_write(definition, &config);
+mla_bool_t mla_config_manager_write(const mla_config_definition_t& definition, const T& config) {
+    const mla_pointer_t config_ptr = mla_platform_pointer_to_managed_pointer(&config);
+    return mla_config_manager_write(definition, config_ptr);
 }
 
 

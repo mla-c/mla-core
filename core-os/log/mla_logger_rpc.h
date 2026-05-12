@@ -15,17 +15,25 @@ static mla_string_t RPC_CACHE_LOGGER_NAME = mla_string_const("RpcConsole");
 struct mla_logger_rpc_log_level_t {
     mla_log_level level;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
 
-        const mla_logger_rpc_log_level_t* logLevel = static_cast<const mla_logger_rpc_log_level_t*>(obj);
+        const mla_logger_rpc_log_level_t* logLevel = mla_pointer_get_data<const mla_logger_rpc_log_level_t>(obj);
+
+        if (logLevel == nullptr)
+            return false;
+
         mla_serializer_write_enum(serializer, mla_string_const("level"), logLevel->level);
         return true;
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
 
-        mla_logger_rpc_log_level_t* logLevel = static_cast<mla_logger_rpc_log_level_t*>(obj);
+        mla_logger_rpc_log_level_t* logLevel = mla_pointer_get_data<mla_logger_rpc_log_level_t>(obj);
+
+        if (logLevel == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
 
         if (mla_string_equals_const(property_name, "level")) {
             mla_deserializer_read_enum(mla_log_level, deserializer, logLevel->level)
@@ -49,9 +57,13 @@ struct mla_logger_rpc_log_entry_t {
     mla_string_t message;
     mla_string_t context1;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
 
-        const mla_logger_rpc_log_entry_t* logEntry = static_cast<const mla_logger_rpc_log_entry_t*>(obj);
+        const mla_logger_rpc_log_entry_t* logEntry = mla_pointer_get_data<const mla_logger_rpc_log_entry_t>(obj);
+
+        if (logEntry == nullptr)
+            return false;
+
         mla_serializer_write_uint32(serializer, mla_string_const("logid"), logEntry->logid);
         mla_serializer_write_uint8(serializer, mla_string_const("level"), logEntry->level);
         mla_serializer_write_string(serializer, mla_string_const("message"), logEntry->message);
@@ -60,9 +72,14 @@ struct mla_logger_rpc_log_entry_t {
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
 
-        mla_logger_rpc_log_entry_t* logEntry = static_cast<mla_logger_rpc_log_entry_t*>(obj);
+        mla_logger_rpc_log_entry_t* logEntry = mla_pointer_get_data<mla_logger_rpc_log_entry_t>(obj);
+
+        if (logEntry == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "logid")) {
             mla_deserializer_read_uint32(deserializer, logEntry->logid)
         } else if (mla_string_equals_const(property_name, "level")) {
@@ -103,17 +120,26 @@ struct mla_logger_rpc_log_entry_initializer {
 struct mla_logger_rpc_log_messages_t {
     mla_array_list_t<mla_logger_rpc_log_entry_t, mla_logger_rpc_log_entry_initializer> entries;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
 
-        const mla_logger_rpc_log_messages_t* logMessages = static_cast<const mla_logger_rpc_log_messages_t*>(obj);
+        const mla_logger_rpc_log_messages_t* logMessages = mla_pointer_get_data<const mla_logger_rpc_log_messages_t>(obj);
+
+        if (logMessages == nullptr)
+            return false;
+
         mla_serializer_write_list<mla_logger_rpc_log_entry_t>(serializer, mla_string_const("entries"), logMessages->entries, mla_logger_rpc_log_entry_t::serialize);
         return true;
 
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
 
-        mla_logger_rpc_log_messages_t* logMessages = static_cast<mla_logger_rpc_log_messages_t*>(obj);
+        mla_logger_rpc_log_messages_t* logMessages = mla_pointer_get_data<mla_logger_rpc_log_messages_t>(obj);
+
+        if (logMessages == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "entries")) {
             mla_deserializer_read_list_struct(deserializer, logMessages->entries, mla_logger_rpc_log_entry_t)
         } else {
@@ -151,3 +177,4 @@ mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_platform_pointer_t 
 
 
 #endif
+

@@ -119,10 +119,10 @@ enum mla_deserializer_read_result_t {
 };
 
 // Called for every property in a struct
-typedef mla_deserializer_read_result_t (*mla_serialize_definition_read_function_t)(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name);
+typedef mla_deserializer_read_result_t (*mla_serialize_definition_read_function_t)(mla_deserializer_t& deserializer, mla_pointer_t& config, const mla_string_t& property_name);
 
 // Called to write the entire struct
-typedef mla_bool_t (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_platform_pointer_t config);
+typedef mla_bool_t (*mla_serialize_definition_write_function_t)(mla_serializer_t& serializer, const mla_pointer_t& config);
 
 /// Definition of serialization functions for a specific data structure
 struct mla_serialize_definition_t {
@@ -143,8 +143,8 @@ mla_serialize_definition_t mla_serialize_definition_create(
 /// Serializer Helpers
 //////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_platform_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
-mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_platform_pointer_t value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_pointer_t& value, const mla_serialize_definition_write_function_t& write_function);
+mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const mla_string_t& name, const mla_pointer_t& value, const mla_serialize_definition_write_function_t& write_function);
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_bool_t>& list);
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<mla_uint8_t>& list);
@@ -161,7 +161,8 @@ mla_bool_t mla_serializer_write_data_list(mla_serializer_t& serializer, const ml
 
 template <typename T>
 mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const T &value) {
-    return mla_serializer_write_data_struct(serializer, &value, T::serialize);
+    mla_pointer_t value_ptr = mla_platform_pointer_to_managed_pointer(&value);
+    return mla_serializer_write_data_struct(serializer, value_ptr, T::serialize);
 }
 
 template <mla_array_list_template>
@@ -174,7 +175,10 @@ mla_bool_t mla_serializer_write_list(mla_serializer_t& serializer, const mla_str
         return false;
 
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!mla_serializer_write_data_struct(serializer, mla_array_list_get_ref(list, i), write_function))
+
+        mla_pointer_t data = mla_platform_pointer_to_managed_pointer(mla_array_list_get_ref(list, i));
+
+        if (!mla_serializer_write_data_struct(serializer, data, write_function))
             return false;
     }
 
@@ -195,7 +199,10 @@ mla_bool_t mla_serializer_write_list_fixed_size(mla_serializer_t& serializer, co
         return false;
 
     for (mla_size_t i = 0; i < size; ++i) {
-        if (!mla_serializer_write_data_struct(serializer, &data[i], write_function))
+
+        mla_pointer_t data_ptr = mla_platform_pointer_to_managed_pointer(&data[i]);
+
+        if (!mla_serializer_write_data_struct(serializer, data_ptr, write_function))
             return false;
     }
 
@@ -222,21 +229,24 @@ mla_serialize_definition_t mla_serialize_definition()
 mla_serialize_definition_create(0, void_deserialize, void_serialize)
 
 // Helpers for void datatypes
-mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj);
-mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name);
+mla_bool_t void_serialize(mla_serializer_t& serializer, const mla_pointer_t& obj);
+mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name);
 
 //////////////////////////////////////////////////////////////////////////////////
 /// Deserializer Helpers
 //////////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_serialize_definition_read_function_t& read_function);
+mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t&, const mla_serialize_definition_read_function_t& read_function);
 
 template <typename T>
 mla_bool_t mla_serializer_read_data_struct(mla_deserializer_t& deserializer, T &value) {
     if (!deserializer.read_next(deserializer)) {
         return false;
     }
-    return mla_deserializer_read_struct_read_function(deserializer, &value, T::deserialize);
+
+    mla_pointer_t value_ptr = mla_platform_pointer_to_managed_pointer(&value);
+
+    return mla_deserializer_read_struct_read_function(deserializer, value_ptr, T::deserialize);
 }
 
 mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_list_t<mla_bool_t>& list);
@@ -274,7 +284,8 @@ mla_bool_t mla_serializer_read_list(mla_deserializer_t& deserializer, mla_array_
             }
 
             T item = TInit::init();
-            if (mla_deserializer_read_struct_read_function(deserializer, &item, read_function)) {
+            mla_pointer_t item_ptr = mla_platform_pointer_to_managed_pointer(&item);
+            if (mla_deserializer_read_struct_read_function(deserializer, item_ptr, read_function)) {
                 mla_array_list_add(list, item);
             } else {
                 // Error reading struct
@@ -316,7 +327,10 @@ mla_bool_t mla_serializer_read_list_fixed_size(mla_deserializer_t& deserializer,
             }
 
             T item = TInit::init();
-            if (mla_deserializer_read_struct_read_function(deserializer, &item, read_function)) {
+
+            mla_pointer_t item_ptr = mla_platform_pointer_to_managed_pointer(&item);
+
+            if (mla_deserializer_read_struct_read_function(deserializer, item_ptr, read_function)) {
 
                 if (index >= size) {
                     // Too many items in the list
@@ -541,7 +555,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 
 #define mla_deserializer_read_struct(instance, setter, struct_data)\
     {\
-        if (mla_deserializer_read_struct_read_function(instance, &setter, struct_data::deserialize)) {\
+        mla_pointer_t setter_data = mla_platform_pointer_to_managed_pointer(&setter);\
+        if (mla_deserializer_read_struct_read_function(instance, setter_data, struct_data::deserialize)) {\
             return MLA_DESERIALIZER_READ_HANDLED;\
         } else {\
             return MLA_DESERIALIZER_READ_ERROR;\
@@ -680,7 +695,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     }
 
 #define mla_serializer_write_struct(instance, name, value, struct_data)\
-    if (!mla_serializer_write_data_struct(instance, name, &value, struct_data::serialize)) {\
+    if (!mla_serializer_write_data_struct(instance, name, mla_platform_pointer_to_managed_pointer(&value), struct_data::serialize)) {\
         return false;\
     }
 

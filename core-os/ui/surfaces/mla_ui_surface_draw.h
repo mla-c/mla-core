@@ -16,8 +16,12 @@ struct mla_ui_surface_draw_command_color_t {
     mla_uint8_t b;
     mla_uint8_t a;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_color_t* self = static_cast<const mla_ui_surface_draw_command_color_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_color_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_color_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_uint8(serializer, mla_string_const("r"), self->r);
         mla_serializer_write_uint8(serializer, mla_string_const("g"), self->g);
         mla_serializer_write_uint8(serializer, mla_string_const("b"), self->b);
@@ -25,8 +29,13 @@ struct mla_ui_surface_draw_command_color_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_color_t* self = static_cast<mla_ui_surface_draw_command_color_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_color_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_color_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "r")) {
             mla_deserializer_read_uint8(deserializer, self->r);
         } else if (mla_string_equals_const(property_name, "g")) {
@@ -45,15 +54,24 @@ struct mla_ui_surface_draw_point_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_point_t* self = static_cast<const mla_ui_surface_draw_point_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_point_t* self = mla_pointer_get_data<const mla_ui_surface_draw_point_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x"), self->x);
         mla_serializer_write_double(serializer, mla_string_const("y"), self->y);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_point_t* self = static_cast<mla_ui_surface_draw_point_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_point_t* self = mla_pointer_get_data<mla_ui_surface_draw_point_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x")) {
             mla_deserializer_read_double(deserializer, self->x);
         } else if (mla_string_equals_const(property_name, "y")) {
@@ -68,15 +86,24 @@ struct mla_ui_surface_draw_size_t {
     mla_double_t width;
     mla_double_t height;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_size_t* self = static_cast<const mla_ui_surface_draw_size_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_size_t* self = mla_pointer_get_data<const mla_ui_surface_draw_size_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("width"),  self->width);
         mla_serializer_write_double(serializer, mla_string_const("height"), self->height);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_size_t* self = static_cast<mla_ui_surface_draw_size_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_size_t* self = mla_pointer_get_data<mla_ui_surface_draw_size_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "width")) {
             mla_deserializer_read_double(deserializer, self->width);
         } else if (mla_string_equals_const(property_name, "height")) {
@@ -93,8 +120,12 @@ struct mla_ui_surface_font_type_t {
     mla_bool_t bold;
     mla_bool_t italic;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_font_type_t* self = static_cast<const mla_ui_surface_font_type_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_font_type_t* self = mla_pointer_get_data<const mla_ui_surface_font_type_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_string(serializer, mla_string_const("family"), self->family);
         mla_serializer_write_double(serializer, mla_string_const("size"),   self->size);
         mla_serializer_write_bool  (serializer, mla_string_const("bold"),   self->bold);
@@ -102,8 +133,13 @@ struct mla_ui_surface_font_type_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_font_type_t* self = static_cast<mla_ui_surface_font_type_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_font_type_t* self = mla_pointer_get_data<mla_ui_surface_font_type_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "family")) {
             mla_deserializer_read_string(deserializer, self->family);
         } else if (mla_string_equals_const(property_name, "size")) {
@@ -132,8 +168,12 @@ struct mla_ui_surface_input_states_t {
     mla_bool_t metaKeyDown;
     mla_uint32_t keyCodeDown;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_input_states_t* self = static_cast<const mla_ui_surface_input_states_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_input_states_t* self = mla_pointer_get_data<const mla_ui_surface_input_states_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_struct (serializer, mla_string_const("cursorPosition"),      self->cursorPosition, mla_ui_surface_draw_point_t);
         mla_serializer_write_bool   (serializer, mla_string_const("leftMouseButtonDown"), self->leftMouseButtonDown);
         mla_serializer_write_bool   (serializer, mla_string_const("rightMouseButtonDown"),self->rightMouseButtonDown);
@@ -146,8 +186,13 @@ struct mla_ui_surface_input_states_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_input_states_t* self = static_cast<mla_ui_surface_input_states_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_input_states_t* self = mla_pointer_get_data<mla_ui_surface_input_states_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cursorPosition")) {
             mla_deserializer_read_struct(deserializer, self->cursorPosition, mla_ui_surface_draw_point_t);
         } else if (mla_string_equals_const(property_name, "leftMouseButtonDown")) {
@@ -200,8 +245,12 @@ struct mla_ui_surface_draw_command_rect_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_rect_t* self = static_cast<const mla_ui_surface_draw_command_rect_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_rect_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_rect_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x"),            self->x);
         mla_serializer_write_double(serializer, mla_string_const("y"),            self->y);
         mla_serializer_write_double(serializer, mla_string_const("width"),        self->width);
@@ -214,8 +263,13 @@ struct mla_ui_surface_draw_command_rect_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_rect_t* self = static_cast<mla_ui_surface_draw_command_rect_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_rect_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_rect_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x")) {
             mla_deserializer_read_double(deserializer, self->x);
         } else if (mla_string_equals_const(property_name, "y")) {
@@ -248,8 +302,12 @@ struct mla_ui_surface_draw_command_circle_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_circle_t* self = static_cast<const mla_ui_surface_draw_command_circle_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_circle_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_circle_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("cx"),           self->cx);
         mla_serializer_write_double(serializer, mla_string_const("cy"),           self->cy);
         mla_serializer_write_double(serializer, mla_string_const("r"),            self->r);
@@ -259,8 +317,13 @@ struct mla_ui_surface_draw_command_circle_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_circle_t* self = static_cast<mla_ui_surface_draw_command_circle_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_circle_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_circle_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cx")) {
             mla_deserializer_read_double(deserializer, self->cx);
         } else if (mla_string_equals_const(property_name, "cy")) {
@@ -288,8 +351,12 @@ struct mla_ui_surface_draw_command_ellipse_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_ellipse_t* self = static_cast<const mla_ui_surface_draw_command_ellipse_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_ellipse_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_ellipse_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("cx"),           self->cx);
         mla_serializer_write_double(serializer, mla_string_const("cy"),           self->cy);
         mla_serializer_write_double(serializer, mla_string_const("rx"),           self->rx);
@@ -300,8 +367,13 @@ struct mla_ui_surface_draw_command_ellipse_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_ellipse_t* self = static_cast<mla_ui_surface_draw_command_ellipse_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_ellipse_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_ellipse_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cx")) {
             mla_deserializer_read_double(deserializer, self->cx);
         } else if (mla_string_equals_const(property_name, "cy")) {
@@ -330,8 +402,12 @@ struct mla_ui_surface_draw_command_line_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_line_t* self = static_cast<const mla_ui_surface_draw_command_line_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_line_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_line_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x1"),           self->x1);
         mla_serializer_write_double(serializer, mla_string_const("y1"),           self->y1);
         mla_serializer_write_double(serializer, mla_string_const("x2"),           self->x2);
@@ -341,8 +417,13 @@ struct mla_ui_surface_draw_command_line_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_line_t* self = static_cast<mla_ui_surface_draw_command_line_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_line_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_line_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x1")) {
             mla_deserializer_read_double(deserializer, self->x1);
         } else if (mla_string_equals_const(property_name, "y1")) {
@@ -367,8 +448,12 @@ struct mla_ui_surface_draw_command_polyline_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_polyline_t* self = static_cast<const mla_ui_surface_draw_command_polyline_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_polyline_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_polyline_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_list_struct(serializer, mla_string_const("points"),       self->points, mla_ui_surface_draw_point_t);
         mla_serializer_write_struct     (serializer, mla_string_const("fill"),         self->fill,   mla_ui_surface_draw_command_color_t);
         mla_serializer_write_struct     (serializer, mla_string_const("stroke"),       self->stroke, mla_ui_surface_draw_command_color_t);
@@ -376,8 +461,13 @@ struct mla_ui_surface_draw_command_polyline_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_polyline_t* self = static_cast<mla_ui_surface_draw_command_polyline_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_polyline_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_polyline_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "points")) {
             mla_deserializer_read_list_struct(deserializer, self->points, mla_ui_surface_draw_point_t);
         } else if (mla_string_equals_const(property_name, "fill")) {
@@ -406,8 +496,12 @@ struct mla_ui_surface_draw_command_polygon_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_polygon_t* self = static_cast<const mla_ui_surface_draw_command_polygon_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_polygon_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_polygon_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_list_struct(serializer, mla_string_const("points"),       self->points, mla_ui_surface_draw_point_t);
         mla_serializer_write_struct     (serializer, mla_string_const("fill"),         self->fill,   mla_ui_surface_draw_command_color_t);
         mla_serializer_write_struct     (serializer, mla_string_const("stroke"),       self->stroke, mla_ui_surface_draw_command_color_t);
@@ -415,8 +509,13 @@ struct mla_ui_surface_draw_command_polygon_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_polygon_t* self = static_cast<mla_ui_surface_draw_command_polygon_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_polygon_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_polygon_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "points")) {
             mla_deserializer_read_list_struct(deserializer, self->points, mla_ui_surface_draw_point_t);
         } else if (mla_string_equals_const(property_name, "fill")) {
@@ -454,15 +553,24 @@ struct mla_ui_surface_draw_path_command_move_to_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_move_to_t* self = static_cast<const mla_ui_surface_draw_path_command_move_to_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_move_to_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_move_to_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x"), self->x);
         mla_serializer_write_double(serializer, mla_string_const("y"), self->y);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_move_to_t* self = static_cast<mla_ui_surface_draw_path_command_move_to_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_move_to_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_move_to_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x")) {
             mla_deserializer_read_double(deserializer, self->x);
         } else if (mla_string_equals_const(property_name, "y")) {
@@ -477,15 +585,24 @@ struct mla_ui_surface_draw_path_command_line_to_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_line_to_t* self = static_cast<const mla_ui_surface_draw_path_command_line_to_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_line_to_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_line_to_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x"), self->x);
         mla_serializer_write_double(serializer, mla_string_const("y"), self->y);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_line_to_t* self = static_cast<mla_ui_surface_draw_path_command_line_to_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_line_to_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_line_to_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x")) {
             mla_deserializer_read_double(deserializer, self->x);
         } else if (mla_string_equals_const(property_name, "y")) {
@@ -502,8 +619,12 @@ struct mla_ui_surface_draw_path_command_quadratic_curve_to_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_quadratic_curve_to_t* self = static_cast<const mla_ui_surface_draw_path_command_quadratic_curve_to_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_quadratic_curve_to_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_quadratic_curve_to_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("cpx"), self->cpx);
         mla_serializer_write_double(serializer, mla_string_const("cpy"), self->cpy);
         mla_serializer_write_double(serializer, mla_string_const("x"),   self->x);
@@ -511,8 +632,13 @@ struct mla_ui_surface_draw_path_command_quadratic_curve_to_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_quadratic_curve_to_t* self = static_cast<mla_ui_surface_draw_path_command_quadratic_curve_to_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_quadratic_curve_to_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_quadratic_curve_to_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cpx")) {
             mla_deserializer_read_double(deserializer, self->cpx);
         } else if (mla_string_equals_const(property_name, "cpy")) {
@@ -535,8 +661,12 @@ struct mla_ui_surface_draw_path_command_cubic_curve_to_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_cubic_curve_to_t* self = static_cast<const mla_ui_surface_draw_path_command_cubic_curve_to_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_cubic_curve_to_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_cubic_curve_to_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("cp1x"), self->cp1x);
         mla_serializer_write_double(serializer, mla_string_const("cp1y"), self->cp1y);
         mla_serializer_write_double(serializer, mla_string_const("cp2x"), self->cp2x);
@@ -546,8 +676,13 @@ struct mla_ui_surface_draw_path_command_cubic_curve_to_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_cubic_curve_to_t* self = static_cast<mla_ui_surface_draw_path_command_cubic_curve_to_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_cubic_curve_to_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_cubic_curve_to_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cp1x")) {
             mla_deserializer_read_double(deserializer, self->cp1x);
         } else if (mla_string_equals_const(property_name, "cp1y")) {
@@ -575,8 +710,12 @@ struct mla_ui_surface_draw_path_command_arc_to_t {
     mla_double_t x;
     mla_double_t y;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_arc_to_t* self = static_cast<const mla_ui_surface_draw_path_command_arc_to_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_arc_to_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_arc_to_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("rx"),              self->rx);
         mla_serializer_write_double(serializer, mla_string_const("ry"),              self->ry);
         mla_serializer_write_double(serializer, mla_string_const("x_axis_rotation"), self->x_axis_rotation);
@@ -587,8 +726,13 @@ struct mla_ui_surface_draw_path_command_arc_to_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_arc_to_t* self = static_cast<mla_ui_surface_draw_path_command_arc_to_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_arc_to_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_arc_to_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "rx")) {
             mla_deserializer_read_double(deserializer, self->rx);
         } else if (mla_string_equals_const(property_name, "ry")) {
@@ -620,8 +764,12 @@ struct mla_ui_surface_draw_path_command_t {
         mla_ui_surface_draw_path_command_arc_to_t arc_to;
     };
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_path_command_t* self = static_cast<const mla_ui_surface_draw_path_command_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_path_command_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_enum(serializer, mla_string_const("kind"), self->kind);
         if (self->kind == MLA_UI_SURFACE_DRAW_PATH_COMMAND_MOVE_TO) {
             mla_serializer_write_struct(serializer, mla_string_const("moveTo"), self->move_to, mla_ui_surface_draw_path_command_move_to_t);
@@ -638,8 +786,13 @@ struct mla_ui_surface_draw_path_command_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_path_command_t* self = static_cast<mla_ui_surface_draw_path_command_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_path_command_t* self = mla_pointer_get_data<mla_ui_surface_draw_path_command_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "kind")) {
             mla_deserializer_read_enum(mla_ui_surface_draw_path_command_kind_t, deserializer, self->kind);
         } else if (mla_string_equals_const(property_name, "moveTo")) {
@@ -672,8 +825,12 @@ struct mla_ui_surface_draw_command_path_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_path_t* self = static_cast<const mla_ui_surface_draw_command_path_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_path_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_path_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_list_struct(serializer, mla_string_const("commands"),     self->commands, mla_ui_surface_draw_path_command_t);
         mla_serializer_write_struct     (serializer, mla_string_const("fill"),         self->fill,     mla_ui_surface_draw_command_color_t);
         mla_serializer_write_struct     (serializer, mla_string_const("stroke"),       self->stroke,   mla_ui_surface_draw_command_color_t);
@@ -681,8 +838,13 @@ struct mla_ui_surface_draw_command_path_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_path_t* self = static_cast<mla_ui_surface_draw_command_path_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_path_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_path_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "commands")) {
             mla_deserializer_read_list_struct(deserializer, self->commands, mla_ui_surface_draw_path_command_t);
         } else if (mla_string_equals_const(property_name, "fill")) {
@@ -712,8 +874,12 @@ struct mla_ui_surface_draw_command_text_t {
     mla_ui_surface_font_type_t font_type;
     mla_ui_surface_draw_command_color_t fill;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_text_t* self = static_cast<const mla_ui_surface_draw_command_text_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_text_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_text_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x"),         self->x);
         mla_serializer_write_double(serializer, mla_string_const("y"),         self->y);
         mla_serializer_write_string(serializer, mla_string_const("content"),   self->content);
@@ -722,8 +888,13 @@ struct mla_ui_surface_draw_command_text_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_text_t* self = static_cast<mla_ui_surface_draw_command_text_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_text_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_text_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x")) {
             mla_deserializer_read_double(deserializer, self->x);
         } else if (mla_string_equals_const(property_name, "y")) {
@@ -754,8 +925,12 @@ struct mla_ui_surface_draw_command_linear_gradient_t {
     mla_double_t x2;
     mla_double_t y2;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_linear_gradient_t* self = static_cast<const mla_ui_surface_draw_command_linear_gradient_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_linear_gradient_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_linear_gradient_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("x1"), self->x1);
         mla_serializer_write_double(serializer, mla_string_const("y1"), self->y1);
         mla_serializer_write_double(serializer, mla_string_const("x2"), self->x2);
@@ -763,8 +938,13 @@ struct mla_ui_surface_draw_command_linear_gradient_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_linear_gradient_t* self = static_cast<mla_ui_surface_draw_command_linear_gradient_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_linear_gradient_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_linear_gradient_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "x1")) {
             mla_deserializer_read_double(deserializer, self->x1);
         } else if (mla_string_equals_const(property_name, "y1")) {
@@ -786,8 +966,12 @@ struct mla_ui_surface_draw_command_radial_gradient_t {
     mla_double_t fx;
     mla_double_t fy;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_radial_gradient_t* self = static_cast<const mla_ui_surface_draw_command_radial_gradient_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_radial_gradient_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_radial_gradient_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("cx"), self->cx);
         mla_serializer_write_double(serializer, mla_string_const("cy"), self->cy);
         mla_serializer_write_double(serializer, mla_string_const("r"),  self->r);
@@ -796,8 +980,13 @@ struct mla_ui_surface_draw_command_radial_gradient_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_radial_gradient_t* self = static_cast<mla_ui_surface_draw_command_radial_gradient_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_radial_gradient_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_radial_gradient_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "cx")) {
             mla_deserializer_read_double(deserializer, self->cx);
         } else if (mla_string_equals_const(property_name, "cy")) {
@@ -819,16 +1008,25 @@ struct mla_ui_surface_draw_command_stop_t {
     mla_ui_surface_draw_command_color_t stop_color;
     mla_double_t stop_opacity;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_stop_t* self = static_cast<const mla_ui_surface_draw_command_stop_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_stop_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_stop_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_double(serializer, mla_string_const("offset"),       self->offset);
         mla_serializer_write_struct(serializer, mla_string_const("stop_color"),   self->stop_color, mla_ui_surface_draw_command_color_t);
         mla_serializer_write_double(serializer, mla_string_const("stop_opacity"), self->stop_opacity);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_stop_t* self = static_cast<mla_ui_surface_draw_command_stop_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_stop_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_stop_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "offset")) {
             mla_deserializer_read_double(deserializer, self->offset);
         } else if (mla_string_equals_const(property_name, "stop_color")) {
@@ -859,8 +1057,12 @@ struct mla_ui_surface_draw_command_t {
     mla_ui_surface_draw_command_polyline_t polyline;
     mla_ui_surface_draw_command_polygon_t polygon;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_draw_command_t* self = static_cast<const mla_ui_surface_draw_command_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_draw_command_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_enum(serializer, mla_string_const("kind"), self->kind);
         if (self->kind == MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT) {
             mla_serializer_write_struct(serializer, mla_string_const("rect"), self->rect, mla_ui_surface_draw_command_rect_t);
@@ -888,8 +1090,13 @@ struct mla_ui_surface_draw_command_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_draw_command_t* self = static_cast<mla_ui_surface_draw_command_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_draw_command_t* self = mla_pointer_get_data<mla_ui_surface_draw_command_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "kind")) {
             mla_deserializer_read_enum(mla_ui_surface_draw_command_kind, deserializer, self->kind);
         } else if (mla_string_equals_const(property_name, "rect")) {
@@ -945,15 +1152,24 @@ struct mla_ui_surface_input_event_click_t {
     mla_ui_surface_draw_point_t position;
     mla_ui_surface_input_event_click_button button;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_input_event_click_t* self = static_cast<const mla_ui_surface_input_event_click_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_input_event_click_t* self = mla_pointer_get_data<const mla_ui_surface_input_event_click_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_struct(serializer, mla_string_const("position"), self->position, mla_ui_surface_draw_point_t);
         mla_serializer_write_enum  (serializer, mla_string_const("button"),   self->button);
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_input_event_click_t* self = static_cast<mla_ui_surface_input_event_click_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_input_event_click_t* self = mla_pointer_get_data<mla_ui_surface_input_event_click_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "position")) {
             mla_deserializer_read_struct(deserializer, self->position, mla_ui_surface_draw_point_t);
         } else if (mla_string_equals_const(property_name, "button")) {
@@ -989,8 +1205,12 @@ struct mla_ui_surface_input_event_char_input_t {
     mla_char_t character[4];
     surface_input_event_spical_control_char_kind pressedControlKeys;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_input_event_char_input_t* self = static_cast<const mla_ui_surface_input_event_char_input_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_input_event_char_input_t* self = mla_pointer_get_data<const mla_ui_surface_input_event_char_input_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_enum  (serializer, mla_string_const("kind"),               self->kind);
         mla_serializer_write_uint8 (serializer, mla_string_const("character0"),         static_cast<mla_uint8_t>(self->character[0]));
         mla_serializer_write_uint8 (serializer, mla_string_const("character1"),         static_cast<mla_uint8_t>(self->character[1]));
@@ -1000,8 +1220,13 @@ struct mla_ui_surface_input_event_char_input_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_input_event_char_input_t* self = static_cast<mla_ui_surface_input_event_char_input_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_input_event_char_input_t* self = mla_pointer_get_data<mla_ui_surface_input_event_char_input_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "kind")) {
             mla_deserializer_read_enum(mla_ui_surface_input_event_char_input_kind, deserializer, self->kind);
         } else if (mla_string_equals_const(property_name, "character0")) {
@@ -1034,8 +1259,12 @@ struct mla_ui_surface_input_event_t {
         mla_ui_surface_input_event_char_input_t char_input;
     };
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
-        const mla_ui_surface_input_event_t* self = static_cast<const mla_ui_surface_input_event_t*>(obj);
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
+        const mla_ui_surface_input_event_t* self = mla_pointer_get_data<const mla_ui_surface_input_event_t>(obj);
+
+        if (self == nullptr)
+            return false;
+
         mla_serializer_write_enum(serializer, mla_string_const("kind"), self->kind);
         if (self->kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK) {
             mla_serializer_write_struct(serializer, mla_string_const("click"), self->click, mla_ui_surface_input_event_click_t);
@@ -1045,8 +1274,13 @@ struct mla_ui_surface_input_event_t {
         return true;
     }
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t obj, const mla_string_t& property_name) {
-        mla_ui_surface_input_event_t* self = static_cast<mla_ui_surface_input_event_t*>(obj);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& obj, const mla_string_t& property_name) {
+        mla_ui_surface_input_event_t* self = mla_pointer_get_data<mla_ui_surface_input_event_t>(obj);
+
+        if (self == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "kind")) {
             mla_deserializer_read_enum(mla_ui_surface_input_event_kind, deserializer, self->kind);
         } else if (mla_string_equals_const(property_name, "click")) {

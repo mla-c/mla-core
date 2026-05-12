@@ -15,9 +15,13 @@ struct mla_ui_rpc_surface_info_t {
     mla_string_t displayName;
     mla_string_t surfaceName;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
 
-        const mla_ui_rpc_surface_info_t* surfaceInfo = static_cast<const mla_ui_rpc_surface_info_t*>(obj);
+        const mla_ui_rpc_surface_info_t* surfaceInfo = mla_pointer_get_data<const mla_ui_rpc_surface_info_t>(obj);
+
+        if (surfaceInfo == nullptr)
+            return false;
+
         mla_serializer_write_string(serializer, mla_string_const("displayName"), surfaceInfo->displayName);
         mla_serializer_write_string(serializer, mla_string_const("surfaceName"), surfaceInfo->surfaceName);
         return true;
@@ -42,9 +46,13 @@ struct mla_ui_rpc_surface_info_t_initializer {
 struct mla_ui_rpc_surface_infos_t {
     mla_array_list_t<mla_ui_rpc_surface_info_t, mla_ui_rpc_surface_info_t_initializer> surfaces;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
 
-        const mla_ui_rpc_surface_infos_t* surfaceInfos = static_cast<const mla_ui_rpc_surface_infos_t*>(obj);
+        const mla_ui_rpc_surface_infos_t* surfaceInfos = mla_pointer_get_data<const mla_ui_rpc_surface_infos_t>(obj);
+
+        if (surfaceInfos == nullptr)
+            return false;
+
         mla_serializer_write_list<mla_ui_rpc_surface_info_t>(serializer, mla_string_const("surfaces"), surfaceInfos->surfaces, mla_ui_rpc_surface_info_t::serialize);
         return true;
 

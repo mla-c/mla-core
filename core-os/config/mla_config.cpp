@@ -47,7 +47,7 @@ mla_global mla_config_low_level_operations_t g_config_low_level_operations;
 
 
 
-mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, mla_platform_pointer_t config) {
+mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, mla_pointer_t& config) {
 
     if (definition.definition.read_function == nullptr) {
         return false;
@@ -96,7 +96,7 @@ mla_bool_t mla_config_manager_read(const mla_config_definition_t &definition, ml
     return false;
 }
 
-mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, mla_platform_pointer_t config) {
+mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, const mla_pointer_t& config) {
 
     if (definition.definition.write_function == nullptr) {
         return false;

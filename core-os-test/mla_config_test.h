@@ -14,9 +14,14 @@ struct test_config_struct {
     mla_bool_t boolValue;
     mla_string_t strValue;
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& config, const mla_string_t& property_name) {
 
-        test_config_struct* obj = static_cast<test_config_struct*>(config);
+        test_config_struct* obj = mla_pointer_get_data<test_config_struct>(config);
+
+        if (obj == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "intValue")) {
             mla_deserializer_read_int32(deserializer, obj->intValue);
         } else if (mla_string_equals_const(property_name, "boolValue")) {
@@ -29,9 +34,13 @@ struct test_config_struct {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& config) {
 
-        const test_config_struct* obj = static_cast<const test_config_struct*>(config);
+        const test_config_struct* obj = mla_pointer_get_data<const test_config_struct>(config);
+
+        if (obj == nullptr)
+            return false;
+
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
         mla_serializer_write_string(serializer, mla_string_const("strValue"), obj->strValue);
@@ -54,11 +63,11 @@ inline void ConfigWriteReadTest() {
     mla_config_definition_t def = mla_config_definition<test_config_struct>(mla_string_const("test_config"), test_config_struct_serialize_def());
 
     // Write config
-    assert_true(mla_config_manager_write(def, &original), "Failed to write config");
+    assert_true(mla_config_manager_write(def, original), "Failed to write config");
 
     // Simulate reading back
     test_config_struct loaded = {0, false, mla_string_empty()};
-    assert_true(mla_config_manager_read(def, &loaded), "Failed to read config");
+    assert_true(mla_config_manager_read(def, loaded), "Failed to read config");
 
     // Validate
     assert_equal(original.intValue, loaded.intValue, "Config intValue mismatch");
@@ -72,8 +81,13 @@ struct simple_config {
     mla_uint8_t version;
     mla_float_t value;
 
-    static  mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
-        simple_config* obj = static_cast<simple_config*>(config);
+    static  mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& config, const mla_string_t& property_name) {
+        simple_config* obj = mla_pointer_get_data<simple_config>(config);
+
+        if (obj == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "version")) {
             mla_deserializer_read_uint8(deserializer, obj->version);
         } else if (mla_string_equals_const(property_name, "value")) {
@@ -84,9 +98,13 @@ struct simple_config {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& config) {
 
-        const simple_config* obj = static_cast<const simple_config*>(config);
+        const simple_config* obj = mla_pointer_get_data<const simple_config>(config);
+
+        if (obj == nullptr)
+            return false;
+
         mla_serializer_write_uint8(serializer, mla_string_const("version"), obj->version);
         mla_serializer_write_float(serializer, mla_string_const("value"), obj->value);
         return true;
@@ -102,8 +120,13 @@ struct complex_config {
     mla_string_t name;
     mla_array_list_t<mla_int32_t> values;
 
-    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_platform_pointer_t config, const mla_string_t& property_name) {
-        complex_config* obj = static_cast<complex_config*>(config);
+    static mla_deserializer_read_result_t deserialize(mla_deserializer_t& deserializer, mla_pointer_t& config, const mla_string_t& property_name) {
+        complex_config* obj = mla_pointer_get_data<complex_config>(config);
+
+        if (obj == nullptr) {
+            return MLA_DESERIALIZER_READ_ERROR;
+        }
+
         if (mla_string_equals_const(property_name, "id")) {
             mla_deserializer_read_int64(deserializer, obj->id);
         } else if (mla_string_equals_const(property_name, "name")) {
@@ -122,9 +145,13 @@ struct complex_config {
 
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& config) {
 
-        const complex_config* obj = static_cast<const complex_config*>(config);
+        const complex_config* obj = mla_pointer_get_data<const complex_config>(config);
+
+        if (obj == nullptr)
+            return false;
+
         mla_serializer_write_int64(serializer, mla_string_const("id"), obj->id);
         mla_serializer_write_string(serializer, mla_string_const("name"), obj->name);
         mla_serializer_write_list(serializer, mla_string_const("values"), obj->values);
@@ -152,15 +179,15 @@ inline void MultiConfigSameOrderTest() {
         mla_string_const("simple_config"), simple_config_serialize_def());
 
     // Write configs
-    assert_true(mla_config_manager_write(def1, &config1), "Failed to write config1");
-    assert_true(mla_config_manager_write(def2, &config2), "Failed to write config2");
+    assert_true(mla_config_manager_write(def1, config1), "Failed to write config1");
+    assert_true(mla_config_manager_write(def2, config2), "Failed to write config2");
 
     // Read in same order
     test_config_struct loaded1 = {0, false, mla_string_empty()};
     simple_config loaded2 = {0, 0.0f};
 
-    assert_true(mla_config_manager_read(def1, &loaded1), "Failed to read config1");
-    assert_true(mla_config_manager_read(def2, &loaded2), "Failed to read config2");
+    assert_true(mla_config_manager_read(def1, loaded1), "Failed to read config1");
+    assert_true(mla_config_manager_read(def2, loaded2), "Failed to read config2");
 
     // Validate
     assert_equal(config1.intValue, loaded1.intValue, "Config1 intValue mismatch");
@@ -196,18 +223,18 @@ inline void MultiConfigDifferentOrderTest() {
         mla_string_const("complex_config"), complex_config_serialize_def());
 
     // Write configs in one order
-    assert_true(mla_config_manager_write(def1, &config1), "Failed to write config1");
-    assert_true(mla_config_manager_write(def2, &config2), "Failed to write config2");
-    assert_true(mla_config_manager_write(def3, &config3), "Failed to write config3");
+    assert_true(mla_config_manager_write(def1, config1), "Failed to write config1");
+    assert_true(mla_config_manager_write(def2, config2), "Failed to write config2");
+    assert_true(mla_config_manager_write(def3, config3), "Failed to write config3");
 
     // Read in different order
     simple_config loaded2 = {0, 0.0f};
     complex_config loaded3 = {0, mla_string_empty(), mla_array_list<mla_int32_t>()};
     test_config_struct loaded1 = {0, false, mla_string_empty()};
 
-    assert_true(mla_config_manager_read(def2, &loaded2), "Failed to read config2");
-    assert_true(mla_config_manager_read(def3, &loaded3), "Failed to read config3");
-    assert_true(mla_config_manager_read(def1, &loaded1), "Failed to read config1");
+    assert_true(mla_config_manager_read(def2, loaded2), "Failed to read config2");
+    assert_true(mla_config_manager_read(def3, loaded3), "Failed to read config3");
+    assert_true(mla_config_manager_read(def1, loaded1), "Failed to read config1");
 
     // Validate
     assert_equal(config2.version, loaded2.version, "Config2 version mismatch");
@@ -244,19 +271,19 @@ inline void MultiConfigUpdateTest() {
         mla_string_const("simple_config"), simple_config_serialize_def());
 
     // Write both configs
-    assert_true(mla_config_manager_write(def1, &config1), "Failed to write config1");
-    assert_true(mla_config_manager_write(def2, &config2), "Failed to write config2");
+    assert_true(mla_config_manager_write(def1, config1), "Failed to write config1");
+    assert_true(mla_config_manager_write(def2, config2), "Failed to write config2");
 
     // Update just one config
     test_config_struct updated1 = {400, false, mla_string("Updated")};
-    assert_true(mla_config_manager_write(def1, &updated1), "Failed to update config1");
+    assert_true(mla_config_manager_write(def1, updated1), "Failed to update config1");
 
     // Read both back
     test_config_struct loaded1 = {0, false, mla_string_empty()};
     simple_config loaded2 = {0, 0.0f};
 
-    assert_true(mla_config_manager_read(def1, &loaded1), "Failed to read config1");
-    assert_true(mla_config_manager_read(def2, &loaded2), "Failed to read config2");
+    assert_true(mla_config_manager_read(def1, loaded1), "Failed to read config1");
+    assert_true(mla_config_manager_read(def2, loaded2), "Failed to read config2");
 
     // Validate updated values
     assert_equal(updated1.intValue, loaded1.intValue, "Updated config1 intValue mismatch");

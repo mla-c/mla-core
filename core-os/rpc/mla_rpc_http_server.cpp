@@ -46,7 +46,7 @@ mla_bool_t __mla_rpc_http_server_support_deflate_compression(const mla_rpc_http_
 #endif
 }
 
-mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_platform_pointer_t outputData, const mla_serialize_definition_write_function_t &write_function) {
+mla_bool_t __mla_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t& outputData, const mla_serialize_definition_write_function_t &write_function) {
 
     mla_serializer_t serializer = mla_serializer_invalid();
 
@@ -82,7 +82,7 @@ mla_bool_t __mla_rpc_http_server_handler_content_writer(const mla_http_response_
         return false;
 
     // Store content type and write function at the beginning of output buffer
-    mla_platform_pointer_t outputData = reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+    mla_pointer_t outputData = mla_platform_pointer_to_managed_pointer( reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
 
     mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output_invalid();
 
@@ -191,13 +191,12 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
         header->support_deflate_compression = mla_http_headers_has_header_value(request.headers, mla_string_const("Accept-Encoding"), mla_string_const("deflate"), mla_string_const(","));
     }
 
-    mla_platform_pointer_t input_ptr = mla_pointer_get_platform_pointer(input);
 
-    if (input_ptr != nullptr && procedure.inputDefinition.read_function != nullptr) {
+    if (!mla_pointer_is_null(input) && procedure.inputDefinition.read_function != nullptr) {
 
         // Start reading
         deserializer.read_next(deserializer);
-        if (!mla_deserializer_read_struct_read_function(deserializer, input_ptr, procedure.inputDefinition.read_function)) {
+        if (!mla_deserializer_read_struct_read_function(deserializer, input, procedure.inputDefinition.read_function)) {
             response.statusCode = mla_http_status_bad_request;
             mla_error(mla_string_concat("Failed to deserialize input for procedure ", procedure_name));
             return false;
@@ -206,13 +205,13 @@ mla_bool_t __mla_rpc_http_server_handler(mla_http_server_t& http_server, const m
 
     // Store content type and write function at the beginning of output buffer
     mla_platform_pointer_t output_ptr = mla_pointer_get_platform_pointer(output);
-    mla_platform_pointer_t output_content = nullptr;
+    mla_pointer_t output_content = mla_pointer_null();
 
     if (output_ptr != nullptr) {
-        output_content = reinterpret_cast<mla_uint8_t*>(output_ptr) + sizeof(mla_rpc_http_server_handler_content_writer_header_t);
+        output_content = mla_platform_pointer_to_managed_pointer(reinterpret_cast<mla_uint8_t*>(output_ptr) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
     }
 
-    if (procedure.execute(input_ptr, output_content)) {
+    if (procedure.execute(mla_pointer_get_platform_pointer(input), mla_pointer_get_platform_pointer(output_content))) {
 
         response.statusCode = mla_http_status_ok;
         response.statusMessage = mla_string_const("Success");

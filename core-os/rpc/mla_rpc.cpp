@@ -82,7 +82,7 @@ mla_bool_t mla_rpc_is_local_procedure(const mla_string_t &procedure_name) {
     return mla_hash_map_contains(g_rpc_container.procedures, procedure_name);
 }
 
-mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data) {
 
     mla_rpc_procedure_unsafe_t procedure = mla_rpc_procedure_unsafe_invalid();
 
@@ -96,72 +96,62 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
     }
 
     // Serialize also local calls to have the same behavior as remote calls
-    mla_platform_pointer_t serialized_input = nullptr;
+    mla_pointer_t serialized_input = mla_pointer_null();
 
     mla_memory_stream_t memory_stream = mla_memory_stream_empty();
 
     // Serialize input data
-    if (input_data != nullptr && input_definition.data_size > 0) {
-        serialized_input = mla_platform_malloc(input_definition.data_size);
+    if (!mla_pointer_is_null(input_data) && input_definition.data_size > 0) {
 
-        if (serialized_input == nullptr) {
+        serialized_input = mla_malloc_buffer(input_definition.data_size);
+
+        if (mla_pointer_is_null(serialized_input)) {
             return false; // Memory allocation failed
         }
 
-        mla_memset(serialized_input, 0, input_definition.data_size);
-
         mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
         if (!mla_serializer_write_data_struct(binarySerializer, input_data, input_definition.write_function)) {
-            mla_platform_free(serialized_input);
             return false; // Serialization failed
         }
+
         mla_memory_stream_set_position(memory_stream, 0);
 
         mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
         // Start reading
         binaryDeserializer.read_next(binaryDeserializer);
+
         if (!mla_deserializer_read_struct_read_function(binaryDeserializer, serialized_input, input_definition.read_function)) {
-            mla_platform_free(serialized_input);
             return false; // Serialization failed
         }
 
     }
 
     // Create Output Buffer
-    mla_platform_pointer_t serialized_output = nullptr;
+    mla_pointer_t serialized_output = mla_pointer_null();
 
-    if (output_data != nullptr && output_definition.data_size > 0) {
-        serialized_output = mla_platform_malloc(output_definition.data_size);
+    if (!mla_pointer_is_null(output_data) && output_definition.data_size > 0) {
+        serialized_output = mla_malloc_buffer(output_definition.data_size);
 
-        if (serialized_output == nullptr) {
-            if (serialized_input != nullptr) {
-                mla_platform_free(serialized_input);
-            }
+        if (mla_pointer_is_null(serialized_output)) {
             return false; // Memory allocation failed
         }
-
-        mla_memset(serialized_output, 0, output_definition.data_size);
     }
 
-    mla_bool_t result = procedure.execute(serialized_input, serialized_output);
+    mla_bool_t result = procedure.execute(mla_pointer_get_platform_pointer(serialized_input), mla_pointer_get_platform_pointer(serialized_output));
 
-    if (serialized_input != nullptr) {
-        mla_platform_free(serialized_input);
-    }
 
 
     if (result) {
 
-        if (serialized_output != nullptr) {
+        if (!mla_pointer_is_null(serialized_output)) {
             mla_memory_stream_reset(memory_stream);
 
             // Deserialize output data
             mla_serializer_t binarySerializer = mla_binary_serializer(memory_stream.output);
             if (!mla_serializer_write_data_struct(binarySerializer, serialized_output, output_definition.write_function)) {
-                mla_platform_free(serialized_output);
                 return false; // Serialization failed
             }
-            mla_platform_free(serialized_output);
+
             mla_memory_stream_set_position(memory_stream, 0);
 
             mla_deserializer_t binaryDeserializer = mla_binary_deserializer(memory_stream.input);
@@ -175,15 +165,12 @@ mla_bool_t mla_rpc_execute_procedure(const mla_string_t &procedure_name, const m
         return true;
 
     } else {
-        if (serialized_output != nullptr) {
-            mla_platform_free(serialized_output);
-        }
 
         return false; // Procedure execution failed
     }
 }
 
-mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data) {
+mla_bool_t mla_rpc_execute_procedure_remote(const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data) {
 
 
     mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_invalid();
