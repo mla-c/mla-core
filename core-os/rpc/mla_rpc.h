@@ -11,6 +11,9 @@
 #include "../lifecycle/mla_lifecycle_events.h"
 #include "../reflection/mla_reflection.h"
 
+// Define an RPC Parmaeter which is not used
+#define mla_rpc_procedure_void_t mla_platform_pointer_t
+
 typedef mla_bool_t (*mla_rpc_procedure_handler_unsafe_t)(const mla_platform_pointer_t input_data, mla_platform_pointer_t output_data);
 
 struct mla_rpc_procedure_unsafe_t {
