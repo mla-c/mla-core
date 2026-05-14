@@ -2,8 +2,8 @@
 // Created by chris on 1/23/2026.
 //
 
-#ifndef COREOS_MLA_UI_BUTTON_H
-#define COREOS_MLA_UI_BUTTON_H
+#ifndef MLA_C_MLA_UI_BUTTON_H
+#define MLA_C_MLA_UI_BUTTON_H
 
 #include "mla_ui_control.h"
 #include "mla_ui_style.h"

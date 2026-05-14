@@ -2,8 +2,8 @@
 // Created by christian on 10/2/25.
 //
 
-#ifndef COREOS_MLA_GLOBAL_CONFIG_INMEMORY_H
-#define COREOS_MLA_GLOBAL_CONFIG_INMEMORY_H
+#ifndef MLA_C_MLA_GLOBAL_CONFIG_INMEMORY_H
+#define MLA_C_MLA_GLOBAL_CONFIG_INMEMORY_H
 
 // In-memory configuration storage
 #include "../../core-os/config/mla_config.h"

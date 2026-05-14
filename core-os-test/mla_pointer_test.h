@@ -2,8 +2,8 @@
 // Created by chris on 4/14/2026.
 //
 
-#ifndef COREOS_MLA_POINTER_TEST_H
-#define COREOS_MLA_POINTER_TEST_H
+#ifndef MLA_C_MLA_POINTER_TEST_H
+#define MLA_C_MLA_POINTER_TEST_H
 
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os-test-support/mla_test_executor.h"

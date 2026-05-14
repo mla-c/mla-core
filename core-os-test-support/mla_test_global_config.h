@@ -1,5 +1,5 @@
-#ifndef COREOS_TEST_MLA_TEST_GLOBAL_CONFIG_H
-#define COREOS_TEST_MLA_TEST_GLOBAL_CONFIG_H
+#ifndef MLA_C_TEST_MLA_TEST_GLOBAL_CONFIG_H
+#define MLA_C_TEST_MLA_TEST_GLOBAL_CONFIG_H
 
 /**
  * @file mla_test_global_config.h

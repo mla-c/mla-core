@@ -1,6 +1,6 @@
 # System Module
 
-The System module provides fundamental data structures and utilities that form the foundation of the CoreOS library. It includes essential types for strings, buffers, streams, collections, and other core functionality used throughout the framework.
+The System module provides fundamental data structures and utilities that form the foundation of the mla-c library. It includes essential types for strings, buffers, streams, collections, and other core functionality used throughout the framework.
 
 ## Architecture
 

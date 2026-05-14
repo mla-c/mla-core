@@ -2,8 +2,8 @@
 // Created by christian on 10/6/25.
 //
 
-#ifndef COREOS_MLA_NETWORK_H
-#define COREOS_MLA_NETWORK_H
+#ifndef MLA_C_MLA_NETWORK_H
+#define MLA_C_MLA_NETWORK_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"

@@ -2,8 +2,8 @@
 // Created by christian on 8/10/25.
 //
 
-#ifndef COREOS_MLA_STRING_CONCAT_H
-#define COREOS_MLA_STRING_CONCAT_H
+#ifndef MLA_C_MLA_STRING_CONCAT_H
+#define MLA_C_MLA_STRING_CONCAT_H
 
 #include "mla_string.h"
 

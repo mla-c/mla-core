@@ -1,10 +1,10 @@
-# CoreOS Library Collection
+# mla-c Library Collection
 
 A comprehensive, cross-platform C++ framework for building modern applications with support for Windows, Linux, WASM, Raspberry Pi, and ESP-IDF platforms.
 
 ## 📋 Overview
 
-CoreOS is a modular, lightweight operating system abstraction library that provides essential functionality for application development across multiple platforms. It offers a consistent API surface while maintaining platform-specific optimizations.
+mla-c is a modular, lightweight operating system abstraction library that provides essential functionality for application development across multiple platforms. It offers a consistent API surface while maintaining platform-specific optimizations.
 
 ## 🎯 Key Features
 
@@ -19,7 +19,7 @@ CoreOS is a modular, lightweight operating system abstraction library that provi
 
 ## 📦 Library Components
 
-### Core OS (`core-os/`)
+### mla-c (`core-os/`)
 
 The main library providing fundamental operating system abstractions and utilities. [Documentation](core-os/readme.md)
 
@@ -153,7 +153,7 @@ Testing and benchmarking infrastructure:
 - **Benchmark Executor** - `mla_benchmark_executor.h` - Performance testing framework
 - **Benchmark Timer** - Platform-specific timing (STD, ESP8266)
 
-Current Benchmark Result: [HERE](https://cs-benchmark.github.io/benchmark-app/?project=CoreOS-Application-Test)
+Current Benchmark Result: [HERE](https://cs-benchmark.github.io/benchmark-app/?project=mla-c-Application-Test)
 
 ### Example Application (`core-os-exmaple-app/`) - [Documentation](core-os-exmaple-app/readme.md)
 
@@ -168,18 +168,18 @@ Reference implementation demonstrating library usage:
 
 ### Web UI Application (`core-os-web-ui/`) - [Documentation](core-os-web-ui/README.md)
 
-Browser-based interface for CoreOS applications built with Preact and TypeScript. The production build is embedded into the C++ library as a compressed byte array and served by the CoreOS HTTP server at runtime.
+Browser-based interface for mla-c applications built with Preact and TypeScript. The production build is embedded into the C++ library as a compressed byte array and served by the mla-c HTTP server at runtime.
 
 
 ## 📚 Architecture
 
-CoreOS follows a layered architecture:
+mla-c follows a layered architecture:
 
 ```
 ┌─────────────────────────────────────┐
 │    Applications & Example Apps      │
 ├─────────────────────────────────────┤
-│         Core OS Library             │
+│         mla-c Library             │
 │  (System, HTTP, Tasks, Logging...)  │
 ├─────────────────────────────────────┤
 │      Platform Abstractions          │

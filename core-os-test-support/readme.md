@@ -1,6 +1,6 @@
 # Test Support Library
 
-The `core-os-test-support/` directory provides the testing and benchmarking infrastructure for CoreOS. It includes a custom test framework, a benchmark framework, and platform-specific utilities for running tests across all supported platforms.
+The `core-os-test-support/` directory provides the testing and benchmarking infrastructure for mla-c. It includes a custom test framework, a benchmark framework, and platform-specific utilities for running tests across all supported platforms.
 
 ## Architecture
 
@@ -121,6 +121,6 @@ The `platform/` directory provides platform-specific implementations:
 
 ## Integration
 
-The test support library is used by all test files in `core-os-test/` and works across all supported CoreOS platforms (Linux, Windows, ESP-IDF, Raspberry Pi, WASM).
+The test support library is used by all test files in `core-os-test/` and works across all supported mla-c platforms (Linux, Windows, ESP-IDF, Raspberry Pi, WASM).
 
-Current benchmark results: [CoreOS Benchmark Dashboard](https://cs-benchmark.github.io/benchmark-app/?project=CoreOS-Application-Test)
+Current benchmark results: [mla-c Benchmark Dashboard](https://cs-benchmark.github.io/benchmark-app/?project=mla-c-Application-Test)

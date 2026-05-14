@@ -4,8 +4,8 @@
 // Created by chris on 9/14/2025.
 //
 
-#ifndef COREOS_MLA_SERIALIZER_H
-#define COREOS_MLA_SERIALIZER_H
+#ifndef MLA_C_MLA_SERIALIZER_H
+#define MLA_C_MLA_SERIALIZER_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_stream.h"

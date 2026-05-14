@@ -2,8 +2,8 @@
 // Created by chris on 9/14/2025.
 //
 
-#ifndef COREOS_MLA_TASK_CLI_MODULE_H
-#define COREOS_MLA_TASK_CLI_MODULE_H
+#ifndef MLA_C_MLA_TASK_CLI_MODULE_H
+#define MLA_C_MLA_TASK_CLI_MODULE_H
 
 #include "../cli/mla_cli_app.h"
 

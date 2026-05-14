@@ -2,8 +2,8 @@
 // Created by chris on 8/3/2025.
 //
 
-#ifndef COREOS_NATIVE_STRING_TEST_H
-#define COREOS_NATIVE_STRING_TEST_H
+#ifndef MLA_C_NATIVE_STRING_TEST_H
+#define MLA_C_NATIVE_STRING_TEST_H
 
 #if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 #include "string"

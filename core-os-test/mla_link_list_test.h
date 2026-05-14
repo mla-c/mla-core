@@ -2,8 +2,8 @@
 // Created by chris on 8/3/2025.
 //
 
-#ifndef COREOS_MLA_LINK_LIST_TEST_H
-#define COREOS_MLA_LINK_LIST_TEST_H
+#ifndef MLA_C_MLA_LINK_LIST_TEST_H
+#define MLA_C_MLA_LINK_LIST_TEST_H
 
 #include "../core-os/system/mla_string.h"
 #include "../core-os/system/mla_link_list.h"

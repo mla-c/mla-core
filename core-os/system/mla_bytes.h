@@ -2,8 +2,8 @@
 // Created by chris on 9/17/2025.
 //
 
-#ifndef COREOS_MLA_BYTE_ARRAY_H
-#define COREOS_MLA_BYTE_ARRAY_H
+#ifndef MLA_C_MLA_BYTE_ARRAY_H
+#define MLA_C_MLA_BYTE_ARRAY_H
 
 #include "../mla_data_types.h"
 #include "mla_buffer.h"

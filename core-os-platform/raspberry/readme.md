@@ -1,6 +1,6 @@
 # Raspberry Pi Pico Platform Module
 
-The Raspberry Pi Pico platform module provides platform-specific implementations and configurations for running CoreOS on Raspberry Pi Pico and other RP2040-based microcontrollers. It integrates with the Pico SDK and provides optimized implementations for this ARM Cortex-M0+ based platform.
+The Raspberry Pi Pico platform module provides platform-specific implementations and configurations for running mla-c on Raspberry Pi Pico and other RP2040-based microcontrollers. It integrates with the Pico SDK and provides optimized implementations for this ARM Cortex-M0+ based platform.
 
 ## Architecture
 
@@ -83,7 +83,7 @@ The platform configuration can be customized via `mla_global_config_raspberry-pi
 
 ### Building for Raspberry Pi Pico
 
-When building CoreOS for Raspberry Pi Pico, use the Pico SDK build system:
+When building mla-c for Raspberry Pi Pico, use the Pico SDK build system:
 
 ```bash
 # Set Pico SDK path
@@ -163,7 +163,7 @@ The Pico platform supports various power modes:
 
 ## Integration with Other Modules
 
-The Raspberry Pi Pico platform module works with CoreOS modules:
+The Raspberry Pi Pico platform module works with mla-c modules:
 - Network module (Pico W Wi-Fi or external modules)
 - File System module (LittleFS on flash, FAT on SD)
 - Task module (lightweight or FreeRTOS-based)

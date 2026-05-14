@@ -2,8 +2,8 @@
 // Created by chris on 8/3/2025.
 //
 
-#ifndef COREOS_MEMORY_HOOK_TEST_H
-#define COREOS_MEMORY_HOOK_TEST_H
+#ifndef MLA_C_MEMORY_HOOK_TEST_H
+#define MLA_C_MEMORY_HOOK_TEST_H
 
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os-test-support/mla_test_executor.h"

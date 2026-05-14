@@ -2,8 +2,8 @@
 // Created by christian on 12/2/25.
 //
 
-#ifndef COREOS_TEST_MUTEX_SINGLE_THREAD_H
-#define COREOS_TEST_MUTEX_SINGLE_THREAD_H
+#ifndef MLA_C_TEST_MUTEX_SINGLE_THREAD_H
+#define MLA_C_TEST_MUTEX_SINGLE_THREAD_H
 
 #include "../mla_test_data_types.h"
 

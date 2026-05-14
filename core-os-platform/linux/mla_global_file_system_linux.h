@@ -2,8 +2,8 @@
 // Created by christian on 10/17/25.
 //
 
-#ifndef COREOS_MLA_GLOBAL_FILE_SYSTEM_LINUX_H
-#define COREOS_MLA_GLOBAL_FILE_SYSTEM_LINUX_H
+#ifndef MLA_C_MLA_GLOBAL_FILE_SYSTEM_LINUX_H
+#define MLA_C_MLA_GLOBAL_FILE_SYSTEM_LINUX_H
 
 #include "../../core-os/filesystem/mla_file_system.h"
 #include "../../core-os/mla_data_types.h"

@@ -2,8 +2,8 @@
 // Created by chris on 12/18/2025.
 //
 
-#ifndef COREOS_MLA_REFLECTION_RPC_H
-#define COREOS_MLA_REFLECTION_RPC_H
+#ifndef MLA_C_MLA_REFLECTION_RPC_H
+#define MLA_C_MLA_REFLECTION_RPC_H
 
 #include "mla_reflection.h"
 #include "../system/mla_string.h"

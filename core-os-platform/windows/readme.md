@@ -1,6 +1,6 @@
 # Windows Platform Module
 
-The Windows platform module provides platform-specific implementations and configurations for running CoreOS on Windows systems. It includes native Windows implementations for networking, file system operations, task management, and low-level platform utilities.
+The Windows platform module provides platform-specific implementations and configurations for running mla-c on Windows systems. It includes native Windows implementations for networking, file system operations, task management, and low-level platform utilities.
 
 ## Architecture
 
@@ -82,7 +82,7 @@ The platform configuration can be customized via `mla_global_config_windows.h`. 
 
 ### Building for Windows
 
-When building CoreOS for Windows, ensure that your build system defines the appropriate platform macro and links against required Windows libraries:
+When building mla-c for Windows, ensure that your build system defines the appropriate platform macro and links against required Windows libraries:
 
 ```bash
 # Example CMake configuration
@@ -124,7 +124,7 @@ The Windows platform handles both Windows-style backslash (`\`) and Unix-style f
 
 ## Integration with Other Modules
 
-The Windows platform module works seamlessly with all CoreOS modules, providing the low-level implementations required for:
+The Windows platform module works seamlessly with all mla-c modules, providing the low-level implementations required for:
 - Network module (Winsock-based TCP/UDP sockets)
 - File System module (Windows file system APIs)
 - Task module (Windows thread-based scheduling)

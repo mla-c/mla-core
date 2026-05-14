@@ -2,8 +2,8 @@
 // Created by chris on 1/9/2026.
 //
 
-#ifndef COREOS_MLA_BENCHMARK_TIMER_EXTERNAL_H
-#define COREOS_MLA_BENCHMARK_TIMER_EXTERNAL_H
+#ifndef MLA_C_MLA_BENCHMARK_TIMER_EXTERNAL_H
+#define MLA_C_MLA_BENCHMARK_TIMER_EXTERNAL_H
 
 #include "../Benchmark/mla_benchmark.h"
 

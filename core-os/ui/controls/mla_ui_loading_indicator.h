@@ -2,8 +2,8 @@
 // Created by chris on 2/6/2026.
 //
 
-#ifndef COREOS_MLA_UI_LOADING_INDICATOR_H
-#define COREOS_MLA_UI_LOADING_INDICATOR_H
+#ifndef MLA_C_MLA_UI_LOADING_INDICATOR_H
+#define MLA_C_MLA_UI_LOADING_INDICATOR_H
 
 #include "mla_ui_control.h"
 

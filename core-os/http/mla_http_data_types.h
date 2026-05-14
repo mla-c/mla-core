@@ -2,8 +2,8 @@
 // Created by christian on 10/8/25.
 //
 
-#ifndef COREOS_MLA_HTTP_DATA_TYPES_H
-#define COREOS_MLA_HTTP_DATA_TYPES_H
+#ifndef MLA_C_MLA_HTTP_DATA_TYPES_H
+#define MLA_C_MLA_HTTP_DATA_TYPES_H
 
 enum mla_http_version: mla_uint8_t {
     MLA_HTTP_VERSION_1_0,

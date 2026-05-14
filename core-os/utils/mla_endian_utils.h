@@ -2,8 +2,8 @@
 // Created by chris on 11/13/2025.
 //
 
-#ifndef COREOS_MLA_ENDIAN_UTILS_H
-#define COREOS_MLA_ENDIAN_UTILS_H
+#ifndef MLA_C_MLA_ENDIAN_UTILS_H
+#define MLA_C_MLA_ENDIAN_UTILS_H
 
 #include "../mla_data_types.h"
 

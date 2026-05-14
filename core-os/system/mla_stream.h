@@ -2,8 +2,8 @@
 // Created by christian on 9/13/25.
 //
 
-#ifndef COREOS_MLA_STREAM_H
-#define COREOS_MLA_STREAM_H
+#ifndef MLA_C_MLA_STREAM_H
+#define MLA_C_MLA_STREAM_H
 
 #include "mla_bytes.h"
 #include "../mla_data_types.h"

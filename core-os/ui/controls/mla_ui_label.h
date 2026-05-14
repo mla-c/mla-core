@@ -2,8 +2,8 @@
 // Created by chris on 1/19/2026.
 //
 
-#ifndef COREOS_MLA_UI_LABEL_H
-#define COREOS_MLA_UI_LABEL_H
+#ifndef MLA_C_MLA_UI_LABEL_H
+#define MLA_C_MLA_UI_LABEL_H
 
 #include "mla_ui_control.h"
 #include "mla_ui_style.h"

@@ -2,8 +2,8 @@
 // Created by chris on 1/19/2026.
 //
 
-#ifndef COREOS_MLA_UI_STYLE_H
-#define COREOS_MLA_UI_STYLE_H
+#ifndef MLA_C_MLA_UI_STYLE_H
+#define MLA_C_MLA_UI_STYLE_H
 
 #include "../../mla_data_types.h"
 

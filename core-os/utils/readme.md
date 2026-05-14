@@ -1,6 +1,6 @@
 # Utilities Module
 
-The Utilities module provides a collection of miscellaneous helper functions and data structures that are used throughout the CoreOS library.
+The Utilities module provides a collection of miscellaneous helper functions and data structures that are used throughout the mla-c library.
 
 ## Components
 

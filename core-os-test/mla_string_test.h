@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_STRING_TEST_H
-#define COREOS_MLA_STRING_TEST_H
+#ifndef MLA_C_MLA_STRING_TEST_H
+#define MLA_C_MLA_STRING_TEST_H
 
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os/system/mla_string.h"

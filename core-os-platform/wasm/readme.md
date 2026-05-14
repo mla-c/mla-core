@@ -1,6 +1,6 @@
 # WebAssembly (WASM) Platform Module
 
-The WASM platform module provides platform-specific implementations for running CoreOS applications in WebAssembly environments, supporting both browser and Node.js runtimes. It includes two compilation modes: a standard mode with POSIX compatibility and a standalone mode with zero C library dependencies.
+The WASM platform module provides platform-specific implementations for running mla-c applications in WebAssembly environments, supporting both browser and Node.js runtimes. It includes two compilation modes: a standard mode with POSIX compatibility and a standalone mode with zero C library dependencies.
 
 ## Architecture
 
@@ -48,7 +48,7 @@ This delegates to the generic `mla_task_manager_single_thread.h` implementation.
 
 ## JavaScript Runtime
 
-The `javascript/` directory contains a complete runtime for loading and executing CoreOS WASM modules.
+The `javascript/` directory contains a complete runtime for loading and executing mla-c WASM modules.
 
 ### WASM Worker (`mla_wasm_worker.js`)
 
@@ -101,7 +101,7 @@ Custom functions have access to helper utilities: `readString`, `writeString`, `
 
 ## Building for WASM
 
-CoreOS supports multiple WASM build configurations via CMake:
+mla-c supports multiple WASM build configurations via CMake:
 
 ### Emscripten (Standard)
 ```bash

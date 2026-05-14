@@ -1,5 +1,5 @@
-#ifndef COREOS_MLA_DATATYPES_H
-#define COREOS_MLA_DATATYPES_H
+#ifndef MLA_C_MLA_DATATYPES_H
+#define MLA_C_MLA_DATATYPES_H
 
 #include "mla_global_config.h"
 

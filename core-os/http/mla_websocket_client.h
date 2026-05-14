@@ -11,8 +11,8 @@
  * The implementation supports both text and binary message types with fragmentation support.
  */
 
-#ifndef COREOS_MLA_WEBSOCKET_CLIENT_H
-#define COREOS_MLA_WEBSOCKET_CLIENT_H
+#ifndef MLA_C_MLA_WEBSOCKET_CLIENT_H
+#define MLA_C_MLA_WEBSOCKET_CLIENT_H
 
 #include "../network/mla_network.h"
 

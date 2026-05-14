@@ -1,6 +1,6 @@
 # UI Module
 
-The UI module provides a cross-platform user interface framework for CoreOS applications. It supports both native display surfaces and web-based remote rendering via HTTP/WebSocket, allowing applications to be controlled and monitored through a browser.
+The UI module provides a cross-platform user interface framework for mla-c applications. It supports both native display surfaces and web-based remote rendering via HTTP/WebSocket, allowing applications to be controlled and monitored through a browser.
 
 ## Architecture
 
@@ -194,7 +194,7 @@ The `mla_ui_style.h` header defines font sizes and color constants used across a
 
 ## Integration with Other Modules
 
-The UI module integrates with several other CoreOS modules:
+The UI module integrates with several other mla-c modules:
 
 - **HTTP Module** - Serves UI web client and handles WebSocket connections
 - **RPC Module** - Exposes surface discovery and interaction procedures

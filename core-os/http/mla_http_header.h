@@ -2,8 +2,8 @@
 // Created by christian on 10/6/25.
 //
 
-#ifndef COREOS_MLA_HTTP_HEADER_H
-#define COREOS_MLA_HTTP_HEADER_H
+#ifndef MLA_C_MLA_HTTP_HEADER_H
+#define MLA_C_MLA_HTTP_HEADER_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"

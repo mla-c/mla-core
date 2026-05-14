@@ -2,8 +2,8 @@
 // Created by christian on 12/5/25.
 //
 
-#ifndef COREOS_MLA_LOGGER_RPC_H
-#define COREOS_MLA_LOGGER_RPC_H
+#ifndef MLA_C_MLA_LOGGER_RPC_H
+#define MLA_C_MLA_LOGGER_RPC_H
 
 #include "mla_logger.h"
 #include "../rpc/mla_rpc.h"

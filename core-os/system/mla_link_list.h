@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_LINK_LIST_H
-#define COREOS_MLA_LINK_LIST_H
+#ifndef MLA_C_MLA_LINK_LIST_H
+#define MLA_C_MLA_LINK_LIST_H
 
 #include "../mla_data_types.h"
 #include "mla_buffer.h"

@@ -2,8 +2,8 @@
 // Created by chris on 10/15/2025.
 //
 
-#ifndef COREOS_MLA_FILE_SYSTEM_TEST_H
-#define COREOS_MLA_FILE_SYSTEM_TEST_H
+#ifndef MLA_C_MLA_FILE_SYSTEM_TEST_H
+#define MLA_C_MLA_FILE_SYSTEM_TEST_H
 
 #include "../core-os-test-support/mla_test_executor.h"
 #include "../core-os/filesystem/mla_file_system.h"

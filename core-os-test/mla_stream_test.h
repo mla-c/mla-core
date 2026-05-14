@@ -2,8 +2,8 @@
 // Created by christian on 11/25/25.
 //
 
-#ifndef COREOS_MLA_STREAM_TEST_H
-#define COREOS_MLA_STREAM_TEST_H
+#ifndef MLA_C_MLA_STREAM_TEST_H
+#define MLA_C_MLA_STREAM_TEST_H
 
 #include "../core-os/system/mla_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"

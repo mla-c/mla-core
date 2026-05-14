@@ -2,8 +2,8 @@
 // Created by christian on 10/8/25.
 //
 
-#ifndef COREOS_MLA_URL_TEST_H
-#define COREOS_MLA_URL_TEST_H
+#ifndef MLA_C_MLA_URL_TEST_H
+#define MLA_C_MLA_URL_TEST_H
 
 #include "../core-os/url/mla_url.h"
 #include "../core-os-test-support/mla_test_executor.h"

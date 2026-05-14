@@ -2,8 +2,8 @@
 // Created by chris on 2/9/2026.
 //
 
-#ifndef COREOS_MLA_USER_DATA_H
-#define COREOS_MLA_USER_DATA_H
+#ifndef MLA_C_MLA_USER_DATA_H
+#define MLA_C_MLA_USER_DATA_H
 
 #include "mla_buffer.h"
 #include "mla_string.h"

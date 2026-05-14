@@ -2,8 +2,8 @@
 // Created by christian on 8/10/25.
 //
 
-#ifndef COREOS_MLA_TASK_MANAGER_PTHREAD_H
-#define COREOS_MLA_TASK_MANAGER_PTHREAD_H
+#ifndef MLA_C_MLA_TASK_MANAGER_PTHREAD_H
+#define MLA_C_MLA_TASK_MANAGER_PTHREAD_H
 
 #include "../../core-os/task/mla_task_manager.h"
 #include "../../core-os/task/mla_atomic.h"

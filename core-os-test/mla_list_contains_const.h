@@ -2,8 +2,8 @@
 // Created by chris on 9/12/2025.
 //
 
-#ifndef COREOS_MLA_LIST_CONTAINS_CONST_H
-#define COREOS_MLA_LIST_CONTAINS_CONST_H
+#ifndef MLA_C_MLA_LIST_CONTAINS_CONST_H
+#define MLA_C_MLA_LIST_CONTAINS_CONST_H
 
 #include "../core-os-test-support/mla_test_data_types.h"
 

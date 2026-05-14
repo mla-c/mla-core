@@ -2,8 +2,8 @@
 // Created by chris on 10/23/2025.
 //
 
-#ifndef COREOS_MLA_HTTP_SERVER_H
-#define COREOS_MLA_HTTP_SERVER_H
+#ifndef MLA_C_MLA_HTTP_SERVER_H
+#define MLA_C_MLA_HTTP_SERVER_H
 
 #include "mla_http_request.h"
 #include "mla_http_response.h"

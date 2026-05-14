@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_BUFFER_H
-#define COREOS_MLA_BUFFER_H
+#ifndef MLA_C_MLA_BUFFER_H
+#define MLA_C_MLA_BUFFER_H
 
 #include "../mla_data_types.h"
 

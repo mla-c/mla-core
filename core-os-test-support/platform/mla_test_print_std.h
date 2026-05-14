@@ -2,8 +2,8 @@
 // Created by chris on 9/13/2025.
 //
 
-#ifndef COREOS_MLA_TEST_PRINT_STD_H
-#define COREOS_MLA_TEST_PRINT_STD_H
+#ifndef MLA_C_MLA_TEST_PRINT_STD_H
+#define MLA_C_MLA_TEST_PRINT_STD_H
 
 #include "../mla_test_data_types.h"
 #include <cstdarg>

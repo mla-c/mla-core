@@ -2,8 +2,8 @@
 // Created by chris on 1/26/2026.
 //
 
-#ifndef COREOS_MLA_UI_CONTROL_SURFACE_H
-#define COREOS_MLA_UI_CONTROL_SURFACE_H
+#ifndef MLA_C_MLA_UI_CONTROL_SURFACE_H
+#define MLA_C_MLA_UI_CONTROL_SURFACE_H
 
 #include "../surfaces/mla_ui_surface.h"
 #include "mla_ui_control.h"

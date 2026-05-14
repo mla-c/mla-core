@@ -1,6 +1,6 @@
 # Build System
 
-The CoreOS build system uses CMake for cross-platform compilation, supporting multiple compilers and target platforms including native (Windows, Linux), embedded (ESP-IDF, Raspberry Pi), and WebAssembly.
+The mla-c build system uses CMake for cross-platform compilation, supporting multiple compilers and target platforms including native (Windows, Linux), embedded (ESP-IDF, Raspberry Pi), and WebAssembly.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ The build system consists of:
 - **`default-compile-config.cmake`**: Compiler-specific flags and configuration for all supported toolchains.
 - **`default-toolchain.cmake`**: Toolchain setup including C/C++ standard versions, cross-compilation targets, and debug configuration.
 - **`tools/zig/`**: Zig compiler wrapper scripts for building WASM targets.
-- **`sources.cmake`** (root): Master source file list organizing all CoreOS library components.
+- **`sources.cmake`** (root): Master source file list organizing all mla-c library components.
 
 ## Supported Compilers
 

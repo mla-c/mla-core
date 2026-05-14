@@ -2,8 +2,8 @@
 // Created by copilot on 12/28/2024.
 //
 
-#ifndef COREOS_MLA_GLOBAL_NETWORK_ESP32_H
-#define COREOS_MLA_GLOBAL_NETWORK_ESP32_H
+#ifndef MLA_C_MLA_GLOBAL_NETWORK_ESP32_H
+#define MLA_C_MLA_GLOBAL_NETWORK_ESP32_H
 
 #include "../../core-os/network/mla_network.h"
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"
