@@ -2,8 +2,8 @@
 // Created by chris on 12/15/2025.
 //
 
-#ifndef MLA_MLA_REFLECTION_TEST_H
-#define MLA_MLA_REFLECTION_TEST_H
+#ifndef MLA_REFLECTION_TEST_H
+#define MLA_REFLECTION_TEST_H
 
 #include "../core-os/reflection/mla_reflection.h"
 #include "../core-os-test-support/mla_test_executor.h"

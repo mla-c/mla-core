@@ -2,8 +2,8 @@
 // Created by chris on 9/14/2025.
 //
 
-#ifndef MLA_MLA_CONFIG_H
-#define MLA_MLA_CONFIG_H
+#ifndef MLA_CONFIG_H
+#define MLA_CONFIG_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"

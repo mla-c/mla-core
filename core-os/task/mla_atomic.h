@@ -2,8 +2,8 @@
 // Created by chris on 11/11/2025.
 //
 
-#ifndef MLA_MLA_ATOMIC_H
-#define MLA_MLA_ATOMIC_H
+#ifndef MLA_ATOMIC_H
+#define MLA_ATOMIC_H
 
 #include "../mla_data_types.h"
 

@@ -2,8 +2,8 @@
 // Created by christian on 10/8/25.
 //
 
-#ifndef MLA_MLA_HTTP_DATA_TYPES_H
-#define MLA_MLA_HTTP_DATA_TYPES_H
+#ifndef MLA_HTTP_DATA_TYPES_H
+#define MLA_HTTP_DATA_TYPES_H
 
 enum mla_http_version: mla_uint8_t {
     MLA_HTTP_VERSION_1_0,

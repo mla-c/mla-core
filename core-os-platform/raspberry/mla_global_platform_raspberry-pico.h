@@ -2,8 +2,8 @@
 // Created by chris on 9/12/2025.
 //
 
-#ifndef MLA_MLA_GLOBAL_PLATFORM_RASPBERRY_PICO_H
-#define MLA_MLA_GLOBAL_PLATFORM_RASPBERRY_PICO_H
+#ifndef MLA_GLOBAL_PLATFORM_RASPBERRY_PICO_H
+#define MLA_GLOBAL_PLATFORM_RASPBERRY_PICO_H
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"

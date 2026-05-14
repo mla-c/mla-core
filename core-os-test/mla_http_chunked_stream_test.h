@@ -2,8 +2,8 @@
 // Created by chris on 3/17/2026.
 //
 
-#ifndef MLA_MLA_HTTP_CHUNKED_STREAM_TEST_H
-#define MLA_MLA_HTTP_CHUNKED_STREAM_TEST_H
+#ifndef MLA_HTTP_CHUNKED_STREAM_TEST_H
+#define MLA_HTTP_CHUNKED_STREAM_TEST_H
 
 #include "../core-os/http/mla_http_chunked_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"

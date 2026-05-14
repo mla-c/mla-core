@@ -2,8 +2,8 @@
 // Created by christian on 10/6/25.
 //
 
-#ifndef MLA_MLA_NETWORK_H
-#define MLA_MLA_NETWORK_H
+#ifndef MLA_NETWORK_H
+#define MLA_NETWORK_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"

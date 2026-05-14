@@ -2,8 +2,8 @@
 // Created by christian on 8/9/25.
 //
 
-#ifndef MLA_MLA_TASK_MANAGER_H
-#define MLA_MLA_TASK_MANAGER_H
+#ifndef MLA_TASK_MANAGER_H
+#define MLA_TASK_MANAGER_H
 
 #include "mla_mutx.h"
 #include "mla_task.h"

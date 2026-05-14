@@ -1,5 +1,5 @@
-#ifndef MLA_MLA_GLOBAL_CONFIG_H
-#define MLA_MLA_GLOBAL_CONFIG_H
+#ifndef MLA_GLOBAL_CONFIG_H
+#define MLA_GLOBAL_CONFIG_H
 
 /**
  * @file mla_global_config.h

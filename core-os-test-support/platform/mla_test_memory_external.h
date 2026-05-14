@@ -2,8 +2,8 @@
 // Created by chris on 1/9/2026.
 //
 
-#ifndef MLA_MLA_TEST_MEMORY_EXTERNAL_H
-#define MLA_MLA_TEST_MEMORY_EXTERNAL_H
+#ifndef MLA_TEST_MEMORY_EXTERNAL_H
+#define MLA_TEST_MEMORY_EXTERNAL_H
 
 #include "../mla_test_data_types.h"
 

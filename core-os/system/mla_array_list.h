@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef MLA_MLA_ARRAY_LIST_H
-#define MLA_MLA_ARRAY_LIST_H
+#ifndef MLA_ARRAY_LIST_H
+#define MLA_ARRAY_LIST_H
 
 #include "../mla_data_types.h"
 #include "mla_buffer.h"

@@ -2,8 +2,8 @@
 // Created by christian on 10/6/25.
 //
 
-#ifndef MLA_MLA_HTTP_RESPONSE_H
-#define MLA_MLA_HTTP_RESPONSE_H
+#ifndef MLA_HTTP_RESPONSE_H
+#define MLA_HTTP_RESPONSE_H
 
 #include "../mla_data_types.h"
 #include "mla_http_header.h"

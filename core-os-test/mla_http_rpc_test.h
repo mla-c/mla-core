@@ -2,8 +2,8 @@
 // Created by christian on 11/24/25.
 //
 
-#ifndef MLA_MLA_HTTP_RPC_TEST_H
-#define MLA_MLA_HTTP_RPC_TEST_H
+#ifndef MLA_HTTP_RPC_TEST_H
+#define MLA_HTTP_RPC_TEST_H
 
 #include "../core-os/rpc/mla_rpc.h"
 #include "../core-os/rpc/mla_rpc_http_server.h"

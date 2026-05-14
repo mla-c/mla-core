@@ -1,8 +1,8 @@
 // mla_config_test.h
 // Tests for mla_config system, following the style of mla_serializer_test.h
 
-#ifndef MLA_MLA_CONFIG_TEST_H
-#define MLA_MLA_CONFIG_TEST_H
+#ifndef MLA_CONFIG_TEST_H
+#define MLA_CONFIG_TEST_H
 
 #include "../core-os/config/mla_config.h"
 #include "../core-os/system/mla_array_list.h"

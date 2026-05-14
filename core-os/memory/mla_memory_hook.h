@@ -2,8 +2,8 @@
 // Created by chris on 8/3/2025.
 //
 
-#ifndef MLA_MLA_MEMORY_HOOK_H
-#define MLA_MLA_MEMORY_HOOK_H
+#ifndef MLA_MEMORY_HOOK_H
+#define MLA_MEMORY_HOOK_H
 
 #include "../mla_data_types.h"
 

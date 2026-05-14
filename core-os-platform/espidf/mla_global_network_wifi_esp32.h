@@ -2,8 +2,8 @@
 // Created by chris on 3/8/2026.
 //
 
-#ifndef MLA_MLA_GLOBAL_NETWORK_WIFI_ESP32_H
-#define MLA_MLA_GLOBAL_NETWORK_WIFI_ESP32_H
+#ifndef MLA_GLOBAL_NETWORK_WIFI_ESP32_H
+#define MLA_GLOBAL_NETWORK_WIFI_ESP32_H
 
 #include "../../core-os/mla_data_types.h"
 #include "../../core-os/config/mla_config.h"

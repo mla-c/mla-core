@@ -2,8 +2,8 @@
 // Created by christian on 8/10/25.
 //
 
-#ifndef MLA_MLA_STRING_CONCAT_H
-#define MLA_MLA_STRING_CONCAT_H
+#ifndef MLA_STRING_CONCAT_H
+#define MLA_STRING_CONCAT_H
 
 #include "mla_string.h"
 

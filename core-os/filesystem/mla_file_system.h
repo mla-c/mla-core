@@ -2,8 +2,8 @@
 // Created by chris on 10/13/2025.
 //
 
-#ifndef MLA_MLA_FILE_SYSTEM_H
-#define MLA_MLA_FILE_SYSTEM_H
+#ifndef MLA_FILE_SYSTEM_H
+#define MLA_FILE_SYSTEM_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_buffer.h"

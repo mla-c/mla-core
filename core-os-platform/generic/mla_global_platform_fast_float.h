@@ -2,8 +2,8 @@
 // Created by chris on 9/23/2025.
 //
 
-#ifndef MLA_MLA_GLOBAL_PLATFORM_FAST_FLOAT_H
-#define MLA_MLA_GLOBAL_PLATFORM_FAST_FLOAT_H
+#ifndef MLA_GLOBAL_PLATFORM_FAST_FLOAT_H
+#define MLA_GLOBAL_PLATFORM_FAST_FLOAT_H
 
 #include "../../core-os/mla_data_types.h"
 #include "fast_float.h"

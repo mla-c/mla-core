@@ -2,8 +2,8 @@
 // Created by copilot on 12/30/2025.
 //
 
-#ifndef MLA_MLA_XML_SERIALIZER_H
-#define MLA_MLA_XML_SERIALIZER_H
+#ifndef MLA_XML_SERIALIZER_H
+#define MLA_XML_SERIALIZER_H
 
 #include "mla_serializer.h"
 

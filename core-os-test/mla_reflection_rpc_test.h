@@ -2,8 +2,8 @@
 // Created by chris on 12/19/2025.
 //
 
-#ifndef MLA_MLA_REFLECTION_RPC_TEST_H
-#define MLA_MLA_REFLECTION_RPC_TEST_H
+#ifndef MLA_REFLECTION_RPC_TEST_H
+#define MLA_REFLECTION_RPC_TEST_H
 
 #include "../core-os/reflection/mla_reflection_rpc.h"
 #include "../core-os/reflection/mla_reflection.h"

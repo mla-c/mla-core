@@ -2,8 +2,8 @@
 // Created by chris on 2/5/2026.
 //
 
-#ifndef MLA_MLA_UI_DISPLAY_SURFACE_H
-#define MLA_MLA_UI_DISPLAY_SURFACE_H
+#ifndef MLA_UI_DISPLAY_SURFACE_H
+#define MLA_UI_DISPLAY_SURFACE_H
 
 #include "../surfaces/mla_ui_surface.h"
 

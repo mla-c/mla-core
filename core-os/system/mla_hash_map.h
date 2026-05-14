@@ -1,5 +1,5 @@
-#ifndef MLA_MLA_HASH_MAP_H
-#define MLA_MLA_HASH_MAP_H
+#ifndef MLA_HASH_MAP_H
+#define MLA_HASH_MAP_H
 
 #include "../mla_data_types.h"
 #include "mla_array_list.h"

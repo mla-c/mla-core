@@ -2,8 +2,8 @@
 // Created by chris on 8/10/2025.
 //
 
-#ifndef MLA_MLA_TASK_MANAGER_WINDOWS_NATIVE_H
-#define MLA_MLA_TASK_MANAGER_WINDOWS_NATIVE_H
+#ifndef MLA_TASK_MANAGER_WINDOWS_NATIVE_H
+#define MLA_TASK_MANAGER_WINDOWS_NATIVE_H
 
 #include "../../core-os/task/mla_task_manager.h"
 #include <windows.h>

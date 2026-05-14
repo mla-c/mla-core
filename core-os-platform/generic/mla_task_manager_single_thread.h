@@ -2,8 +2,8 @@
 // Created by christian on 8/9/25.
 //
 
-#ifndef MLA_MLA_TASK_MANAGER_SINGLE_THREAD_H
-#define MLA_MLA_TASK_MANAGER_SINGLE_THREAD_H
+#ifndef MLA_TASK_MANAGER_SINGLE_THREAD_H
+#define MLA_TASK_MANAGER_SINGLE_THREAD_H
 
 // This is a single-threaded task manager implementation.
 // It is designed to run tasks in a single thread without any concurrency.

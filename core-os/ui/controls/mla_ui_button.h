@@ -2,8 +2,8 @@
 // Created by chris on 1/23/2026.
 //
 
-#ifndef MLA_MLA_UI_BUTTON_H
-#define MLA_MLA_UI_BUTTON_H
+#ifndef MLA_UI_BUTTON_H
+#define MLA_UI_BUTTON_H
 
 #include "mla_ui_control.h"
 #include "mla_ui_style.h"

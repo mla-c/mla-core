@@ -1,5 +1,5 @@
-#ifndef MLA_MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
-#define MLA_MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
+#ifndef MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
+#define MLA_GLOBAL_UI_SURFACE_WINDOWS_GDIPLUS_H
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../../core-os/ui/display/mla_ui_display_surface.h"

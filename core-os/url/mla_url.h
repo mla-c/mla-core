@@ -2,8 +2,8 @@
 // Created by christian on 10/8/25.
 //
 
-#ifndef MLA_MLA_URL_H
-#define MLA_MLA_URL_H
+#ifndef MLA_URL_H
+#define MLA_URL_H
 
 #include "../system/mla_array_list.h"
 #include "../system/mla_string.h"

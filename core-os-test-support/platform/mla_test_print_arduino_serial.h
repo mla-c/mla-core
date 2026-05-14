@@ -2,8 +2,8 @@
 // Created by chris on 9/13/2025.
 //
 
-#ifndef MLA_MLA_TEST_PRINT_ARDUINO_SERIAL_H
-#define MLA_MLA_TEST_PRINT_ARDUINO_SERIAL_H
+#ifndef MLA_TEST_PRINT_ARDUINO_SERIAL_H
+#define MLA_TEST_PRINT_ARDUINO_SERIAL_H
 
 #include <Arduino.h>
 

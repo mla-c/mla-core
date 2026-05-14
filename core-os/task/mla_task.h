@@ -2,8 +2,8 @@
 // Created by christian on 8/9/25.
 //
 
-#ifndef MLA_MLA_TASK_H
-#define MLA_MLA_TASK_H
+#ifndef MLA_TASK_H
+#define MLA_TASK_H
 
 #include "../system/mla_string.h"
 #include "mla_task_manager_data_types.h"

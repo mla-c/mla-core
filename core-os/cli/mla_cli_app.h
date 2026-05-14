@@ -2,8 +2,8 @@
 // Created by christian on 9/13/25.
 //
 
-#ifndef MLA_MLA_CLI_APP_H
-#define MLA_MLA_CLI_APP_H
+#ifndef MLA_CLI_APP_H
+#define MLA_CLI_APP_H
 
 #include "mla_cli_command.h"
 #include "../system/mla_stream.h"

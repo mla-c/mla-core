@@ -1,5 +1,5 @@
-#ifndef MLA_MLA_DATATYPES_H
-#define MLA_MLA_DATATYPES_H
+#ifndef MLA_DATATYPES_H
+#define MLA_DATATYPES_H
 
 #include "mla_global_config.h"
 

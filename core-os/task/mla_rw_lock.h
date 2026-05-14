@@ -2,8 +2,8 @@
 // Created by christian on 8/10/25.
 //
 
-#ifndef MLA_MLA_RW_LOCK_H
-#define MLA_MLA_RW_LOCK_H
+#ifndef MLA_RW_LOCK_H
+#define MLA_RW_LOCK_H
 
 #include "mla_mutx.h"
 

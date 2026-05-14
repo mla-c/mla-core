@@ -2,8 +2,8 @@
 // Created by chris on 10/23/2025.
 //
 
-#ifndef MLA_MLA_HTTP_UTILS_H
-#define MLA_MLA_HTTP_UTILS_H
+#ifndef MLA_HTTP_UTILS_H
+#define MLA_HTTP_UTILS_H
 
 #include "../system/mla_stream.h"
 #include "mla_http_header.h"

@@ -4,8 +4,8 @@
 // Created by chris on 9/14/2025.
 //
 
-#ifndef MLA_MLA_SERIALIZER_H
-#define MLA_MLA_SERIALIZER_H
+#ifndef MLA_SERIALIZER_H
+#define MLA_SERIALIZER_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_stream.h"
