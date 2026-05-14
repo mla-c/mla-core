@@ -3,7 +3,7 @@
 //
 
 #ifndef MLA_C_MLA_GLOBAL_PLATFORM_TASK_MANAGER_ESP8622_H
-#define CCOREOS_MLA_GLOBAL_PLATFORM_TASK_MANAGER_ESP8622_H
+#define MLA_C_MLA_GLOBAL_PLATFORM_TASK_MANAGER_ESP8622_H
 
 // For now only single Threaded
 #include "../generic//mla_task_manager_single_thread.h"
