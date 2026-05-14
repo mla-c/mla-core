@@ -2,8 +2,8 @@
 // Created by chris on 8/1/2025.
 //
 
-#ifndef MLA_C_MLACHARUTILS_H
-#define MLA_C_MLACHARUTILS_H
+#ifndef MLA_MLACHARUTILS_H
+#define MLA_MLACHARUTILS_H
 
 #include "../mla_data_types.h"
 

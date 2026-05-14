@@ -2,8 +2,8 @@
 // Created by christian on 8/9/25.
 //
 
-#ifndef MLA_C_MLA_TASK_MANAGER_DATA_TYPES_H
-#define MLA_C_MLA_TASK_MANAGER_DATA_TYPES_H
+#ifndef MLA_MLA_TASK_MANAGER_DATA_TYPES_H
+#define MLA_MLA_TASK_MANAGER_DATA_TYPES_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_buffer.h"

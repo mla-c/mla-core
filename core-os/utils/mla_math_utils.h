@@ -2,8 +2,8 @@
 // Created by chris on 2/6/2026.
 //
 
-#ifndef MLA_C_MLA_MATH_UTILS_H
-#define MLA_C_MLA_MATH_UTILS_H
+#ifndef MLA_MLA_MATH_UTILS_H
+#define MLA_MLA_MATH_UTILS_H
 
 #include "../mla_data_types.h"
 

@@ -2,8 +2,8 @@
 // Created by chris on 8/10/2025.
 //
 
-#ifndef MLA_C_MLA_GLOBAL_PLATFORM_GENERIC_H
-#define MLA_C_MLA_GLOBAL_PLATFORM_GENERIC_H
+#ifndef MLA_MLA_GLOBAL_PLATFORM_GENERIC_H
+#define MLA_MLA_GLOBAL_PLATFORM_GENERIC_H
 
 // Including necessary headers
 #include <cstring>

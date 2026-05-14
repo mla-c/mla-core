@@ -2,8 +2,8 @@
 // Created by christian on 2/22/26.
 //
 
-#ifndef MLA_C_MLA_TASK_LOCAL_H
-#define MLA_C_MLA_TASK_LOCAL_H
+#ifndef MLA_MLA_TASK_LOCAL_H
+#define MLA_MLA_TASK_LOCAL_H
 
 #include "../mla_data_types.h"
 #include "../log/mla_logging.h"

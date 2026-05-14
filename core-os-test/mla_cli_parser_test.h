@@ -2,8 +2,8 @@
 // Created by christian on 9/13/25.
 //
 
-#ifndef MLA_C_MLA_CLI_PARSER_TEST_H
-#define MLA_C_MLA_CLI_PARSER_TEST_H
+#ifndef MLA_MLA_CLI_PARSER_TEST_H
+#define MLA_MLA_CLI_PARSER_TEST_H
 
 #include "../core-os/cli/mla_cli_app.h"
 #include "../core-os-test-support/mla_test_executor.h"

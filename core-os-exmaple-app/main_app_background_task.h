@@ -2,8 +2,8 @@
 // Created by chris on 3/18/2026.
 //
 
-#ifndef MLA_C_MAIN_APP_BACKGROUND_TASK_H
-#define MLA_C_MAIN_APP_BACKGROUND_TASK_H
+#ifndef MLA_MAIN_APP_BACKGROUND_TASK_H
+#define MLA_MAIN_APP_BACKGROUND_TASK_H
 
 #include "../core-os/task/mla_task_manager.h"
 

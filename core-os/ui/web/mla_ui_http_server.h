@@ -2,8 +2,8 @@
 // Created by christian on 12/5/25.
 //
 
-#ifndef MLA_C_MLA_UI_HTTP_H
-#define MLA_C_MLA_UI_HTTP_H
+#ifndef MLA_MLA_UI_HTTP_H
+#define MLA_MLA_UI_HTTP_H
 
 #include "../../http/mla_http_server.h"
 #include "../controls/mla_ui_control_surface.h"

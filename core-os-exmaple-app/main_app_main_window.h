@@ -2,8 +2,8 @@
 // Created by chris on 2/24/2026.
 //
 
-#ifndef MLA_C_MAIN_APP_MAIN_WINDOW_H
-#define MLA_C_MAIN_APP_MAIN_WINDOW_H
+#ifndef MLA_MAIN_APP_MAIN_WINDOW_H
+#define MLA_MAIN_APP_MAIN_WINDOW_H
 
 #include "../core-os/ui/controls/mla_ui_control.h"
 #include "../core-os/ui/surfaces/mla_ui_surface.h"

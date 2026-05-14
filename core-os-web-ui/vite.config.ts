@@ -29,8 +29,8 @@ function generateCHeader(compress: boolean = false): PluginOption {
 
 			const arrayName = 'mla_ui_web_embedded_index_html';
 			let header = `// Auto-generated file - do not edit\n`;
-			header += `#ifndef COREOS_MLA_UI_WEB_EMBEDDED_H\n`;
-			header += `#define COREOS_MLA_UI_WEB_EMBEDDED_H\n\n`;
+			header += `#ifndef MLA_UI_WEB_EMBEDDED_H\n`;
+			header += `#define MLA_UI_WEB_EMBEDDED_H\n\n`;
 			header += `mla_byte_t ${arrayName}[] = {\n`;
 
 			for (let i = 0; i < buffer.length; i++) {

@@ -2,8 +2,8 @@
 // Created by christian on 12/5/25.
 //
 
-#ifndef MLA_C_MLA_UI_RPC_H
-#define MLA_C_MLA_UI_RPC_H
+#ifndef MLA_MLA_UI_RPC_H
+#define MLA_MLA_UI_RPC_H
 
 #include "../../rpc/mla_rpc.h"
 #include "../../serializer/mla_serializer.h"

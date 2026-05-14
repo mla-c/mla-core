@@ -2,8 +2,8 @@
 // Created by chris on 11/13/2025.
 //
 
-#ifndef MLA_C_APPLICATION_TEST_MLA_SHA1_H
-#define MLA_C_APPLICATION_TEST_MLA_SHA1_H
+#ifndef MLA_APPLICATION_TEST_MLA_SHA1_H
+#define MLA_APPLICATION_TEST_MLA_SHA1_H
 
 #include "../system/mla_bytes.h"
 

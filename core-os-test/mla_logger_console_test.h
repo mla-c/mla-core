@@ -2,8 +2,8 @@
 // Created by christian on 8/8/25.
 //
 
-#ifndef MLA_C_MLA_LOGGER_CONSOLE_TEST_H
-#define MLA_C_MLA_LOGGER_CONSOLE_TEST_H
+#ifndef MLA_MLA_LOGGER_CONSOLE_TEST_H
+#define MLA_MLA_LOGGER_CONSOLE_TEST_H
 
 #include "../core-os/log/mla_logger_console.h"
 #include "../core-os/log/mla_logging.h"

@@ -1,5 +1,5 @@
-#ifndef MLA_C_MLA_RPC_HTTP_H
-#define MLA_C_MLA_RPC_HTTP_H
+#ifndef MLA_MLA_RPC_HTTP_H
+#define MLA_MLA_RPC_HTTP_H
 
 #include "../http/mla_http_server.h"
 

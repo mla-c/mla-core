@@ -1,5 +1,5 @@
-#ifndef MLA_C_MLA_GLOBAL_PLATFORM_WINDOWS_H
-#define MLA_C_MLA_GLOBAL_PLATFORM_WINDOWS_H
+#ifndef MLA_MLA_GLOBAL_PLATFORM_WINDOWS_H
+#define MLA_MLA_GLOBAL_PLATFORM_WINDOWS_H
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"

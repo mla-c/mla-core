@@ -1,5 +1,5 @@
-#ifndef MLA_C_MLA_LOGGER_RPC_TEST_H
-#define MLA_C_MLA_LOGGER_RPC_TEST_H
+#ifndef MLA_MLA_LOGGER_RPC_TEST_H
+#define MLA_MLA_LOGGER_RPC_TEST_H
 
 #include "../core-os/log/mla_logger_rpc.h"
 #include "../core-os-test-support/mla_test_executor.h"

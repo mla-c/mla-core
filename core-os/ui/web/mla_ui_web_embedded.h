@@ -1,6 +1,6 @@
 // Auto-generated file - do not edit
-#ifndef MLA_C_MLA_UI_WEB_EMBEDDED_H
-#define MLA_C_MLA_UI_WEB_EMBEDDED_H
+#ifndef MLA_UI_WEB_EMBEDDED_H
+#define MLA_UI_WEB_EMBEDDED_H
 
 mla_byte_t mla_ui_web_embedded_index_html[] = {
   0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0xed, 0xbd,

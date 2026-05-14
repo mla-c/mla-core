@@ -2,8 +2,8 @@
 // Created by chris on 9/22/2025.
 //
 
-#ifndef MLA_C_MLA_MLA_NUMBER_H
-#define MLA_C_MLA_MLA_NUMBER_H
+#ifndef MLA_MLA_MLA_NUMBER_H
+#define MLA_MLA_MLA_NUMBER_H
 #include "../mla_data_types.h"
 #include "mla_string.h"
 

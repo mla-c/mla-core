@@ -2,8 +2,8 @@
 // Created by chris on 10/17/2025.
 //
 
-#ifndef MLA_C_TEST_MLA_TEST_CLI_UTILS_H
-#define MLA_C_TEST_MLA_TEST_CLI_UTILS_H
+#ifndef MLA_TEST_MLA_TEST_CLI_UTILS_H
+#define MLA_TEST_MLA_TEST_CLI_UTILS_H
 
 #include "mla_test_data_types.h"
 #include "mla_test_utils.h"

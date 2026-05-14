@@ -2,8 +2,8 @@
 // Created by chris on 9/22/2025.
 //
 
-#ifndef MLA_C_MLA_NUMBER_TEST_H
-#define MLA_C_MLA_NUMBER_TEST_H
+#ifndef MLA_MLA_NUMBER_TEST_H
+#define MLA_MLA_NUMBER_TEST_H
 
 #include "../core-os/system/mla_string.h"
 #include "../core-os/system/mla_number.h"

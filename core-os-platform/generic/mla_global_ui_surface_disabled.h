@@ -2,8 +2,8 @@
 // Created by christian on 3/3/26.
 //
 
-#ifndef MLA_C_MLA_GLOBAL_UI_SURFACE_DISABLED_H
-#define MLA_C_MLA_GLOBAL_UI_SURFACE_DISABLED_H
+#ifndef MLA_MLA_GLOBAL_UI_SURFACE_DISABLED_H
+#define MLA_MLA_GLOBAL_UI_SURFACE_DISABLED_H
 
 #include "../../core-os/ui/display/mla_ui_display_surface.h"
 

@@ -2,8 +2,8 @@
 // Created by christian on 10/6/25.
 //
 
-#ifndef MLA_C_MLA_HTTP_REQUEST_H
-#define MLA_C_MLA_HTTP_REQUEST_H
+#ifndef MLA_MLA_HTTP_REQUEST_H
+#define MLA_MLA_HTTP_REQUEST_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"

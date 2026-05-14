@@ -2,8 +2,8 @@
 // Created by chris on 1/15/2026.
 //
 
-#ifndef MLA_C_MLA_UI_CONTROL_DATA_TYPES_H
-#define MLA_C_MLA_UI_CONTROL_DATA_TYPES_H
+#ifndef MLA_MLA_UI_CONTROL_DATA_TYPES_H
+#define MLA_MLA_UI_CONTROL_DATA_TYPES_H
 
 #include "../../system/mla_string.h"
 #include "../../system/mla_stream.h"

@@ -2,8 +2,8 @@
 // Created by chris on 1/21/2026.
 //
 
-#ifndef MLA_C_MLA_UI_SURFACE_H
-#define MLA_C_MLA_UI_SURFACE_H
+#ifndef MLA_MLA_UI_SURFACE_H
+#define MLA_MLA_UI_SURFACE_H
 
 #include "../../mla_data_types.h"
 #include "../../system/mla_string.h"

@@ -2,8 +2,8 @@
 // Created by christian on 12/2/25.
 //
 
-#ifndef MLA_C_TEST_MUTEX_STD_H
-#define MLA_C_TEST_MUTEX_STD_H
+#ifndef MLA_TEST_MUTEX_STD_H
+#define MLA_TEST_MUTEX_STD_H
 
 #include "../mla_test_data_types.h"
 #include <mutex>

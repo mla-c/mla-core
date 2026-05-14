@@ -2,8 +2,8 @@
 // Created by Jules on 10/24/2025.
 //
 
-#ifndef MLA_C_MLA_NETWORK_TEST_H
-#define MLA_C_MLA_NETWORK_TEST_H
+#ifndef MLA_MLA_NETWORK_TEST_H
+#define MLA_MLA_NETWORK_TEST_H
 
 #include "../core-os/network/mla_network.h"
 #include "../core-os-test-support/mla_test_executor.h"

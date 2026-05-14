@@ -2,8 +2,8 @@
 // Created by christian on 9/18/25.
 //
 
-#ifndef MLA_C_MLA_JSON_SERIALIZER_H
-#define MLA_C_MLA_JSON_SERIALIZER_H
+#ifndef MLA_MLA_JSON_SERIALIZER_H
+#define MLA_MLA_JSON_SERIALIZER_H
 
 #include "mla_serializer.h"
 

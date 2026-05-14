@@ -2,8 +2,8 @@
 // Created by chris on 12/29/2025.
 //
 
-#ifndef MLA_C_MLA_GLOBAL_CONFIG_RASPBERRY_PICO_H
-#define MLA_C_MLA_GLOBAL_CONFIG_RASPBERRY_PICO_H
+#ifndef MLA_MLA_GLOBAL_CONFIG_RASPBERRY_PICO_H
+#define MLA_MLA_GLOBAL_CONFIG_RASPBERRY_PICO_H
 
 // In-memory configuration storage for Raspberry Pi Pico
 // Similar to other embedded platforms (ESP, WASM)

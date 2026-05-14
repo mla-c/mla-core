@@ -2,8 +2,8 @@
 // Created by chris on 12/18/2025.
 //
 
-#ifndef MLA_C_MLA_MEMORY_TEST_H
-#define MLA_C_MLA_MEMORY_TEST_H
+#ifndef MLA_MLA_MEMORY_TEST_H
+#define MLA_MLA_MEMORY_TEST_H
 
 #include "../core-os/mla_data_types.h"
 #include "../core-os-test-support/mla_benchmark_executor.h"

@@ -2,8 +2,8 @@
 // Created by chris on 8/3/2025.
 //
 
-#ifndef MLA_C_MLA_BUFFER_TEST_H
-#define MLA_C_MLA_BUFFER_TEST_H
+#ifndef MLA_MLA_BUFFER_TEST_H
+#define MLA_MLA_BUFFER_TEST_H
 
 #include "../core-os/memory/mla_memory_hook.h"
 #include "../core-os/system/mla_buffer.h"

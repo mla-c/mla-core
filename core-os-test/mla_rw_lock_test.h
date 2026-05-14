@@ -2,8 +2,8 @@
 // Created by christian on 8/10/25.
 //
 
-#ifndef MLA_C_MLA_RW_LOCK_TEST_H
-#define MLA_C_MLA_RW_LOCK_TEST_H
+#ifndef MLA_MLA_RW_LOCK_TEST_H
+#define MLA_MLA_RW_LOCK_TEST_H
 
 #include "../core-os/task/mla_rw_lock.h"
 #include "../core-os-test-support/mla_test_executor.h"

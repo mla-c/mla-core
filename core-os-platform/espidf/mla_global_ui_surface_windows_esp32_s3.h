@@ -2,8 +2,8 @@
 // Created by chris on 1/30/2026.
 //
 
-#ifndef MLA_C_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
-#define MLA_C_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
+#ifndef MLA_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
+#define MLA_MLA_GLOBAL_UI_SURFACE_WINDOWS_ESP32_S3_H
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../../core-os/ui/display/mla_ui_display_surface.h"

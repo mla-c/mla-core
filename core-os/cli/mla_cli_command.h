@@ -2,8 +2,8 @@
 // Created by christian on 9/13/25.
 //
 
-#ifndef MLA_C_MLA_CLI_COMMAND_H
-#define MLA_C_MLA_CLI_COMMAND_H
+#ifndef MLA_MLA_CLI_COMMAND_H
+#define MLA_MLA_CLI_COMMAND_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"

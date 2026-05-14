@@ -2,8 +2,8 @@
 // Created by chris on 11/15/2025.
 //
 
-#ifndef MLA_C_MLA_WEBSOCKET_UTILS_H
-#define MLA_C_MLA_WEBSOCKET_UTILS_H
+#ifndef MLA_MLA_WEBSOCKET_UTILS_H
+#define MLA_MLA_WEBSOCKET_UTILS_H
 
 #include "../system/mla_stream.h"
 #include "../network/mla_network.h"

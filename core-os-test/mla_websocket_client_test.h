@@ -2,8 +2,8 @@
 // Created by chris on 11/14/2025.
 //
 
-#ifndef MLA_C_MLA_WEBSOCKET_CLIENT_TEST_H
-#define MLA_C_MLA_WEBSOCKET_CLIENT_TEST_H
+#ifndef MLA_MLA_WEBSOCKET_CLIENT_TEST_H
+#define MLA_MLA_WEBSOCKET_CLIENT_TEST_H
 
 #include "../core-os/http/mla_websocket_client.h"
 #include "../core-os-test-support/mla_test_executor.h"

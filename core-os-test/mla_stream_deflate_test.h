@@ -2,8 +2,8 @@
 // Created by copilot on 3/16/2026.
 //
 
-#ifndef MLA_C_MLA_STREAM_DEFLATE_TEST_H
-#define MLA_C_MLA_STREAM_DEFLATE_TEST_H
+#ifndef MLA_MLA_STREAM_DEFLATE_TEST_H
+#define MLA_MLA_STREAM_DEFLATE_TEST_H
 
 #include "../core-os/system/mla_stream.h"
 #include "../core-os-test-support/mla_test_executor.h"

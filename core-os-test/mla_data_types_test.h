@@ -2,8 +2,8 @@
 // Created by chris on 9/27/2025.
 //
 
-#ifndef MLA_C_MLA_DATA_TYPES_TEST_H
-#define MLA_C_MLA_DATA_TYPES_TEST_H
+#ifndef MLA_MLA_DATA_TYPES_TEST_H
+#define MLA_MLA_DATA_TYPES_TEST_H
 
 #include "../core-os/mla_data_types.h"
 #include "../core-os-test-support/mla_test_executor.h"

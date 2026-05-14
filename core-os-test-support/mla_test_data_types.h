@@ -1,5 +1,5 @@
-#ifndef MLA_C_TESTDATATYPES_H
-#define MLA_C_TESTDATATYPES_H
+#ifndef MLA_TESTDATATYPES_H
+#define MLA_TESTDATATYPES_H
 
 #include "mla_test_global_config.h"
 

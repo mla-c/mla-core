@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef MLA_C_MLA_BENCHMARK_EXECUTOR_H
-#define MLA_C_MLA_BENCHMARK_EXECUTOR_H
+#ifndef MLA_MLA_BENCHMARK_EXECUTOR_H
+#define MLA_MLA_BENCHMARK_EXECUTOR_H
 
 #include "./Benchmark/mla_benchmark.h"
 

@@ -2,8 +2,8 @@
 // Created by chris on 2/9/2026.
 //
 
-#ifndef MLA_C_MLA_USER_DATA_H
-#define MLA_C_MLA_USER_DATA_H
+#ifndef MLA_MLA_USER_DATA_H
+#define MLA_MLA_USER_DATA_H
 
 #include "mla_buffer.h"
 #include "mla_string.h"

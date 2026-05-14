@@ -2,8 +2,8 @@
 // Created by christian on 8/12/25.
 //
 
-#ifndef MLA_C_MLA_GLOBAL_PLATFORM_WASM_H
-#define MLA_C_MLA_GLOBAL_PLATFORM_WASM_H
+#ifndef MLA_MLA_GLOBAL_PLATFORM_WASM_H
+#define MLA_MLA_GLOBAL_PLATFORM_WASM_H
 
 #include "../../core-os/mla_data_types.h"
 #include <unistd.h>
