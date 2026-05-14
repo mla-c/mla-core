@@ -171,6 +171,27 @@ Reference implementation demonstrating library usage:
 Browser-based interface for mla-c applications built with Preact and TypeScript. The production build is embedded into the C++ library as a compressed byte array and served by the mla-c HTTP server at runtime.
 
 
+## Code Style (mla-c)
+
+mla-c follows a **C-style API with C++ features** to keep the library portable and consistent across all targets.
+
+- Use MLA data types from `core/mla_data_types.h` (`mla_int32_t`, `mla_size_t`, `mla_bool_t`, etc.) instead of raw C/C++ primitive types in public/shared code.
+- Use `mla_<module>_<action>` naming for functions and `mla_<name>_t` naming for structs/types.
+- Prefer explicit ownership semantics: `mla_pointer_t` for owned heap memory and `mla_platform_pointer_t` only for short-lived raw access.
+- Keep platform code behind `core-platform/*` abstractions so module APIs remain cross-platform.
+
+## 🧠 Heap Memory Ownership: `mla_pointer_t`
+
+`mla_pointer_t` is the project’s managed pointer type for heap-owned data.
+
+- Allocate owned memory with `mla_malloc(...)`, `mla_malloc_buffer(...)`, or `mla_malloc_struct(T)`.
+- Access payload data with `mla_pointer_get_data<T>(ptr)` / `mla_pointer_get_platform_pointer(ptr)` and always null-check before dereferencing.
+- Use `mla_pointer_null()` and `mla_pointer_is_null(...)` for null-state handling.
+- Copying `mla_pointer_t` shares ownership through reference counting; memory is released when the last reference is dropped.
+- Avoid using raw `mla_platform_malloc` as an ownership container in module code; prefer `mla_pointer_t` for automatic cleanup and consistent memory-manager behavior.
+
+For module-level guidance, see [core/readme.md](core/readme.md) and [core/memory/readme.md](core/memory/readme.md).
+
 ## 📚 Architecture
 
 mla-c follows a layered architecture:
@@ -209,4 +230,3 @@ The library includes comprehensive test coverage:
 
 
 **Built for performance, designed for portability** 🚀
-

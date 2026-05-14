@@ -78,3 +78,16 @@ The `sources.cmake` file at the repository root defines the complete set of sour
 - **File System Sources**: Platform-abstracted file operations
 - **UI Display Sources**: Native display surface implementations
 - **Test Support Sources** (6 files): Test framework, benchmark framework, test utilities
+
+## Project Conventions (Latest)
+
+This module follows the current mla-c project-wide conventions:
+
+- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
+- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
+
+For full details, see:
+- [Main project README](../../README.md)
+- [Core data types documentation](../../core/readme.md)
+- [Memory module documentation](../../core/memory/readme.md)
+

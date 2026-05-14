@@ -124,3 +124,16 @@ struct nested_data_t {
 ## Integration with RPC
 
 The Reflection module integrates with the RPC module to enable automatic serialization and remote procedure calls. See `mla_reflection_rpc.h` for RPC-specific reflection utilities.
+
+## Project Conventions (Latest)
+
+This module follows the current mla-c project-wide conventions:
+
+- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
+- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
+
+For full details, see:
+- [Main project README](../../README.md)
+- [Core data types documentation](../../core/readme.md)
+- [Memory module documentation](../../core/memory/readme.md)
+

@@ -40,3 +40,16 @@ The integer hash functions are typically used internally by hash maps, but you c
 mla_int32_t my_int = 12345;
 mla_size_t hash_value = mla_int32_hash_t::hash(my_int);
 ```
+
+## Project Conventions (Latest)
+
+This module follows the current mla-c project-wide conventions:
+
+- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
+- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
+
+For full details, see:
+- [Main project README](../../README.md)
+- [Core data types documentation](../../core/readme.md)
+- [Memory module documentation](../../core/memory/readme.md)
+

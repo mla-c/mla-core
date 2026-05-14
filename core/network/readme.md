@@ -64,3 +64,16 @@ if (mla_network_listener_bind_and_listen(listener, host, mla_connection_type_tcp
     mla_network_listener_close(listener);
 }
 ```
+
+## Project Conventions (Latest)
+
+This module follows the current mla-c project-wide conventions:
+
+- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
+- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
+
+For full details, see:
+- [Main project README](../../README.md)
+- [Core data types documentation](../../core/readme.md)
+- [Memory module documentation](../../core/memory/readme.md)
+

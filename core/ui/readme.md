@@ -200,3 +200,16 @@ The UI module integrates with several other mla-c modules:
 - **RPC Module** - Exposes surface discovery and interaction procedures
 - **Serializer Module** - Serializes draw commands and input events for network transmission
 - **Task Module** - Manages render loop scheduling and thread-safe control access
+
+## Project Conventions (Latest)
+
+This module follows the current mla-c project-wide conventions:
+
+- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
+- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
+
+For full details, see:
+- [Main project README](../../README.md)
+- [Core data types documentation](../../core/readme.md)
+- [Memory module documentation](../../core/memory/readme.md)
+
