@@ -5,7 +5,7 @@ description: 'Patterns for using I/O streams and stream wrappers in the MLA fram
 
 # Streams
 
-The stream module (`core-os/system/mla_stream.h`) provides a callback-based I/O abstraction. Every stream is a lightweight struct containing function pointers for reading or writing, plus a `mla_user_data_t` for state. Streams are the backbone of serialisation, HTTP, file I/O, and compression.
+The stream module (`core/system/mla_stream.h`) provides a callback-based I/O abstraction. Every stream is a lightweight struct containing function pointers for reading or writing, plus a `mla_user_data_t` for state. Streams are the backbone of serialisation, HTTP, file I/O, and compression.
 
 ## Key Types
 

@@ -5,7 +5,7 @@ description: 'Patterns for using the logging framework in the MLA framework'
 
 # Logging
 
-The logging module (`core-os/log/`) provides a structured, level-based logging system. Log messages are routed to one or more registered **loggers**, each with its own output destination and minimum log level.
+The logging module (`core/log/`) provides a structured, level-based logging system. Log messages are routed to one or more registered **loggers**, each with its own output destination and minimum log level.
 
 ## Log Levels
 

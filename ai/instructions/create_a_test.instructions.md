@@ -12,12 +12,12 @@ When creating test files for this project, follow these conventions:
 
 ### File Naming
 - Test files should end with `_test.h`
-- Place test files in `lib/core-os-test/` directory
+- Place test files in `lib/core-test/` directory
 
 ### Required Includes
 ```cpp
-#include "../core-os/utils/[module_name].h"
-#include "../core-os-test-support/mla_test_executor.h"
+#include "../core/utils/[module_name].h"
+#include "../core-test-support/mla_test_executor.h"
 ```
 
 ### Test Function Format

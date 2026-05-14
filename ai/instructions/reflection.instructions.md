@@ -5,7 +5,7 @@ description: 'Patterns for adding reflection metadata in the MLA framework'
 
 # Reflection
 
-The reflection module (`core-os/reflection/mla_reflection.h`) provides **runtime type metadata** for structs. This metadata enables the type system to discover struct fields at runtime and is required whenever a struct is used over RPC or with the serializer.
+The reflection module (`core/reflection/mla_reflection.h`) provides **runtime type metadata** for structs. This metadata enables the type system to discover struct fields at runtime and is required whenever a struct is used over RPC or with the serializer.
 
 ## When to Add Reflection
 

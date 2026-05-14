@@ -5,7 +5,7 @@ description: 'Patterns for using the virtual file system in the MLA framework'
 
 # File System
 
-The file system module (`core-os/filesystem/mla_file_system.h`) provides a virtual, mountable file system abstraction. Multiple file system implementations (OS native, in-memory, etc.) can be **mounted** at different paths and accessed through a unified API.
+The file system module (`core/filesystem/mla_file_system.h`) provides a virtual, mountable file system abstraction. Multiple file system implementations (OS native, in-memory, etc.) can be **mounted** at different paths and accessed through a unified API.
 
 ## Key Types
 

@@ -5,7 +5,7 @@ description: 'Patterns for creating CLI commands and modules in the MLA framewor
 
 # CLI Commands
 
-The CLI module (`core-os/cli/`) provides a hierarchical command-line interface. Commands are grouped into **modules** (namespaces), each containing one or more **commands** with named parameters.
+The CLI module (`core/cli/`) provides a hierarchical command-line interface. Commands are grouped into **modules** (namespaces), each containing one or more **commands** with named parameters.
 
 ## Key Types
 

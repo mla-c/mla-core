@@ -5,7 +5,7 @@ description: 'Patterns for using mla_hash_map_t in the MLA framework'
 
 # Hash Maps
 
-The hash map module (`core-os/system/mla_hash_map.h`) provides a template-based key-value store with automatic rehashing. It is the standard associative container in the MLA framework — **never** use `std::map`, `std::unordered_map`, or similar standard containers.
+The hash map module (`core/system/mla_hash_map.h`) provides a template-based key-value store with automatic rehashing. It is the standard associative container in the MLA framework — **never** use `std::map`, `std::unordered_map`, or similar standard containers.
 
 ## Template Parameters
 
