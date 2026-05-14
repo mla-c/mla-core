@@ -83,16 +83,3 @@ test_config_struct loaded = {0, false, mla_string_empty()};
 // Read the config
 mla_config_manager_read(def, &loaded);
 ```
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../../README.md)
-- [Core data types documentation](../../core/readme.md)
-- [Memory module documentation](../../core/memory/readme.md)
-

@@ -54,16 +54,3 @@ To uninstall a memory hook, simply call `mla_memory_hook_uninstall` with the han
 // Uninstall the hook
 mla_memory_hook_uninstall(my_hook);
 ```
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../../README.md)
-- [Core data types documentation](../../core/readme.md)
-- [Memory module documentation](../../core/memory/readme.md)
-

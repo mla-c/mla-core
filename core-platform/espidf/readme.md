@@ -191,16 +191,3 @@ This platform module supports:
 - **ESP8266** series (with limitations due to lower resources)
 
 Different ESP32 variants may have different capabilities (Wi-Fi, Bluetooth, cores, RAM, etc.). Consult your specific chip's documentation for details.
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../../README.md)
-- [Core data types documentation](../../core/readme.md)
-- [Memory module documentation](../../core/memory/readme.md)
-

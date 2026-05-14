@@ -95,16 +95,3 @@ void main() {
     mla_cli_app_update_and_process_input(app, mla_stream_input_from_buffer((mla_byte_t*)buffer.data, buffer.length), mla_stream_noop_output());
 }
 ```
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../../README.md)
-- [Core data types documentation](../../core/readme.md)
-- [Memory module documentation](../../core/memory/readme.md)
-

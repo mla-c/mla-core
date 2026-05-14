@@ -114,16 +114,3 @@ mla_string_t filename = mla_fs_get_file_name(mla_string("/path/to/file.txt")); /
 mla_string_t extension = mla_fs_get_file_extension(mla_string("/path/to/file.txt")); // returns "txt"
 mla_string_t combined = mla_fs_combine_paths(mla_string("/path"), mla_string("to/file.txt")); // returns "/path/to/file.txt"
 ```
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../../README.md)
-- [Core data types documentation](../../core/readme.md)
-- [Memory module documentation](../../core/memory/readme.md)
-

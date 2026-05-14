@@ -43,16 +43,3 @@ The header also defines a number of useful macros.
 ## Low-Level Operations
 
 The `mla_low_level_operations_t` struct defines a set of function pointers for low-level operations such as memory allocation, string manipulation, and I/O. This allows the mla-c library to be easily ported to different platforms by providing a custom implementation of these operations.
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../README.md)
-- [Core data types documentation](../core/readme.md)
-- [Memory module documentation](../core/memory/readme.md)
-

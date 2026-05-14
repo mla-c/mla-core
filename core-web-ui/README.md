@@ -83,16 +83,3 @@ npm install
 The production build generates `core/ui/web/mla_ui_web_embedded.h`, which contains the entire web application as a gzip-compressed byte array. This header is included in the mla-c library and served by `mla_ui_http_server` when a client connects via browser.
 
 For more information on the server-side integration, see the [UI Module Documentation](../core/ui/readme.md).
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../README.md)
-- [Core data types documentation](../core/readme.md)
-- [Memory module documentation](../core/memory/readme.md)
-

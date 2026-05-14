@@ -124,16 +124,3 @@ The `platform/` directory provides platform-specific implementations:
 The test support library is used by all test files in `core-test/` and works across all supported mla-c platforms (Linux, Windows, ESP-IDF, Raspberry Pi, WASM).
 
 Current benchmark results: [mla-c Benchmark Dashboard](https://cs-benchmark.github.io/benchmark-app/?project=mla-c-Application-Test)
-
-## Project Conventions (Latest)
-
-This module follows the current mla-c project-wide conventions:
-
-- **Code style:** Use MLA data types and naming conventions described in the [main README](../README.md).
-- **Heap ownership:** Use `mla_pointer_t` for owned heap allocations; use raw platform pointers only for transient access.
-
-For full details, see:
-- [Main project README](../README.md)
-- [Core data types documentation](../core/readme.md)
-- [Memory module documentation](../core/memory/readme.md)
-
