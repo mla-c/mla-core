@@ -5,7 +5,7 @@ description: 'Lifecycle boot event registration patterns for the MLA framework'
 
 # Lifecycle and Boot Events
 
-The lifecycle module (`core-os/lifecycle/mla_lifecycle_events.h`) provides a **priority-ordered boot system**. Callbacks are registered at compile time via a static-initialiser macro and are executed in ascending priority order when `mla_lifecycle_fire_boot_events()` is called at startup.
+The lifecycle module (`core/lifecycle/mla_lifecycle_events.h`) provides a **priority-ordered boot system**. Callbacks are registered at compile time via a static-initialiser macro and are executed in ascending priority order when `mla_lifecycle_fire_boot_events()` is called at startup.
 
 ## Priority Levels
 

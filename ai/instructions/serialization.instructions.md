@@ -5,7 +5,7 @@ description: 'Patterns for using serialization in the MLA framework'
 
 # Serialization
 
-The serializer module (`core-os/serializer/mla_serializer.h`) serializes and deserializes structured data to JSON, binary, or XML formats. Every struct that participates in serialization must implement two static member functions — `serialize` and `deserialize`.
+The serializer module (`core/serializer/mla_serializer.h`) serializes and deserializes structured data to JSON, binary, or XML formats. Every struct that participates in serialization must implement two static member functions — `serialize` and `deserialize`.
 
 ## The Static Serialize / Deserialize Convention
 

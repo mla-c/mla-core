@@ -5,7 +5,7 @@ description: 'Patterns for creating and scheduling tasks in the MLA framework'
 
 # Task Management
 
-The task module (`core-os/task/`) provides co-operative and native multi-tasking. Tasks are registered with the `mla_task_manager` and dispatched either in a single-threaded loop or via native OS threads, depending on the platform.
+The task module (`core/task/`) provides co-operative and native multi-tasking. Tasks are registered with the `mla_task_manager` and dispatched either in a single-threaded loop or via native OS threads, depending on the platform.
 
 ## Task Types
 

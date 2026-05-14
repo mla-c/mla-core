@@ -5,7 +5,7 @@ description: 'Patterns for TCP/UDP networking in the MLA framework'
 
 # Networking
 
-The network module (`core-os/network/mla_network.h`) provides a platform-abstracted socket API for TCP and UDP communication. It exposes IP address handling, DNS resolution, client connections, and server listeners — all using MLA streams for I/O.
+The network module (`core/network/mla_network.h`) provides a platform-abstracted socket API for TCP and UDP communication. It exposes IP address handling, DNS resolution, client connections, and server listeners — all using MLA streams for I/O.
 
 ## Key Types
 

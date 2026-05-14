@@ -5,7 +5,7 @@ description: 'Patterns for creating and registering RPC procedures in the MLA fr
 
 # RPC Procedures
 
-The RPC module (`core-os/rpc/mla_rpc.h`) provides local and remote procedure call infrastructure. Procedures are identified by a string name, carry typed input/output structs, and are automatically discovered over HTTP when using `mla_rpc_http_server`.
+The RPC module (`core/rpc/mla_rpc.h`) provides local and remote procedure call infrastructure. Procedures are identified by a string name, carry typed input/output structs, and are automatically discovered over HTTP when using `mla_rpc_http_server`.
 
 ## Core Concepts
 

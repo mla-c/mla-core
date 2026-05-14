@@ -9,10 +9,10 @@ Follow these steps whenever you need to create a new module in the mla-c framewo
 
 ## Directory Layout
 
-Place all module files under `core-os/<module_name>/`:
+Place all module files under `core/<module_name>/`:
 
 ```
-core-os/
+core/
   my_feature/
     mla_my_feature.h       ← Public API declarations
     mla_my_feature.cpp     ← Implementation
@@ -24,7 +24,7 @@ core-os/
 Every module exposes one primary struct with an associated initializer and factory functions.
 
 ```cpp
-// core-os/my_feature/mla_my_feature.h
+// core/my_feature/mla_my_feature.h
 #ifndef MLA_C_MLA_MY_FEATURE_H
 #define MLA_C_MLA_MY_FEATURE_H
 
@@ -66,7 +66,7 @@ mla_bool_t mla_my_feature_is_valid(const mla_my_feature_t& p_Feature);
 ## Step 2 — Implement the Module
 
 ```cpp
-// core-os/my_feature/mla_my_feature.cpp
+// core/my_feature/mla_my_feature.cpp
 #include "mla_my_feature.h"
 
 mla_my_feature_t mla_my_feature(const mla_string_t& p_Name, mla_int32_t p_Value) {
@@ -94,13 +94,13 @@ Add the new `.cpp` file to the relevant source list in `sources.cmake`:
 ```cmake
 set(SOURCE_FILES
     # … existing files …
-    core-os/my_feature/mla_my_feature.cpp
+    core/my_feature/mla_my_feature.cpp
 )
 ```
 
 ## Step 4 — Add Logging
 
-Use the logging macros from `core-os/log/mla_logging.h` to emit structured messages:
+Use the logging macros from `core/log/mla_logging.h` to emit structured messages:
 
 ```cpp
 #include "../log/mla_logging.h"
@@ -164,14 +164,14 @@ See `reflection_and_serialization.instructions.md` for full details.
 
 ## Step 8 — Write Tests
 
-Create a test file `core-os-test/mla_my_feature_test.h` and register it in `main_test.h`.
+Create a test file `core-test/mla_my_feature_test.h` and register it in `main_test.h`.
 
 See `create_a_test.instructions.md` for full details.
 
 ## Complete Checklist
 
-- [ ] Header file created under `core-os/<module>/mla_<module>.h`
-- [ ] Implementation file created under `core-os/<module>/mla_<module>.cpp`
+- [ ] Header file created under `core/<module>/mla_<module>.h`
+- [ ] Implementation file created under `core/<module>/mla_<module>.cpp`
 - [ ] Struct uses `_t` suffix and `mla_` prefix
 - [ ] Initializer struct provided for container compatibility
 - [ ] Factory functions: constructor, `_invalid()`, validity check

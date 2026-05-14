@@ -5,7 +5,7 @@ description: 'Patterns for creating HTTP servers and making HTTP client requests
 
 # HTTP Server and Client
 
-The HTTP module (`core-os/http/`) provides a lightweight HTTP server and client. Requests and responses use `mla_stream_input_t` / `mla_stream_output_t` for body content and `mla_array_list_t` of `mla_http_header_t` for headers.
+The HTTP module (`core/http/`) provides a lightweight HTTP server and client. Requests and responses use `mla_stream_input_t` / `mla_stream_output_t` for body content and `mla_array_list_t` of `mla_http_header_t` for headers.
 
 ## Key Types
 

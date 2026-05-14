@@ -5,7 +5,7 @@ description: 'Patterns for using mla_array_list_t in the MLA framework'
 
 # Array Lists
 
-The array list module (`core-os/system/mla_array_list.h`) provides a generic, dynamically-resizing array. It is the standard ordered collection in the MLA framework — **never** use `std::vector`, raw arrays with `new[]`, or other standard containers.
+The array list module (`core/system/mla_array_list.h`) provides a generic, dynamically-resizing array. It is the standard ordered collection in the MLA framework — **never** use `std::vector`, raw arrays with `new[]`, or other standard containers.
 
 ## Template Parameters
 
