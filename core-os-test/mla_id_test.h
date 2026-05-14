@@ -2,8 +2,8 @@
 // Created by chris on 11/3/2025.
 //
 
-#ifndef COREOS_MLA_ID_TEST_H
-#define COREOS_MLA_ID_TEST_H
+#ifndef MLA_ID_TEST_H
+#define MLA_ID_TEST_H
 
 #include "../core-os/system/mla_id.h"
 #include "../core-os-test-support/mla_test_executor.h"

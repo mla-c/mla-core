@@ -2,8 +2,8 @@
 // Created by chris on 12/29/2025.
 //
 
-#ifndef COREOS_MLA_GLOBAL_NETWORK_RASPBERRY_PICO_H
-#define COREOS_MLA_GLOBAL_NETWORK_RASPBERRY_PICO_H
+#ifndef MLA_GLOBAL_NETWORK_RASPBERRY_PICO_H
+#define MLA_GLOBAL_NETWORK_RASPBERRY_PICO_H
 
 #include "../../core-os/network/mla_network.h"
 

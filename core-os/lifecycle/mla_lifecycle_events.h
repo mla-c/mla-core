@@ -2,8 +2,8 @@
 // Created by christian on 11/18/25.
 //
 
-#ifndef COREOS_MLA_LIFECYCLE_EVENTS_H
-#define COREOS_MLA_LIFECYCLE_EVENTS_H
+#ifndef MLA_LIFECYCLE_EVENTS_H
+#define MLA_LIFECYCLE_EVENTS_H
 #include "../mla_data_types.h"
 
 typedef void (*mla_lifecycle_event_callback_t)(void);

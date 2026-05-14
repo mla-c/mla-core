@@ -2,8 +2,8 @@
 // Created by chris on 12/29/2025.
 //
 
-#ifndef COREOS_MLA_GLOBAL_FILE_SYSTEM_RASPBERRY_PICO_H
-#define COREOS_MLA_GLOBAL_FILE_SYSTEM_RASPBERRY_PICO_H
+#ifndef MLA_GLOBAL_FILE_SYSTEM_RASPBERRY_PICO_H
+#define MLA_GLOBAL_FILE_SYSTEM_RASPBERRY_PICO_H
 
 #include "../../core-os/filesystem/mla_file_system.h"
 #include "../../core-os/mla_data_types.h"

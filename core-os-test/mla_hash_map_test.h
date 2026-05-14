@@ -2,8 +2,8 @@
 // Created by christian on 8/4/25.
 //
 
-#ifndef COREOS_MLA_HASH_MAP_TEST_H
-#define COREOS_MLA_HASH_MAP_TEST_H
+#ifndef MLA_HASH_MAP_TEST_H
+#define MLA_HASH_MAP_TEST_H
 
 
 #include "../core-os/hash/mla_hash.h"

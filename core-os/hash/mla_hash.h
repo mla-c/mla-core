@@ -2,8 +2,8 @@
 // Created by christian on 8/4/25.
 //
 
-#ifndef COREOS_MLA_HASH_H
-#define COREOS_MLA_HASH_H
+#ifndef MLA_HASH_H
+#define MLA_HASH_H
 
 #include "../mla_data_types.h"
 

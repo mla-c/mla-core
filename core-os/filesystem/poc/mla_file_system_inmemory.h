@@ -2,8 +2,8 @@
 // Created by chris on 10/14/2025.
 //
 
-#ifndef COREOS_MLA_FILE_SYSTEM_IN_MEMORY_H
-#define COREOS_MLA_FILE_SYSTEM_IN_MEMORY_H
+#ifndef MLA_FILE_SYSTEM_IN_MEMORY_H
+#define MLA_FILE_SYSTEM_IN_MEMORY_H
 
 #include "../mla_file_system.h"
 

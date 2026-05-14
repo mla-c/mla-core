@@ -1,6 +1,6 @@
 # Example Application
 
-The `core-os-exmaple-app/` directory contains a reference implementation that demonstrates how to use the CoreOS library modules together in a complete application. It showcases CLI integration, background tasks, web UI, and native window rendering.
+The `core-os-exmaple-app/` directory contains a reference implementation that demonstrates how to use the mla-c library modules together in a complete application. It showcases CLI integration, background tasks, web UI, and native window rendering.
 
 ## Architecture
 
@@ -60,7 +60,7 @@ Once running, the web UI is accessible at `http://localhost:8081` in a browser.
 
 ## Module Dependencies
 
-The example application uses the following CoreOS modules:
+The example application uses the following mla-c modules:
 - **Log** - Console logging initialization
 - **CLI** - Command-line interface framework
 - **Task** - Background task scheduling

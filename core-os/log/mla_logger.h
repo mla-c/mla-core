@@ -2,8 +2,8 @@
 // Created by christian on 8/8/25.
 //
 
-#ifndef COREOS_MLA_LOGGER_H
-#define COREOS_MLA_LOGGER_H
+#ifndef MLA_LOGGER_H
+#define MLA_LOGGER_H
 
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"

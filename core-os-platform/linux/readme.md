@@ -1,6 +1,6 @@
 # Linux Platform Module
 
-The Linux platform module provides platform-specific implementations and configurations for running CoreOS on Linux systems. It includes optimized implementations for networking, file system operations, task management, and low-level platform utilities.
+The Linux platform module provides platform-specific implementations and configurations for running mla-c on Linux systems. It includes optimized implementations for networking, file system operations, task management, and low-level platform utilities.
 
 ## Architecture
 
@@ -73,7 +73,7 @@ The platform configuration can be customized via `mla_global_config_linux.h`. Th
 
 ### Building for Linux
 
-When building CoreOS for Linux, ensure that your build system defines the appropriate platform macro and links against the Linux platform implementation:
+When building mla-c for Linux, ensure that your build system defines the appropriate platform macro and links against the Linux platform implementation:
 
 ```bash
 # Example CMake configuration
@@ -102,7 +102,7 @@ The Linux platform implementation is thread-safe when using the pthread-based ta
 
 ## Integration with Other Modules
 
-The Linux platform module works seamlessly with all CoreOS modules, providing the low-level implementations required for:
+The Linux platform module works seamlessly with all mla-c modules, providing the low-level implementations required for:
 - Network module (TCP/UDP sockets)
 - File System module (POSIX file operations)
 - Task module (pthread-based scheduling)

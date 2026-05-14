@@ -2,8 +2,8 @@
 // Created by Jules on 2025.
 //
 
-#ifndef COREOS_MLA_BYTES_TEST_H
-#define COREOS_MLA_BYTES_TEST_H
+#ifndef MLA_BYTES_TEST_H
+#define MLA_BYTES_TEST_H
 
 #include "../core-os/system/mla_bytes.h"
 #include "../core-os/system/mla_string.h"

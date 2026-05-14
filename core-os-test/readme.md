@@ -1,10 +1,10 @@
-# CoreOS Test Suite
+# mla-c Test Suite
 
-The `core-os-test/` directory contains the complete set of unit and integration test headers for all CoreOS modules. Each test file covers a specific module or component, ensuring comprehensive validation of the library's functionality.
+The `core-os-test/` directory contains the complete set of unit and integration test headers for all mla-c modules. Each test file covers a specific module or component, ensuring comprehensive validation of the library's functionality.
 
 ## Architecture
 
-Tests are defined as header files (`.h`) that register test cases using the CoreOS test framework (see [Test Support Library](../core-os-test-support/readme.md)). Tests use `mla_test_t` definitions with assert macros for validation.
+Tests are defined as header files (`.h`) that register test cases using the mla-c test framework (see [Test Support Library](../core-os-test-support/readme.md)). Tests use `mla_test_t` definitions with assert macros for validation.
 
 ## Test Categories
 

@@ -2,8 +2,8 @@
 // Created by christian on 8/8/25.
 //
 
-#ifndef COREOS_MLA_LOGGING_H
-#define COREOS_MLA_LOGGING_H
+#ifndef MLA_LOGGING_H
+#define MLA_LOGGING_H
 
 
 #include "../mla_data_types.h"

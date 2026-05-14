@@ -2,8 +2,8 @@
 // Created by chris on 10/10/2025.
 //
 
-#ifndef COREOS_MLA_HTTP_CLIENT_TEST_H
-#define COREOS_MLA_HTTP_CLIENT_TEST_H
+#ifndef MLA_HTTP_CLIENT_TEST_H
+#define MLA_HTTP_CLIENT_TEST_H
 
 #include "../core-os/http/mla_http_client.h"
 #include "../core-os-test-support/mla_test_executor.h"

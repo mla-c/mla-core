@@ -2,8 +2,8 @@
 // Created by chris on 2/3/2026.
 //
 
-#ifndef COREOS_MLA_GLOBAL_UI_SURFACE_ARDUINO_GFX_H
-#define COREOS_MLA_GLOBAL_UI_SURFACE_ARDUINO_GFX_H
+#ifndef MLA_GLOBAL_UI_SURFACE_ARDUINO_GFX_H
+#define MLA_GLOBAL_UI_SURFACE_ARDUINO_GFX_H
 
 #include "../../core-os/ui/surfaces/mla_ui_surface.h"
 #include "../../core-os/ui/display/mla_ui_display_surface.h"

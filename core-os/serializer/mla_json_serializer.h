@@ -2,8 +2,8 @@
 // Created by christian on 9/18/25.
 //
 
-#ifndef COREOS_MLA_JSON_SERIALIZER_H
-#define COREOS_MLA_JSON_SERIALIZER_H
+#ifndef MLA_JSON_SERIALIZER_H
+#define MLA_JSON_SERIALIZER_H
 
 #include "mla_serializer.h"
 

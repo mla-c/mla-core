@@ -2,8 +2,8 @@
 // Created by chris on 10/1/2025.
 //
 
-#ifndef COREOS_MLA_GLOBAL_CONFIG_WINDOW_H
-#define COREOS_MLA_GLOBAL_CONFIG_WINDOW_H
+#ifndef MLA_GLOBAL_CONFIG_WINDOW_H
+#define MLA_GLOBAL_CONFIG_WINDOW_H
 
 #include "../../core-os/config/mla_config.h"
 #include "windows.h"

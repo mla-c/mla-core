@@ -2,8 +2,8 @@
 // Created by christian on 11/17/25.
 //
 
-#ifndef COREOS_MLA_RPC_H
-#define COREOS_MLA_RPC_H
+#ifndef MLA_RPC_H
+#define MLA_RPC_H
 
 #include "../system/mla_string.h"
 #include "../serializer/mla_serializer.h"

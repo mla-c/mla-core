@@ -2,8 +2,8 @@
 // Created by christian on 10/8/25.
 //
 
-#ifndef COREOS_MLA_HTTP_HEADER_TEST_H
-#define COREOS_MLA_HTTP_HEADER_TEST_H
+#ifndef MLA_HTTP_HEADER_TEST_H
+#define MLA_HTTP_HEADER_TEST_H
 
 #include "../core-os/http/mla_http_header.h"
 #include "../core-os/system/mla_string.h"

@@ -1,6 +1,6 @@
 # ESP-IDF Platform Module
 
-The ESP-IDF platform module provides platform-specific implementations and configurations for running CoreOS on ESP32 and ESP8266 microcontrollers. It integrates with the Espressif IoT Development Framework (ESP-IDF) and provides optimized implementations for embedded systems.
+The ESP-IDF platform module provides platform-specific implementations and configurations for running mla-c on ESP32 and ESP8266 microcontrollers. It integrates with the Espressif IoT Development Framework (ESP-IDF) and provides optimized implementations for embedded systems.
 
 ## Architecture
 
@@ -96,7 +96,7 @@ The platform configuration can be customized via `mla_global_config_esp32.h`. Th
 
 ### Building for ESP32/ESP8266
 
-When building CoreOS for ESP platforms, use the ESP-IDF build system:
+When building mla-c for ESP platforms, use the ESP-IDF build system:
 
 ```bash
 # Configure for ESP32
@@ -136,8 +136,8 @@ Optimize your application by:
 
 ### FreeRTOS Integration
 
-CoreOS task management integrates with FreeRTOS:
-- CoreOS tasks map to FreeRTOS tasks
+mla-c task management integrates with FreeRTOS:
+- mla-c tasks map to FreeRTOS tasks
 - Use FreeRTOS APIs for synchronization if needed
 - Configure task priorities appropriately
 - Monitor stack usage to prevent overflow
@@ -148,7 +148,7 @@ Before using network features, initialize Wi-Fi:
 
 ```cpp
 // Initialize Wi-Fi and connect to network
-// Then CoreOS network module can use the connection
+// Then mla-c network module can use the connection
 ```
 
 ### File System Setup
@@ -157,7 +157,7 @@ Before using file system features, mount the appropriate file system:
 
 ```cpp
 // Mount SPIFFS or LittleFS
-// Then CoreOS file system module can access files
+// Then mla-c file system module can access files
 ```
 
 ### Watchdog Considerations
@@ -177,7 +177,7 @@ The ESP32 has a task watchdog timer. Long-running operations should:
 
 ## Integration with Other Modules
 
-The ESP-IDF platform module works with CoreOS modules, providing implementations for:
+The ESP-IDF platform module works with mla-c modules, providing implementations for:
 - Network module (ESP32 Wi-Fi and lwIP sockets)
 - File System module (SPIFFS/LittleFS)
 - Task module (FreeRTOS-based scheduling)

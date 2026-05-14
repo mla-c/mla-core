@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_STRING_H
-#define COREOS_MLA_STRING_H
+#ifndef MLA_STRING_H
+#define MLA_STRING_H
 
 #include "../mla_data_types.h"
 #include "mla_buffer.h"

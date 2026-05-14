@@ -2,8 +2,8 @@
 // Created by chris on 1/19/2026.
 //
 
-#ifndef COREOS_MLA_UI_WINDOW_H
-#define COREOS_MLA_UI_WINDOW_H
+#ifndef MLA_UI_WINDOW_H
+#define MLA_UI_WINDOW_H
 
 #include "mla_ui_control.h"
 

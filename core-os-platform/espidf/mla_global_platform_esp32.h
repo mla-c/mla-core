@@ -2,8 +2,8 @@
 // Created by chris on 9/11/2025.
 //
 
-#ifndef COREOS_MLA_GLOBAL_PLATFORM_ESP32_H
-#define COREOS_MLA_GLOBAL_PLATFORM_ESP32_H
+#ifndef MLA_GLOBAL_PLATFORM_ESP32_H
+#define MLA_GLOBAL_PLATFORM_ESP32_H
 
 #include "../../core-os/mla_data_types.h"
 #include "../generic/mla_global_platform_generic.h"

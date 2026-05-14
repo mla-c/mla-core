@@ -2,8 +2,8 @@
 // Created by chris on 12/15/2025.
 //
 
-#ifndef COREOS_MLA_REFLECTION_H
-#define COREOS_MLA_REFLECTION_H
+#ifndef MLA_REFLECTION_H
+#define MLA_REFLECTION_H
 
 #include "../lifecycle/mla_lifecycle_events.h"
 #include "../system/mla_string.h"

@@ -1,10 +1,10 @@
-# CoreOS Web UI
+# mla-c Web UI
 
-A Preact/TypeScript web application that provides a browser-based interface for interacting with CoreOS applications. The built output is embedded directly into the CoreOS C++ library as a compressed byte array, served by the CoreOS HTTP server at runtime.
+A Preact/TypeScript web application that provides a browser-based interface for interacting with mla-c applications. The built output is embedded directly into the mla-c C++ library as a compressed byte array, served by the mla-c HTTP server at runtime.
 
 ## Architecture
 
-The web UI communicates with the CoreOS backend via two channels:
+The web UI communicates with the mla-c backend via two channels:
 
 - **RPC over HTTP**: JSON-based remote procedure calls to `/rpc/` endpoints for logging, configuration, and surface discovery.
 - **WebSocket**: Real-time bidirectional communication for UI surface rendering, enabling remote display of native UI controls in the browser.
@@ -19,7 +19,7 @@ Single HTML file (bundled JS/CSS)
 Gzip-compressed byte array
         ↓ (custom Vite plugin: generateCHeader)
 C header: core-os/ui/web/mla_ui_web_embedded.h
-        ↓ (compiled into CoreOS)
+        ↓ (compiled into mla-c)
 Served via mla_ui_http_server at runtime
 ```
 
@@ -78,8 +78,8 @@ npm install
 - **vite-plugin-singlefile** - Bundles all assets into a single HTML file
 - **vite-plugin-singlefile-compression** - Gzip compression for minimal embedded size
 
-## Integration with CoreOS
+## Integration with mla-c
 
-The production build generates `core-os/ui/web/mla_ui_web_embedded.h`, which contains the entire web application as a gzip-compressed byte array. This header is included in the CoreOS library and served by `mla_ui_http_server` when a client connects via browser.
+The production build generates `core-os/ui/web/mla_ui_web_embedded.h`, which contains the entire web application as a gzip-compressed byte array. This header is included in the mla-c library and served by `mla_ui_http_server` when a client connects via browser.
 
 For more information on the server-side integration, see the [UI Module Documentation](../core-os/ui/readme.md).

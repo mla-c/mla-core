@@ -2,8 +2,8 @@
 // Created by chris on 10/15/2025.
 //
 
-#ifndef COREOS_MLA_GLOBAL_FILE_SYSTEM_WINDOWS_H
-#define COREOS_MLA_GLOBAL_FILE_SYSTEM_WINDOWS_H
+#ifndef MLA_GLOBAL_FILE_SYSTEM_WINDOWS_H
+#define MLA_GLOBAL_FILE_SYSTEM_WINDOWS_H
 
 #include "windows.h"
 #include <tchar.h>

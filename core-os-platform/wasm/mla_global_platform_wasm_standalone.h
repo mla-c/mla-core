@@ -4,8 +4,8 @@
 // eliminating the need for C standard library dependencies
 //
 
-#ifndef COREOS_MLA_GLOBAL_PLATFORM_WASM_STANDALONE_H
-#define COREOS_MLA_GLOBAL_PLATFORM_WASM_STANDALONE_H
+#ifndef MLA_GLOBAL_PLATFORM_WASM_STANDALONE_H
+#define MLA_GLOBAL_PLATFORM_WASM_STANDALONE_H
 
 #include "../../core-os/mla_data_types.h"
 #include "../../core-os/lifecycle/mla_lifecycle_events.h"

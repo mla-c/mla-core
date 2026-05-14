@@ -2,8 +2,8 @@
 // Created by chris on 11/27/2025.
 //
 
-#ifndef COREOS_HTTP_CHUNKED_STREAM_H
-#define COREOS_HTTP_CHUNKED_STREAM_H
+#ifndef MLA_HTTP_CHUNKED_STREAM_H
+#define MLA_HTTP_CHUNKED_STREAM_H
 
 #include "../system/mla_stream.h"
 

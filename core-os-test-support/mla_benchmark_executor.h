@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOSMLA_BENCHMARK_EXECUTOR_H
-#define COREOSMLA_BENCHMARK_EXECUTOR_H
+#ifndef MLA_BENCHMARK_EXECUTOR_H
+#define MLA_BENCHMARK_EXECUTOR_H
 
 #include "./Benchmark/mla_benchmark.h"
 

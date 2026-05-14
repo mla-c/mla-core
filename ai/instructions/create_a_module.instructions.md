@@ -1,11 +1,11 @@
 ---
 applyTo: '**'
-description: 'Step-by-step guide for creating a new CoreOS module'
+description: 'Step-by-step guide for creating a new mla-c module'
 ---
 
-# Creating a New CoreOS Module
+# Creating a New mla-c Module
 
-Follow these steps whenever you need to create a new module in the CoreOS framework. Modules are self-contained units that expose a header file and an optional `.cpp` implementation.
+Follow these steps whenever you need to create a new module in the mla-c framework. Modules are self-contained units that expose a header file and an optional `.cpp` implementation.
 
 ## Directory Layout
 
@@ -25,8 +25,8 @@ Every module exposes one primary struct with an associated initializer and facto
 
 ```cpp
 // core-os/my_feature/mla_my_feature.h
-#ifndef COREOS_MLA_MY_FEATURE_H
-#define COREOS_MLA_MY_FEATURE_H
+#ifndef MLA_C_MLA_MY_FEATURE_H
+#define MLA_C_MLA_MY_FEATURE_H
 
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"

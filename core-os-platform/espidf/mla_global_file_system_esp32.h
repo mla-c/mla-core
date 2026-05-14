@@ -2,8 +2,8 @@
 // Created by copilot on 12/28/2024.
 //
 
-#ifndef COREOS_MLA_GLOBAL_FILE_SYSTEM_ESP32_H
-#define COREOS_MLA_GLOBAL_FILE_SYSTEM_ESP32_H
+#ifndef MLA_GLOBAL_FILE_SYSTEM_ESP32_H
+#define MLA_GLOBAL_FILE_SYSTEM_ESP32_H
 
 #include "../../core-os/filesystem/mla_file_system.h"
 #include "../../core-os/mla_data_types.h"

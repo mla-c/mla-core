@@ -2,8 +2,8 @@
 // Created by chris on 1/28/2026.
 //
 
-#ifndef COREOS_MLA_UI_TEXT_EDIT_H
-#define COREOS_MLA_UI_TEXT_EDIT_H
+#ifndef MLA_UI_TEXT_EDIT_H
+#define MLA_UI_TEXT_EDIT_H
 
 #include "mla_ui_control.h"
 #include "mla_ui_style.h"

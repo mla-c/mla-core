@@ -8,8 +8,8 @@
 // They are useful for builds or environments where networking is not available
 // or must be explicitly disabled.
 
-#ifndef COREOS_MLA_GLOBAL_NETWORK_DISABLED_H
-#define COREOS_MLA_GLOBAL_NETWORK_DISABLED_H
+#ifndef MLA_GLOBAL_NETWORK_DISABLED_H
+#define MLA_GLOBAL_NETWORK_DISABLED_H
 
 #include "../../core-os/network/mla_network.h"
 

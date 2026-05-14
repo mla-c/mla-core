@@ -1,6 +1,6 @@
-# CoreOS Data Types
+# mla-c Data Types
 
-The `mla_data_types.h` header file defines a set of core data types and macros that are used throughout the CoreOS library. These types and macros provide a consistent and platform-independent way to work with primitive data types, memory, and other low-level operations.
+The `mla_data_types.h` header file defines a set of core data types and macros that are used throughout the mla-c library. These types and macros provide a consistent and platform-independent way to work with primitive data types, memory, and other low-level operations.
 
 ## Data Types
 
@@ -42,4 +42,4 @@ The header also defines a number of useful macros.
 
 ## Low-Level Operations
 
-The `mla_low_level_operations_t` struct defines a set of function pointers for low-level operations such as memory allocation, string manipulation, and I/O. This allows the CoreOS library to be easily ported to different platforms by providing a custom implementation of these operations.
+The `mla_low_level_operations_t` struct defines a set of function pointers for low-level operations such as memory allocation, string manipulation, and I/O. This allows the mla-c library to be easily ported to different platforms by providing a custom implementation of these operations.

@@ -2,8 +2,8 @@
 // Created by christian on 11/24/25.
 //
 
-#ifndef COREOS_MLA_RPC_HTTP_CLIENT_H
-#define COREOS_MLA_RPC_HTTP_CLIENT_H
+#ifndef MLA_RPC_HTTP_CLIENT_H
+#define MLA_RPC_HTTP_CLIENT_H
 #include "mla_rpc.h"
 #include "mla_rpc_http_data_types.h"
 

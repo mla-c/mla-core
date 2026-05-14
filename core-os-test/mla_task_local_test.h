@@ -2,8 +2,8 @@
 // Created by christian on 2/22/26.
 //
 
-#ifndef COREOS_MLA_TASK_LOCAL_TEST_H
-#define COREOS_MLA_TASK_LOCAL_TEST_H
+#ifndef MLA_TASK_LOCAL_TEST_H
+#define MLA_TASK_LOCAL_TEST_H
 
 #include "../core-os/task/mla_task_local.h"
 #include "../core-os-test-support/mla_test_executor.h"

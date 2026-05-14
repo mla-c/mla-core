@@ -2,8 +2,8 @@
 // Created by chris on 9/15/2025.
 //
 
-#ifndef COREOS_MLA_BINARY_SERIALIZER_H
-#define COREOS_MLA_BINARY_SERIALIZER_H
+#ifndef MLA_BINARY_SERIALIZER_H
+#define MLA_BINARY_SERIALIZER_H
 
 #include "mla_serializer.h"
 

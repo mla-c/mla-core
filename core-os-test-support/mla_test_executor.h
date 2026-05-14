@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_TEST_EXECUTOR_H
-#define COREOS_MLA_TEST_EXECUTOR_H
+#ifndef MLA_TEST_EXECUTOR_H
+#define MLA_TEST_EXECUTOR_H
 
 #include "mla_test_data_types.h"
 #include "Test/mla_test.h"

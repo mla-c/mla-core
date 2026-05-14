@@ -2,8 +2,8 @@
 // Created by chris on 8/2/2025.
 //
 
-#ifndef COREOS_MLA_BENCHMARK_H
-#define COREOS_MLA_BENCHMARK_H
+#ifndef MLA_BENCHMARK_H
+#define MLA_BENCHMARK_H
 
 #include "../mla_test_data_types.h"
 

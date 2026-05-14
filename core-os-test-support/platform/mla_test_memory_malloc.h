@@ -2,8 +2,8 @@
 // Created by chris on 1/9/2026.
 //
 
-#ifndef COREOS_MLA_TEST_MEMORY_MALLOC_FREE_H
-#define COREOS_MLA_TEST_MEMORY_MALLOC_FREE_H
+#ifndef MLA_TEST_MEMORY_MALLOC_FREE_H
+#define MLA_TEST_MEMORY_MALLOC_FREE_H
 
 #include "../mla_test_data_types.h"
 #include <cstdlib>

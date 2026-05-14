@@ -2,8 +2,8 @@
 // Created by chris on 1/9/2026.
 //
 
-#ifndef COREOS_TEST_MLA_TEST_UTILS_H
-#define COREOS_TEST_MLA_TEST_UTILS_H
+#ifndef MLA_TEST_MLA_TEST_UTILS_H
+#define MLA_TEST_MLA_TEST_UTILS_H
 
 #include "mla_test_data_types.h"
 

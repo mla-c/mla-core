@@ -2,8 +2,8 @@
 // Created by chris on 1/22/2026.
 //
 
-#ifndef COREOS_MLA_UI_SURFACE_DRAW_H
-#define COREOS_MLA_UI_SURFACE_DRAW_H
+#ifndef MLA_UI_SURFACE_DRAW_H
+#define MLA_UI_SURFACE_DRAW_H
 
 #include "../../mla_data_types.h"
 #include "../../system/mla_string.h"
