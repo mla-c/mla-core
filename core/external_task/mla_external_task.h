@@ -13,7 +13,6 @@ struct mla_external_task_t {
     mla_string_t cmdline;
     mla_stream_input_t std_out;
     mla_stream_output_t std_in;
-    mla_pointer_t native_resource_owner;
 };
 
 mla_external_task_t mla_external_task_invalid();

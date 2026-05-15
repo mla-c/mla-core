@@ -11,13 +11,13 @@
 
 void ExternalTaskCreateInvalidInputTest() {
     mla_external_task_t task = mla_external_task_create(mla_string_empty());
-    assert_true(mla_pointer_is_null(task.native_resource_owner), "Task owner should be null for invalid command");
+    assert_null(task.native_resource.asPointer, "Task native resource should be null for invalid command");
 }
 
 void ExternalTaskCreateAndReadStdOutTest() {
 
     mla_external_task_t task = mla_external_task_create(mla_string_const("printf 'hello'"));
-    assert_false(mla_pointer_is_null(task.native_resource_owner), "Task should be created");
+    assert_not_null(task.native_resource.asPointer, "Task should be created");
 
     mla_byte_t buffer[8] = {0};
     mla_size_t read = task.std_out.read(task.std_out, 0, 5, buffer);
@@ -31,7 +31,7 @@ void ExternalTaskCreateAndReadStdOutTest() {
 void ExternalTaskWriteStdInAndReadStdOutTest() {
 
     mla_external_task_t task = mla_external_task_create(mla_string_const("cat"));
-    assert_false(mla_pointer_is_null(task.native_resource_owner), "Task should be created");
+    assert_not_null(task.native_resource.asPointer, "Task should be created");
 
     const mla_char_t* msg = "echo\n";
     mla_size_t written = task.std_in.write(task.std_in, 0, 5, reinterpret_cast<const mla_byte_t*>(msg));
