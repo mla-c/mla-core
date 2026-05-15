@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <spawn.h>
+
+extern char** environ;
 
 struct __linux_external_task_native_resource_t {
     pid_t pid;
@@ -56,9 +59,10 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
         return false;
     }
 
-    pid_t pid = fork();
+    mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
+    const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
 
-    if (pid < 0) {
+    if (cmdline == nullptr) {
         close(stdinPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
@@ -66,25 +70,47 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
         return false;
     }
 
-    if (pid == 0) {
-
-        dup2(stdinPipe[0], STDIN_FILENO);
-        dup2(stdoutPipe[1], STDOUT_FILENO);
-
+    posix_spawn_file_actions_t fileActions;
+    if (posix_spawn_file_actions_init(&fileActions) != 0) {
         close(stdinPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
+        return false;
+    }
 
-        mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
-        const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
+    if (posix_spawn_file_actions_adddup2(&fileActions, stdinPipe[0], STDIN_FILENO) != 0 ||
+        posix_spawn_file_actions_adddup2(&fileActions, stdoutPipe[1], STDOUT_FILENO) != 0 ||
+        posix_spawn_file_actions_addclose(&fileActions, stdinPipe[0]) != 0 ||
+        posix_spawn_file_actions_addclose(&fileActions, stdinPipe[1]) != 0 ||
+        posix_spawn_file_actions_addclose(&fileActions, stdoutPipe[0]) != 0 ||
+        posix_spawn_file_actions_addclose(&fileActions, stdoutPipe[1]) != 0) {
 
-        if (cmdline == nullptr) {
-            _exit(127);
-        }
+        posix_spawn_file_actions_destroy(&fileActions);
+        close(stdinPipe[0]);
+        close(stdinPipe[1]);
+        close(stdoutPipe[0]);
+        close(stdoutPipe[1]);
+        return false;
+    }
 
-        execl("/bin/sh", "sh", "-c", cmdline, nullptr);
-        _exit(127);
+    mla_char_t* const argv[] = {
+        const_cast<mla_char_t*>("sh"),
+        const_cast<mla_char_t*>("-c"),
+        const_cast<mla_char_t*>(cmdline),
+        nullptr
+    };
+
+    pid_t pid = -1;
+    int spawnResult = posix_spawn(&pid, "/bin/sh", &fileActions, nullptr, argv, environ);
+    posix_spawn_file_actions_destroy(&fileActions);
+
+    if (spawnResult != 0 || pid <= 0) {
+        close(stdinPipe[0]);
+        close(stdinPipe[1]);
+        close(stdoutPipe[0]);
+        close(stdoutPipe[1]);
+        return false;
     }
 
     close(stdinPipe[0]);
