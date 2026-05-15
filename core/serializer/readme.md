@@ -149,4 +149,3 @@ The XML serializer uses a specific format optimized for the serialization framew
   </intList>
 </item>
 ```
-

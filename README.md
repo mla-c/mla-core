@@ -171,6 +171,67 @@ Reference implementation demonstrating library usage:
 Browser-based interface for mla-c applications built with Preact and TypeScript. The production build is embedded into the C++ library as a compressed byte array and served by the mla-c HTTP server at runtime.
 
 
+## Code Style (mla-c)
+
+mla-c follows a **C-style API with C++ features** to keep the library portable and consistent across all targets.
+
+### 1) Type System: Use MLA data types
+
+Use types from `core/mla_data_types.h` in APIs and module code (`mla_int32_t`, `mla_size_t`, `mla_bool_t`, `mla_char_t`, ...).
+
+```cpp
+mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
+mla_pointer_t mla_create_char_array(const mla_size_t p_Length);
+```
+
+### 2) Naming: `mla_<module>_<action>` and `mla_<name>_t`
+
+Function names follow `mla_<module>_<action>`. Struct/type names use `_t`.
+
+```cpp
+struct mla_string_t { ... };
+mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length);
+void mla_string_destroy(mla_string_t &p_String);
+```
+
+### 3) Function Signatures: references + const correctness
+
+The codebase uses C++ references for struct parameters and `const` for read-only inputs. Parameter names are typically prefixed with `p_`.
+
+```cpp
+mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
+mla_string_t mla_string_copy(const mla_string_t &p_String);
+```
+
+### 4) Memory Access and Ownership
+
+- Use MLA low-level wrappers (`mla_memcpy`, `mla_memset`, `mla_strlen`, ...).
+- Use `mla_pointer_t` for heap ownership.
+- Use `mla_platform_pointer_t` for transient/raw access only.
+- Keep platform-specific implementation in `core-platform/*` so shared module APIs remain cross-platform.
+
+## 🧠 Heap Memory Ownership: `mla_pointer_t`
+
+`mla_pointer_t` is the project’s managed pointer type for heap-owned data.
+
+- Allocate owned memory with `mla_malloc(...)`, `mla_malloc_buffer(...)`, or `mla_malloc_struct(T)`.
+- Access payload data with `mla_pointer_get_data<T>(ptr)` / `mla_pointer_get_platform_pointer(ptr)` and always null-check before dereferencing.
+- Use `mla_pointer_null()` and `mla_pointer_is_null(...)` for null-state handling.
+- Copying `mla_pointer_t` shares ownership through reference counting (`incReferences` on copy / assignment, `decReferences` in destructor).
+- Avoid using raw `mla_platform_malloc` as an ownership container in module code; prefer `mla_pointer_t` for automatic cleanup and consistent memory-manager behavior.
+
+Example:
+
+```cpp
+mla_pointer_t ptr = mla_malloc_struct(mla_string_internal_heap_t);
+mla_string_internal_heap_t* data = mla_pointer_get_data<mla_string_internal_heap_t>(ptr);
+if (data != nullptr) {
+    data->length = 0;
+}
+```
+
+For module-level guidance, see [core/readme.md](core/readme.md) and [core/memory/readme.md](core/memory/readme.md).
+
 ## 📚 Architecture
 
 mla-c follows a layered architecture:
@@ -209,4 +270,3 @@ The library includes comprehensive test coverage:
 
 
 **Built for performance, designed for portability** 🚀
-
