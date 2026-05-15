@@ -34,6 +34,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_helper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_wrapper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_deflate.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/external_task/mla_external_task.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/config/mla_config.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/serializer/mla_serializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/serializer/mla_binary_serializer.cpp
