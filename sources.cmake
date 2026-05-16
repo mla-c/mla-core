@@ -75,6 +75,11 @@ set(SOURCE_NETWORK_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/ui/web/mla_ui_web_remote_surface.cpp
 )
 
+# External task source files
+set(SOURCE_EXTERNAL_TASK_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/external_task/mla_external_task.cpp
+)
+
 # File system source files
 set(SOURCE_FILE_SYSTEM_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/filesystem/mla_file_system.cpp
