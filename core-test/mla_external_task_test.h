@@ -8,7 +8,16 @@
 #include "../core/external_task/mla_external_task.h"
 #include "../core-test-support/mla_test_executor.h"
 #include "../core-test-support/Test/mla_test.h"
-#include <unistd.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#define __mla_external_task_test_stdout_cmd "echo|set /p=hello"
+#define __mla_external_task_test_stdin_echo_cmd "findstr .*"
+#define __mla_external_task_test_sleep_cmd "ping 127.0.0.1 -n 2 >nul"
+#else
+#define __mla_external_task_test_stdout_cmd "printf 'hello'"
+#define __mla_external_task_test_stdin_echo_cmd "cat"
+#define __mla_external_task_test_sleep_cmd "sleep 1"
+#endif
 
 void ExternalTaskCreateInvalidInputTest() {
     mla_external_task_t task = mla_external_task_create(mla_string_empty());
@@ -17,7 +26,7 @@ void ExternalTaskCreateInvalidInputTest() {
 
 void ExternalTaskCreateAndReadStdOutTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const("printf 'hello'"));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_stdout_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_byte_t buffer[8] = {0};
@@ -31,7 +40,7 @@ void ExternalTaskCreateAndReadStdOutTest() {
 
 void ExternalTaskWriteStdInAndReadStdOutTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const("cat"));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_stdin_echo_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     const mla_char_t* msg = "echo\n";
@@ -49,13 +58,13 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
 
 void ExternalTaskStateTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const("sleep 1"));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_sleep_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_external_task_state state = mla_external_task_get_state(task);
     assert_equal((mla_test_int32_t)state, (mla_test_int32_t)MLA_EXTERNAL_TASK_STATE_RUNNING, "Task should be running after create");
 
-    usleep(1200 * 1000);
+    mla_sleep(1200);
 
     state = mla_external_task_get_state(task);
     assert_equal((mla_test_int32_t)state, (mla_test_int32_t)MLA_EXTERNAL_TASK_STATE_STOPPED, "Task should be stopped after command completion");
