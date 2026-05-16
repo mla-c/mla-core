@@ -34,7 +34,6 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_helper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_wrapper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_stream_deflate.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/external_task/mla_external_task.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/config/mla_config.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/serializer/mla_serializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/serializer/mla_binary_serializer.cpp
@@ -74,6 +73,11 @@ set(SOURCE_NETWORK_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/rpc/mla_rpc_http_client.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/ui/web/mla_ui_http_server.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/ui/web/mla_ui_web_remote_surface.cpp
+)
+
+# External task source files
+set(SOURCE_EXTERNAL_TASK_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/external_task/mla_external_task.cpp
 )
 
 # File system source files
