@@ -8,6 +8,7 @@
 #include "../core/external_task/mla_external_task.h"
 #include "../core-test-support/mla_test_executor.h"
 #include "../core-test-support/Test/mla_test.h"
+#include <unistd.h>
 
 void ExternalTaskCreateInvalidInputTest() {
     mla_external_task_t task = mla_external_task_create(mla_string_empty());
@@ -46,6 +47,22 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
     mla_external_task_stop(task);
 }
 
+void ExternalTaskStateTest() {
+
+    mla_external_task_t task = mla_external_task_create(mla_string_const("sleep 1"));
+    assert_not_null(task.native_resource.asPointer, "Task should be created");
+
+    mla_external_task_state state = mla_external_task_get_state(task);
+    assert_equal((mla_test_int32_t)state, (mla_test_int32_t)MLA_EXTERNAL_TASK_STATE_RUNNING, "Task should be running after create");
+
+    usleep(1200 * 1000);
+
+    state = mla_external_task_get_state(task);
+    assert_equal((mla_test_int32_t)state, (mla_test_int32_t)MLA_EXTERNAL_TASK_STATE_STOPPED, "Task should be stopped after command completion");
+
+    mla_external_task_stop(task);
+}
+
 void RegisterExternalTaskTests(mla_test_executor_t &runner) {
     mla_test_t test = mla_test("CreateInvalidInput", test_category, ExternalTaskCreateInvalidInputTest);
     mla_test_executor_register_test(runner, test);
@@ -54,6 +71,9 @@ void RegisterExternalTaskTests(mla_test_executor_t &runner) {
     mla_test_executor_register_test(runner, test);
 
     test = mla_test("WriteStdInAndReadStdOut", test_category, ExternalTaskWriteStdInAndReadStdOutTest);
+    mla_test_executor_register_test(runner, test);
+
+    test = mla_test("State", test_category, ExternalTaskStateTest);
     mla_test_executor_register_test(runner, test);
 }
 

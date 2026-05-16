@@ -8,18 +8,27 @@
 #include "../../core/external_task/mla_external_task.h"
 #include "../../core/system/mla_string.h"
 
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <spawn.h>
-
-extern char** environ;
+#include <sys/prctl.h>
 
 struct __linux_external_task_native_resource_t {
     pid_t pid;
     mla_int32_t stdin_write_fd;
     mla_int32_t stdout_read_fd;
 };
+
+void __linux_external_task_child_fail(mla_int32_t p_StatusPipeFd) {
+    mla_uint8_t childError = 1;
+    write(p_StatusPipeFd, &childError, sizeof(childError));
+    kill(getpid(), SIGKILL);
+    while (true) {
+        pause();
+    }
+}
 
 void __linux_external_task_cleanup_process_data(__linux_external_task_native_resource_t* p_ProcessData) {
 
@@ -48,6 +57,7 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
 
     int stdinPipe[2] = {-1, -1};
     int stdoutPipe[2] = {-1, -1};
+    int statusPipe[2] = {-1, -1};
 
     if (pipe(stdinPipe) != 0) {
         return false;
@@ -59,10 +69,7 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
         return false;
     }
 
-    mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
-    const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
-
-    if (cmdline == nullptr) {
+    if (pipe(statusPipe) != 0) {
         close(stdinPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
@@ -70,51 +77,72 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
         return false;
     }
 
-    posix_spawn_file_actions_t fileActions;
-    if (posix_spawn_file_actions_init(&fileActions) != 0) {
+    if (fcntl(statusPipe[1], F_SETFD, FD_CLOEXEC) != 0) {
         close(stdinPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
+        close(statusPipe[0]);
+        close(statusPipe[1]);
         return false;
     }
 
-    if (posix_spawn_file_actions_adddup2(&fileActions, stdinPipe[0], STDIN_FILENO) != 0 ||
-        posix_spawn_file_actions_adddup2(&fileActions, stdoutPipe[1], STDOUT_FILENO) != 0 ||
-        posix_spawn_file_actions_addclose(&fileActions, stdinPipe[0]) != 0 ||
-        posix_spawn_file_actions_addclose(&fileActions, stdinPipe[1]) != 0 ||
-        posix_spawn_file_actions_addclose(&fileActions, stdoutPipe[0]) != 0 ||
-        posix_spawn_file_actions_addclose(&fileActions, stdoutPipe[1]) != 0) {
-
-        posix_spawn_file_actions_destroy(&fileActions);
+    pid_t pid = fork();
+    if (pid < 0) {
         close(stdinPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
+        close(statusPipe[0]);
+        close(statusPipe[1]);
         return false;
     }
 
-    mla_char_t* const argv[] = {
-        const_cast<mla_char_t*>("sh"),
-        const_cast<mla_char_t*>("-c"),
-        const_cast<mla_char_t*>(cmdline),
-        nullptr
-    };
+    if (pid == 0) {
 
-    pid_t pid = -1;
-    int spawnResult = posix_spawn(&pid, "/bin/sh", &fileActions, nullptr, argv, environ);
-    posix_spawn_file_actions_destroy(&fileActions);
-
-    if (spawnResult != 0 || pid <= 0) {
-        close(stdinPipe[0]);
+        close(statusPipe[0]);
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
+
+        if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0 || getppid() == 1) {
+            __linux_external_task_child_fail(statusPipe[1]);
+        }
+
+        if (dup2(stdinPipe[0], STDIN_FILENO) < 0 || dup2(stdoutPipe[1], STDOUT_FILENO) < 0) {
+            __linux_external_task_child_fail(statusPipe[1]);
+        }
+
+        close(stdinPipe[0]);
         close(stdoutPipe[1]);
-        return false;
+
+        mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
+        const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
+
+        if (cmdline == nullptr) {
+            __linux_external_task_child_fail(statusPipe[1]);
+        }
+
+        execl("/bin/sh", "sh", "-c", cmdline, nullptr);
+        __linux_external_task_child_fail(statusPipe[1]);
     }
 
+    close(statusPipe[1]);
     close(stdinPipe[0]);
     close(stdoutPipe[1]);
+
+    mla_uint8_t childError = 0;
+    ssize_t childState = 0;
+    do {
+        childState = read(statusPipe[0], &childError, sizeof(childError));
+    } while (childState < 0 && errno == EINTR);
+    close(statusPipe[0]);
+
+    if (childState != 0) {
+        close(stdinPipe[1]);
+        close(stdoutPipe[0]);
+        waitpid(pid, nullptr, 0);
+        return false;
+    }
 
     __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(mla_platform_malloc(sizeof(__linux_external_task_native_resource_t)));
 
@@ -132,6 +160,29 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
 
     p_OutNativeResource = mla_dynamic_data_from_pointer(processData);
     return true;
+}
+
+mla_external_task_state __linux_external_task_get_state(const mla_native_resource_t& p_NativeResource) {
+
+    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+
+    if (processData == nullptr || processData->pid <= 0) {
+        return MLA_EXTERNAL_TASK_STATE_STOPPED;
+    }
+
+    int status = 0;
+    pid_t waitResult = -1;
+    do {
+        waitResult = waitpid(processData->pid, &status, WNOHANG);
+    } while (waitResult < 0 && errno == EINTR);
+
+    if (waitResult == 0) {
+        return MLA_EXTERNAL_TASK_STATE_RUNNING;
+    }
+
+    processData->pid = -1;
+    __linux_external_task_cleanup_process_data(processData);
+    return MLA_EXTERNAL_TASK_STATE_STOPPED;
 }
 
 void __linux_external_task_stop_process(const mla_native_resource_t& p_NativeResource) {
@@ -197,6 +248,7 @@ mla_size_t __linux_external_task_write_stdin(const mla_native_resource_t& p_Nati
 mla_external_task_managment_t g_external_task_management = {
     __linux_external_task_create_process,
     __linux_external_task_stop_process,
+    __linux_external_task_get_state,
     __linux_external_task_read_stdout,
     __linux_external_task_write_stdin,
 };

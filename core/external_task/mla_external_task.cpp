@@ -90,6 +90,19 @@ mla_external_task_t mla_external_task_create(const mla_string_t& p_CmdLine) {
     return result;
 }
 
+mla_external_task_state mla_external_task_get_state(const mla_external_task_t& p_Task) {
+
+    if (p_Task.native_resource.asPointer == nullptr) {
+        return MLA_EXTERNAL_TASK_STATE_STOPPED;
+    }
+
+    if (g_external_task_management.get_state == nullptr) {
+        return MLA_EXTERNAL_TASK_STATE_STOPPED;
+    }
+
+    return g_external_task_management.get_state(p_Task.native_resource);
+}
+
 void mla_external_task_stop(mla_external_task_t& p_Task) {
 
     p_Task.std_out = mla_stream_noop_input();
