@@ -47,9 +47,38 @@ void __linux_external_task_cleanup_process_data(__linux_external_task_native_res
     }
 }
 
-mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNativeResource, const mla_string_t& p_CmdLine) {
+__linux_external_task_native_resource_t* __linux_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    p_OutNativeResource = mla_native_resource_empty();
+    mla_native_resource_t* nativeResource = mla_native_resource_from_managed_pointer(p_TaskResource);
+    if (nativeResource == nullptr) {
+        return nullptr;
+    }
+
+    return static_cast<__linux_external_task_native_resource_t*>(nativeResource->asPointer);
+}
+
+void __linux_external_task_cleanup_native_resource(const mla_native_resource_t& p_NativeResource) {
+
+    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+
+    if (processData == nullptr) {
+        return;
+    }
+
+    __linux_external_task_cleanup_process_data(processData);
+
+    if (processData->pid > 0) {
+        kill(processData->pid, SIGTERM);
+        waitpid(processData->pid, nullptr, 0);
+        processData->pid = -1;
+    }
+
+    mla_platform_free(processData);
+}
+
+mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
+
+    p_OutTaskResource = mla_pointer_null();
 
     if (mla_string_is_empty(p_CmdLine)) {
         return false;
@@ -158,13 +187,20 @@ mla_bool_t __linux_external_task_create_process(mla_native_resource_t& p_OutNati
     processData->stdin_write_fd = stdinPipe[1];
     processData->stdout_read_fd = stdoutPipe[0];
 
-    p_OutNativeResource = mla_dynamic_data_from_pointer(processData);
+    mla_native_resource_t nativeResource = mla_dynamic_data_from_pointer(processData);
+    p_OutTaskResource = mla_native_resource_to_managed_pointer(nativeResource, __linux_external_task_cleanup_native_resource);
+
+    if (mla_pointer_is_null(p_OutTaskResource)) {
+        __linux_external_task_cleanup_native_resource(nativeResource);
+        return false;
+    }
+
     return true;
 }
 
-mla_external_task_state __linux_external_task_get_state(const mla_native_resource_t& p_NativeResource) {
+mla_external_task_state __linux_external_task_get_state(const mla_pointer_t& p_TaskResource) {
 
-    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->pid <= 0) {
         return MLA_EXTERNAL_TASK_STATE_STOPPED;
@@ -185,9 +221,9 @@ mla_external_task_state __linux_external_task_get_state(const mla_native_resourc
     return MLA_EXTERNAL_TASK_STATE_STOPPED;
 }
 
-void __linux_external_task_stop_process(const mla_native_resource_t& p_NativeResource) {
+void __linux_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
 
-    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr) {
         return;
@@ -200,13 +236,11 @@ void __linux_external_task_stop_process(const mla_native_resource_t& p_NativeRes
         waitpid(processData->pid, nullptr, 0);
         processData->pid = -1;
     }
-
-    mla_platform_free(processData);
 }
 
-mla_size_t __linux_external_task_read_stdout(const mla_native_resource_t& p_NativeResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
+mla_size_t __linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
 
-    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdout_read_fd < 0 || p_Buffer == nullptr) {
         return 0;
@@ -221,9 +255,9 @@ mla_size_t __linux_external_task_read_stdout(const mla_native_resource_t& p_Nati
     return (mla_size_t)bytesRead;
 }
 
-mla_size_t __linux_external_task_write_stdin(const mla_native_resource_t& p_NativeResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
+mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
 
-    __linux_external_task_native_resource_t* processData = static_cast<__linux_external_task_native_resource_t*>(p_NativeResource.asPointer);
+    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdin_write_fd < 0 || p_Buffer == nullptr) {
         return 0;

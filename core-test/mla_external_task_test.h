@@ -12,13 +12,13 @@
 
 void ExternalTaskCreateInvalidInputTest() {
     mla_external_task_t task = mla_external_task_create(mla_string_empty());
-    assert_null(task.native_resource.asPointer, "Task native resource should be null for invalid command");
+    assert_true(mla_pointer_is_null(task.native_resource), "Task native resource should be null for invalid command");
 }
 
 void ExternalTaskCreateAndReadStdOutTest() {
 
     mla_external_task_t task = mla_external_task_create(mla_string_const("printf 'hello'"));
-    assert_not_null(task.native_resource.asPointer, "Task should be created");
+    assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_byte_t buffer[8] = {0};
     mla_size_t read = task.std_out.read(task.std_out, 0, 5, buffer);
@@ -32,7 +32,7 @@ void ExternalTaskCreateAndReadStdOutTest() {
 void ExternalTaskWriteStdInAndReadStdOutTest() {
 
     mla_external_task_t task = mla_external_task_create(mla_string_const("cat"));
-    assert_not_null(task.native_resource.asPointer, "Task should be created");
+    assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     const mla_char_t* msg = "echo\n";
     mla_size_t written = task.std_in.write(task.std_in, 0, 5, reinterpret_cast<const mla_byte_t*>(msg));
@@ -50,7 +50,7 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
 void ExternalTaskStateTest() {
 
     mla_external_task_t task = mla_external_task_create(mla_string_const("sleep 1"));
-    assert_not_null(task.native_resource.asPointer, "Task should be created");
+    assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_external_task_state state = mla_external_task_get_state(task);
     assert_equal((mla_test_int32_t)state, (mla_test_int32_t)MLA_EXTERNAL_TASK_STATE_RUNNING, "Task should be running after create");
