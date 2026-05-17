@@ -52,6 +52,13 @@
 #define mla_global_config_string_sso_max_length 14
 #endif
 
+/**
+ * @brief Default initial content capacity for mla_string_builder_t.
+ */
+#ifndef mla_global_config_string_builder_default_buffer_size
+#define mla_global_config_string_builder_default_buffer_size 128
+#endif
+
 /////////////////////////////////////////////////
 // Data Structure Defaults
 /////////////////////////////////////////////////
