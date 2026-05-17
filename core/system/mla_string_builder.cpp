@@ -4,10 +4,6 @@
 
 #include "mla_string_builder.h"
 
-static mla_size_t __mla_string_builder_max(mla_size_t p_Left, mla_size_t p_Right) {
-    return p_Left > p_Right ? p_Left : p_Right;
-}
-
 static mla_size_t __mla_string_builder_normalize_capacity(mla_size_t p_Capacity) {
     return p_Capacity == 0 ? (mla_size_t)1 : p_Capacity;
 }
@@ -82,16 +78,20 @@ static mla_bool_t __mla_string_builder_append_data(mla_string_builder_t& p_Build
     return true;
 }
 
+mla_string_builder_t mla_string_builder_empty() {
+    return mla_string_builder_t{mla_pointer_null(), 0, 0};
+}
+
 mla_string_builder_t mla_string_builder_create() {
     return mla_string_builder_create((mla_size_t)mla_global_config_string_builder_default_buffer_size);
 }
 
 mla_string_builder_t mla_string_builder_create(mla_size_t p_InitialBufferSize) {
-    mla_string_builder_t builder = {mla_pointer_null(), 0, 0};
+    mla_string_builder_t builder = mla_string_builder_empty();
     builder.bufferSize = __mla_string_builder_normalize_capacity(p_InitialBufferSize);
 
     if (!__mla_string_builder_ensure_capacity(builder, 0)) {
-        return mla_string_builder_t{mla_pointer_null(), 0, 0};
+        return mla_string_builder_empty();
     }
 
     return builder;
@@ -99,15 +99,11 @@ mla_string_builder_t mla_string_builder_create(mla_size_t p_InitialBufferSize) {
 
 mla_string_builder_t mla_string_builder_create(const mla_pointer_t& p_Buffer, mla_size_t p_Position) {
     if (mla_pointer_is_null(p_Buffer)) {
-        return mla_string_builder_create(__mla_string_builder_max((mla_size_t)mla_global_config_string_builder_default_buffer_size, p_Position));
+        return mla_string_builder_create(mla_max((mla_size_t)mla_global_config_string_builder_default_buffer_size, p_Position));
     }
 
     mla_string_builder_t builder = {p_Buffer, p_Position, p_Position};
     return builder;
-}
-
-void mla_string_builder_destroy(mla_string_builder_t& p_Builder) {
-    (void)p_Builder;
 }
 
 mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder) {

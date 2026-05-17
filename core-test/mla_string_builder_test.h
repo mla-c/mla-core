@@ -20,7 +20,7 @@ void StringBuilderCreateDefaultTest() {
     assert_equal(builder.bufferSize, (mla_size_t)mla_global_config_string_builder_default_buffer_size,
                  "Default string builder capacity should match global config");
     assert_equal(builder.position, (mla_size_t)0, "Default string builder position should be 0");
-    mla_string_builder_destroy(builder);
+    builder = mla_string_builder_empty();
 }
 
 void StringBuilderCreateWithCapacityTest() {
@@ -33,7 +33,7 @@ void StringBuilderCreateWithCapacityTest() {
     mla_string_t result = mla_string_builder_to_string(builder);
     assert_true(mla_string_equals(result, mla_string_const("hello")), "String builder content should match");
     mla_string_destroy(result);
-    mla_string_builder_destroy(builder);
+    builder = mla_string_builder_empty();
 }
 
 void StringBuilderCreateWithBufferAndPositionTest() {
@@ -56,7 +56,7 @@ void StringBuilderCreateWithBufferAndPositionTest() {
     mla_string_t result = mla_string_builder_to_string(builder);
     assert_true(mla_string_equals(result, mla_string_const("prefix")), "String builder should continue from given position");
     mla_string_destroy(result);
-    mla_string_builder_destroy(builder);
+    builder = mla_string_builder_empty();
 }
 
 void StringBuilderAppendAllBasicTypesTest() {
@@ -139,7 +139,7 @@ void StringBuilderAppendAllBasicTypesTest() {
 
     mla_string_destroy(expected);
     mla_string_destroy(result);
-    mla_string_builder_destroy(builder);
+    builder = mla_string_builder_empty();
 }
 
 void RegisterStringBuilderTests(mla_test_executor_t &p_TestExecutor) {

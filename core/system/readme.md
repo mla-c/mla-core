@@ -52,8 +52,8 @@ mla_string_builder_append(builder, (mla_uint32_t)42);
 
 mla_string_t result = mla_string_builder_to_string(builder); // "Count: 42"
 
-// destroy is a no-op and kept for API compatibility
-mla_string_builder_destroy(builder);
+// reset builder state when needed
+builder = mla_string_builder_empty();
 ```
 
 Supported append overloads include `mla_string_t`, all basic MLA numeric/boolean types, `mla_char_t`, and `mla_platform_pointer_t`.
