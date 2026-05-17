@@ -107,9 +107,7 @@ mla_string_builder_t mla_string_builder_create(const mla_pointer_t& p_Buffer, ml
 }
 
 void mla_string_builder_destroy(mla_string_builder_t& p_Builder) {
-    p_Builder.buffer = mla_pointer_null();
-    p_Builder.bufferSize = 0;
-    p_Builder.position = 0;
+    (void)p_Builder;
 }
 
 mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder) {
