@@ -39,6 +39,25 @@ mla_string_t substr = mla_string_substring(str, 0, 5);
 mla_c_string_t cstr = mla_string_to_c_string(str);
 ```
 
+### String Builder (`mla_string_builder.h`)
+
+Provides append-oriented string construction with automatic buffer growth.
+
+```cpp
+#include "mla_string_builder.h"
+
+mla_string_builder_t builder = mla_string_builder_create(); // uses global default capacity (128)
+mla_string_builder_append(builder, mla_string_const("Count: "));
+mla_string_builder_append(builder, (mla_uint32_t)42);
+
+mla_string_t result = mla_string_builder_to_string(builder); // "Count: 42"
+
+// reset builder state when needed
+builder = mla_string_builder_empty();
+```
+
+Supported append overloads include `mla_string_t`, all basic MLA numeric/boolean types, `mla_char_t`, and `mla_platform_pointer_t`.
+
 ### Buffer (`mla_buffer.h`)
 
 Manages memory buffers with automatic lifetime tracking.
