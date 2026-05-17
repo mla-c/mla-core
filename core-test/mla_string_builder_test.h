@@ -6,7 +6,14 @@
 #define MLA_STRING_BUILDER_TEST_H
 
 #include "../core/system/mla_string_builder.h"
+#include "../core/system/mla_string_concat.h"
 #include "../core-test-support/mla_test_executor.h"
+
+void StringBuilder_AppendExpected(mla_string_t& p_Current, const mla_string_t& p_Part) {
+    mla_string_t next = mla_string_concat(p_Current, p_Part);
+    mla_string_destroy(p_Current);
+    p_Current = next;
+}
 
 void StringBuilderCreateDefaultTest() {
     mla_string_builder_t builder = mla_string_builder_create();
@@ -71,9 +78,66 @@ void StringBuilderAppendAllBasicTypesTest() {
     assert_true(mla_string_builder_append(builder, mla_string_const("!")), "Append mla_string_t should succeed");
 
     mla_string_t result = mla_string_builder_to_string(builder);
-    assert_true(mla_string_equals(result, mla_string_const("true-8816-161632-3264-64641.52.25Z0x0000000000000000!")),
+    mla_string_t expected = mla_string_empty();
+
+    mla_string_t part = mla_string_from_bool(true);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_int8(-8);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_uint8(8);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_int16(-16);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_uint16(16);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_int32(-32);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_uint32(32);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_int64(-64);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_uint64(64);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_float((mla_float_t)1.5f, 1);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_from_double((mla_double_t)2.25, 2);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_const("Z");
+    StringBuilder_AppendExpected(expected, part);
+
+    part = mla_string_from_uint64_hex(0);
+    StringBuilder_AppendExpected(expected, part);
+    mla_string_destroy(part);
+
+    part = mla_string_const("!");
+    StringBuilder_AppendExpected(expected, part);
+
+    assert_true(mla_string_equals(result, expected),
                 "String builder should append all basic data types in order");
 
+    mla_string_destroy(expected);
     mla_string_destroy(result);
     mla_string_builder_destroy(builder);
 }
