@@ -58,7 +58,7 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t& outMutex, 
     }
 
     mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_mutex);
-    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutex_ptr);
+    mla_task_manager_single_thread_mutex* mutex = mla_pointer_get_data<mla_task_manager_single_thread_mutex>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
@@ -80,7 +80,7 @@ mla_bool_t mla_task_manager_single_thread_lock_mutex(const mla_pointer_t& mutexR
         return true;
     }
 
-    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutexResource);
+    mla_task_manager_single_thread_mutex* mutex = mla_pointer_get_data<mla_task_manager_single_thread_mutex>(mutexResource);
 
     if (mutex == nullptr) {
         return true;
@@ -102,7 +102,7 @@ mla_bool_t mla_task_manager_single_thread_unlock_mutex(const mla_pointer_t& mute
         return true;
     }
 
-    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutexResource);
+    mla_task_manager_single_thread_mutex* mutex = mla_pointer_get_data<mla_task_manager_single_thread_mutex>(mutexResource);
 
     if (mutex == nullptr) {
         return true;
@@ -251,7 +251,7 @@ struct mla_task_manager_single_thread_task_local {
 mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t& outTaskLocal) {
 
     mla_pointer_t local_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_task_local);
-    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(local_ptr);
+    mla_task_manager_single_thread_task_local* local = mla_pointer_get_data<mla_task_manager_single_thread_task_local>(local_ptr);
 
     if (local == nullptr) {
         return false;
@@ -266,7 +266,7 @@ mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t& outTa
 
 mla_bool_t mla_task_manager_single_thread_set_task_local(const mla_pointer_t& taskLocal, mla_platform_pointer_t value) {
 
-    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(taskLocal);
+    mla_task_manager_single_thread_task_local* local = mla_pointer_get_data<mla_task_manager_single_thread_task_local>(taskLocal);
 
     if (local == nullptr) {
         return false;
@@ -278,7 +278,7 @@ mla_bool_t mla_task_manager_single_thread_set_task_local(const mla_pointer_t& ta
 
 mla_platform_pointer_t mla_task_manager_single_thread_get_task_local(const mla_pointer_t& taskLocal) {
 
-    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(taskLocal);
+    mla_task_manager_single_thread_task_local* local = mla_pointer_get_data<mla_task_manager_single_thread_task_local>(taskLocal);
 
     if (local == nullptr) {
         return nullptr;

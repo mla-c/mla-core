@@ -41,9 +41,33 @@ mla_pointer_t __mla_native_resource_pointer_memory_manager_malloc(mla_pointer_me
     return mla_pointer_null();
 }
 
+void * __native_resource_pointer_memory_manager_get_struct_data(const mla_native_resource_item_t & item) {
+
+    return reinterpret_cast<void*>(reinterpret_cast<mla_uint8_t*>(const_cast<mla_native_resource_item_t*>(&item)) + sizeof(mla_native_resource_item_t));
+
+}
+
+
 mla_platform_pointer_t __mla_native_resource_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
-    return payload.asPointer;
+
+    mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(payload.asPointer);
+
+    if (item == nullptr) {
+        return nullptr;
+    }
+
+    if (item->type == MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
+        return __native_resource_pointer_memory_manager_get_struct_data(*item);
+    }
+
+    if (item->type == MLA_NATIVE_RESOURCE_TYPE_NORMAL) {
+        return &item->normal.native_resource;
+    }
+
+    return nullptr;
+
+
 }
 
 void __mla_native_resource_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
@@ -59,11 +83,7 @@ void __mla_native_resource_pointer_memory_manager_incReferences(mla_pointer_memo
 
 }
 
-void * __native_resource_pointer_memory_manager_get_struct_data(const mla_native_resource_item_t & item) {
 
-    return reinterpret_cast<void*>(reinterpret_cast<mla_uint8_t*>(const_cast<mla_native_resource_item_t*>(&item)) + sizeof(mla_native_resource_item_t));
-
-}
 
 void __mla_native_resource_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
 
@@ -189,23 +209,4 @@ mla_pointer_t mla_malloc_native_resource_buffer(mla_size_t size, mla_native_reso
     };
 
 
-}
-
-mla_platform_pointer_t mla_native_resource_buffer_from_managed_pointer(const mla_pointer_t& pointer) {
-
-    if (pointer.memoryManager != &g_mla_native_resource_pointer_memory_manager) {
-        return nullptr;
-    }
-
-    mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(pointer.payload.asPointer);
-
-    if (item == nullptr) {
-        return nullptr;
-    }
-
-    if (item->type != MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
-        return nullptr;
-    }
-
-    return __native_resource_pointer_memory_manager_get_struct_data(*item);
 }

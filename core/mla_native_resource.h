@@ -45,7 +45,7 @@
  * mla_pointer_t resource = mla_malloc_native_resource_struct(MyOsHandle_t);
  *
  * // 2. Get a typed pointer to fill in the OS-level fields.
- * MyOsHandle_t* handle = mla_native_resource_struct_from_managed_pointer<MyOsHandle_t>(resource);
+ * MyOsHandle_t* handle = mla_pointer_get_data<MyOsHandle_t>(resource);
  *
  * // 3. Pass `handle` to the OS API — no framework header is in front of the data.
  * os_register_handle(handle);
@@ -194,7 +194,7 @@ void mla_malloc_native_resource_struct_cleanup(mla_platform_pointer_t data) {
  * };
  *
  * mla_pointer_t handle = mla_malloc_native_resource_struct(MyOsHandle_t);
- * MyOsHandle_t* raw = mla_native_resource_struct_from_managed_pointer<MyOsHandle_t>(handle);
+ * MyOsHandle_t* raw = mla_pointer_get_data<MyOsHandle_t>(handle);
  * raw->fd = os_open("/dev/null");
  * // When handle's last reference is dropped, os_close() is called automatically.
  * ```
@@ -203,38 +203,6 @@ void mla_malloc_native_resource_struct_cleanup(mla_platform_pointer_t data) {
  * @return A `mla_pointer_t` owning a zero-initialised block of `sizeof(T)` bytes.
  */
 #define mla_malloc_native_resource_struct(T) mla_malloc_native_resource_buffer(sizeof(T), mla_malloc_native_resource_struct_cleanup<T>)
-
-/**
- * @brief Retrieves the raw buffer pointer from a native resource managed pointer.
- *
- * Returns a `mla_platform_pointer_t` (i.e. `void*`) to the start of the
- * allocated buffer. Use `mla_native_resource_struct_from_managed_pointer<T>`
- * for a type-safe variant.
- *
- * @param pointer  A `mla_pointer_t` created by `mla_malloc_native_resource_buffer`
- *                 or `mla_malloc_native_resource_struct`.
- * @return Raw pointer to the buffer data, or `nullptr` if @p pointer is null.
- */
-mla_platform_pointer_t mla_native_resource_buffer_from_managed_pointer(const mla_pointer_t& pointer);
-
-/**
- * @brief Type-safe helper to retrieve a struct pointer from a native resource
- *        managed pointer.
- *
- * Internally calls `mla_native_resource_buffer_from_managed_pointer` and
- * performs a `static_cast<T*>`.
- *
- * @tparam T  The struct type originally allocated with
- *            `mla_malloc_native_resource_struct(T)`.
- * @param pointer  A `mla_pointer_t` that wraps a buffer of at least `sizeof(T)`.
- * @return Typed pointer to the struct, or `nullptr` if @p pointer is null.
- */
-template <typename T>
-T* mla_native_resource_struct_from_managed_pointer(const mla_pointer_t& pointer) {
-
-    return static_cast<T*>(mla_native_resource_buffer_from_managed_pointer(pointer));
-
-}
 
 
 #endif

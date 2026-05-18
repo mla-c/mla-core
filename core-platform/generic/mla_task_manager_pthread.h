@@ -123,7 +123,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     const mla_pointer_t& shared_states) {
 
     mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_data_t);
-    mla_task_manager_pthread_data_t* thread_data = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_data_t>(thread_data_ptr);
+    mla_task_manager_pthread_data_t* thread_data = mla_pointer_get_data<mla_task_manager_pthread_data_t>(thread_data_ptr);
 
     if (thread_data == nullptr) {
         return false;
@@ -207,7 +207,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
     mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_mutex_t);
-    mla_task_manager_pthread_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutex_ptr);
+    mla_task_manager_pthread_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_pthread_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false;
@@ -238,7 +238,7 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t& outMutex, mla_bo
 
 mla_bool_t mla_task_manager_pthread_lock_mutex(const mla_pointer_t& mutexResource, mla_int32_t timeoutms) {
 
-    mla_task_manager_pthread_mutex_t* m = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutexResource);
+    mla_task_manager_pthread_mutex_t* m = mla_pointer_get_data<mla_task_manager_pthread_mutex_t>(mutexResource);
     if (m == nullptr) {
         return false;
     }
@@ -278,7 +278,7 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(const mla_pointer_t& mutexResourc
 
 mla_bool_t mla_task_manager_pthread_unlock_mutex(const mla_pointer_t& mutexResource) {
 
-    mla_task_manager_pthread_mutex_t* m = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutexResource);
+    mla_task_manager_pthread_mutex_t* m = mla_pointer_get_data<mla_task_manager_pthread_mutex_t>(mutexResource);
     if (m == nullptr) {
         return false;
     }

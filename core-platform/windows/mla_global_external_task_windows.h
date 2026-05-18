@@ -89,7 +89,7 @@ void __windows_external_task_cleanup_process_handles(__windows_external_task_nat
 
 __windows_external_task_native_resource_t* __windows_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    return mla_native_resource_struct_from_managed_pointer<__windows_external_task_native_resource_t>(p_TaskResource);
+    return mla_pointer_get_data<__windows_external_task_native_resource_t>(p_TaskResource);
 }
 
 mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
@@ -201,7 +201,7 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
     }
 
     p_OutTaskResource = mla_malloc_native_resource_struct(__windows_external_task_native_resource_t);
-    __windows_external_task_native_resource_t* processData = mla_native_resource_struct_from_managed_pointer<__windows_external_task_native_resource_t>(p_OutTaskResource);
+    __windows_external_task_native_resource_t* processData = mla_pointer_get_data<__windows_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {
         CloseHandle(childStdOutRead);

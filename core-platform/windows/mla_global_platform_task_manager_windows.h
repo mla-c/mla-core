@@ -227,7 +227,7 @@ mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t& outMutex,
 
     mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_windows_native_mutex_t);
 
-    mla_task_manager_windows_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_ptr);
+    mla_task_manager_windows_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_windows_native_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
@@ -244,7 +244,7 @@ mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t& outMutex,
 
 mla_bool_t mla_task_manager_windows_native_lock_mutex(const mla_pointer_t& mutex_resource, mla_int32_t timeoutms) {
 
-    mla_task_manager_windows_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_resource);
+    mla_task_manager_windows_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_windows_native_mutex_t>(mutex_resource);
     if (mutex == nullptr) {
         return false; // Mutex resource is null
     }
@@ -275,7 +275,7 @@ mla_bool_t mla_task_manager_windows_native_lock_mutex(const mla_pointer_t& mutex
 
 mla_bool_t mla_task_manager_windows_native_unlock_mutex(const mla_pointer_t& mutex_resource) {
 
-    mla_task_manager_windows_native_mutex_t* mutex =  mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_resource);
+    mla_task_manager_windows_native_mutex_t* mutex =  mla_pointer_get_data<mla_task_manager_windows_native_mutex_t>(mutex_resource);
     if (mutex == nullptr) {
         return false; // Mutex resource is null
     }

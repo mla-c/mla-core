@@ -170,7 +170,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
         const mla_pointer_t& shared_states) {
 
     mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_native_data_t);
-    mla_task_manager_esp32_native_data_t* thread_data = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_data_t>(thread_data_ptr);
+    mla_task_manager_esp32_native_data_t* thread_data = mla_pointer_get_data<mla_task_manager_esp32_native_data_t>(thread_data_ptr);
 
     if (thread_data == nullptr) {
         return false;
@@ -235,7 +235,7 @@ struct mla_task_manager_esp32_native_mutex_t {
 mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
     mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_native_mutex_t);
-    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutex_ptr);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_esp32_native_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false;
@@ -260,7 +260,7 @@ mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t& outMutex, m
 
 mla_bool_t mla_task_manager_esp32_native_lock_mutex(const mla_pointer_t& mutexResource, mla_int32_t timeoutms) {
 
-    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutexResource);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_esp32_native_mutex_t>(mutexResource);
 
     if (mutex == nullptr || mutex->semaphore == nullptr) {
         return false;
@@ -275,7 +275,7 @@ mla_bool_t mla_task_manager_esp32_native_lock_mutex(const mla_pointer_t& mutexRe
 
 mla_bool_t mla_task_manager_esp32_native_unlock_mutex(const mla_pointer_t& mutexResource) {
 
-    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutexResource);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_esp32_native_mutex_t>(mutexResource);
     if (mutex == nullptr || mutex->semaphore == nullptr) {
         return false; // Mutex resource is null
     }
@@ -328,7 +328,7 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t& outTaskLocal)
     }
 
     mla_pointer_t local_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_task_local);
-    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(local_ptr);
+    mla_task_manager_esp32_task_local* local = mla_pointer_get_data<mla_task_manager_esp32_task_local>(local_ptr);
 
     if (local == nullptr) {
         return false;
@@ -343,7 +343,7 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t& outTaskLocal)
 
 mla_bool_t mla_task_manager_esp32_set_task_local(const mla_pointer_t& taskLocal, mla_platform_pointer_t value) {
 
-    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(taskLocal);
+    mla_task_manager_esp32_task_local* local = mla_pointer_get_data<mla_task_manager_esp32_task_local>(taskLocal);
 
     if (local == nullptr) {
         return false;
@@ -355,7 +355,7 @@ mla_bool_t mla_task_manager_esp32_set_task_local(const mla_pointer_t& taskLocal,
 
 mla_platform_pointer_t mla_task_manager_esp32_get_task_local(const mla_pointer_t& taskLocal) {
 
-    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(taskLocal);
+    mla_task_manager_esp32_task_local* local = mla_pointer_get_data<mla_task_manager_esp32_task_local>(taskLocal);
 
     if (local == nullptr) {
         return nullptr;

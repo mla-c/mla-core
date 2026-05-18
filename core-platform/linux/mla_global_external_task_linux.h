@@ -73,7 +73,7 @@ void __linux_external_task_cleanup_process_data(__linux_external_task_native_res
 
 __linux_external_task_native_resource_t* __linux_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    return mla_native_resource_struct_from_managed_pointer<__linux_external_task_native_resource_t>(p_TaskResource);
+    return mla_pointer_get_data<__linux_external_task_native_resource_t>(p_TaskResource);
 }
 
 mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
