@@ -7,6 +7,7 @@
 
 
 #include "../../core/task/mla_task_manager.h"
+#include "../../core/mla_native_resource.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -18,7 +19,28 @@ struct mla_task_manager_esp32_native_data_t {
     TaskHandle_t hThread;
     mla_user_data_t userData;
     mla_task_worker_t worker;
-    mla_task_shared_states* sharedStates;
+    mla_pointer_t sharedStates;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(data);
+
+        if (thread_data) {
+            TaskHandle_t currentHandle = thread_data->hThread;
+
+            if (currentHandle != nullptr) {
+                thread_data->hThread = nullptr;
+                vTaskDelete(currentHandle);
+            }
+
+            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+            if (shared_states != nullptr) {
+                mla_task_manager_esp32_atomic_exchange(shared_states->processingState, TASK_STATE_ABORTED);
+            }
+
+            // Release the reference to shared states
+            thread_data->sharedStates = mla_pointer_null();
+        }
+    }
 };
 
 configSTACK_DEPTH_TYPE mla_task_manager_esp32_native_get_stack_size(const mla_task_stack_size stackSize) {
@@ -55,26 +77,6 @@ UBaseType_t mla_task_manager_esp32_native_get_priority(const mla_task_priority p
     }
 }
 
-mla_buffer_cleanup_mode __mla_task_manager_esp32_native_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-
-    mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(data);
-
-    if (thread_data) {
-        // Stop the thread if it is still running
-        TaskHandle_t currentHandle = thread_data->hThread;
-
-        if (currentHandle != nullptr) {
-            thread_data->hThread = nullptr;
-            vTaskDelete(currentHandle);
-        }
-
-        // Dont set the sharedState this is already gone
-        //thread_data->sharedStates->processingState = TASK_STATE_ABORTED;
-    }
-
-    return CLEAN_UP_NEEDED;
-}
-
 ////////////////////////////////////////////////////////////////////////////
 /// Atomic Implementation
 ////////////////////////////////////////////////////////////////////////////
@@ -107,12 +109,17 @@ inline mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int3
 
 void __mla_task_manager_esp32_native_worker(void * param) {
 
-
     mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(param);
 
     if (thread_data) {
 
-        mla_task_shared_states* shared_states = thread_data->sharedStates;
+        mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+
+        if (shared_states == nullptr) {
+            thread_data->hThread = nullptr;
+            vTaskDelete(nullptr);
+            return; // No shared states, nothing to do
+        }
 
         if (thread_data->worker == nullptr) {
             mla_task_manager_esp32_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
@@ -159,10 +166,11 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
         mla_user_data_t& user_data,
         const mla_task_stack_size stackSize,
         const mla_task_priority priority,
-        mla_buffer_reference_t* outTaskResourceOwner,
-        mla_task_shared_states* shared_states) {
+        mla_pointer_t& outTaskResourceOwner,
+        const mla_pointer_t& shared_states) {
 
-    mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_native_data_t)));
+    mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_native_data_t);
+    mla_task_manager_esp32_native_data_t* thread_data = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_data_t>(thread_data_ptr);
 
     if (thread_data == nullptr) {
         return false;
@@ -182,12 +190,12 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
     mla_bool_t success = xTaskCreate(__mla_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
 
     if (!success) {
-        mla_platform_free(thread_data);
+        outTaskResourceOwner = mla_pointer_null();
         return false; // Failed to create thread
     }
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_esp32_native_cleanup, mla_dynamic_data_empty());
+    outTaskResourceOwner = thread_data_ptr;
     return true; // Successfully created the task
 }
 
@@ -214,15 +222,20 @@ void mla_task_manager_esp32_native_run() {
 struct mla_task_manager_esp32_native_mutex_t {
     SemaphoreHandle_t semaphore;
     mla_bool_t recursive;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(data);
+        if (mutex && mutex->semaphore != nullptr) {
+            vSemaphoreDelete(mutex->semaphore);
+            mutex->semaphore = nullptr;
+        }
+    }
 };
 
-mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
-    if (outMutex == nullptr) {
-        return false;
-    }
+mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
-    mla_task_manager_esp32_native_mutex_t* mutex =
-    static_cast<mla_task_manager_esp32_native_mutex_t*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_native_mutex_t)));
+    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_native_mutex_t);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false;
@@ -237,33 +250,17 @@ mla_bool_t mla_task_manager_esp32_native_create_mutex(mla_platform_pointer_t* ou
     }
 
     if (mutex->semaphore == nullptr) {
-        mla_platform_free(mutex);
+        outMutex = mla_pointer_null();
         return false;
     }
 
-    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
+    outMutex = mutex_ptr;
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_native_destroy_mutex(mla_platform_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_esp32_native_lock_mutex(const mla_pointer_t& mutexResource, mla_int32_t timeoutms) {
 
-    mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
-        return false; // Mutex resource is null
-    }
-
-    if (mutex->semaphore == nullptr) {
-        return false; // Mutex was never created
-    }
-
-    vSemaphoreDelete(mutex->semaphore); // Delete the semaphore
-    mla_platform_free(mutex); // Free the mutex memory
-    return true;
-}
-
-mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
-
-    mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutexResource);
 
     if (mutex == nullptr || mutex->semaphore == nullptr) {
         return false;
@@ -276,9 +273,9 @@ mla_bool_t mla_task_manager_esp32_native_lock_mutex(mla_platform_pointer_t mutex
     }
 }
 
-mla_bool_t mla_task_manager_esp32_native_unlock_mutex(mla_platform_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_esp32_native_unlock_mutex(const mla_pointer_t& mutexResource) {
 
-    mla_task_manager_esp32_native_mutex_t* mutex = static_cast<mla_task_manager_esp32_native_mutex_t*>(mutexResource);
+    mla_task_manager_esp32_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_native_mutex_t>(mutexResource);
     if (mutex == nullptr || mutex->semaphore == nullptr) {
         return false; // Mutex resource is null
     }
@@ -305,9 +302,17 @@ static mla_bool_t g_esp32_task_local_slots_used[configNUM_THREAD_LOCAL_STORAGE_P
 
 struct mla_task_manager_esp32_task_local {
     BaseType_t index;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(data);
+        if (local) {
+            g_esp32_task_local_slots_used[local->index] = false;
+            vTaskSetThreadLocalStoragePointer(nullptr, local->index, nullptr);
+        }
+    }
 };
 
-mla_bool_t mla_task_manager_esp32_create_task_local(mla_platform_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_esp32_create_task_local(mla_pointer_t& outTaskLocal) {
 
     // Find a free slot
     BaseType_t freeIndex = -1;
@@ -322,7 +327,8 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_platform_pointer_t* outT
         return false; // No free slots available
     }
 
-    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(mla_platform_malloc(sizeof(mla_task_manager_esp32_task_local)));
+    mla_pointer_t local_ptr = mla_malloc_native_resource_struct(mla_task_manager_esp32_task_local);
+    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(local_ptr);
 
     if (local == nullptr) {
         return false;
@@ -330,28 +336,14 @@ mla_bool_t mla_task_manager_esp32_create_task_local(mla_platform_pointer_t* outT
 
     g_esp32_task_local_slots_used[freeIndex] = true;
     local->index = freeIndex;
-    *outTaskLocal = static_cast<mla_platform_pointer_t>(local);
+    outTaskLocal = local_ptr;
 
     return true;
 }
 
-mla_bool_t mla_task_manager_esp32_destroy_task_local(mla_platform_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_esp32_set_task_local(const mla_pointer_t& taskLocal, mla_platform_pointer_t value) {
 
-    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
-
-    if (local == nullptr) {
-        return true;
-    }
-
-    g_esp32_task_local_slots_used[local->index] = false;
-    vTaskSetThreadLocalStoragePointer(nullptr, local->index, nullptr);
-    mla_platform_free(local);
-    return true;
-}
-
-mla_bool_t mla_task_manager_esp32_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
-
-    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
+    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(taskLocal);
 
     if (local == nullptr) {
         return false;
@@ -361,9 +353,9 @@ mla_bool_t mla_task_manager_esp32_set_task_local(mla_platform_pointer_t taskLoca
     return true;
 }
 
-mla_platform_pointer_t mla_task_manager_esp32_get_task_local(mla_platform_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_esp32_get_task_local(const mla_pointer_t& taskLocal) {
 
-    mla_task_manager_esp32_task_local* local = static_cast<mla_task_manager_esp32_task_local*>(taskLocal);
+    mla_task_manager_esp32_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_esp32_task_local>(taskLocal);
 
     if (local == nullptr) {
         return nullptr;
@@ -378,10 +370,8 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_esp32_native_create_mutex,
     mla_task_manager_esp32_native_lock_mutex,
     mla_task_manager_esp32_native_unlock_mutex,
-    mla_task_manager_esp32_native_destroy_mutex,
     mla_task_manager_esp32_native_get_multi_task_mode,
     mla_task_manager_esp32_create_task_local,
-    mla_task_manager_esp32_destroy_task_local,
     mla_task_manager_esp32_set_task_local,
     mla_task_manager_esp32_get_task_local,
     mla_task_manager_esp32_atomic_increment,
