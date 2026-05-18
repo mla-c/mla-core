@@ -20,11 +20,10 @@ struct mla_task_t {
     mla_task_stack_size stack_size; // Stack size for the task
 
     // OS Resources
-    mla_buffer_reference_t taskResource; // Maybe move this to userdata
+    mla_pointer_t taskResource; // Maybe move this to userdata
 
     // States
-    mla_task_shared_states* sharedStates; // Shared states for the task
-    mla_buffer_reference_t sharedStatesResource; // Resource for shared states
+    mla_pointer_t sharedStates; // Shared states for the task (mla_task_shared_states)
 };
 
 struct mla_task_initializer_t {
@@ -35,9 +34,8 @@ struct mla_task_initializer_t {
             mla_user_data_empty(),
             TASK_PRIO_NORMAL,
             TASK_STACK_SIZE_DEFAULT,
-            mla_buffer_reference_noOwner(),
-            nullptr, // No shared states by default
-            mla_buffer_reference_noOwner(),
+            mla_pointer_null(),
+            mla_pointer_null()
         };
     }
 };

@@ -27,9 +27,8 @@ mla_task_t mla_task_repeating(const mla_string_t& name, mla_task_worker_repeatin
         userData,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
-        mla_buffer_reference_noOwner(),
-        nullptr, // No shared states by default
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
+        mla_pointer_null() // No shared states by default
     };
 }
 
@@ -53,9 +52,8 @@ mla_task_t mla_task_one_time(const mla_string_t& name, mla_task_worker_one_time_
         userData,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
-        mla_buffer_reference_noOwner(),
-        nullptr, // No shared states by default
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
+        mla_pointer_null(), // No shared states by default
     };
 }
 
@@ -66,9 +64,8 @@ mla_task_t mla_task_native(const mla_string_t& name, mla_task_worker_t worker, m
         userData,
         TASK_PRIO_NORMAL,
         TASK_STACK_SIZE_DEFAULT,
-        mla_buffer_reference_noOwner(),
-        nullptr, // No shared states by default
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
+        mla_pointer_null() // No shared states by default
     };
 }
 

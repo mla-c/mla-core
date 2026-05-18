@@ -10,32 +10,6 @@
 #include <windows.h>
 #include <assert.h>
 
-struct mla_task_manager_windows_native_data_t {
-    HANDLE hThread;
-    mla_user_data_t userData;
-    mla_task_worker_t worker;
-    mla_task_shared_states* sharedStates;
-};
-
-mla_buffer_cleanup_mode __mla_task_manager_windows_native_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-
-    (void)userData;
-    mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(data);
-
-    if (thread_data) {
-        // Stop the thread if it is still running
-        if (thread_data->hThread != nullptr) {
-            TerminateThread(thread_data->hThread, 0);
-            CloseHandle(thread_data->hThread);
-        }
-
-        // Dont set the sharedState this is already gone
-        //thread_data->sharedStates->processingState = TASK_STATE_ABORTED;
-    }
-
-    return CLEAN_UP_NEEDED;
-}
-
 static_assert(sizeof(mla_int32_t) == sizeof(LONG),
               "mla_int32_t must be 32-bit for Interlocked APIs");
 
@@ -59,6 +33,39 @@ inline mla_int32_t mla_task_manager_windows_atomic_int32_exchange(mla_atomic_int
     return InterlockedExchange(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(newValue));
 }
 
+
+struct mla_task_manager_windows_native_data_t {
+    HANDLE hThread;
+    mla_user_data_t userData;
+    mla_task_worker_t worker;
+    mla_pointer_t sharedStates; //mla_task_shared_states*;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+
+        mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(data);
+
+        if (thread_data) {
+            // Stop the thread if it is still running
+            if (thread_data->hThread != nullptr) {
+                TerminateThread(thread_data->hThread, 0);
+                CloseHandle(thread_data->hThread);
+            }
+
+            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+
+            if (shared_states != nullptr) {
+                // Set the shared state to aborted if the thread is still running
+                mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_ABORTED);
+            }
+
+            // Reset the ref counter
+            thread_data->sharedStates = mla_pointer_null();
+
+        }
+
+     }
+};
+
 inline mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
 
     LONG prev = InterlockedCompareExchange(
@@ -75,7 +82,11 @@ DWORD WINAPI __mla_task_manager_windows_native_worker(LPVOID lpParam) {
 
     if (thread_data) {
 
-        mla_task_shared_states* shared_states = thread_data->sharedStates;
+        mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+
+        if (shared_states == nullptr) {
+            return 0; // No shared states, nothing to do
+        }
 
         if (thread_data->worker == nullptr) {
             mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
@@ -136,8 +147,10 @@ mla_bool_t mla_task_manager_windows_native_create_task(
         mla_user_data_t& user_data,
         const mla_task_stack_size stackSize,
         const mla_task_priority priority,
-        mla_buffer_reference_t* outTaskResourceOwner,
-        mla_task_shared_states* shared_states) {
+        mla_pointer_t& outTaskResourceOwner,
+        const mla_pointer_t& shared_states) {
+
+    mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_windows_native_data_t);
 
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_data_t)));
 
@@ -192,7 +205,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
 
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_windows_native_cleanup, mla_dynamic_data_empty());
+    outTaskResourceOwner = thread_data_ptr;
     return true; // Successfully created the task
 }
 

@@ -29,7 +29,10 @@ void __mla_task_manager_cleanup_tasks_no_lock() {
     for (mla_int32_t i = mla_array_list_size(g_TaskManager.tasks) - 1; i >= 0; --i) {
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
-        if (mla_task_is_done(task.sharedStates->processingState.value)) {
+
+        mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(task.sharedStates);
+
+        if (sharedStates == nullptr || mla_task_is_done(sharedStates->processingState.value)) {
             mla_array_list_remove(g_TaskManager.tasks, i);
         }
 
@@ -62,18 +65,18 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     // Cleanup tasks which are completed or aborted before adding a new task
     __mla_task_manager_cleanup_tasks_no_lock();
 
-    mla_task_shared_states* sharedStates = static_cast<mla_task_shared_states*>(mla_platform_malloc(sizeof(mla_task_shared_states)));
+    mla_pointer_t shared_states_ptr = mla_malloc_struct(mla_task_shared_states);
+
+    mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(shared_states_ptr);
 
     if (sharedStates == nullptr) {
         mla_rw_unlock_write(g_TaskManager.taskLock);
         return false; // Memory allocation failed
     }
 
-    mla_memset(sharedStates, 0, sizeof(mla_task_shared_states)); // Initialize shared states to zero
     // Add the starting task to the task manager
     sharedStates->processingState.value = TASK_STATE_STARTING; // Set the initial state of the task
-    task.sharedStates = sharedStates; // Assign the shared states to the task
-    task.sharedStatesResource = mla_buffer_reference(sharedStates);
+    task.sharedStates = shared_states_ptr; // Assign the shared states to the task
 
     mla_array_list_add(g_TaskManager.tasks, task);
 
@@ -82,8 +85,8 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     // Create the Task Resource
     /////////////////////////////
 
-    mla_buffer_reference_t outTaskResourceOwner = mla_buffer_reference_noOwner();
-    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.name, task.userData, task.stack_size, task.priority, &outTaskResourceOwner, sharedStates);
+    mla_pointer_t outTaskResourceOwner = mla_pointer_null();
+    mla_bool_t success = g_task_low_level_access.create_task(task.worker, task.name, task.userData, task.stack_size, task.priority, outTaskResourceOwner, shared_states_ptr);
 
 
     // Update the task resource in the task manager if the task was created successfully or remove the task if it failed to create
@@ -133,24 +136,32 @@ mla_bool_t mla_task_manager_abort_task(const mla_string_t& name) {
             continue;
         }
 
-        if (!mla_task_is_done(task->sharedStates->processingState.value)) {
+        mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(task->sharedStates);
 
-            mla_atomic_exchange(task->sharedStates->processingState, TASK_STATE_ABORTING); // Set the task state to aborting
+        if (sharedStates != nullptr) {
 
-            for (mla_uint16_t count = 0; count < 1000; ++count) {
+            if (!mla_task_is_done(sharedStates->processingState.value)) {
 
-                mla_sleep(1);
-                // Check if the task is done or the state is commited correct
-                // There are some race conditions possible here
-                if (mla_task_is_done(task->sharedStates->processingState.value)) {
-                    break; // Task has been aborted
+                mla_atomic_exchange(sharedStates->processingState, TASK_STATE_ABORTING); // Set the task state to aborting
+
+                for (mla_uint16_t count = 0; count < 1000; ++count) {
+
+                    mla_sleep(1);
+                    // Check if the task is done or the state is commited correct
+                    // There are some race conditions possible here
+                    if (mla_task_is_done(sharedStates->processingState.value)) {
+                        break; // Task has been aborted
+                    }
                 }
+
+
+                mla_debug(mla_string_concat("Task ", task->name, " is being aborted."));
+            } else {
+                mla_debug(mla_string_concat("Task ", task->name, " is already completed or aborted."));
             }
 
-
-            mla_debug(mla_string_concat("Task ", task->name, " is being aborted."));
         } else {
-            mla_debug(mla_string_concat("Task ", task->name, " is already completed or aborted."));
+            mla_warning(mla_string_concat("Task ", task->name, " has no shared states, cannot be aborted."));
         }
 
         break;
@@ -174,11 +185,19 @@ mla_array_list_t<mla_task_info_t, mla_task_info_initializer> mla_task_manager_ge
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
 
+        mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(task.sharedStates);
+
+        mla_task_state state = TASK_STATE_UNKNOWN;
+
+        if (sharedStates != nullptr) {
+            state = (mla_task_state)sharedStates->processingState.value;
+        }
+
         mla_task_info_t info = {
             task.name,
             task.priority,
             task.stack_size,
-            (mla_task_state)task.sharedStates->processingState.value
+            state
         };
 
         mla_array_list_add(result, info);
@@ -211,9 +230,18 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
 
         if (mla_string_equals(task.name, name)) {
+
+            mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(task.sharedStates);
+
+            mla_task_state state = TASK_STATE_UNKNOWN;
+
+            if (sharedStates != nullptr) {
+                state = (mla_task_state)sharedStates->processingState.value;
+            }
+
             result.priority = task.priority;
             result.stack_size = task.stack_size;
-            result.state = (mla_task_state)task.sharedStates->processingState.value;
+            result.state = state;
             found = true;
             break;
         }
@@ -270,9 +298,11 @@ mla_task_manager_state mla_task_manager_get_state() {
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
 
-        if (task.sharedStates != nullptr) {
+        mla_task_shared_states* sharedStates = mla_pointer_get_data<mla_task_shared_states>(task.sharedStates);
 
-            if (!mla_task_is_done(task.sharedStates->processingState.value)) {
+        if (sharedStates != nullptr) {
+
+            if (!mla_task_is_done(sharedStates->processingState.value)) {
                 state = TASK_MANAGER_STATE_PROCESSING;
                 break;
             }
