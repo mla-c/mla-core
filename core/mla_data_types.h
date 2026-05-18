@@ -257,18 +257,120 @@ struct mla_pointer_memory_manager_instance_t {
 
 mla_global mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance;
 
+/**
+ * @brief Allocates a raw (unmanaged) block of memory with failure reporting.
+ *
+ * This is the low-level platform allocator. The caller is fully responsible for
+ * the lifetime of the returned pointer and must eventually pass it to
+ * `mla_platform_free`. Prefer `mla_malloc` / `mla_malloc_struct` for managed,
+ * reference-counted allocations.
+ *
+ * @param size          Number of bytes to allocate.
+ * @param filename      Source file name (supplied by the `mla_platform_malloc` macro via `__FILE__`).
+ * @param function_name Calling function name (supplied by the `mla_platform_malloc` macro via `__func__`).
+ * @return              Pointer to the newly allocated block, or `nullptr` on failure.
+ *                      When allocation fails, `g_low_level_access.on_malloc_failure` is invoked
+ *                      before returning `nullptr`.
+ */
 mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
+
+/**
+ * @brief Allocates a managed (reference-counted) memory block through the given memory manager.
+ *
+ * The returned `mla_pointer_t` holds the first reference to the block. When the
+ * last reference is released, `cleanup_hook` is called with `cleanup_data`, and
+ * the block is freed automatically.
+ *
+ * This function is the implementation backing all `mla_malloc*` macros. Prefer
+ * the macros over calling this function directly so that `__FILE__` / `__func__`
+ * context is captured automatically.
+ *
+ * @param memory_manager Pointer to the `mla_pointer_memory_manager_t` that will
+ *                       own the allocation. Must not be `nullptr`.
+ * @param size           Number of bytes to allocate for the user payload.
+ * @param cleanup_hook   Optional callback invoked just before the memory is freed.
+ *                       Pass `nullptr` if no cleanup is required.
+ * @param cleanup_data   Arbitrary data forwarded to `cleanup_hook`. Use
+ *                       `mla_dynamic_data_empty()` when not needed.
+ * @param filename       Source file name (captured by the macro wrapper).
+ * @param function_name  Calling function name (captured by the macro wrapper).
+ * @return               A `mla_pointer_t` holding the first reference, or a null
+ *                       pointer (`mla_pointer_null()`) on allocation failure.
+ */
 mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
 
+/**
+ * @brief Allocates a managed memory block through an explicit memory manager.
+ *
+ * Forwards to `mla_malloc_with_check`, automatically injecting `__FILE__` and
+ * `__func__` for diagnostics.
+ *
+ * @param memory_manager The `mla_pointer_memory_manager_t*` to use for the allocation.
+ * @param size           Number of bytes to allocate.
+ * @param cleanup_hook   Callback invoked on deallocation, or `nullptr`.
+ * @param cleanup_data   Data forwarded to `cleanup_hook`.
+ * @return               A `mla_pointer_t` holding the first reference.
+ */
 #define mla_malloc_with_manager(memory_manager, size, cleanup_hook, cleanup_data) mla_malloc_with_check(memory_manager, size, cleanup_hook, cleanup_data, __FILE__, __func__)
+
+/**
+ * @brief Allocates a managed memory block through the currently active memory manager.
+ *
+ * Uses `g_pointer_memory_manager_instance.current` as the allocator. This is the
+ * primary allocation macro for all managed heap objects.
+ *
+ * @param size          Number of bytes to allocate.
+ * @param cleanup_hook  Callback invoked on deallocation, or `nullptr`.
+ * @param cleanup_data  Data forwarded to `cleanup_hook`.
+ * @return              A `mla_pointer_t` holding the first reference.
+ */
 #define mla_malloc(size, cleanup_hook, cleanup_data) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, cleanup_hook, cleanup_data)
+
+/**
+ * @brief Allocates a managed raw buffer with no cleanup hook.
+ *
+ * Convenience wrapper around `mla_malloc` for plain byte buffers that require
+ * no special teardown logic.
+ *
+ * @param size Number of bytes to allocate.
+ * @return     A `mla_pointer_t` holding the first reference.
+ */
 #define mla_malloc_buffer(size) mla_malloc(size, nullptr, mla_dynamic_data_empty())
+
+/**
+ * @brief Allocates a managed raw buffer through an explicit memory manager, with no cleanup hook.
+ *
+ * @param memory_manager The `mla_pointer_memory_manager_t*` to use for the allocation.
+ * @param size           Number of bytes to allocate.
+ * @return               A `mla_pointer_t` holding the first reference.
+ */
 #define mla_malloc_buffer_with_manager(memory_manager, size) mla_malloc_with_manager(memory_manager, size, nullptr, mla_dynamic_data_empty())
 
+/**
+ * @brief Allocates a raw (unmanaged) block of memory.
+ *
+ * Expands to `mla_platform_malloc_with_check`, injecting the current source file
+ * and function name for failure diagnostics. The caller owns the returned pointer
+ * and must pass it to `mla_platform_free` when done.
+ *
+ * Prefer `mla_malloc` / `mla_malloc_struct` for objects that benefit from
+ * automatic reference-counted lifetime management.
+ *
+ * @param size Number of bytes to allocate.
+ * @return     Raw `mla_platform_pointer_t` to the allocated block, or `nullptr` on failure.
+ */
 #define mla_platform_malloc(size) mla_platform_malloc_with_check(size, __FILE__, __func__)
 
+/**
+ * @brief Frees a raw (unmanaged) block previously allocated with `mla_platform_malloc`.
+ *
+ * Do **not** call this on pointers that were allocated via `mla_malloc` /
+ * `mla_malloc_struct` — those are freed automatically by `mla_pointer_t` when
+ * the last reference is released.
+ *
+ * @param ptr The `mla_platform_pointer_t` to free. Passing `nullptr` is safe.
+ */
 #define mla_platform_free(ptr) g_low_level_access.free((ptr))
-#define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function
 #define mla_print(str, len) g_low_level_access.print(str , len)
@@ -329,7 +431,35 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
     *l_Data = T::init();
 }
 
+/**
+ * @brief Allocates and default-initialises a managed struct through an explicit memory manager.
+ *
+ * Allocates `sizeof(T)` bytes via `manager` and registers
+ * `mla_pointer_default_struct_cleanup<T>` as the cleanup hook, which resets the
+ * struct to `T::init()` before the memory is freed.
+ *
+ * @tparam T       The struct type to allocate. Must provide a static `init()` function.
+ * @param  manager The `mla_pointer_memory_manager_t*` to use for the allocation.
+ * @return         A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
+
+/**
+ * @brief Allocates and default-initialises a managed struct through the active memory manager.
+ *
+ * Allocates `sizeof(T)` bytes via `g_pointer_memory_manager_instance.current` and
+ * registers `mla_pointer_default_struct_cleanup<T>` as the cleanup hook, which
+ * resets the struct to `T::init()` when the last reference is released.
+ *
+ * Usage:
+ * @code
+ * mla_pointer_t ptr = mla_malloc_struct(mla_my_struct_t);
+ * mla_my_struct_t* data = mla_pointer_get_data<mla_my_struct_t>(ptr);
+ * @endcode
+ *
+ * @tparam T   The struct type to allocate. Must provide a static `init()` function.
+ * @return     A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct(T) mla_malloc(sizeof(T), mla_pointer_default_struct_cleanup<T>, mla_dynamic_data_empty())
 
 
@@ -362,15 +492,80 @@ mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struc
 }
 
 
+/**
+ * @brief Allocates a managed struct with a custom cleanup hook, through an explicit memory manager.
+ *
+ * Allocates `sizeof(T)` bytes via `manager` and registers
+ * `mla_pointer_default_struct_with_extension_cleanup<T>` as the cleanup handler,
+ * which calls the user-supplied `clean_up_hook(T&)` before resetting the struct
+ * to `T::init()`.
+ *
+ * @tparam T             The struct type to allocate.
+ * @param  manager       The `mla_pointer_memory_manager_t*` to use for the allocation.
+ * @param  clean_up_hook A function of type `void(*)(T&)` invoked just before the memory is freed.
+ * @return               A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
+
+/**
+ * @brief Allocates a managed struct with a custom cleanup hook, through the active memory manager.
+ *
+ * Convenience wrapper around `mla_malloc_struct_cleanup_hook_with_manager` that uses
+ * `g_pointer_memory_manager_instance.current`.
+ *
+ * @tparam T             The struct type to allocate.
+ * @param  clean_up_hook A function of type `void(*)(T&)` invoked just before the memory is freed.
+ * @return               A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct_cleanup_hook(T, clean_up_hook) mla_malloc_struct_cleanup_hook_with_manager(g_pointer_memory_manager_instance.current, T, clean_up_hook)
 
+/**
+ * @brief Allocates a managed struct and uses `T::clean_up_resource` as the cleanup hook,
+ *        through an explicit memory manager.
+ *
+ * Requires the struct `T` to expose a static member:
+ * @code
+ * static void clean_up_resource(T& self);
+ * @endcode
+ *
+ * @tparam T       The struct type to allocate. Must expose `T::clean_up_resource`.
+ * @param  manager The `mla_pointer_memory_manager_t*` to use for the allocation.
+ * @return         A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct_cleanup_extension_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(T::clean_up_resource))
+
+/**
+ * @brief Allocates a managed struct and uses `T::clean_up_resource` as the cleanup hook,
+ *        through the active memory manager.
+ *
+ * Convenience wrapper around `mla_malloc_struct_cleanup_extension_with_manager` that
+ * uses `g_pointer_memory_manager_instance.current`.
+ *
+ * Requires the struct `T` to expose a static member:
+ * @code
+ * static void clean_up_resource(T& self);
+ * @endcode
+ *
+ * @tparam T   The struct type to allocate. Must expose `T::clean_up_resource`.
+ * @return     A `mla_pointer_t` holding the first reference to the allocated `T`.
+ */
 #define mla_malloc_struct_cleanup_extension(T) mla_malloc_struct_cleanup_extension_with_manager(g_pointer_memory_manager_instance.current, T)
 
 /**
- * Create a mla_pointer_t from an external pointer. The memory manager will not take ownership of the pointer and will not attempt to free it.
- **/
+ * @brief Wraps an externally-owned raw pointer in a non-owning `mla_pointer_t`.
+ *
+ * The returned `mla_pointer_t` uses the no-op memory manager
+ * (`g_noop_pointer_memory_manager`), meaning that reference counting and
+ * deallocation are disabled. The caller retains full ownership of `resource`
+ * and is responsible for its lifetime.
+ *
+ * Use this function only when bridging with external APIs that manage their own
+ * memory and you need to pass the resource through MLA interfaces that expect
+ * a `mla_pointer_t`.
+ *
+ * @param resource The externally-managed raw pointer to wrap.
+ * @return         A non-owning `mla_pointer_t` that holds `resource`.
+ */
 mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
 
 
