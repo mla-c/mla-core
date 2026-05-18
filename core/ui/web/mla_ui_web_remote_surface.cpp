@@ -110,6 +110,16 @@ struct mla_ui_web_remote_surface_data_t {
     mla_ui_surface_size_t lastSurfaceSize; // We can store the last surface size to detect when it changes, since we can't rely on the client to tell us when it changes
     mla_array_list_t<mla_ui_web_remote_surface_client_text_size_t, mla_ui_web_remote_surface_client_text_size_initializer> textSizeCache; // We can cache the text sizes for different font types to avoid recalculating them every frame
     mla_ui_surface_input_states_t lastInputStates;
+
+    static mla_ui_web_remote_surface_data_t init() {
+        return {
+            mla_string_empty(),
+            nullptr,
+            {0, 0},
+            mla_array_list_empty<mla_ui_web_remote_surface_client_text_size_t, mla_ui_web_remote_surface_client_text_size_initializer>(),
+            mla_ui_surface_input_states_empty()
+        };
+    }
 };
 
 struct mla_ui_web_remote_surface_server_message_t {
@@ -131,7 +141,7 @@ struct mla_ui_web_remote_surface_server_message_t {
 
 mla_ui_surface_size_t __mla_ui_web_remote_surface_get_size(const mla_ui_surface_t& surface) {
 
-    mla_ui_web_remote_surface_data_t* surfaceData = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
+    mla_ui_web_remote_surface_data_t* surfaceData = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
 
     if (surfaceData == nullptr) {
         return {
@@ -181,7 +191,7 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
         return false; // Skip rendering to maintain target FPS
     }
 
-    mla_ui_web_remote_surface_data_t* surface_data = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
+    mla_ui_web_remote_surface_data_t* surface_data = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
 
     if (surface_data == nullptr) {
         return false; // Can't render without a valid connection
@@ -210,7 +220,7 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
 
 mla_ui_surface_draw_size_t __mla_ui_web_remote_surface_render_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
-    mla_ui_web_remote_surface_data_t* surface_data = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
+    mla_ui_web_remote_surface_data_t* surface_data = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
     if (surface_data == nullptr) {
         return {0, 0}; // Can't calculate text size without a valid connection
     }
@@ -247,7 +257,7 @@ mla_ui_surface_draw_size_t __mla_ui_web_remote_surface_render_calc_text_size(con
 
 mla_ui_surface_input_states_t __mla_ui_web_remote_surface_get_input_states(const mla_ui_surface_t &surface) {
 
-    mla_ui_web_remote_surface_data_t* surface_data = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.resource);
+    mla_ui_web_remote_surface_data_t* surface_data = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
     if (surface_data == nullptr) {
         return mla_ui_surface_input_states_empty();
     }
@@ -255,18 +265,6 @@ mla_ui_surface_input_states_t __mla_ui_web_remote_surface_get_input_states(const
     return surface_data->lastInputStates; // We can return the last input states we received from the client, since we can't get real-time input states from the client
 
 }
-
-struct mla_ui_web_remote_surface_data_initializer {
-    static mla_ui_web_remote_surface_data_t init() {
-        return {
-            mla_string_empty(),
-            nullptr,
-            {0, 0},
-            mla_array_list_empty<mla_ui_web_remote_surface_client_text_size_t, mla_ui_web_remote_surface_client_text_size_initializer>(),
-            mla_ui_surface_input_states_empty()
-        };
-    }
-};
 
 mla_ui_web_remote_surface_t mla_ui_web_remote_surface_invalid() {
     return {
@@ -282,7 +280,7 @@ mla_ui_web_remote_surface_message_result_t mla_ui_web_remote_surface_message_res
 
 mla_ui_web_remote_surface_message_result_t __mla_ui_web_remote_surface_handle_client_text_message(mla_ui_web_remote_surface_t& surface, const mla_string_t& message) {
 
-    mla_ui_web_remote_surface_data_t* data_client = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(surface.surface.resource);
+    mla_ui_web_remote_surface_data_t* data_client = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.surface.resource);
 
     if (data_client == nullptr) {
         return mla_ui_web_remote_surface_message_result_no_successful();
@@ -330,7 +328,9 @@ mla_ui_web_remote_surface_message_result_t __mla_ui_web_remote_surface_handle_cl
 
 mla_ui_web_remote_surface_t mla_ui_web_remote_surface_create(const mla_http_server_websocket_connection_t& connection) {
 
-    mla_ui_web_remote_surface_data_t* surfaceData = reinterpret_cast<mla_ui_web_remote_surface_data_t*>(mla_platform_malloc(sizeof(mla_ui_web_remote_surface_data_t)));
+    mla_pointer_t surfaceData_ptr = mla_malloc_struct(mla_ui_web_remote_surface_data_t);
+
+    mla_ui_web_remote_surface_data_t* surfaceData = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surfaceData_ptr);
 
     if (surfaceData == nullptr) {
         return mla_ui_web_remote_surface_invalid();
@@ -348,8 +348,7 @@ mla_ui_web_remote_surface_t mla_ui_web_remote_surface_create(const mla_http_serv
 
     return {
         {
-            surfaceData,
-            mla_buffer_reference<mla_ui_web_remote_surface_data_t, mla_ui_web_remote_surface_data_initializer>(surfaceData),
+            surfaceData_ptr,
             __mla_ui_web_remote_surface_get_size,
             __mla_ui_web_remote_surface_set_size,
             __mla_ui_web_remote_surface_render_draw_commands,

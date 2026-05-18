@@ -43,8 +43,7 @@ struct mla_ui_surface_size_t {
 };
 
 struct mla_ui_surface_t {
-    mla_platform_pointer_t resource; // Pointer to the surface resource
-    mla_buffer_reference_t resourceOwner; // Resource owner for the surface
+    mla_pointer_t resource; // Pointer to the surface resource
 
     // Size management
     mla_ui_surface_size_t (*get_size)(const mla_ui_surface_t& surface);

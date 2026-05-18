@@ -21,81 +21,105 @@ static IDWriteFactory *g_pDWriteFactory = nullptr;
 
 struct mla_global_ui_surface_windows_direct2d_font_cache_item {
     mla_ui_surface_font_type_t font_type;
-    mla_buffer_reference_t textFormatOwner;
-    IDWriteTextFormat *textFormat;
+    mla_pointer_t textFormat; // IDWriteTextFormat
+
+    static mla_global_ui_surface_windows_direct2d_font_cache_item init() {
+        return {
+            mla_ui_surface_font_type_empty(),
+            mla_pointer_null()
+        };
+    }
+
 };
 
 struct mla_global_ui_surface_windows_direct2d_font_cache_item_initializer {
     static mla_global_ui_surface_windows_direct2d_font_cache_item init() {
-        return {
-            mla_ui_surface_font_type_empty(),
-            mla_buffer_reference_noOwner(),
-            nullptr
-        };
+        return mla_global_ui_surface_windows_direct2d_font_cache_item::init();
     }
 };
 
 // Render cache structure for performance optimization
 struct la_global_ui_surface_windows_direct2d_Cache {
     // Reusable brushes
-    ID2D1SolidColorBrush *solidBrush;
-    mla_buffer_reference_t solidBrushOwner;
+    mla_pointer_t solidBrush; // ID2D1SolidColorBrush
     D2D1_COLOR_F currentFillColor;
 
     // Font cache
     mla_array_list_t<mla_global_ui_surface_windows_direct2d_font_cache_item,
         mla_global_ui_surface_windows_direct2d_font_cache_item_initializer> fontCache;
+
+    static la_global_ui_surface_windows_direct2d_Cache init() {
+        return {
+            mla_pointer_null(),
+            {0, 0, 0, 0},
+            mla_array_list_empty<mla_global_ui_surface_windows_direct2d_font_cache_item,
+                mla_global_ui_surface_windows_direct2d_font_cache_item_initializer>()
+        };
+    }
+
 };
 
 la_global_ui_surface_windows_direct2d_Cache __mla_global_ui_surface_windows_direct2d_cache_empty() {
-    return {
-        nullptr,
-        mla_buffer_reference_noOwner(),
-        {0, 0, 0, 0},
-        mla_array_list_empty<mla_global_ui_surface_windows_direct2d_font_cache_item,
-            mla_global_ui_surface_windows_direct2d_font_cache_item_initializer>()
-    };
+    return la_global_ui_surface_windows_direct2d_Cache::init();
 }
 
-mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(
-    mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+void __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(
+    const mla_native_resource_t& data) {
 
-    ID2D1SolidColorBrush *solid_brush = static_cast<ID2D1SolidColorBrush *>(data);
+    ID2D1SolidColorBrush *solid_brush = static_cast<ID2D1SolidColorBrush *>(data.asPointer);
     if (solid_brush) {
         solid_brush->Release();
     }
 
-    // No need to free the data pointer as it is managed by Direct2D
-    return CLEAN_UP_SKIP;
 }
+
 
 ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_brush(
     la_global_ui_surface_windows_direct2d_Cache &cache, ID2D1RenderTarget *renderTarget, const D2D1_COLOR_F &color) {
-    if (!cache.solidBrush) {
-        renderTarget->CreateSolidColorBrush(color, &cache.solidBrush);
-        cache.solidBrushOwner = mla_buffer_reference_create(cache.solidBrush, true,
-                                                     __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup, mla_dynamic_data_empty());
+
+    mla_native_resource_t* native_resource_ptr = mla_native_resource_from_managed_pointer(cache.solidBrush);
+    ID2D1SolidColorBrush* solid_brush = nullptr;
+
+    if (native_resource_ptr != nullptr) {
+        solid_brush = static_cast<ID2D1SolidColorBrush*>(native_resource_ptr->asPointer);
+    }
+
+
+    if (solid_brush == nullptr) {
+
+        renderTarget->CreateSolidColorBrush(color, &solid_brush);
+
+        if (solid_brush == nullptr) {
+            return nullptr;
+        }
+
+        mla_native_resource_t native_resource = mla_dynamic_data_from_pointer(solid_brush);
+        cache.solidBrush = mla_native_resource_to_managed_pointer(native_resource, __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup);
+
+        if (mla_pointer_is_null(cache.solidBrush)) {
+            solid_brush->Release();
+            return nullptr;
+        }
+
         cache.currentFillColor = color;
+
     } else if (mla_memcmp(&cache.currentFillColor, &color, sizeof(D2D1_COLOR_F)) != 0) {
-        cache.solidBrush->SetColor(color);
+
+        solid_brush->SetColor(color);
         cache.currentFillColor = color;
     }
 
-    return cache.solidBrush;
+    return solid_brush;
 }
 
-mla_buffer_cleanup_mode __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(
-    mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+void __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(
+    const mla_native_resource_t& data) {
 
-    IDWriteTextFormat *textFormat = static_cast<IDWriteTextFormat *>(data);
+    IDWriteTextFormat *textFormat = static_cast<IDWriteTextFormat *>(data.asPointer);
     if (textFormat) {
         textFormat->Release();
     }
 
-    // No need to free the data pointer as it is managed by Direct2D
-    return CLEAN_UP_SKIP;
 }
 
 IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCreateTextFormat(
@@ -111,7 +135,13 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
         if (!mla_ui_surface_font_type_equals(item.font_type, fontType))
             continue;
 
-        return item.textFormat;
+        mla_native_resource_t* resource = mla_native_resource_from_managed_pointer(item.textFormat);
+
+        if (resource == nullptr)
+            continue;
+
+
+        return static_cast<IDWriteTextFormat *>(resource->asPointer);
     }
 
     mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontType.family);
@@ -152,11 +182,11 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
         return nullptr;
     }
 
+    mla_native_resource_t native_resource = mla_dynamic_data_from_pointer(textFormat);
+
     mla_global_ui_surface_windows_direct2d_font_cache_item newItem = {
         fontType,
-        mla_buffer_reference_create(textFormat, true,
-                             __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup, mla_dynamic_data_empty()),
-        textFormat
+        mla_native_resource_to_managed_pointer(native_resource, __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup),
     };
 
     if (mla_array_list_size(cache.fontCache) < mla_global_ui_surface_windows_direct2d_font_cache_size) {
@@ -185,13 +215,28 @@ struct mla_windows_window_surface_t {
     int DEBUG_frames_accumulated;
     int DEBUG_current_fps;
 #endif
+
+    static mla_windows_window_surface_t init() {
+        return {
+            nullptr,
+            false,
+            {800, 600}, // Default size if not set before initialization
+            nullptr,
+            __mla_global_ui_surface_windows_direct2d_cache_empty(),
+#ifdef mla_debug_build
+            0,
+            0,
+            0,
+#endif
+        };
+    }
 };
 
 // Stub implementations for the surface function pointers
 mla_ui_surface_size_t __windows_surface_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
 
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(surface.resource);
 
     if (window_surface == nullptr) {
         return size;
@@ -226,7 +271,8 @@ mla_ui_surface_size_t __windows_surface_get_size(const mla_ui_surface_t &surface
 }
 
 mla_bool_t __windows_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(surface.resource);
 
     if (window_surface == nullptr) {
         return false;
@@ -347,9 +393,10 @@ mla_bool_t __windows_ScreenPosition_to_client_position(const HWND &hwnd, POINT &
 }
 
 mla_ui_surface_input_states_t __windows_surface_input_states(const mla_ui_surface_t &surface) {
+
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
 
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(surface.resource);
 
     // Validate surface state
     if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
@@ -402,7 +449,7 @@ mla_ui_surface_draw_size_t __windows_surface_calc_text_size(const mla_ui_surface
     }
 
     // Try to get the cache from the surface to reuse text formats for performance
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(surface.resource);
 
     if (window_surface == nullptr) {
         return size;
@@ -456,7 +503,7 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
                                                   mla_array_list_t<mla_ui_surface_input_event_t,
                                                       mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs) {
 
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(surface.resource);
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(surface.resource);
     if (window_surface == nullptr) {
         return false;
     }
@@ -1115,31 +1162,27 @@ mla_bool_t __windows_surface_render_draw_commands(const mla_ui_surface_t &surfac
     return SUCCEEDED(hr);
 }
 
-mla_buffer_cleanup_mode __windows_surface_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+void __windows_surface_buffer_cleanup(mla_windows_window_surface_t& window_surface) {
 
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(data);
 
-    if (window_surface != nullptr) {
-        // Cleanup Direct2D resources
-        window_surface->renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
+    // Cleanup Direct2D resources
+    window_surface.renderCache = __mla_global_ui_surface_windows_direct2d_cache_empty();
 
-        if (window_surface->renderTarget) {
-            window_surface->renderTarget->Release();
-            window_surface->renderTarget = nullptr;
-        }
-
-        if (IsWindow(window_surface->hwnd)) {
-            DestroyWindow(window_surface->hwnd);
-        }
+    if (window_surface.renderTarget) {
+        window_surface.renderTarget->Release();
+        window_surface.renderTarget = nullptr;
     }
 
-    return CLEAN_UP_NEEDED;
+    if (IsWindow(window_surface.hwnd)) {
+        DestroyWindow(window_surface.hwnd);
+    }
 }
 
 mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
-    mla_windows_window_surface_t *window_surface = static_cast<mla_windows_window_surface_t *>(mla_platform_malloc(
-        sizeof(mla_windows_window_surface_t)));
+
+    mla_pointer_t window_surface_ptr = mla_malloc_struct_cleanup_hook(mla_windows_window_surface_t, __windows_surface_buffer_cleanup);
+
+    mla_windows_window_surface_t *window_surface = mla_pointer_get_data<mla_windows_window_surface_t>(window_surface_ptr);
 
     if (window_surface == nullptr) {
         return false;
@@ -1155,8 +1198,7 @@ mla_bool_t __windows_create_surface(mla_ui_surface_t &outSurface) {
     window_surface->DEBUG_current_fps = 0;
 #endif
 
-    outSurface.resource = window_surface;
-    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, __windows_surface_buffer_cleanup, mla_dynamic_data_empty());
+    outSurface.resource = window_surface_ptr;
     outSurface.get_size = __windows_surface_get_size;
     outSurface.set_size = __windows_surface_set_size;
     outSurface.render_draw_commands = __windows_surface_render_draw_commands;

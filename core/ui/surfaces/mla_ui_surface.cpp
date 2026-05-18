@@ -6,12 +6,12 @@
 
 mla_ui_surface_t mla_ui_surface_invalid() {
     return {
-        nullptr, mla_buffer_reference_noOwner(), nullptr, nullptr, nullptr, nullptr, nullptr
+        mla_pointer_null(), nullptr, nullptr, nullptr, nullptr, nullptr
     };
 }
 
 mla_bool_t mla_ui_surface_is_valid(const mla_ui_surface_t& surface) {
-    return surface.resource != nullptr;
+    return !mla_pointer_is_null(surface.resource);
 }
 
 mla_ui_surface_size_t mla_ui_surface_get_size(const mla_ui_surface_t& surface) {
