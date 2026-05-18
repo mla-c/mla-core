@@ -371,6 +371,7 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
  * @param ptr The `mla_platform_pointer_t` to free. Passing `nullptr` is safe.
  */
 #define mla_platform_free(ptr) g_low_level_access.free((ptr))
+#define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function
 #define mla_print(str, len) g_low_level_access.print(str , len)
