@@ -40,7 +40,7 @@ mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_create(const
 
 mla_ui_control_surface_t mla_ui_control_surface_empty() {
     return {
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
         mla_ui_surface_invalid(),
         mla_mutex_invalid(),
         mla_ui_control_surface_rendering_empty(),
@@ -56,7 +56,7 @@ mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &s
 
 mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &surface, const mla_ui_control_surface_process_task_t &renderingTask, mla_user_data_t& userData) {
     return {
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
         surface,
         mla_mutex_create("mla_ui_control_surface_lock"),
         mla_ui_control_surface_rendering_create(renderingTask),
@@ -82,10 +82,20 @@ mla_string_t __mla_ui_control_surface_get_task_id(mla_ui_control_surface_t& conn
     return mla_user_data_get_string(connector.userData, mla_ui_control_surface_task_id_user_data_name);
 }
 
-mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+struct __mla_ui_control_surface_clean_up_t {
+    mla_ui_control_surface_t* connector;
 
-    mla_ui_control_surface_t* connector = static_cast<mla_ui_control_surface_t*>(data);
+    static __mla_ui_control_surface_clean_up_t init() {
+        return {nullptr};
+    }
+};
+
+
+
+void __mla_ui_control_surface_cleanup(__mla_ui_control_surface_clean_up_t& data) {
+
+
+    mla_ui_control_surface_t* connector = data.connector;
 
     if (connector) {
 
@@ -100,14 +110,11 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup(mla_platform_pointer_t 
         mla_user_data_remove(connector->userData, mla_ui_control_surface_task_id_user_data_name);
     }
 
-    // No cleanup needed for this resource. We just need to stop the tasks.
-    return CLEAN_UP_SKIP;
 }
 
-mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+void __mla_ui_control_surface_cleanup_single_thread(__mla_ui_control_surface_clean_up_t& data) {
 
-    mla_ui_control_surface_t* connector = static_cast<mla_ui_control_surface_t*>(data);
+    mla_ui_control_surface_t* connector = data.connector;
 
     if (connector) {
 
@@ -119,8 +126,6 @@ mla_buffer_cleanup_mode __mla_ui_control_surface_cleanup_single_thread(mla_platf
         }
     }
 
-    // No cleanup needed for this resource. We just need to stop the tasks.
-    return CLEAN_UP_SKIP;
 }
 
 mla_user_data_id_init(mla_ui_control_surface_text_size_user_data_name)
@@ -327,7 +332,20 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
     }
 
     // Store task reference
-    connector.cleanup = mla_buffer_reference_create(&connector, true, __mla_ui_control_surface_cleanup, mla_dynamic_data_empty());
+    connector.cleanup = mla_malloc_struct_cleanup_hook(__mla_ui_control_surface_clean_up_t, __mla_ui_control_surface_cleanup);
+
+    __mla_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<__mla_ui_control_surface_clean_up_t>(connector.cleanup);
+
+    if (clean_up_data == nullptr) {
+        mla_error("Failed to create cleanup buffer reference for UI control surface connector!");
+
+        // Abort previously created tasks
+        mla_task_manager_abort_task(render_task.name);
+        mla_task_manager_abort_task(drawing_task.name);
+        return false;
+    }
+
+    clean_up_data->connector = &connector;
     mla_user_data_set_string(connector.userData, mla_ui_control_surface_task_id_user_data_name, id);
 
     return true;
@@ -362,7 +380,22 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
     }
 
     // Store task reference
-    connector.cleanup = mla_buffer_reference_create(&connector, true, __mla_ui_control_surface_cleanup, mla_dynamic_data_empty());
+
+    connector.cleanup = mla_malloc_struct_cleanup_hook(__mla_ui_control_surface_clean_up_t, __mla_ui_control_surface_cleanup_single_thread);
+
+    __mla_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<__mla_ui_control_surface_clean_up_t>(connector.cleanup);
+
+    if (clean_up_data == nullptr) {
+        mla_error("Failed to create cleanup buffer reference for UI control surface connector!");
+
+        // Abort previously created task
+        mla_task_manager_abort_task(render_draw_task.name);
+        return false;
+    }
+
+    clean_up_data->connector = &connector;
+
+    //connector.cleanup = mla_buffer_reference_create(&connector, true, __mla_ui_control_surface_cleanup, mla_dynamic_data_empty());
     mla_user_data_set_string(connector.userData, mla_ui_control_surface_task_id_user_data_name, id);
 
     return true;
@@ -436,6 +469,6 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
 mla_bool_t mla_ui_control_surface_stop(mla_ui_control_surface_t &connector) {
 
     // Clear rendering task
-    connector.cleanup = mla_buffer_reference_noOwner();
+    connector.cleanup = mla_pointer_null();
     return true;
 }

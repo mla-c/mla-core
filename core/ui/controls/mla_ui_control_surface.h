@@ -30,7 +30,7 @@ struct mla_ui_control_surface_rendering_t {
 mla_ui_control_surface_rendering_t mla_ui_control_surface_rendering_empty();
 
 struct mla_ui_control_surface_t {
-    mla_buffer_reference_t cleanup;
+    mla_pointer_t cleanup;
     mla_ui_surface_t surface;
     mla_mutex_t lock;
     mla_ui_control_surface_rendering_t rendering;
