@@ -116,6 +116,34 @@ mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_siz
     return result;
 }
 
+mla_size_t mla_stream_output_write_with_timeout(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer, mla_int32_t timeout_ms) {
+
+    if (output.write == nullptr || buffer == nullptr) {
+        return 0;
+    }
+
+    mla_int32_t remaining_timeout = timeout_ms;
+    mla_size_t result = 0;
+
+    while (true) {
+        result = result + output.write(output, offset + result, length - result, buffer);
+
+        if (result == length) {
+            break; // Write complete
+        }
+
+        if (remaining_timeout <= 0) {
+            break; // Timeout reached
+        }
+
+        // Wait and retry
+        mla_sleep(10);
+        remaining_timeout -= 10;
+    }
+
+    return result;
+}
+
 mla_size_t __mla_stream_input_timeout_wrapper_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
 
     mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);

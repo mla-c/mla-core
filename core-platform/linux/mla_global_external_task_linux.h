@@ -187,6 +187,11 @@ mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource
     processData->stdin_write_fd = stdinPipe[1];
     processData->stdout_read_fd = stdoutPipe[0];
 
+    // Make both parent-side fds non-blocking so reads/writes return
+    // immediately instead of blocking when no data / buffer is full.
+    fcntl(processData->stdout_read_fd, F_SETFL, O_NONBLOCK);
+    fcntl(processData->stdin_write_fd,  F_SETFL, O_NONBLOCK);
+
     mla_native_resource_t nativeResource = mla_dynamic_data_from_pointer(processData);
     p_OutTaskResource = mla_native_resource_to_managed_pointer(nativeResource, __linux_external_task_cleanup_native_resource);
 
@@ -246,13 +251,14 @@ mla_size_t __linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource
         return 0;
     }
 
+    // Non-blocking: fd has O_NONBLOCK set; EAGAIN/EWOULDBLOCK means no data yet.
     ssize_t bytesRead = read(processData->stdout_read_fd, p_Buffer + p_Offset, p_Length);
 
     if (bytesRead <= 0) {
         return 0;
     }
 
-    return (mla_size_t)bytesRead;
+    return static_cast<mla_size_t>(bytesRead);
 }
 
 mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
@@ -263,20 +269,28 @@ mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource
         return 0;
     }
 
-    mla_size_t totalWritten = 0;
+    // Non-blocking: fd has O_NONBLOCK set; EAGAIN/EWOULDBLOCK means pipe buffer full.
+    ssize_t bytesWritten = write(processData->stdin_write_fd, p_Buffer + p_Offset, p_Length);
 
-    while (totalWritten < p_Length) {
-
-        ssize_t bytesWritten = write(processData->stdin_write_fd, p_Buffer + p_Offset + totalWritten, p_Length - totalWritten);
-
-        if (bytesWritten <= 0) {
-            break;
-        }
-
-        totalWritten += (mla_size_t)bytesWritten;
+    if (bytesWritten <= 0) {
+        return 0;
     }
 
-    return totalWritten;
+    return static_cast<mla_size_t>(bytesWritten);
+}
+
+void __linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
+
+    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+
+    if (processData == nullptr) {
+        return;
+    }
+
+    if (processData->stdin_write_fd >= 0) {
+        close(processData->stdin_write_fd);
+        processData->stdin_write_fd = -1;
+    }
 }
 
 mla_external_task_managment_t g_external_task_management = {
@@ -285,6 +299,7 @@ mla_external_task_managment_t g_external_task_management = {
     __linux_external_task_get_state,
     __linux_external_task_read_stdout,
     __linux_external_task_write_stdin,
+    __linux_external_task_close_stdin,
 };
 
 #endif

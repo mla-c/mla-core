@@ -58,6 +58,10 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
 
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms);
 
+// Writes exactly `length` bytes to `output`, retrying with 10 ms sleeps until all bytes
+// are accepted or `timeout_ms` elapses.  Returns the total number of bytes written.
+mla_size_t mla_stream_output_write_with_timeout(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer, mla_int32_t timeout_ms);
+
 mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_int32_t timeout_ms);
 mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, mla_size_t size);
 

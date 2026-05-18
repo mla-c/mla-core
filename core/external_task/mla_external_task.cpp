@@ -99,3 +99,18 @@ void mla_external_task_stop(mla_external_task_t& p_Task) {
     p_Task.std_in = mla_stream_noop_output();
     p_Task.native_resource = mla_pointer_null();
 }
+
+void mla_external_task_close_stdin(mla_external_task_t& p_Task) {
+
+    if (mla_pointer_is_null(p_Task.native_resource)) {
+        return;
+    }
+
+    if (g_external_task_management.close_stdin != nullptr) {
+        g_external_task_management.close_stdin(p_Task.native_resource);
+    }
+
+    // Mark stdin stream as closed so callers don't try to write again
+    p_Task.std_in = mla_stream_noop_output();
+}
+

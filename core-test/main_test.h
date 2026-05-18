@@ -44,7 +44,10 @@
 #include "mla_memory_test.h"
 #include "mla_math_utils_test.h"
 #include "mla_user_data_test.h"
+
+#if !defined mla_test_disable_external_task || mla_test_disable_external_task != 1
 #include "mla_external_task_test.h"
+#endif
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
 // Network
@@ -105,8 +108,10 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterReflectionRpcTests(l_TestExecutor);
     RegisterMathUtilsTests(l_TestExecutor);
     RegisterUserDataTests(l_TestExecutor);
-    RegisterExternalTaskTests(l_TestExecutor);
 
+#if !defined mla_test_disable_external_task || mla_test_disable_external_task != 1
+    RegisterExternalTaskTests(l_TestExecutor);
+#endif
 
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Tests

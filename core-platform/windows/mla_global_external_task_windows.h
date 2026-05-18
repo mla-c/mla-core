@@ -125,6 +125,11 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
         return false;
     }
 
+    // Set the stdin write handle to non-blocking mode so WriteFile returns immediately
+    // when the pipe buffer is full instead of blocking.
+    DWORD pipeMode = PIPE_NOWAIT | PIPE_READMODE_BYTE;
+    SetNamedPipeHandleState(childStdInWrite, &pipeMode, nullptr, nullptr);
+
     mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
     const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
     if (cmdline == nullptr) {
@@ -263,8 +268,21 @@ mla_size_t __windows_external_task_read_stdout(const mla_pointer_t& p_TaskResour
         return 0;
     }
 
+    // Non-blocking: peek first to see how many bytes are available.
+    // If none are available we return immediately without blocking.
+    DWORD bytesAvailable = 0;
+    if (!PeekNamedPipe(processData->stdout_read_handle, nullptr, 0, nullptr, &bytesAvailable, nullptr)) {
+        return 0;
+    }
+
+    if (bytesAvailable == 0) {
+        return 0;
+    }
+
+    DWORD toRead = static_cast<DWORD>(bytesAvailable < static_cast<DWORD>(p_Length) ? bytesAvailable : static_cast<DWORD>(p_Length));
+
     DWORD bytesRead = 0;
-    if (!ReadFile(processData->stdout_read_handle, p_Buffer + p_Offset, static_cast<DWORD>(p_Length), &bytesRead, nullptr)) {
+    if (!ReadFile(processData->stdout_read_handle, p_Buffer + p_Offset, toRead, &bytesRead, nullptr)) {
         return 0;
     }
 
@@ -279,18 +297,30 @@ mla_size_t __windows_external_task_write_stdin(const mla_pointer_t& p_TaskResour
         return 0;
     }
 
-    mla_size_t totalWritten = 0;
-
-    while (totalWritten < p_Length) {
-        DWORD bytesWritten = 0;
-        if (!WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset + totalWritten, static_cast<DWORD>(p_Length - totalWritten), &bytesWritten, nullptr) || bytesWritten == 0) {
-            break;
-        }
-
-        totalWritten += static_cast<mla_size_t>(bytesWritten);
+    // Non-blocking: the write handle was set to PIPE_NOWAIT so WriteFile returns
+    // immediately with ERROR_NO_DATA when the pipe buffer is full instead of blocking.
+    DWORD bytesWritten = 0;
+    if (!WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset, static_cast<DWORD>(p_Length), &bytesWritten, nullptr)) {
+        // ERROR_NO_DATA  — pipe buffer full, nothing written yet (non-blocking return)
+        // Any other error — connection broken or similar
+        return static_cast<mla_size_t>(bytesWritten);
     }
 
-    return totalWritten;
+    return static_cast<mla_size_t>(bytesWritten);
+}
+
+void __windows_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
+
+    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+
+    if (processData == nullptr) {
+        return;
+    }
+
+    if (processData->stdin_write_handle != nullptr) {
+        CloseHandle(processData->stdin_write_handle);
+        processData->stdin_write_handle = nullptr;
+    }
 }
 
 mla_external_task_managment_t g_external_task_management = {
@@ -299,6 +329,7 @@ mla_external_task_managment_t g_external_task_management = {
     __windows_external_task_get_state,
     __windows_external_task_read_stdout,
     __windows_external_task_write_stdin,
+    __windows_external_task_close_stdin,
 };
 
 #endif
