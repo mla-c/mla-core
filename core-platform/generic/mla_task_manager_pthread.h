@@ -15,11 +15,14 @@
 struct mla_task_manager_pthread_mutex_t {
     pthread_mutex_t mutex;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
-        mla_task_manager_pthread_mutex_t* m = static_cast<mla_task_manager_pthread_mutex_t*>(data);
-        if (m) {
-            pthread_mutex_destroy(&m->mutex);
-        }
+    static mla_task_manager_pthread_mutex_t init() {
+        return {
+            {} // mutex will be initialized in create_mutex
+        };
+    }
+
+    static void clean_up_resource(mla_task_manager_pthread_mutex_t& self) {
+        pthread_mutex_destroy(&self.mutex);
     }
 };
 
@@ -29,24 +32,29 @@ struct mla_task_manager_pthread_data_t {
     mla_task_worker_t worker;
     mla_pointer_t sharedStates;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
-        mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(data);
+    static mla_task_manager_pthread_data_t init() {
+        return {
+            0,                    // thread
+            mla_user_data_empty(),
+            nullptr,              // worker
+            mla_pointer_null()    // sharedStates
+        };
+    }
 
-        if (thread_data) {
-            // Stop the thread if it is still running
+    static void clean_up_resource(mla_task_manager_pthread_data_t& self) {
+
+        if (self.thread != 0) {
             // Note: pthread_cancel is not a clean way to stop a thread. This is a forced stop.
-            if (thread_data->thread != 0) {
-                pthread_cancel(thread_data->thread);
-            }
-
-            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
-            if (shared_states != nullptr) {
-                mla_atomic_exchange(shared_states->processingState, TASK_STATE_ABORTED);
-            }
-
-            // Release the reference to shared states
-            thread_data->sharedStates = mla_pointer_null();
+            pthread_cancel(self.thread);
         }
+
+        mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(self.sharedStates);
+        if (shared_states != nullptr) {
+            mla_atomic_exchange(shared_states->processingState, TASK_STATE_ABORTED);
+        }
+
+        // Release the reference to shared states
+        self.sharedStates = mla_pointer_null();
     }
 };
 
@@ -122,7 +130,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     mla_pointer_t& outTaskResourceOwner,
     const mla_pointer_t& shared_states) {
 
-    mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_data_t);
+    mla_pointer_t thread_data_ptr = mla_malloc_struct_cleanup_extension(mla_task_manager_pthread_data_t);
     mla_task_manager_pthread_data_t* thread_data = mla_pointer_get_data<mla_task_manager_pthread_data_t>(thread_data_ptr);
 
     if (thread_data == nullptr) {
@@ -206,7 +214,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
 mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
-    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_mutex_t);
+    mla_pointer_t mutex_ptr = mla_malloc_struct_cleanup_extension(mla_task_manager_pthread_mutex_t);
     mla_task_manager_pthread_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_pthread_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
