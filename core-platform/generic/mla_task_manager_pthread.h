@@ -7,34 +7,48 @@
 
 #include "../../core/task/mla_task_manager.h"
 #include "../../core/task/mla_atomic.h"
+#include "../../core/mla_native_resource.h"
 #include <pthread.h>
 
 #define mla_task_manager_pthread_thread_name_max_length 16
+
+struct mla_task_manager_pthread_mutex_t {
+    pthread_mutex_t mutex;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        mla_task_manager_pthread_mutex_t* m = static_cast<mla_task_manager_pthread_mutex_t*>(data);
+        if (m) {
+            pthread_mutex_destroy(&m->mutex);
+        }
+    }
+};
 
 struct mla_task_manager_pthread_data_t {
     pthread_t thread;
     mla_user_data_t userData;
     mla_task_worker_t worker;
-    mla_task_shared_states* sharedStates;
-};
+    mla_pointer_t sharedStates;
 
-mla_buffer_cleanup_mode __mla_task_manager_pthread_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(data);
 
-    (void)userData; // Unused parameter
+        if (thread_data) {
+            // Stop the thread if it is still running
+            // Note: pthread_cancel is not a clean way to stop a thread. This is a forced stop.
+            if (thread_data->thread != 0) {
+                pthread_cancel(thread_data->thread);
+            }
 
-    mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(data);
+            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+            if (shared_states != nullptr) {
+                mla_atomic_exchange(shared_states->processingState, TASK_STATE_ABORTED);
+            }
 
-    if (thread_data) {
-        // Stop the thread if it is still running
-        // Note: pthread_cancel is not a clean way to stop a thread. This is a forced stop.
-        pthread_cancel(thread_data->thread);
-
-        // Dont set the sharedState this is already gone
-        //thread_data->sharedStates->processingState = TASK_STATE_ABORTED;
+            // Release the reference to shared states
+            thread_data->sharedStates = mla_pointer_null();
+        }
     }
-
-    return CLEAN_UP_NEEDED;
-}
+};
 
 mla_platform_pointer_t __mla_task_manager_pthread_worker(mla_platform_pointer_t payload) {
 
@@ -42,7 +56,11 @@ mla_platform_pointer_t __mla_task_manager_pthread_worker(mla_platform_pointer_t 
 
     if (thread_data) {
 
-        mla_task_shared_states* shared_states = thread_data->sharedStates;
+        mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+
+        if (shared_states == nullptr) {
+            return nullptr; // No shared states, nothing to do
+        }
 
         if (thread_data->worker == nullptr) {
             mla_atomic_exchange(shared_states->processingState, TASK_STATE_COMPLETED);
@@ -101,10 +119,11 @@ mla_bool_t mla_task_manager_pthread_create_task(
     mla_user_data_t& user_data,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
-    mla_buffer_reference_t* outTaskResourceOwner,
-    mla_task_shared_states* shared_states) {
+    mla_pointer_t& outTaskResourceOwner,
+    const mla_pointer_t& shared_states) {
 
-    mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_pthread_data_t)));
+    mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_data_t);
+    mla_task_manager_pthread_data_t* thread_data = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_data_t>(thread_data_ptr);
 
     if (thread_data == nullptr) {
         return false;
@@ -170,7 +189,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
 
     // No scressfull
     if (result != 0) {
-        mla_platform_free(thread_data);
+        outTaskResourceOwner = mla_pointer_null();
         return false;
     }
 
@@ -179,19 +198,21 @@ mla_bool_t mla_task_manager_pthread_create_task(
     pthread_setname_np(thread_data->thread, thread_name);
 
     // Return the thread handle through outTaskResourceOwner
-    *outTaskResourceOwner = mla_buffer_reference_create(thread_data, true, __mla_task_manager_pthread_cleanup, mla_dynamic_data_empty());
+    outTaskResourceOwner = thread_data_ptr;
 
     return true;
 
 }
 
-mla_bool_t mla_task_manager_pthread_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_pthread_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
-    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mla_platform_malloc(sizeof(pthread_mutex_t)));
+    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_pthread_mutex_t);
+    mla_task_manager_pthread_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutex_ptr);
+
     if (mutex == nullptr) {
         return false;
     }
-    mla_memset(mutex, 0, sizeof(pthread_mutex_t));
+    mla_memset(mutex, 0, sizeof(mla_task_manager_pthread_mutex_t));
 
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -201,26 +222,28 @@ mla_bool_t mla_task_manager_pthread_create_mutex(mla_platform_pointer_t* outMute
     }
 
     // Initialize the mutex
-    int result = pthread_mutex_init(mutex, &attr);
+    int result = pthread_mutex_init(&mutex->mutex, &attr);
 
     pthread_mutexattr_destroy(&attr);
 
     if (result != 0) {
-        mla_platform_free(mutex);
+        outMutex = mla_pointer_null();
         return false;
     }
 
-    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
+    outMutex = mutex_ptr;
     return true;
 
 }
 
-mla_bool_t mla_task_manager_pthread_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
+mla_bool_t mla_task_manager_pthread_lock_mutex(const mla_pointer_t& mutexResource, mla_int32_t timeoutms) {
 
-    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
+    mla_task_manager_pthread_mutex_t* m = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutexResource);
+    if (m == nullptr) {
         return false;
     }
+
+    pthread_mutex_t* mutex = &m->mutex;
 
     // 1. FAST PATH: Attempt to lock immediately without expensive time calculations
     if (pthread_mutex_trylock(mutex) == 0) {
@@ -253,25 +276,14 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(mla_platform_pointer_t mutexResou
     return pthread_mutex_timedlock(mutex, &timeout) == 0; // Lock the mutex with timeout
 }
 
-mla_bool_t mla_task_manager_pthread_unlock_mutex(mla_platform_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_pthread_unlock_mutex(const mla_pointer_t& mutexResource) {
 
-    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
+    mla_task_manager_pthread_mutex_t* m = mla_native_resource_struct_from_managed_pointer<mla_task_manager_pthread_mutex_t>(mutexResource);
+    if (m == nullptr) {
         return false;
     }
 
-    return pthread_mutex_unlock(mutex) == 0;
-}
-
-mla_bool_t mla_task_manager_pthread_destroy_mutex(mla_platform_pointer_t mutexResource) {
-
-    pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(mutexResource);
-
-    if (mutex == nullptr) {
-        return false;
-    }
-
-    return pthread_mutex_destroy(mutex) == 0;
+    return pthread_mutex_unlock(&m->mutex) == 0;
 }
 
 void mla_task_manager_pthread_run() {
@@ -319,53 +331,47 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
     return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
 }
 
-mla_bool_t mla_task_manager_pthread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
+void __mla_task_manager_pthread_destroy_task_local(const mla_native_resource_t& userData) {
+    pthread_key_delete((pthread_key_t)userData.asUint32);
+}
 
-    pthread_key_t* key = static_cast<pthread_key_t*>(mla_platform_malloc(sizeof(pthread_key_t)));
-    if (key == nullptr) {
-        return false;
-    }
+mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t& outTaskLocal) {
 
-    int result = pthread_key_create(key, nullptr);
+    pthread_key_t key;
+    int result = pthread_key_create(&key, nullptr);
     if (result != 0) {
-        mla_platform_free(key);
         return false;
     }
 
-    *outTaskLocal = static_cast<mla_platform_pointer_t>(key);
+    mla_native_resource_t resource = mla_dynamic_data_from_uint32((mla_uint32_t)key);
+    outTaskLocal = mla_native_resource_to_managed_pointer(resource, __mla_task_manager_pthread_destroy_task_local);
+
+    if (mla_pointer_is_null(outTaskLocal)) {
+        pthread_key_delete(key);
+        return false;
+    }
+
     return true;
 }
 
-mla_bool_t mla_task_manager_pthread_destroy_task_local(mla_platform_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_pthread_set_task_local(const mla_pointer_t& taskLocal, mla_platform_pointer_t value) {
 
-    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
-    if (key == nullptr) {
+    mla_native_resource_t* data = mla_native_resource_from_managed_pointer(taskLocal);
+    if (data == nullptr) {
         return false;
     }
 
-    mla_bool_t success = pthread_key_delete(*key) == 0;
-    mla_platform_free(key);
-    return success;
+    return pthread_setspecific((pthread_key_t)data->asUint32, value) == 0;
 }
 
-mla_bool_t mla_task_manager_pthread_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
+mla_platform_pointer_t mla_task_manager_pthread_get_task_local(const mla_pointer_t& taskLocal) {
 
-    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
-    if (key == nullptr) {
-        return false;
-    }
-
-    return pthread_setspecific(*key, value) == 0;
-}
-
-mla_platform_pointer_t mla_task_manager_pthread_get_task_local(mla_platform_pointer_t taskLocal) {
-
-    pthread_key_t* key = static_cast<pthread_key_t*>(taskLocal);
-    if (key == nullptr) {
+    mla_native_resource_t* data = mla_native_resource_from_managed_pointer(taskLocal);
+    if (data == nullptr) {
         return nullptr;
     }
 
-    return pthread_getspecific(*key);
+    return pthread_getspecific((pthread_key_t)data->asUint32);
 }
 
 mla_task_manager_low_level_access g_task_low_level_access = {
@@ -374,10 +380,8 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_pthread_create_mutex,
     mla_task_manager_pthread_lock_mutex,
     mla_task_manager_pthread_unlock_mutex,
-    mla_task_manager_pthread_destroy_mutex,
     mla_task_manager_pthread_multi_task_mode,
     mla_task_manager_pthread_create_task_local,
-    mla_task_manager_pthread_destroy_task_local,
     mla_task_manager_pthread_set_task_local,
     mla_task_manager_pthread_get_task_local,
     mla_task_manager_pthread_atomic_int32_increment,

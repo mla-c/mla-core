@@ -10,6 +10,7 @@
 // It supported by all platforms and is the default implementation.
 
 #include "../../core/task/mla_task_manager.h"
+#include "../../core/mla_native_resource.h"
 
 // Provide by the task manager implementation file.
 extern mla_task_manager_t g_TaskManager;
@@ -20,8 +21,8 @@ mla_bool_t mla_task_manager_single_thread_create_task(
     mla_user_data_t& userData,
     const mla_task_stack_size stackSize,
     const mla_task_priority priority,
-    mla_buffer_reference_t* outTaskResourceOwner,
-    mla_task_shared_states* shared_states
+    mla_pointer_t& outTaskResourceOwner,
+    const mla_pointer_t& shared_states
 ) {
     (void)worker; // Silences the unused parameter warning
     (void)taskName; // Silences the unused parameter warning
@@ -42,16 +43,22 @@ mla_bool_t mla_task_manager_single_thread_create_task(
 // an resource should never be locked twice in single-threaded mode, but we handle it gracefully.
 struct mla_task_manager_single_thread_mutex {
     mla_volatile mla_bool_t locked;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        // No OS resources to release
+        (void)data;
+    }
 };
 
-mla_bool_t mla_task_manager_single_thread_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
     if (supports_recursive_locking) {
-        // If recursive locking is supported, we can just return a dummy mutex that is always unlocked.
+        // If recursive locking is supported, we can just return a null pointer (always unlocked).
         return true;
     }
 
-    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mla_platform_malloc(sizeof(mla_task_manager_single_thread_mutex)));
+    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_mutex);
+    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
@@ -59,19 +66,23 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_platform_pointer_t* o
     mla_memset(mutex, 0, sizeof(mla_task_manager_single_thread_mutex));
 
     mutex->locked = false;
-    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
+    outMutex = mutex_ptr;
 
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeout) {
+mla_bool_t mla_task_manager_single_thread_lock_mutex(const mla_pointer_t& mutexResource, mla_int32_t timeout) {
 
     (void)timeout; // Silences the unused parameter warning
 
-    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
+    if (mla_pointer_is_null(mutexResource)) {
+        // If the mutex is null, we return true because we support recursive locking and this is a dummy mutex that is always unlocked.
+        return true;
+    }
+
+    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutexResource);
 
     if (mutex == nullptr) {
-        // If the mutex is null, we return true because we support recursive locking and this is a dummy mutex that is always unlocked.
         return true;
     }
 
@@ -85,9 +96,13 @@ mla_bool_t mla_task_manager_single_thread_lock_mutex(mla_platform_pointer_t mute
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_platform_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_single_thread_unlock_mutex(const mla_pointer_t& mutexResource) {
 
-    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
+    if (mla_pointer_is_null(mutexResource)) {
+        return true;
+    }
+
+    mla_task_manager_single_thread_mutex* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_mutex>(mutexResource);
 
     if (mutex == nullptr) {
         return true;
@@ -101,19 +116,6 @@ mla_bool_t mla_task_manager_single_thread_unlock_mutex(mla_platform_pointer_t mu
 
     mutex->locked = false;
     return true;
-}
-
-mla_bool_t mla_task_manager_single_thread_destroy_mutex(mla_platform_pointer_t mutexResource) {
-
-    mla_task_manager_single_thread_mutex* mutex = static_cast<mla_task_manager_single_thread_mutex*>(mutexResource);
-
-    if (mutex == nullptr) {
-        return true;
-    }
-
-    mla_platform_free(mutex);
-    return true;
-
 }
 
 
@@ -143,29 +145,31 @@ mla_uint32_t mla_task_manager_single_thread_run_with_prio(mla_task_priority prio
         // Check if the task matches the priority and is not completed
         if (task->priority == priority) {
 
-            mla_task_shared_states* shared_states = task->sharedStates;
+            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(task->sharedStates);
 
-            if (shared_states->processingState.value == TASK_STATE_ABORTING) {
-                shared_states->processingState.value = TASK_STATE_ABORTED;
-            } else if (!mla_task_is_done(shared_states->processingState.value)) {
+            if (shared_states != nullptr) {
+                if (shared_states->processingState.value == TASK_STATE_ABORTING) {
+                    shared_states->processingState.value = TASK_STATE_ABORTED;
+                } else if (!mla_task_is_done(shared_states->processingState.value)) {
 
-                shared_states->processingState.value = TASK_STATE_RUNNING;
+                    shared_states->processingState.value = TASK_STATE_RUNNING;
 
-                if (task->worker != nullptr) {
+                    if (task->worker != nullptr) {
 
-                    mla_task_process_result_state result_state = task->worker(task->userData);
+                        mla_task_process_result_state result_state = task->worker(task->userData);
 
-                    if (result_state == TASK_PROCESS_RESULT_DONE) {
+                        if (result_state == TASK_PROCESS_RESULT_DONE) {
+                            shared_states->processingState.value = TASK_STATE_COMPLETED;
+                        }
+
+                    } else {
+                        // If the worker is null, we just mark it as completed.
                         shared_states->processingState.value = TASK_STATE_COMPLETED;
                     }
 
-                } else {
-                    // If the worker is null, we just mark it as completed.
-                    shared_states->processingState.value = TASK_STATE_COMPLETED;
+                    processedTaskCount++;
+
                 }
-
-                processedTaskCount++;
-
             }
 
         }
@@ -237,11 +241,17 @@ mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atom
 
 struct mla_task_manager_single_thread_task_local {
     mla_platform_pointer_t value;
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+        // No OS resources to release
+        (void)data;
+    }
 };
 
-mla_bool_t mla_task_manager_single_thread_create_task_local(mla_platform_pointer_t* outTaskLocal) {
+mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t& outTaskLocal) {
 
-    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(mla_platform_malloc(sizeof(mla_task_manager_single_thread_task_local)));
+    mla_pointer_t local_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_task_local);
+    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(local_ptr);
 
     if (local == nullptr) {
         return false;
@@ -249,26 +259,14 @@ mla_bool_t mla_task_manager_single_thread_create_task_local(mla_platform_pointer
     mla_memset(local, 0, sizeof(mla_task_manager_single_thread_task_local));
 
     local->value = nullptr;
-    *outTaskLocal = static_cast<mla_platform_pointer_t>(local);
+    outTaskLocal = local_ptr;
 
     return true;
 }
 
-mla_bool_t mla_task_manager_single_thread_destroy_task_local(mla_platform_pointer_t taskLocal) {
+mla_bool_t mla_task_manager_single_thread_set_task_local(const mla_pointer_t& taskLocal, mla_platform_pointer_t value) {
 
-    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
-
-    if (local == nullptr) {
-        return true;
-    }
-
-    mla_platform_free(local);
-    return true;
-}
-
-mla_bool_t mla_task_manager_single_thread_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
-
-    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
+    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(taskLocal);
 
     if (local == nullptr) {
         return false;
@@ -278,9 +276,9 @@ mla_bool_t mla_task_manager_single_thread_set_task_local(mla_platform_pointer_t 
     return true;
 }
 
-mla_platform_pointer_t mla_task_manager_single_thread_get_task_local(mla_platform_pointer_t taskLocal) {
+mla_platform_pointer_t mla_task_manager_single_thread_get_task_local(const mla_pointer_t& taskLocal) {
 
-    mla_task_manager_single_thread_task_local* local = static_cast<mla_task_manager_single_thread_task_local*>(taskLocal);
+    mla_task_manager_single_thread_task_local* local = mla_native_resource_struct_from_managed_pointer<mla_task_manager_single_thread_task_local>(taskLocal);
 
     if (local == nullptr) {
         return nullptr;
@@ -295,10 +293,8 @@ mla_task_manager_low_level_access g_task_low_level_access = {
     mla_task_manager_single_thread_create_mutex,
     mla_task_manager_single_thread_lock_mutex,
     mla_task_manager_single_thread_unlock_mutex,
-    mla_task_manager_single_thread_destroy_mutex,
     mla_task_manager_single_thread_multi_task_mode,
     mla_task_manager_single_thread_create_task_local,
-    mla_task_manager_single_thread_destroy_task_local,
     mla_task_manager_single_thread_set_task_local,
     mla_task_manager_single_thread_get_task_local,
     mla_task_manager_single_thread_atomic_int32_increment,
