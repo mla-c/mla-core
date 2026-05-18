@@ -12,7 +12,7 @@
 void TaskLocalCreateTest() {
     mla_task_local_t local = mla_task_local_create();
 
-    assert_not_null(local.resource, "Task local resource should not be null after creation");
+    assert_false(mla_pointer_is_null(local.resource), "Task local resource should not be null after creation");
 }
 
 void TaskLocalSetGetTest() {
@@ -62,7 +62,7 @@ void TaskLocalNullDefaultTest() {
 void TaskLocalInvalidTest() {
     mla_task_local_t local = mla_task_local_invalid();
 
-    assert_null(local.resource, "Invalid task local resource should be null");
+    assert_true(mla_pointer_is_null(local.resource), "Invalid task local resource should be null");
     assert_false(mla_task_local_set(local, nullptr), "Set on invalid task local should fail");
     assert_null(mla_task_local_get(local), "Get on invalid task local should return null");
 }

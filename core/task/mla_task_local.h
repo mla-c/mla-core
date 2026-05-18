@@ -10,8 +10,7 @@
 #include "mla_task_manager_data_types.h"
 
 struct mla_task_local_t {
-    mla_platform_pointer_t resource; // Pointer to the task local resource
-    mla_buffer_reference_t resourceOwner; // Resource owner for the task local
+    mla_pointer_t resource; // Pointer to the task local resource
 };
 
 mla_task_local_t mla_task_local_invalid();

@@ -310,54 +310,56 @@ mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
     return MULTI_TASK_MODE_NATIVE;
 }
 
-mla_bool_t mla_task_manager_windows_native_create_task_local(mla_platform_pointer_t* outTaskLocal) {
+void __mla_task_manager_windows_native_destroy_task_local(const mla_native_resource_t& userData) {
+
+    mla_bool_t success = FlsFree(userData.asUint32) != 0;
+
+     if (!success) {
+         mla_error("Failed to free FLS index for task local storage");
+     }
+}
+
+mla_bool_t mla_task_manager_windows_native_create_task_local(mla_pointer_t& outTaskLocal) {
 
     DWORD flsIndex = FlsAlloc(nullptr);
     if (flsIndex == FLS_OUT_OF_INDEXES) {
         return false;
     }
 
-    DWORD* index = static_cast<DWORD*>(mla_platform_malloc(sizeof(DWORD)));
-    if (index == nullptr) {
+    mla_native_resource_t resource = mla_dynamic_data_from_uint32(flsIndex);
+
+    outTaskLocal = mla_native_resource_to_managed_pointer(resource, __mla_task_manager_windows_native_destroy_task_local);
+
+    if (mla_pointer_is_null(outTaskLocal)) {
         FlsFree(flsIndex);
         return false;
     }
 
-    *index = flsIndex;
-    *outTaskLocal = static_cast<mla_platform_pointer_t>(index);
-    return true;
+    return false;
+
 }
 
-mla_bool_t mla_task_manager_windows_native_destroy_task_local(mla_platform_pointer_t taskLocal) {
 
-    DWORD* index = static_cast<DWORD*>(taskLocal);
-    if (index == nullptr) {
+mla_bool_t mla_task_manager_windows_native_set_task_local(const mla_pointer_t& resource, mla_platform_pointer_t value) {
+
+    mla_native_resource_t* data = mla_native_resource_from_managed_pointer(resource);
+
+    if (data == nullptr) {
         return false;
     }
 
-    mla_bool_t success = FlsFree(*index) != 0;
-    mla_platform_free(index);
-    return success;
+    return FlsSetValue(data->asUint32, value) != 0;
 }
 
-mla_bool_t mla_task_manager_windows_native_set_task_local(mla_platform_pointer_t taskLocal, mla_platform_pointer_t value) {
+mla_platform_pointer_t mla_task_manager_windows_native_get_task_local(const mla_pointer_t& resource) {
 
-    DWORD* index = static_cast<DWORD*>(taskLocal);
-    if (index == nullptr) {
-        return false;
-    }
+    mla_native_resource_t* data = mla_native_resource_from_managed_pointer(resource);
 
-    return FlsSetValue(*index, value) != 0;
-}
-
-mla_platform_pointer_t mla_task_manager_windows_native_get_task_local(mla_platform_pointer_t taskLocal) {
-
-    DWORD* index = static_cast<DWORD*>(taskLocal);
-    if (index == nullptr) {
+    if (data == nullptr) {
         return nullptr;
     }
 
-    return FlsGetValue(*index);
+    return FlsGetValue(data->asUint32);
 }
 
 mla_task_manager_low_level_access g_task_low_level_access = {
@@ -368,7 +370,6 @@ mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_unlock_mutex,
         mla_task_manager_windows_multi_task_mode,
         mla_task_manager_windows_native_create_task_local,
-        mla_task_manager_windows_native_destroy_task_local,
         mla_task_manager_windows_native_set_task_local,
         mla_task_manager_windows_native_get_task_local,
         mla_task_manager_windows_atomic_int32_increment,

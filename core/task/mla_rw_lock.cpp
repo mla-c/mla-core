@@ -8,14 +8,15 @@ mla_rw_lock_t mla_rw_lock_invalid() {
     return {
         mla_mutex_invalid(),
         mla_mutex_invalid(),
-        nullptr,
-        mla_buffer_reference_noOwner()
+        mla_pointer_null()
     };
 }
 
 mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive) {
 
-    mla_rw_lock_state_t* state_info = static_cast<mla_rw_lock_state_t*>(mla_platform_malloc(sizeof(mla_rw_lock_state_t)));
+    mla_pointer_t state_info_ptr = mla_malloc_struct(mla_rw_lock_state_t);
+
+    mla_rw_lock_state_t* state_info = mla_pointer_get_data<mla_rw_lock_state_t>(state_info_ptr);
 
     if (state_info == nullptr)
         return mla_rw_lock_invalid();
@@ -25,8 +26,7 @@ mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive
     mla_rw_lock_t lock = {
         mla_mutex(mla_string_concat(name, " writer lock"), support_recursive),
         mla_mutex(mla_string_concat(name, " reader lock"), support_recursive),
-        state_info,
-        mla_buffer_reference(state_info)
+        state_info_ptr
     };
     return lock;
 }
@@ -42,13 +42,15 @@ mla_bool_t mla_rw_lock_try_read(mla_rw_lock_t &lock, mla_int32_t timeout, const 
     // Lock the readers
     if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
-        if (lock.state == nullptr) {
+        mla_rw_lock_state_t* state_info = mla_pointer_get_data<mla_rw_lock_state_t>(lock.state_ptr);
+
+        if (state_info == nullptr) {
             mla_mutex_try_unlock(lock.readerLock, source, line);
             mla_mutex_try_unlock(lock.writerLock, source, line); // Unlock the mutex after incrementing the reader count
             return false;
         }
 
-        lock.state->readerCount++;
+        state_info->readerCount++;
         mla_mutex_try_unlock(lock.readerLock, source, line);
         successfull = true; // Successfully acquired the read lock
     }
@@ -64,14 +66,16 @@ mla_bool_t mla_rw_lock_try_unlock_read(mla_rw_lock_t &lock, mla_int32_t timeout,
 
     if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
-        if (lock.state == nullptr) {
+        mla_rw_lock_state_t* state_info = mla_pointer_get_data<mla_rw_lock_state_t>(lock.state_ptr);
+
+        if (state_info == nullptr) {
             mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
             // Was never locked
             return true;
         }
 
-        if (lock.state->readerCount > 0) {
-            lock.state->readerCount--;
+        if (state_info->readerCount > 0) {
+            state_info->readerCount--;
             successfull = true; // Successfully unlocked the read lock
         } else {
             mla_error(mla_string_concat("Try to unlock reader by no read active ", lock.readerLock.name));
@@ -95,14 +99,16 @@ mla_bool_t mla_rw_lock_try_write(mla_rw_lock_t &lock, mla_int32_t timeout, const
 
         if (mla_mutex_try_lock(lock.readerLock, timeout, false, source, line)) {
 
-            if (lock.state == nullptr) {
+            mla_rw_lock_state_t* state_info = mla_pointer_get_data<mla_rw_lock_state_t>(lock.state_ptr);
+
+            if (state_info == nullptr) {
                 mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
                 mla_mutex_try_unlock(lock.writerLock, source, line); // Unlock the reader lock
                 // Was never locked
                 return false;
             }
 
-            if (lock.state->readerCount > 0) {
+            if (state_info->readerCount > 0) {
                 // If there are active readers, we need to wait
                 mla_mutex_try_unlock(lock.readerLock, source, line); // Unlock the reader lock
 

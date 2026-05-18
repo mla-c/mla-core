@@ -9,13 +9,16 @@
 
 struct mla_rw_lock_state_t {
     mla_int32_t readerCount; // Count of active readers
+
+    static mla_rw_lock_state_t init() {
+        return {0};
+    }
 };
 
 struct mla_rw_lock_t {
     mla_mutex_t writerLock; // Mutex for writer access
     mla_mutex_t readerLock; // Mutex for reader access
-    mla_rw_lock_state_t* state; // Pointer to the lock state
-    mla_buffer_reference_t stateOwner;
+    mla_pointer_t state_ptr; // Pointer to the lock state (mla_rw_lock_state_t)
 };
 
 mla_rw_lock_t mla_rw_lock_invalid();
