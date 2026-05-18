@@ -21,26 +21,30 @@ struct __linux_external_task_native_resource_t {
     mla_int32_t stdin_write_fd;
     mla_int32_t stdout_read_fd;
 
-    static void clean_up_resource(__linux_external_task_native_resource_t* self) {
+    static __linux_external_task_native_resource_t init() {
+        return {
+            -1, // pid
+            -1, // stdin_write_fd
+            -1  // stdout_read_fd
+        };
+    }
 
-        if (self == nullptr) {
-            return;
+    static void clean_up_resource(__linux_external_task_native_resource_t& self) {
+
+        if (self.stdin_write_fd >= 0) {
+            close(self.stdin_write_fd);
+            self.stdin_write_fd = -1;
         }
 
-        if (self->stdin_write_fd >= 0) {
-            close(self->stdin_write_fd);
-            self->stdin_write_fd = -1;
+        if (self.stdout_read_fd >= 0) {
+            close(self.stdout_read_fd);
+            self.stdout_read_fd = -1;
         }
 
-        if (self->stdout_read_fd >= 0) {
-            close(self->stdout_read_fd);
-            self->stdout_read_fd = -1;
-        }
-
-        if (self->pid > 0) {
-            kill(self->pid, SIGTERM);
-            waitpid(self->pid, nullptr, 0);
-            self->pid = -1;
+        if (self.pid > 0) {
+            kill(self.pid, SIGTERM);
+            waitpid(self.pid, nullptr, 0);
+            self.pid = -1;
         }
     }
 };
@@ -173,7 +177,7 @@ mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource
         return false;
     }
 
-    p_OutTaskResource = mla_malloc_native_resource_struct(__linux_external_task_native_resource_t);
+    p_OutTaskResource = mla_malloc_struct_cleanup_extension(__linux_external_task_native_resource_t);
     __linux_external_task_native_resource_t* processData = mla_pointer_get_data<__linux_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {
