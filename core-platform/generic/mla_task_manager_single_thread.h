@@ -44,9 +44,8 @@ mla_bool_t mla_task_manager_single_thread_create_task(
 struct mla_task_manager_single_thread_mutex {
     mla_volatile mla_bool_t locked;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
-        // No OS resources to release
-        (void)data;
+    static mla_task_manager_single_thread_mutex init() {
+        return { false };
     }
 };
 
@@ -57,7 +56,7 @@ mla_bool_t mla_task_manager_single_thread_create_mutex(mla_pointer_t& outMutex, 
         return true;
     }
 
-    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_mutex);
+    mla_pointer_t mutex_ptr = mla_malloc_struct(mla_task_manager_single_thread_mutex);
     mla_task_manager_single_thread_mutex* mutex = mla_pointer_get_data<mla_task_manager_single_thread_mutex>(mutex_ptr);
 
     if (mutex == nullptr) {
@@ -242,15 +241,14 @@ mla_bool_t mla_task_manager_single_thread_atomic_int32_compare_exchange(mla_atom
 struct mla_task_manager_single_thread_task_local {
     mla_platform_pointer_t value;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
-        // No OS resources to release
-        (void)data;
+    static mla_task_manager_single_thread_task_local init() {
+        return { nullptr };
     }
 };
 
 mla_bool_t mla_task_manager_single_thread_create_task_local(mla_pointer_t& outTaskLocal) {
 
-    mla_pointer_t local_ptr = mla_malloc_native_resource_struct(mla_task_manager_single_thread_task_local);
+    mla_pointer_t local_ptr = mla_malloc_struct(mla_task_manager_single_thread_task_local);
     mla_task_manager_single_thread_task_local* local = mla_pointer_get_data<mla_task_manager_single_thread_task_local>(local_ptr);
 
     if (local == nullptr) {

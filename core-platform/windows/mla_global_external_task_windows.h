@@ -17,38 +17,44 @@ struct __windows_external_task_native_resource_t {
     HANDLE stdin_write_handle;
     HANDLE stdout_read_handle;
 
-    static void clean_up_resource(__windows_external_task_native_resource_t* self) {
+    static __windows_external_task_native_resource_t init() {
+        return {
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr
+        };
+    }
 
-        if (self == nullptr) {
-            return;
+    static void clean_up_resource(__windows_external_task_native_resource_t& self) {
+
+
+        if (self.stdin_write_handle != nullptr) {
+            CloseHandle(self.stdin_write_handle);
+            self.stdin_write_handle = nullptr;
         }
 
-        if (self->stdin_write_handle != nullptr) {
-            CloseHandle(self->stdin_write_handle);
-            self->stdin_write_handle = nullptr;
+        if (self.stdout_read_handle != nullptr) {
+            CloseHandle(self.stdout_read_handle);
+            self.stdout_read_handle = nullptr;
         }
 
-        if (self->stdout_read_handle != nullptr) {
-            CloseHandle(self->stdout_read_handle);
-            self->stdout_read_handle = nullptr;
-        }
-
-        if (self->process_handle != nullptr) {
+        if (self.process_handle != nullptr) {
             DWORD exitCode = 0;
-            if (GetExitCodeProcess(self->process_handle, &exitCode) && exitCode == STILL_ACTIVE) {
-                TerminateProcess(self->process_handle, 1);
-                WaitForSingleObject(self->process_handle, INFINITE);
+            if (GetExitCodeProcess(self.process_handle, &exitCode) && exitCode == STILL_ACTIVE) {
+                TerminateProcess(self.process_handle, 1);
+                WaitForSingleObject(self.process_handle, INFINITE);
             }
         }
 
-        if (self->thread_handle != nullptr) {
-            CloseHandle(self->thread_handle);
-            self->thread_handle = nullptr;
+        if (self.thread_handle != nullptr) {
+            CloseHandle(self.thread_handle);
+            self.thread_handle = nullptr;
         }
 
-        if (self->process_handle != nullptr) {
-            CloseHandle(self->process_handle);
-            self->process_handle = nullptr;
+        if (self.process_handle != nullptr) {
+            CloseHandle(self.process_handle);
+            self.process_handle = nullptr;
         }
     }
 };
@@ -200,7 +206,8 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
         return false;
     }
 
-    p_OutTaskResource = mla_malloc_native_resource_struct(__windows_external_task_native_resource_t);
+    p_OutTaskResource = mla_malloc_struct_cleanup_extension(__windows_external_task_native_resource_t);
+
     __windows_external_task_native_resource_t* processData = mla_pointer_get_data<__windows_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {

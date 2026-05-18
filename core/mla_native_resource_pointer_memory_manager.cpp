@@ -7,7 +7,6 @@
 
 enum mla_native_resource_type: mla_uint8_t {
     MLA_NATIVE_RESOURCE_TYPE_NORMAL = 0,
-    MLA_NATIVE_RESOURCE_TYPE_STRUCT = 1
 };
 
 struct mla_native_resource_item_normal {
@@ -15,9 +14,6 @@ struct mla_native_resource_item_normal {
     mla_native_resource_t native_resource;
 };
 
-struct mla_native_resource_item_struct {
-    mla_native_resource_buffer_clean_up_hook_t cleanupHook;
-};
 
 struct mla_native_resource_item_t {
     mla_atomic_int32_t refCount;
@@ -25,7 +21,6 @@ struct mla_native_resource_item_t {
 
     union {
         mla_native_resource_item_normal normal;
-        mla_native_resource_item_struct structData;
     };
 };
 
@@ -55,10 +50,6 @@ mla_platform_pointer_t __mla_native_resource_pointer_memory_manager_get_platform
 
     if (item == nullptr) {
         return nullptr;
-    }
-
-    if (item->type == MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
-        return __native_resource_pointer_memory_manager_get_struct_data(*item);
     }
 
     if (item->type == MLA_NATIVE_RESOURCE_TYPE_NORMAL) {
@@ -103,14 +94,6 @@ void __mla_native_resource_pointer_memory_manager_decReferences(mla_pointer_memo
             // Call the cleanup hook if it is set
             if (item->normal.cleanupHook != nullptr) {
                 item->normal.cleanupHook(item->normal.native_resource);
-            }
-
-        } else if (item->type == MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
-
-            // Call the cleanup hook if it is set
-            if (item->structData.cleanupHook != nullptr) {
-                mla_platform_pointer_t struct_data = __native_resource_pointer_memory_manager_get_struct_data(*item);
-                item->structData.cleanupHook(struct_data);
             }
 
         }
@@ -186,27 +169,4 @@ mla_native_resource_t mla_native_resource_empty() {
     mla_native_resource_t data = {};
     data.asInt64 = 0;
     return data;
-}
-
-mla_pointer_t mla_malloc_native_resource_buffer(mla_size_t size, mla_native_resource_buffer_clean_up_hook_t clean_up_hook) {
-
-    if (size == 0) {
-        return mla_pointer_null();
-    }
-
-    mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(mla_platform_malloc(sizeof(mla_native_resource_item_t) + size));
-
-    if (item == nullptr) {
-        return mla_pointer_null();
-    }
-
-    mla_memset(item, 0, sizeof(mla_native_resource_item_t) + size);
-    item->type = MLA_NATIVE_RESOURCE_TYPE_STRUCT;
-    item->structData.cleanupHook = clean_up_hook;
-    return {
-        mla_dynamic_data_from_pointer(item),
-        &g_mla_native_resource_pointer_memory_manager
-    };
-
-
 }

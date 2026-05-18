@@ -40,27 +40,28 @@ struct mla_task_manager_windows_native_data_t {
     mla_task_worker_t worker;
     mla_pointer_t sharedStates; //mla_task_shared_states*;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
+    static mla_task_manager_windows_native_data_t init() {
+        return {
+            nullptr, // hThread
+            mla_user_data_empty(),
+            nullptr, // worker
+            mla_pointer_null() // sharedStates
+        };
+    }
 
-        mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(data);
+    static void clean_up_resource(mla_task_manager_windows_native_data_t& thread_data) {
 
-        if (thread_data) {
-            // Stop the thread if it is still running
-            if (thread_data->hThread != nullptr) {
-                TerminateThread(thread_data->hThread, 0);
-                CloseHandle(thread_data->hThread);
-            }
+        // Stop the thread if it is still running
+        if (thread_data.hThread != nullptr) {
+            TerminateThread(thread_data.hThread, 0);
+            CloseHandle(thread_data.hThread);
+        }
 
-            mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
+        mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data.sharedStates);
 
-            if (shared_states != nullptr) {
-                // Set the shared state to aborted if the thread is still running
-                mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_ABORTED);
-            }
-
-            // Reset the ref counter
-            thread_data->sharedStates = mla_pointer_null();
-
+        if (shared_states != nullptr) {
+            // Set the shared state to aborted if the thread is still running
+            mla_task_manager_windows_atomic_int32_exchange(shared_states->processingState, TASK_STATE_ABORTED);
         }
 
      }
@@ -150,7 +151,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
         mla_pointer_t& outTaskResourceOwner,
         const mla_pointer_t& shared_states) {
 
-    mla_pointer_t thread_data_ptr = mla_malloc_native_resource_struct(mla_task_manager_windows_native_data_t);
+    mla_pointer_t thread_data_ptr = mla_malloc_struct_cleanup_extension(mla_task_manager_windows_native_data_t);
 
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_data_t)));
 
@@ -216,16 +217,23 @@ struct mla_task_manager_windows_native_mutex_t {
     mla_bool_t locked; // already locked by the current thread
     mla_bool_t supports_recursive_locking; // whether the mutex supports recursive locking
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
+    static void clean_up_resource(mla_task_manager_windows_native_mutex_t& mutex) {
 
-        mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(data);
-        DeleteCriticalSection(&mutex->section); // Delete the critical section
+        DeleteCriticalSection(&mutex.section); // Delete the critical section
+    }
+
+    static mla_task_manager_windows_native_mutex_t init() {
+        return {
+            {}, // section will be initialized in create_mutex
+            false, // locked
+            false // supports_recursive_locking
+        };
     }
 };
 
 mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
-    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_windows_native_mutex_t);
+    mla_pointer_t mutex_ptr = mla_malloc_struct_cleanup_extension(mla_task_manager_windows_native_mutex_t);
 
     mla_task_manager_windows_native_mutex_t* mutex = mla_pointer_get_data<mla_task_manager_windows_native_mutex_t>(mutex_ptr);
 

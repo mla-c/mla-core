@@ -365,6 +365,9 @@ mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struc
 #define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
 #define mla_malloc_struct_cleanup_hook(T, clean_up_hook) mla_malloc_struct_cleanup_hook_with_manager(g_pointer_memory_manager_instance.current, T, clean_up_hook)
 
+#define mla_malloc_struct_cleanup_extension_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(T::clean_up_resource))
+#define mla_malloc_struct_cleanup_extension(T) mla_malloc_struct_cleanup_extension_with_manager(g_pointer_memory_manager_instance.current, T)
+
 /**
  * Create a mla_pointer_t from an external pointer. The memory manager will not take ownership of the pointer and will not attempt to free it.
  **/

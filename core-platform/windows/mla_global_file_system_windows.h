@@ -15,12 +15,10 @@
 struct mla_file_system_native_t {
     mla_string_t basePath;
 
-    static void clean_up_resource(mla_platform_pointer_t data) {
-        mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(data);
-
-        if (fs) {
-            fs->basePath = mla_string_empty();
-        }
+    static mla_file_system_native_t init() {
+        return {
+            mla_string_empty()
+        };
     }
 };
 
@@ -485,7 +483,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
 
 mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
 
-    mla_pointer_t fs_ptr = mla_malloc_native_resource_struct(mla_file_system_native_t);
+    mla_pointer_t fs_ptr = mla_malloc_struct(mla_file_system_native_t);
 
     mla_file_system_native_t* fs = mla_pointer_get_data<mla_file_system_native_t>(fs_ptr);
 
