@@ -241,6 +241,12 @@ mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_inval
 
 struct mla_http_server_internal_resource_cleanup_userdata {
     mla_array_list_t<mla_string_t, mla_string_initializer> active_tasks;
+
+    static mla_http_server_internal_resource_cleanup_userdata init() {
+        return {
+            mla_array_list_empty<mla_string_t, mla_string_initializer>()
+        };
+    }
 };
 
 mla_http_server_t mla_http_server_invalid() {
@@ -252,7 +258,7 @@ mla_http_server_t mla_http_server_invalid() {
         mla_network_host_invalid(),
         mla_network_listener_invalid(),
         mla_mutex_invalid(),
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
         MLA_HTTP_SERVER_STATUS_STOPPED,
         0
     };
@@ -269,7 +275,7 @@ mla_http_server_t mla_http_server(const mla_network_host_t &host) {
         mla_network_listener_invalid(),
         mla_mutex(mla_string_concat("HttpServerListenerLock_", host.address.address, ":",
                                     mla_string_from_uint16(host.port)), true),
-        mla_buffer_reference_noOwner(),
+        mla_pointer_null(),
         MLA_HTTP_SERVER_STATUS_STOPPED,
         mla_global_config_default_http_timeout_ms
     };
@@ -873,14 +879,10 @@ mla_task_process_result_state __mla_http_server_handler_task(mla_user_data_t& us
     return __mla_http_server_handler_websocket_messages(userData);
 }
 
-mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
-    (void) userData;
+void __mla_http_server_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata& cleanup_userdata) {
 
-    mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = static_cast<
-        mla_http_server_internal_resource_cleanup_userdata *>(data);
-
-    for (mla_size_t i = 0; i < mla_array_list_size(cleanup_userdata->active_tasks); ++i) {
-        mla_string_t &task_name = mla_array_list_get_unsafe(cleanup_userdata->active_tasks, i);
+    for (mla_size_t i = 0; i < mla_array_list_size(cleanup_userdata.active_tasks); ++i) {
+        mla_string_t &task_name = mla_array_list_get_unsafe(cleanup_userdata.active_tasks, i);
         if (!mla_task_manager_abort_task(task_name)) {
             mla_warning(mla_string_concat("Failed to abort HTTP server task ", task_name));
         }
@@ -888,10 +890,7 @@ mla_buffer_cleanup_mode __mla_http_server_cleanup_hook(mla_platform_pointer_t da
 
     mla_sleep(100); // Give some time for tasks to abort
 
-    // Free active tasks list
-    cleanup_userdata->active_tasks = mla_array_list_empty<mla_string_t, mla_string_initializer>();
 
-    return CLEAN_UP_NEEDED;
 }
 
 mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_of_tasks, mla_task_stack_size task_stack_size) {
@@ -928,9 +927,10 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
     }
 
     server.status = MLA_HTTP_SERVER_STATUS_RUNNING;
-    mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = static_cast<
-        mla_http_server_internal_resource_cleanup_userdata *>(mla_platform_malloc(
-        sizeof(mla_http_server_internal_resource_cleanup_userdata)));
+
+    server.serverOwner = mla_malloc_struct_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata, __mla_http_server_cleanup_hook);
+
+    mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = mla_pointer_get_data<mla_http_server_internal_resource_cleanup_userdata>(server.serverOwner);
 
     if (cleanup_userdata == nullptr) {
         server.status = MLA_HTTP_SERVER_STATUS_ERROR;
@@ -941,8 +941,6 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 
     mla_memset(cleanup_userdata, 0, sizeof(mla_http_server_internal_resource_cleanup_userdata));
     cleanup_userdata->active_tasks = mla_array_list_empty<mla_string_t, mla_string_initializer>();
-
-    server.serverOwner = mla_buffer_reference_create(cleanup_userdata, true, __mla_http_server_cleanup_hook, mla_dynamic_data_empty());
 
     mla_string_t runtime_id = mla_generate_runtime_id();
 
@@ -967,7 +965,7 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
         if (!mla_task_manager_register_task(http_task)) {
             server.status = MLA_HTTP_SERVER_STATUS_ERROR;
             mla_mutex_unlock(server.listenerLock);
-            server.serverOwner = mla_buffer_reference_noOwner();
+            server.serverOwner = mla_pointer_null();
             mla_error(mla_string_concat("Failed to register HTTP server task ", http_task.name));
             return false;
         }
@@ -1039,7 +1037,7 @@ mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
     server.status = MLA_HTTP_SERVER_STATUS_STOPPED;
     mla_mutex_unlock(server.listenerLock);
     mla_rw_unlock_write(server.websocketConnectionsLock);
-    server.serverOwner = mla_buffer_reference_noOwner();
+    server.serverOwner = mla_pointer_null();
 
     mla_info(
         mla_string_concat("HTTP server stopped on ", server.host.address.address, ":", mla_string_from_uint16(server.

@@ -128,7 +128,7 @@ struct mla_http_server_t {
     mla_network_host_t host;
     mla_network_listener_t listener;
     mla_mutex_t listenerLock;
-    mla_buffer_reference_t serverOwner;
+    mla_pointer_t serverOwner;
     mla_http_server_status_t status;
     mla_int32_t timeout_ms;
 };

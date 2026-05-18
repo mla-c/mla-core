@@ -334,7 +334,7 @@ void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_d
 
 
 template <typename T>
-using mla_malloc_struct_ex_clean_up_hook_t = void(*)(const T& userData);
+using mla_malloc_struct_ex_clean_up_hook_t = void(*)(T& userData);
 
 template <typename T>
 void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {

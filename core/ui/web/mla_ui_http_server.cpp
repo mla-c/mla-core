@@ -339,7 +339,7 @@ mla_task_process_result_state __mla_ui_http_server_web_surface_render_and_draw_t
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
-void __mla_ui_http_server_web_surface_cleanup(const mla_ui_http_server_web_surface_data_t& data) {
+void __mla_ui_http_server_web_surface_cleanup(mla_ui_http_server_web_surface_data_t& data) {
     mla_task_manager_abort_task(data.surfaceName);
 }
 
