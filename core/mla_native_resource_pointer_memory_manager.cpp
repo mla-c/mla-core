@@ -2,13 +2,31 @@
 // Created by chris on 4/22/2026.
 //
 
-#include "mla_data_types.h"
+#include "mla_native_resource.h"
 #include "task/mla_atomic.h"
+
+enum mla_native_resource_type: mla_uint8_t {
+    MLA_NATIVE_RESOURCE_TYPE_NORMAL = 0,
+    MLA_NATIVE_RESOURCE_TYPE_STRUCT = 1
+};
+
+struct mla_native_resource_item_normal {
+    mla_native_resource_clean_up_hook_t cleanupHook;
+    mla_native_resource_t native_resource;
+};
+
+struct mla_native_resource_item_struct {
+    mla_native_resource_buffer_clean_up_hook_t cleanupHook;
+};
 
 struct mla_native_resource_item_t {
     mla_atomic_int32_t refCount;
-    mla_native_resource_clean_up_hook_t cleanupHook;
-    mla_native_resource_t native_resource;
+    mla_native_resource_type type;
+
+    union {
+        mla_native_resource_item_normal normal;
+        mla_native_resource_item_struct structData;
+    };
 };
 
 mla_pointer_t __mla_native_resource_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
@@ -41,6 +59,12 @@ void __mla_native_resource_pointer_memory_manager_incReferences(mla_pointer_memo
 
 }
 
+void * __native_resource_pointer_memory_manager_get_struct_data(const mla_native_resource_item_t & item) {
+
+    return reinterpret_cast<void*>(reinterpret_cast<mla_uint8_t*>(const_cast<mla_native_resource_item_t*>(&item)) + sizeof(mla_native_resource_item_t));
+
+}
+
 void __mla_native_resource_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
 
     (void)memory_manager;
@@ -54,9 +78,21 @@ void __mla_native_resource_pointer_memory_manager_decReferences(mla_pointer_memo
 
     if (mla_atomic_decrement(item->refCount) == 0) {
 
-        // Call the cleanup hook if it is set
-        if (item->cleanupHook != nullptr) {
-            item->cleanupHook(item->native_resource);
+        if (item->type == MLA_NATIVE_RESOURCE_TYPE_NORMAL) {
+
+            // Call the cleanup hook if it is set
+            if (item->normal.cleanupHook != nullptr) {
+                item->normal.cleanupHook(item->normal.native_resource);
+            }
+
+        } else if (item->type == MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
+
+            // Call the cleanup hook if it is set
+            if (item->structData.cleanupHook != nullptr) {
+                mla_platform_pointer_t struct_data = __native_resource_pointer_memory_manager_get_struct_data(*item);
+                item->structData.cleanupHook(struct_data);
+            }
+
         }
 
         mla_platform_free(payload.asPointer);
@@ -97,15 +133,16 @@ mla_pointer_t mla_native_resource_to_managed_pointer(mla_native_resource_t& reso
     }
 
     mla_memset(item, 0, sizeof(mla_native_resource_item_t));
-    item->cleanupHook = cleanup_hook;
-    item->native_resource = resource;
+    item->type = MLA_NATIVE_RESOURCE_TYPE_NORMAL;
+    item->normal.cleanupHook = cleanup_hook;
+    item->normal.native_resource = resource;
     return {
         mla_dynamic_data_from_pointer(item),
         &g_mla_native_resource_pointer_memory_manager
     };
 }
 
-mla_native_resource_t* mla_native_resource_from_managed_pointer(mla_pointer_t pointer) {
+mla_native_resource_t* mla_native_resource_from_managed_pointer(const mla_pointer_t& pointer) {
 
     if (pointer.memoryManager != &g_mla_native_resource_pointer_memory_manager) {
         return nullptr;
@@ -117,7 +154,11 @@ mla_native_resource_t* mla_native_resource_from_managed_pointer(mla_pointer_t po
         return nullptr;
     }
 
-    return &item->native_resource;
+    if (item->type != MLA_NATIVE_RESOURCE_TYPE_NORMAL) {
+        return nullptr;
+    }
+
+    return &item->normal.native_resource;
 
 }
 
@@ -125,4 +166,46 @@ mla_native_resource_t mla_native_resource_empty() {
     mla_native_resource_t data = {};
     data.asInt64 = 0;
     return data;
+}
+
+mla_pointer_t mla_malloc_native_resource_buffer(mla_size_t size, mla_native_resource_buffer_clean_up_hook_t clean_up_hook) {
+
+    if (size == 0) {
+        return mla_pointer_null();
+    }
+
+    mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(mla_platform_malloc(sizeof(mla_native_resource_item_t) + size));
+
+    if (item == nullptr) {
+        return mla_pointer_null();
+    }
+
+    mla_memset(item, 0, sizeof(mla_native_resource_item_t) + size);
+    item->type = MLA_NATIVE_RESOURCE_TYPE_STRUCT;
+    item->structData.cleanupHook = clean_up_hook;
+    return {
+        mla_dynamic_data_from_pointer(item),
+        &g_mla_native_resource_pointer_memory_manager
+    };
+
+
+}
+
+mla_platform_pointer_t mla_native_resource_buffer_from_managed_pointer(const mla_pointer_t& pointer) {
+
+    if (pointer.memoryManager != &g_mla_native_resource_pointer_memory_manager) {
+        return nullptr;
+    }
+
+    mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(pointer.payload.asPointer);
+
+    if (item == nullptr) {
+        return nullptr;
+    }
+
+    if (item->type != MLA_NATIVE_RESOURCE_TYPE_STRUCT) {
+        return nullptr;
+    }
+
+    return __native_resource_pointer_memory_manager_get_struct_data(*item);
 }

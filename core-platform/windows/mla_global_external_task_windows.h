@@ -7,6 +7,7 @@
 
 #include "../../core/external_task/mla_external_task.h"
 #include "../../core/system/mla_string.h"
+#include "../../core/mla_native_resource.h"
 
 #include <windows.h>
 
@@ -15,6 +16,41 @@ struct __windows_external_task_native_resource_t {
     HANDLE thread_handle;
     HANDLE stdin_write_handle;
     HANDLE stdout_read_handle;
+
+    static void clean_up_resource(__windows_external_task_native_resource_t* self) {
+
+        if (self == nullptr) {
+            return;
+        }
+
+        if (self->stdin_write_handle != nullptr) {
+            CloseHandle(self->stdin_write_handle);
+            self->stdin_write_handle = nullptr;
+        }
+
+        if (self->stdout_read_handle != nullptr) {
+            CloseHandle(self->stdout_read_handle);
+            self->stdout_read_handle = nullptr;
+        }
+
+        if (self->process_handle != nullptr) {
+            DWORD exitCode = 0;
+            if (GetExitCodeProcess(self->process_handle, &exitCode) && exitCode == STILL_ACTIVE) {
+                TerminateProcess(self->process_handle, 1);
+                WaitForSingleObject(self->process_handle, INFINITE);
+            }
+        }
+
+        if (self->thread_handle != nullptr) {
+            CloseHandle(self->thread_handle);
+            self->thread_handle = nullptr;
+        }
+
+        if (self->process_handle != nullptr) {
+            CloseHandle(self->process_handle);
+            self->process_handle = nullptr;
+        }
+    }
 };
 
 void __windows_external_task_cleanup_process_data(__windows_external_task_native_resource_t* p_ProcessData) {
@@ -53,35 +89,7 @@ void __windows_external_task_cleanup_process_handles(__windows_external_task_nat
 
 __windows_external_task_native_resource_t* __windows_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    mla_native_resource_t* nativeResource = mla_native_resource_from_managed_pointer(p_TaskResource);
-    if (nativeResource == nullptr) {
-        return nullptr;
-    }
-
-    return static_cast<__windows_external_task_native_resource_t*>(nativeResource->asPointer);
-}
-
-void __windows_external_task_cleanup_native_resource(const mla_native_resource_t& p_NativeResource) {
-
-    __windows_external_task_native_resource_t* processData = static_cast<__windows_external_task_native_resource_t*>(p_NativeResource.asPointer);
-
-    if (processData == nullptr) {
-        return;
-    }
-
-    __windows_external_task_cleanup_process_data(processData);
-
-    if (processData->process_handle != nullptr) {
-
-        DWORD exitCode = 0;
-        if (GetExitCodeProcess(processData->process_handle, &exitCode) && exitCode == STILL_ACTIVE) {
-            TerminateProcess(processData->process_handle, 1);
-            WaitForSingleObject(processData->process_handle, INFINITE);
-        }
-    }
-
-    __windows_external_task_cleanup_process_handles(processData);
-    mla_platform_free(processData);
+    return mla_native_resource_struct_from_managed_pointer<__windows_external_task_native_resource_t>(p_TaskResource);
 }
 
 mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
@@ -192,7 +200,8 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
         return false;
     }
 
-    __windows_external_task_native_resource_t* processData = static_cast<__windows_external_task_native_resource_t*>(mla_platform_malloc(sizeof(__windows_external_task_native_resource_t)));
+    p_OutTaskResource = mla_malloc_native_resource_struct(__windows_external_task_native_resource_t);
+    __windows_external_task_native_resource_t* processData = mla_native_resource_struct_from_managed_pointer<__windows_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {
         CloseHandle(childStdOutRead);
@@ -209,13 +218,6 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
     processData->stdin_write_handle = childStdInWrite;
     processData->stdout_read_handle = childStdOutRead;
 
-    mla_native_resource_t nativeResource = mla_dynamic_data_from_pointer(processData);
-    p_OutTaskResource = mla_native_resource_to_managed_pointer(nativeResource, __windows_external_task_cleanup_native_resource);
-
-    if (mla_pointer_is_null(p_OutTaskResource)) {
-        __windows_external_task_cleanup_native_resource(nativeResource);
-        return false;
-    }
 
     return true;
 }

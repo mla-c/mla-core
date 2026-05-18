@@ -5,6 +5,7 @@
 #ifndef MLA_TASK_MANAGER_WINDOWS_NATIVE_H
 #define MLA_TASK_MANAGER_WINDOWS_NATIVE_H
 
+#include "../../core/mla_native_resource.h"
 #include "../../core/task/mla_task_manager.h"
 #include <windows.h>
 #include <assert.h>
@@ -201,29 +202,36 @@ struct mla_task_manager_windows_native_mutex_t {
     CRITICAL_SECTION section;
     mla_bool_t locked; // already locked by the current thread
     mla_bool_t supports_recursive_locking; // whether the mutex supports recursive locking
+
+    static void clean_up_resource(mla_platform_pointer_t data) {
+
+        mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(data);
+        DeleteCriticalSection(&mutex->section); // Delete the critical section
+    }
 };
 
-mla_bool_t mla_task_manager_windows_native_create_mutex(mla_platform_pointer_t* outMutex, mla_bool_t supports_recursive_locking) {
+mla_bool_t mla_task_manager_windows_native_create_mutex(mla_pointer_t& outMutex, mla_bool_t supports_recursive_locking) {
 
-    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_mutex_t)));
+    mla_pointer_t mutex_ptr = mla_malloc_native_resource_struct(mla_task_manager_windows_native_mutex_t);
+
+    mla_task_manager_windows_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_ptr);
 
     if (mutex == nullptr) {
         return false; // Failed to allocate memory for mutex
     }
-    mla_memset(mutex, 0, sizeof(mla_task_manager_windows_native_mutex_t));
 
     InitializeCriticalSection(&mutex->section);
     mutex->locked = false; // Initially not locked
     mutex->supports_recursive_locking = supports_recursive_locking;
 
-    *outMutex = static_cast<mla_platform_pointer_t>(mutex);
+    outMutex = mutex_ptr;
     return true; // Successfully created the mutex
 
 }
 
-mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_platform_pointer_t mutexResource, mla_int32_t timeoutms) {
+mla_bool_t mla_task_manager_windows_native_lock_mutex(const mla_pointer_t& mutex_resource, mla_int32_t timeoutms) {
 
-    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
+    mla_task_manager_windows_native_mutex_t* mutex = mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_resource);
     if (mutex == nullptr) {
         return false; // Mutex resource is null
     }
@@ -252,9 +260,9 @@ mla_bool_t mla_task_manager_windows_native_lock_mutex(mla_platform_pointer_t mut
     return false; // Failed to lock the mutex within the timeout
 }
 
-mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_platform_pointer_t mutexResource) {
+mla_bool_t mla_task_manager_windows_native_unlock_mutex(const mla_pointer_t& mutex_resource) {
 
-    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
+    mla_task_manager_windows_native_mutex_t* mutex =  mla_native_resource_struct_from_managed_pointer<mla_task_manager_windows_native_mutex_t>(mutex_resource);
     if (mutex == nullptr) {
         return false; // Mutex resource is null
     }
@@ -281,18 +289,6 @@ mla_bool_t mla_task_manager_windows_native_unlock_mutex(mla_platform_pointer_t m
     LeaveCriticalSection(&mutex->section); // Leave the critical section
     return true;
 
-}
-
-mla_bool_t mla_task_manager_windows_native_destroy_mutex(mla_platform_pointer_t mutexResource) {
-
-    mla_task_manager_windows_native_mutex_t* mutex = static_cast<mla_task_manager_windows_native_mutex_t*>(mutexResource);
-    if (mutex == nullptr) {
-        return false; // Mutex resource is null
-    }
-
-    DeleteCriticalSection(&mutex->section); // Delete the critical section
-    mla_platform_free(mutex); // Free the mutex memory
-    return true;
 }
 
 void mla_task_manager_windows_native_run() {
@@ -370,7 +366,6 @@ mla_task_manager_low_level_access g_task_low_level_access = {
         mla_task_manager_windows_native_create_mutex,
         mla_task_manager_windows_native_lock_mutex,
         mla_task_manager_windows_native_unlock_mutex,
-        mla_task_manager_windows_native_destroy_mutex,
         mla_task_manager_windows_multi_task_mode,
         mla_task_manager_windows_native_create_task_local,
         mla_task_manager_windows_native_destroy_task_local,

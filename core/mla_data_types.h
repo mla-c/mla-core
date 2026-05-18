@@ -370,15 +370,5 @@ mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struc
  **/
 mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
 
-/**
- * Create a mla_pointer_t from an external resource represented as mla_dynamic_data_t.
- * The memory manager will take ownership an call the clean up hook at the end
- */
-typedef mla_dynamic_data_t mla_native_resource_t;
-mla_native_resource_t mla_native_resource_empty();
-
-typedef void(*mla_native_resource_clean_up_hook_t)(const mla_native_resource_t& userData);
-mla_pointer_t mla_native_resource_to_managed_pointer(mla_native_resource_t& resource, mla_native_resource_clean_up_hook_t cleanup_hook);
-mla_native_resource_t* mla_native_resource_from_managed_pointer(mla_pointer_t pointer);
 
 #endif
