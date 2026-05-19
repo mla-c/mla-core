@@ -303,22 +303,22 @@ void LinkListItemMemoryManagementDestroy2Test() {
             mla_link_list_add(mla_arr, mla_str1);
             mla_link_list_add(mla_arr, mla_str2);
 
-            if (mla_arr.data != nullptr && mla_arr.data->head != nullptr && mla_arr.data->head->nextOwner.buffer != nullptr) {
-                assert_equal(mla_arr.data->head->nextOwner.buffer->refCount.value, (mla_int32_t)2, "String 2 should have refCount of 2 after adding to list");
+            if (mla_arr.data != nullptr && mla_arr.data->head != nullptr) {
+                assert_equal(mla_pointer_ref_count(mla_arr.data->head->nextOwner), (mla_int32_t)2, "String 2 should have refCount of 2 after adding to list");
             } else {
                 assert_fail("String 1 dataOwner buffer should not be null after adding to list");
             }
 
             other = mla_arr;
 
-            if (mla_arr.data != nullptr && mla_arr.data->head != nullptr && mla_arr.data->head->nextOwner.buffer != nullptr) {
-                assert_equal(mla_arr.data->head->nextOwner.buffer->refCount.value, (mla_int32_t)3, "Array should have refCount of 3 after assignment to other list");
+            if (mla_arr.data != nullptr && mla_arr.data->head != nullptr) {
+                assert_equal(mla_pointer_ref_count(mla_arr.data->head->nextOwner), (mla_int32_t)3, "Array should have refCount of 3 after assignment to other list");
             } else {
                 assert_fail("Array dataOwner buffer should not be null after assignment to other list");
             }
 
-            if (other.data != nullptr && other.data->head != nullptr && other.data->head->nextOwner.buffer != nullptr) {
-                assert_equal(other.data->head->nextOwner.buffer->refCount.value, (mla_int32_t)3, "Other list should have refCount of 3 after assignment");
+            if (other.data != nullptr && other.data->head != nullptr) {
+                assert_equal(mla_pointer_ref_count(other.data->head->nextOwner), (mla_int32_t)3, "Other list should have refCount of 3 after assignment");
             } else {
                 assert_fail("Other list dataOwner buffer should not be null after assignment to other list");
             }
@@ -326,8 +326,8 @@ void LinkListItemMemoryManagementDestroy2Test() {
 
         assert_equal(mla_link_list_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 
-        if (other.data != nullptr && other.data->head != nullptr && other.data->head->nextOwner.buffer != nullptr) {
-            assert_equal(other.data->head->nextOwner.buffer->refCount.value, (mla_int32_t)2, "link should have refCount of 2 after other list is removed");
+        if (other.data != nullptr && other.data->head != nullptr) {
+            assert_equal(mla_pointer_ref_count(other.data->head->nextOwner), (mla_int32_t)2, "link should have refCount of 2 after other list is removed");
         } else {
             assert_fail("Other list dataOwner buffer should not be null after other list is removed");
         }
