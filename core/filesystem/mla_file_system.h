@@ -6,8 +6,6 @@
 #define MLA_FILE_SYSTEM_H
 
 #include "../mla_data_types.h"
-#include "../system/mla_buffer.h"
-#include "../system/mla_stream.h"
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
 

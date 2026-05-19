@@ -5,7 +5,6 @@
 #include "mla_ui_control_surface.h"
 
 #include "mla_ui_loading_indicator.h"
-#include "../../system/mla_buffer.h"
 #include "../../task/mla_task_manager.h"
 #include "../../system/mla_id.h"
 

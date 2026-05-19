@@ -12,7 +12,6 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_string_builder.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_string_utf.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_string_convert.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_buffer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_bytes.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_number.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/system/mla_id.cpp

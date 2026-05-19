@@ -5,7 +5,6 @@
 #ifndef MLA_USER_DATA_H
 #define MLA_USER_DATA_H
 
-#include "mla_buffer.h"
 #include "../mla_native_resource.h"
 #include "mla_string.h"
 

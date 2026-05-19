@@ -6,7 +6,6 @@
 #define MLA_STRING_H
 
 #include "../mla_data_types.h"
-#include "mla_buffer.h"
 #include "mla_array_list.h"
 #include "../hash/mla_hash.h"
 

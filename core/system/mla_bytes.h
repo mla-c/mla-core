@@ -6,7 +6,6 @@
 #define MLA_BYTE_ARRAY_H
 
 #include "../mla_data_types.h"
-#include "mla_buffer.h"
 #include "mla_string.h"
 
 struct mla_bytes_t {

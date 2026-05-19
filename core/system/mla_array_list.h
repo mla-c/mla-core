@@ -6,7 +6,6 @@
 #define MLA_ARRAY_LIST_H
 
 #include "../mla_data_types.h"
-#include "mla_buffer.h"
 
 #define mla_array_list_template typename  T, typename TInit = mla_default_init(T)
 

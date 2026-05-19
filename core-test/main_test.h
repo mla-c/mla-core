@@ -15,7 +15,6 @@
 #include "mla_string_test.h"
 #include "mla_string_builder_test.h"
 #include "mla_number_test.h"
-#include "mla_buffer_test.h"
 #include "mla_memory_hook_test.h"
 #include "mla_array_list_test.h"
 #include "mla_link_list_test.h"
@@ -80,7 +79,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterStringTests(l_TestExecutor);
     RegisterStringBuilderTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
-    RegisterBufferTests(l_TestExecutor);
     RegisterMemoryHookTests(l_TestExecutor);
     RegisterArrayListTests(l_TestExecutor);
     RegisterLinkListTests(l_TestExecutor);
@@ -132,7 +130,6 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 #endif
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor();
-    RegisterBufferBenchmarks(l_BenchmarkExecutor);
     RegisterPointerBenchmarks(l_BenchmarkExecutor);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
     RegisterNumberBenchmarks(l_BenchmarkExecutor);
