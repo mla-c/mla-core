@@ -50,7 +50,7 @@ static mla_bool_t mock_bind_and_listen(mla_network_listener_t &listener, const m
 }
 
 static mla_bool_t mock_get_local_ip_addresses_called = false;
-static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_local_ips = {0, 0, nullptr, {nullptr}};
+static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_local_ips = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
 
 static mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mock_get_local_ip_addresses() {
     mock_get_local_ip_addresses_called = true;
@@ -119,7 +119,7 @@ inline void NetworkGetLocalIpAddressesTest() {
     }
 
     mla_array_list_destroy(mock_local_ips);
-    mock_local_ips = {0, 0, nullptr, {nullptr}};
+    mock_local_ips = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
     g_network_low_level_operations = original;
 }
 

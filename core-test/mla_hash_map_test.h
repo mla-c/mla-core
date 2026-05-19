@@ -394,19 +394,11 @@ void HashMapItemMemoryManagementDestroy2Test() {
                 assert_fail("String 2 dataOwner buffer is null after adding to list");
             }
 
-            if (mla_map.buckets.itemsOwner.buffer != nullptr) {
-                assert_equal(mla_map.buckets.itemsOwner.buffer->refCount.value, (mla_int32_t)1, "Map buckets should have refCount of 1 after creation");
-            } else {
-                assert_fail("Map buckets itemsOwner buffer is null after creation");
-            }
+            assert_equal(mla_pointer_ref_count(mla_map.buckets.items), (mla_int32_t)1, "Map buckets should have refCount of 1 after creation");
 
             other = mla_map;
 
-            if (mla_map.buckets.itemsOwner.buffer != nullptr) {
-                assert_equal(mla_map.buckets.itemsOwner.buffer->refCount.value, (mla_int32_t)2, "Map buckets should have refCount of 2 after assignment to other list");
-            } else {
-                assert_fail("Map buckets itemsOwner buffer is null after assignment to other list");
-            }
+            assert_equal(mla_pointer_ref_count(mla_map.buckets.items), (mla_int32_t)2, "Map buckets should have refCount of 2 after assignment to other list");
 
             // Ref COunter should not change because we are assigning the map to another variable
             // The strings are still owned by the internal array
@@ -424,11 +416,7 @@ void HashMapItemMemoryManagementDestroy2Test() {
 
         }
 
-        if (other.buckets.itemsOwner.buffer != nullptr) {
-            assert_equal(other.buckets.itemsOwner.buffer->refCount.value, (mla_int32_t)1, "refcount should be 1 after map destruction");
-        } else {
-            assert_fail("Other map buckets itemsOwner buffer is null after map destruction");
-        }
+        assert_equal(mla_pointer_ref_count(other.buckets.items), (mla_int32_t)1, "refcount should be 1 after map destruction");
 
         assert_equal(mla_hash_map_size(other), (mla_size_t)2, "Other list should have size 2 after assignment");
 

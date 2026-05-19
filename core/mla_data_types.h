@@ -346,6 +346,10 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
  */
 #define mla_malloc_buffer_with_manager(memory_manager, size) mla_malloc_with_manager(memory_manager, size, nullptr, mla_dynamic_data_empty())
 
+#define mla_malloc_buffer_cleanup_hook(size, clean_up_hook) mla_malloc_with_manager(g_pointer_memory_manager_instance.current, size, clean_up_hook, mla_dynamic_data_empty())
+
+#define mla_malloc_buffer_cleanup_hook_with_manager(memory_manager, size, clean_up_hook) mla_malloc_with_manager(memory_manager, size, clean_up_hook, mla_dynamic_data_empty())
+
 /**
  * @brief Allocates a raw (unmanaged) block of memory.
  *

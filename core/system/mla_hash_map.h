@@ -74,7 +74,7 @@ mla_hash_map_t<mla_hash_map_t_param_full> mla_hash_map(mla_size_t bucketCount = 
 
             auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-            if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
+            if (mla_array_list_capacity(items) == 0 && mla_global_config_hash_map_item_default_size > 0) {
                 mla_array_list_destroy(array);
                 return mla_hash_map_empty<mla_hash_map_t_param_full>();
             }
@@ -131,7 +131,7 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
                     auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>,
                                               mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-                    if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
+                    if (mla_array_list_capacity(items) == 0 && mla_global_config_hash_map_item_default_size > 0) {
                         initSuccess = false;
                         break;
                     }
@@ -213,7 +213,7 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 
             auto items = mla_array_list<mla_hash_map_bucket_item_t<mla_hash_map_t_param>, mla_hash_map_bucket_item_t_initializer<mla_hash_map_t_param>>(mla_global_config_hash_map_item_default_size);
 
-            if (items.capacity == 0 && mla_global_config_hash_map_item_default_size > 0) {
+            if (mla_array_list_capacity(items) == 0 && mla_global_config_hash_map_item_default_size > 0) {
                 mla_array_list_destroy(map.buckets);
                 map.buckets = mla_array_list_empty<mla_hash_map_bucket_t<mla_hash_map_t_param>, mla_hash_map_bucket_t_initializer<mla_hash_map_t_param>>();
                 map.bucketCount = 0;

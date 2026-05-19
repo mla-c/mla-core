@@ -11,29 +11,64 @@
 #define mla_array_list_template typename  T, typename TInit = mla_default_init(T)
 
 template <mla_array_list_template>
-struct mla_array_list_t {
-    mla_size_t size;
+struct mla_array_list_buffer_header_t {
     mla_size_t capacity;
-    T* items;
-    mla_buffer_reference_t itemsOwner;
+    mla_byte_t _padding[4]; // newly added padding to force 8-byte size
 };
 
 template <mla_array_list_template>
-mla_buffer_cleanup_mode __mla_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+struct mla_array_list_t {
+    mla_size_t size;
+    mla_pointer_t items;
+};
 
-    T* l_Item = static_cast<T*>(p_Data);
+template <mla_array_list_template>
+inline T* __mla_array_list_items_data_from_header(mla_array_list_buffer_header_t<T, TInit>* header) {
 
-    for (mla_size_t i = 0; i < p_UserData.asUint32; ++i) {
+    if (header == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<T*>(reinterpret_cast<mla_byte_t*>(header) + sizeof(mla_array_list_buffer_header_t<T, TInit>));
+}
+
+template <mla_array_list_template>
+inline T* __mla_array_list_items_data_from_pointer(const mla_pointer_t& items_ptr) {
+
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(items_ptr);
+    return __mla_array_list_items_data_from_header(header);
+}
+
+template <mla_array_list_template>
+inline T* __mla_array_list_items_data(const mla_array_list_t<T, TInit>& list) {
+
+    return __mla_array_list_items_data_from_pointer<T, TInit>(list.items);
+}
+
+template <mla_array_list_template>
+void __mla_array_list_cleanup_header(mla_array_list_buffer_header_t<T, TInit>* header) {
+
+    T* l_Item = __mla_array_list_items_data_from_header(header);
+
+    for (mla_size_t i = 0; i < header->capacity; ++i) {
         l_Item[i] = TInit::init(); // Assign default value to trigger destructor if T is a class
     }
 
-    return CLEAN_UP_NEEDED;
+}
+
+template <mla_array_list_template>
+void __mla_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+
+    (void)p_UserData;
+
+    mla_array_list_buffer_header_t<T, TInit>* header = static_cast<mla_array_list_buffer_header_t<T, TInit>*>(p_Data);
+    __mla_array_list_cleanup_header<T, TInit>(header);
 }
 
 template <mla_array_list_template>
 mla_array_list_t<T, TInit> mla_array_list_empty() {
 
-    return { 0, 0, nullptr, mla_buffer_reference_noOwner() };
+    return { 0, mla_pointer_null() };
 }
 
 template <mla_array_list_template>
@@ -43,68 +78,70 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_globa
         return mla_array_list_empty<T, TInit>();
     }
 
-    mla_size_t size = initialCapacity * sizeof(T);
-    T* items = static_cast<T*>(mla_platform_malloc(size));
+    mla_size_t size = sizeof(mla_array_list_buffer_header_t<T, TInit>) + (initialCapacity * sizeof(T));
+    mla_pointer_cleanup_hook_t cleanup_hook = __mla_array_list_cleanup<T, TInit>;
+    mla_pointer_t items = mla_malloc_buffer_cleanup_hook(size, cleanup_hook);
 
-    if (items == nullptr) {
-        return { 0, 0, nullptr, mla_buffer_reference_noOwner() }; // Memory allocation failed
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(items);
+
+    if (header == nullptr) {
+        return { 0, mla_pointer_null() }; // Memory allocation failed
     }
 
-    mla_memset(items, 0, size);
-    return { 0, initialCapacity, items, mla_buffer_reference_create(items, false, __mla_array_list_cleanup<T, TInit>, mla_dynamic_data_from_uint32(initialCapacity)) };
+    header->capacity = initialCapacity;
+    return { 0, items };
 }
 
 template <mla_array_list_template>
 void mla_array_list_destroy(mla_array_list_t<T, TInit>& list) {
 
-    T* l_list = list.items;
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
 
-    if (l_list != nullptr) {
-
-        for (mla_size_t i = 0; i < list.size; ++i) {
-            l_list[i] = TInit::init(); // Assign default value to trigger destructor if T is a class
-        }
-
-        list.items = nullptr;
+    if (header != nullptr) {
+        __mla_array_list_cleanup_header<T, TInit>(header);
+        list.items = mla_pointer_null();
     }
 
-
     list.size = 0;
-    list.capacity = 0;
-    list.itemsOwner = mla_buffer_reference_noOwner();
 }
 
 template <mla_array_list_template>
 mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize) {
+
     if (newSize >= list.size) {
 
         // Resize the array if the new size exceeds the current capacity
-        mla_size_t newSizeInBytes = newSize * sizeof(T);
-        T* newItems = static_cast<T*>(mla_platform_malloc(newSizeInBytes));
+        mla_size_t newSizeInBytes = sizeof(mla_array_list_buffer_header_t<T, TInit>) + (newSize * sizeof(T));
+        mla_pointer_cleanup_hook_t cleanup_hook = __mla_array_list_cleanup<T, TInit>;
+        mla_pointer_t newItems_ptr = mla_malloc_buffer_cleanup_hook(newSizeInBytes, cleanup_hook);
+
+        mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(newItems_ptr);
+
+        if (header == nullptr) {
+            return false; // Memory allocation failed
+        }
+        header->capacity = newSize;
+        T* oldItems = __mla_array_list_items_data<T, TInit>(list);
+        T* newItems = __mla_array_list_items_data_from_header<T, TInit>(header);
 
         if (newItems == nullptr)
             return false; // Memory allocation failed
 
-        if (list.items != nullptr) {
-            mla_size_t oldSizeInBytes = list.size * sizeof(T);
-            mla_memcpy(newItems, list.items, oldSizeInBytes);
+        if (oldItems != nullptr) {
+            // Memcopy whould be faster but is not possible because of the refcouting in the items
+            // Maybe optimize later
+            //mla_size_t oldSizeInBytes = list.size * sizeof(T);
+            //mla_memcpy(newItems, oldItems, oldSizeInBytes);
 
-            if (oldSizeInBytes < newSizeInBytes) {
-                // Initialize the new elements to default value
-                mla_memset(newItems + list.size, 0, newSizeInBytes - oldSizeInBytes);
+            for (mla_size_t i = 0; i < list.size; ++i) {
+                T& newItem = newItems[i];
+                T& oldItem = oldItems[i];
+                newItem = oldItem;
             }
 
-        } else {
-            mla_memset(newItems, 0, newSizeInBytes);
         }
 
-        mla_buffer_reference_t newItemsOwner = mla_buffer_reference_create(newItems, false, __mla_array_list_cleanup<T, TInit>, mla_dynamic_data_from_uint32(newSize));
-        list.items = newItems;
-        list.capacity = newSize;
-        // We dont need to call the cleanup hook here because we are not destroying the old items
-        // Instead, we just copy the existing items to the new array
-        mla_buffer_reference_destroy_without_cleanup_unsafe(list.itemsOwner);
-        list.itemsOwner = newItemsOwner; // Update the buffer reference
+        list.items = newItems_ptr;
         return true;
     }
 
@@ -112,27 +149,60 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
 }
 
 template <mla_array_list_template>
+inline mla_size_t mla_array_list_capacity(const mla_array_list_t<T, TInit>& list) {
+
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+
+    if (header == nullptr) {
+        return 0;
+    }
+
+    return header->capacity; // Return the current capacity of the list
+}
+
+
+template <mla_array_list_template>
 mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 
-    if (list.size >= list.capacity) {
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+
+    mla_size_t current_capacity;
+
+    if (header != nullptr) {
+        current_capacity = header->capacity;
+    } else {
+        current_capacity = 0;
+    }
+
+    if (list.size >= current_capacity) {
         // Resize the array if necessary
-        mla_size_t newCapacity = mla_max(list.capacity * 2, mla_global_config_array_list_default_capacity);
+        mla_size_t newCapacity = mla_max(current_capacity * 2, mla_global_config_array_list_default_capacity);
 
         if (!mla_array_list_resize(list, newCapacity)) {
             return false; // Memory allocation failed
         }
+
+        header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+
     }
-    list.items[list.size++] = item; // Add the new item and increment the size
+
+    T* items = __mla_array_list_items_data_from_header(header);
+
+    items[list.size++] = item; // Add the new item and increment the size
     return true;
 }
 
 template <mla_array_list_template>
 mla_bool_t mla_array_list_add_all(mla_array_list_t<T, TInit>& list, const mla_array_list_t<T, TInit>& newItems) {
 
+    T* items_to_copy = __mla_array_list_items_data(newItems);
+
     for (mla_size_t i = 0; i < newItems.size; ++i) {
-        if (!mla_array_list_add(list, newItems.items[i])) {
+
+        if (!mla_array_list_add(list, items_to_copy[i])) {
             return false; // Memory allocation failed
         }
+
     }
 
     return true;
@@ -145,14 +215,16 @@ void mla_array_list_reverse(mla_array_list_t<T, TInit>& list) {
         return; // No need to reverse if the list has less than 2 items
     }
 
+    T* items = __mla_array_list_items_data(list);
+
     mla_size_t start = 0;
     mla_size_t end = list.size - 1;
 
     while (start < end) {
         // Swap items at start and end
-        T temp = list.items[start];
-        list.items[start] = list.items[end];
-        list.items[end] = temp;
+        T temp = items[start];
+        items[start] = items[end];
+        items[end] = temp;
 
         ++start;
         --end;
@@ -167,14 +239,17 @@ mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t
         return false; // Return false if index is out of bounds
     }
 
-    outItem = list.items[index]; // Return the item at the specified index
+    T* items = __mla_array_list_items_data(list);
+
+    outItem = items[index]; // Return the item at the specified index
     return true;
 }
 
 template <mla_array_list_template>
 T* mla_array_list_get_ref_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
 
-    return &list.items[index]; // Return the item at the specified index
+    T* items = __mla_array_list_items_data(list);
+    return &items[index]; // Return the item at the specified index
 }
 
 template <mla_array_list_template>
@@ -184,24 +259,29 @@ T* mla_array_list_get_ref(const mla_array_list_t<T, TInit>& list, mla_size_t ind
         return nullptr;
     }
 
-    return &list.items[index]; // Return the item at the specified index
+    T* items = __mla_array_list_items_data(list);
+    return &items[index]; // Return the item at the specified index
 }
 
 template <mla_array_list_template>
 inline T& mla_array_list_get_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
 
-    return list.items[index]; // Return the item at the specified index
+    T* items = __mla_array_list_items_data(list);
+    return items[index]; // Return the item at the specified index
 }
 
 template <mla_array_list_template>
 inline mla_bool_t mla_array_list_remove(mla_array_list_t<T, TInit>& list, mla_size_t index) {
+
     if (index < list.size) {
+        T* items = __mla_array_list_items_data(list);
+
         // Assign default value trigger destructor if T is a class
-        list.items[index] = TInit::init();
+        items[index] = TInit::init();
         // Shift with memmove to remove the item at the specified index
-        mla_memmove(list.items + index, list.items + index + 1, (list.size - index - 1) * sizeof(T));
+        mla_memmove(items + index, items + index + 1, (list.size - index - 1) * sizeof(T));
         --list.size; // Decrement the size
-        mla_memset(list.items + list.size, 0, sizeof(T)); // Clear the last item because it is no longer valid
+        mla_memset(items + list.size, 0, sizeof(T)); // Clear the last item because it is no longer valid
 
         return true;
     }
@@ -215,17 +295,12 @@ inline mla_size_t mla_array_list_size(const mla_array_list_t<T, TInit>& list) {
 }
 
 template <mla_array_list_template>
-inline mla_size_t mla_array_list_capacity(const mla_array_list_t<T, TInit>& list) {
-    return list.capacity; // Return the current capacity of the list
-}
-
-template <mla_array_list_template>
 inline void mla_array_list_clear(mla_array_list_t<T, TInit>& list) {
 
     // assign default value to trigger destructor if T is a class
-    T* l_list = list.items;
+    T* items = __mla_array_list_items_data(list);
     for (mla_size_t i = 0; i < list.size; ++i) {
-        l_list[i] = TInit::init();
+        items[i] = TInit::init();
     }
 
     list.size = 0;
@@ -239,10 +314,10 @@ inline void mla_array_list_shrink_to_fit(mla_array_list_t<T, TInit>& list) {
 template <mla_array_list_template>
 mla_bool_t mla_array_list_contains(const mla_array_list_t<T, TInit>& list, const T& item) {
 
-    T* l_list = list.items;
+    T* items = __mla_array_list_items_data(list);
 
     for (mla_size_t i = 0; i < list.size; ++i) {
-        if (l_list[i] == item) {
+        if (items[i] == item) {
             return true; // Item found
         }
     }
@@ -251,9 +326,11 @@ mla_bool_t mla_array_list_contains(const mla_array_list_t<T, TInit>& list, const
 
 template <mla_array_list_template>
 mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, const T& item) {
-    T *l_list = list.items;
+
+    T* items = __mla_array_list_items_data(list);
+
     for (mla_size_t i = 0; i < list.size; ++i) {
-        if (l_list[i] == item) {
+        if (items[i] == item) {
             return static_cast<mla_int32_t>(i); // Return the index of the item
         }
     }
@@ -303,7 +380,9 @@ void mla_array_list_sort(mla_array_list_t<T, TInit>& list, mla_int32_t (*compare
         return;
     }
 
-    __mla_array_list_quicksort_partition<T, TInit>(list.items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
+    T* items = __mla_array_list_items_data(list);
+
+    __mla_array_list_quicksort_partition<T, TInit>(items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
 }
 
 template <mla_array_list_template>

@@ -159,14 +159,14 @@ void ArrayListAddMuchItemsTest() {
 
 void ArrayListAddMuchItemsNoGrowTest() {
     mla_array_list_t<int> mla_arr = mla_array_list<int>(1000);
-    int *internal_buffer = mla_arr.items;
+    int *internal_buffer = mla_array_list_get_ref_unsafe(mla_arr, 0);
 
     for (int i = 0; i < 1000; ++i) {
         mla_array_list_add(mla_arr, i);
     }
 
     assert_equal(mla_arr.size, (mla_size_t)1000, "List size should be 1000 after adding 1000 items");
-    assert_equal(internal_buffer, mla_arr.items, "Internal buffer should not change after adding 1000 items");
+    assert_equal(internal_buffer, mla_array_list_get_ref_unsafe(mla_arr, 0), "Internal buffer should not change after adding 1000 items");
 
     for (int i = 0; i < 1000; ++i) {
         assert_true(mla_array_list_contains<int>(mla_arr, i), "List should contain item");
