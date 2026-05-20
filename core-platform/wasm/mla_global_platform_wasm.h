@@ -35,7 +35,6 @@ mla_low_level_operations_t g_low_level_access ={
     __generic_strstr,
     __generic_malloc,
     __generic_free,
-    __generic_is_gcc_pointer,
     __generic_on_malloc_failure,
     __generic_print,
     __generic_std_read,

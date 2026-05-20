@@ -104,11 +104,6 @@ void __wasm_standalone_free(mla_platform_pointer_t ptr) {
     external_free(ptr);
 }
 
-mla_bool_t __wasm_standalone_is_gcc_pointer(const mla_platform_pointer_t ptr) {
-    (void)ptr;
-    return false;
-}
-
 mla_uint32_t __wasm_standalone_print(const mla_char_t* str, mla_size_t length) {
 
     return external_print(str, length);
@@ -183,7 +178,6 @@ mla_low_level_operations_t g_low_level_access = {
     __wasm_standalone_strstr,
     __wasm_standalone_malloc,
     __wasm_standalone_free,
-    __wasm_standalone_is_gcc_pointer,
     __wasm_standalone_on_malloc_failure,
     __wasm_standalone_print,
     __wasm_standalone_std_read,

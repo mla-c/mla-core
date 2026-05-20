@@ -214,7 +214,6 @@ typedef struct mla_low_level_operations_t {
     // Memory allocation and deallocation functions
     mla_platform_pointer_t (*malloc)(mla_size_t size);
     void (*free)(mla_platform_pointer_t ptr);
-    mla_bool_t (*is_gcc_pointer)(const mla_platform_pointer_t ptr);
     void (*on_malloc_failure)(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name);
 
     // Function pointers for printf and other output functions
@@ -375,7 +374,6 @@ mla_pointer_t mla_malloc_with_check(mla_pointer_memory_manager_t* memory_manager
  * @param ptr The `mla_platform_pointer_t` to free. Passing `nullptr` is safe.
  */
 #define mla_platform_free(ptr) g_low_level_access.free((ptr))
-#define mla_is_gcc_pointer(ptr) g_low_level_access.is_gcc_pointer((ptr))
 
 // Default printf function
 #define mla_print(str, len) g_low_level_access.print(str , len)

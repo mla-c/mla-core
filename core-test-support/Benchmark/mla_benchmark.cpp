@@ -12,9 +12,7 @@
 
 typedef mla_test_pointer_t (*test_benchmark_malloc_hook_t)(mla_test_uint32_t size);
 typedef void (*test_benchmark_free_hook_t)(mla_test_pointer_t pointer);
-typedef mla_bool_t (*test_benchmark_is_gcc_pointer_hook_t)(const mla_test_pointer_t pointer);
 
-static test_benchmark_is_gcc_pointer_hook_t mla_benchmark_is_gcc_pointer_hook_original = nullptr;
 static test_benchmark_malloc_hook_t mla_benchmark_malloc_hook_original = nullptr;
 static test_benchmark_free_hook_t mla_benchmark_free_hook_original = nullptr;
 
@@ -203,8 +201,6 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
     g_mla_benchmark_arena_mutex = g_test_mutex.create_mutex();
 
-    mla_benchmark_is_gcc_pointer_hook_original = g_low_level_access.is_gcc_pointer;
-    g_low_level_access.is_gcc_pointer = mla_benchmark_is_arena_pointer;
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_in_arena_hook;
     mla_benchmark_free_hook_original = g_low_level_access.free;
@@ -299,8 +295,6 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 #endif
 
-    g_low_level_access.is_gcc_pointer = mla_benchmark_is_gcc_pointer_hook_original;
-    mla_benchmark_is_gcc_pointer_hook_original = nullptr;
     g_low_level_access.free = mla_benchmark_free_hook_original;
     mla_benchmark_free_hook_original = nullptr;
     g_low_level_access.malloc = mla_benchmark_malloc_hook_original;

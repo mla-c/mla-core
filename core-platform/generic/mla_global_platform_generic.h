@@ -49,11 +49,6 @@ void __generic_free(mla_platform_pointer_t ptr) {
     free(ptr);
 }
 
-mla_bool_t __generic_is_gcc_pointer(const mla_platform_pointer_t ptr) {
-    (void)ptr;
-    return false;
-}
-
 mla_size_t __generic_print(const mla_char_t* format, mla_size_t length) {
     return (mla_size_t)fwrite(format, 1, length, stdout);
 }

@@ -17,7 +17,6 @@ Your custom hook functions must match the following signatures:
 
 - `mla_memory_malloc_hook_t`: `mla_bool_t (*)(mla_size_t size, mla_platform_pointer_t* out_ptr)`
 - `mla_memory_free_hook_t`: `mla_bool_t (*)(mla_platform_pointer_t ptr)`
-- `mla_memory_is_gcc_pointer_hook_t`: `MLA_MEMORY_POINTER_TYPE (*)(const mla_platform_pointer_t ptr)`
 
 If a `malloc` hook returns `true`, it indicates that the hook has handled the memory allocation and the original `malloc` function will not be called. If it returns `false`, the original `malloc` will be called. Similarly, if a `free` hook returns `true`, the original `free` function will not be called.
 
