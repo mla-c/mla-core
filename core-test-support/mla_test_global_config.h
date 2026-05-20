@@ -72,4 +72,4 @@
 #define mla_test_featureflag_zlib 0
 #endif
 
-#endif // COREOS_TEST_MLA_TEST_GLOBAL_CONFIG_H
+#endif

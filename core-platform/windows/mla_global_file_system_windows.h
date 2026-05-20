@@ -12,6 +12,10 @@
 #include "../../core/mla_data_types.h"
 #include "../../core/system/mla_string_concat.h"
 
+// Maximum path length for Windows file operations (supports UNC paths)
+// UNICODE_STRING_MAX_CHARS (32767) + 1 for null terminator
+#define MLA_WINDOWS_MAX_PATH (UNICODE_STRING_MAX_CHARS + 1)
+
 struct mla_file_system_native_t {
     mla_string_t basePath;
 
@@ -94,6 +98,64 @@ mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, 
     return result;
 }
 
+
+mla_bool_t __mla_file_system_native_create_directory_recursive_wide(LPCWSTR wide_path) {
+
+    // Try to create the directory first
+    if (CreateDirectoryW(wide_path, nullptr) != 0) {
+        return true;
+    }
+
+    DWORD lastError = GetLastError();
+
+    // If directory already exists, that's success
+    if (lastError == ERROR_ALREADY_EXISTS) {
+        DWORD attribs = GetFileAttributesW(wide_path);
+        return attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
+    }
+
+    // If parent doesn't exist, we need to create parents recursively
+    if (lastError == ERROR_PATH_NOT_FOUND) {
+        // Find the last backslash to get parent directory
+        WCHAR* lastBackslash = wcsrchr(wide_path, L'\\');
+
+        if (lastBackslash != nullptr && lastBackslash != wide_path) {
+            // Calculate parent path length
+            mla_size_t parentLen = lastBackslash - wide_path;
+
+            // Use stack buffer for parent path (Windows supports up to 32767 character paths)
+            WCHAR parentPath[MLA_WINDOWS_MAX_PATH];
+
+            // Copy parent path
+            if (parentLen >= MLA_WINDOWS_MAX_PATH) {
+                return false;
+            }
+
+            wcsncpy_s(parentPath, MLA_WINDOWS_MAX_PATH, wide_path, parentLen);
+            parentPath[parentLen] = L'\0';
+
+            // Recursively create parent directory
+            if (!__mla_file_system_native_create_directory_recursive_wide(parentPath)) {
+                return false;
+            }
+
+            // Now try to create the target directory
+            if (CreateDirectoryW(wide_path, nullptr) != 0) {
+                return true;
+            }
+
+            lastError = GetLastError();
+            if (lastError == ERROR_ALREADY_EXISTS) {
+                DWORD attribs = GetFileAttributesW(wide_path);
+                return attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
+            }
+        }
+    }
+
+    return false;
+}
+
+
 mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
 
     mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
@@ -110,8 +172,8 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
     if (wide_path == nullptr)
         return false;
 
-    mla_bool_t result = CreateDirectoryW(wide_path, nullptr) != 0;
-
+    mla_bool_t result = __mla_file_system_native_create_directory_recursive_wide(wide_path);
+    mla_string_destroy(fullPath);
 
     return result;
 }

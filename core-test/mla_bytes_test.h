@@ -175,4 +175,4 @@ inline void RegisterBytesTests(mla_test_executor_t& p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
-#endif //COREOS_MLA_BYTES_TEST_H
+#endif

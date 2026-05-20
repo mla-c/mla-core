@@ -46,4 +46,4 @@ void RegisterMemoryBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
 }
 
-#endif //COREOS_MLA_MEMORY_TEST_H
+#endif

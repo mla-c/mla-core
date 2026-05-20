@@ -1690,4 +1690,4 @@ struct MlaOpenGLAutoInit {
 static MlaOpenGLAutoInit g_mlaOpenGLAutoInit;
 
 
-#endif // COREOS_MLA_GLOBAL_UI_SURFACE_WINDOWS_OPENGL_H
+#endif

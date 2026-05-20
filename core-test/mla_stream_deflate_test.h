@@ -1312,4 +1312,4 @@ inline void RegisterStreamDeflateBenchmarks(mla_benchmark_executor_t &p_Benchmar
 }
 
 
-#endif //COREOS_MLA_STREAM_DEFLATE_TEST_H
+#endif

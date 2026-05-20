@@ -249,4 +249,4 @@ void RegisterReflectionTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
-#endif // COREOS_MLA_REFLECTION_TEST_H
+#endif

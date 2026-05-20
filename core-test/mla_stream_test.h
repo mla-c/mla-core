@@ -609,4 +609,4 @@ void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
-#endif //COREOS_MLA_STREAM_TEST_H
+#endif

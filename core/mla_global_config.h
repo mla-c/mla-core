@@ -198,4 +198,4 @@
 #define mla_global_config_rpc_stream_small_buffer_size 1024 // 1 KB
 #endif
 
-#endif // COREOS_MLA_GLOBAL_CONFIG_H
+#endif

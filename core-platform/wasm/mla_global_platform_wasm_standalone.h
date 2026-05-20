@@ -202,4 +202,4 @@ void mla_boot_os_application() {
     mla_lifecycle_fire_boot_events();
 }
 
-#endif // COREOS_MLA_GLOBAL_PLATFORM_WASM_STANDALONE_H
+#endif

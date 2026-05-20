@@ -396,4 +396,4 @@ inline void RegisterUserDataBenchmarks(mla_benchmark_executor_t &p_BenchmarkExec
 }
 
 
-#endif // COREOS_MLA_USER_DATA_TEST_H
+#endif

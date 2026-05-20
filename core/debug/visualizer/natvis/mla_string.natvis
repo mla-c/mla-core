@@ -23,26 +23,29 @@
   <Type Name="mla_string_t">
 
     <!-- ── Embedded (SSO, layout 0x10) ──────────────────────────────── -->
-    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10 &amp;&amp; embedded.length == 0">[SSO] ""</DisplayString>
-    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10">[SSO] "{embedded.data,[embedded.length]s8}"</DisplayString>
+    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10 &amp;&amp; embedded.length == 0">[SSO] (empty)</DisplayString>
+    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10">[SSO] {embedded.data,[embedded.length]s8}</DisplayString>
 
     <!-- ── Heap, empty ───────────────────────────────────────────────── -->
-    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length == 0">[{(mla_string_memory_layout_t)embedded.memoryLayout}] ""</DisplayString>
+    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length == 0">[{(mla_string_memory_layout_t)embedded.memoryLayout}] (empty)</DisplayString>
 
-    <!-- ── C_STRING (0x21) – always noop manager ─────────────────────── -->
-    <DisplayString Condition="embedded.memoryLayout == 0x21 &amp;&amp; heap.length > 0">[C_STR] "{(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}"</DisplayString>
+    <!-- ── C_STRING (0x21) – noop manager (external/literal) ─────────── -->
+    <DisplayString Condition="embedded.memoryLayout == 0x21 &amp;&amp; data_storage.memoryManager == &amp;g_noop_pointer_memory_manager &amp;&amp; heap.length > 0">[C_STR:lit] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
+
+    <!-- ── C_STRING (0x21) – default manager (owned) ─────────────────── -->
+    <DisplayString Condition="embedded.memoryLayout == 0x21 &amp;&amp; data_storage.memoryManager != &amp;g_noop_pointer_memory_manager &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; heap.length > 0">[C_STR:owned] {(char*)((mla_pointer_header_t*)data_storage.payload.asPointer + 1) + heap.char_offset,[heap.length]s8}</DisplayString>
 
     <!-- ── BUFFER (0x22) – noop manager (mla_string_const / external) ── -->
-    <DisplayString Condition="embedded.memoryLayout == 0x22 &amp;&amp; data_storage.memoryManager == &amp;g_noop_pointer_memory_manager &amp;&amp; heap.length > 0">[BUF:lit] "{(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}"</DisplayString>
+    <DisplayString Condition="embedded.memoryLayout == 0x22 &amp;&amp; data_storage.memoryManager == &amp;g_noop_pointer_memory_manager &amp;&amp; heap.length > 0">[BUF:lit] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
 
     <!-- ── BUFFER (0x22) – default manager (mla_string_copy / owned) ── -->
-    <DisplayString Condition="embedded.memoryLayout == 0x22 &amp;&amp; data_storage.memoryManager != &amp;g_noop_pointer_memory_manager &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; heap.length > 0">[BUF:owned] "{(char*)((mla_pointer_header_t*)data_storage.payload.asPointer + 1) + heap.char_offset,[heap.length]s8}"</DisplayString>
+    <DisplayString Condition="embedded.memoryLayout == 0x22 &amp;&amp; data_storage.memoryManager != &amp;g_noop_pointer_memory_manager &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; heap.length > 0">[BUF:owned] {(char*)((mla_pointer_header_t*)data_storage.payload.asPointer + 1) + heap.char_offset,[heap.length]s8}</DisplayString>
 
     <!-- ── SUB_STRING (0x23) – noop manager ─────────────────────────── -->
-    <DisplayString Condition="embedded.memoryLayout == 0x23 &amp;&amp; data_storage.memoryManager == &amp;g_noop_pointer_memory_manager &amp;&amp; heap.length > 0">[SUB:lit] "{(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}"</DisplayString>
+    <DisplayString Condition="embedded.memoryLayout == 0x23 &amp;&amp; data_storage.memoryManager == &amp;g_noop_pointer_memory_manager &amp;&amp; heap.length > 0">[SUB:lit] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
 
     <!-- ── SUB_STRING (0x23) – default manager ──────────────────────── -->
-    <DisplayString Condition="embedded.memoryLayout == 0x23 &amp;&amp; data_storage.memoryManager != &amp;g_noop_pointer_memory_manager &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; heap.length > 0">[SUB:owned] "{(char*)((mla_pointer_header_t*)data_storage.payload.asPointer + 1) + heap.char_offset,[heap.length]s8}"</DisplayString>
+    <DisplayString Condition="embedded.memoryLayout == 0x23 &amp;&amp; data_storage.memoryManager != &amp;g_noop_pointer_memory_manager &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; heap.length > 0">[SUB:owned] {(char*)((mla_pointer_header_t*)data_storage.payload.asPointer + 1) + heap.char_offset,[heap.length]s8}</DisplayString>
 
     <!-- ── Fallback ──────────────────────────────────────────────────── -->
     <DisplayString>[invalid or empty mla_string_t]</DisplayString>
@@ -112,7 +115,7 @@
        mla_string_utf16_buffer_t
   ════════════════════════════════════════════════════════════════════════ -->
   <Type Name="mla_string_utf16_buffer_t">
-    <DisplayString Condition="data.payload.asPointer == 0 || charCount == 0">""</DisplayString>
+    <DisplayString Condition="data.payload.asPointer == 0 || charCount == 0">(empty)</DisplayString>
     <!-- noop: payload IS the UTF-16 data -->
     <DisplayString Condition="data.payload.asPointer != 0 &amp;&amp; data.memoryManager == &amp;g_noop_pointer_memory_manager">{(wchar_t*)data.payload.asPointer,[charCount]su}</DisplayString>
     <!-- default manager: skip header -->

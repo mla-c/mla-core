@@ -213,4 +213,4 @@ mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
 # define mla_string_equals_const(value1, value2) mla_string_equals(value1, mla_string_const(value2))
 
 
-#endif //COREOS_MLA_STRING_H
+#endif
