@@ -567,6 +567,9 @@ mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& 
     };
 }
 
+mla_file_system_t mla_file_system_native_create_restricted(mla_string_t full_basePath) {
+    return __mla_file_system_native_create_with_base(full_basePath);
+}
 
 mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t basePath) {
     // Get the executable path

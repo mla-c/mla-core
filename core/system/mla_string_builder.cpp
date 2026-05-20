@@ -106,18 +106,21 @@ mla_string_builder_t mla_string_builder_create(const mla_pointer_t& p_Buffer, ml
     return builder;
 }
 
+mla_size_t mla_string_builder_length(const mla_string_builder_t& p_Builder) {
+    return p_Builder.position;
+}
+
+void mla_string_builder_reset(mla_string_builder_t& p_Builder) {
+    p_Builder.position = 0;
+}
+
 mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder) {
+
     if (mla_pointer_is_null(p_Builder.buffer) || p_Builder.position == 0) {
         return mla_string_empty();
     }
 
-    const mla_char_t* data = mla_pointer_get_data<mla_char_t>(p_Builder.buffer);
-
-    if (data == nullptr) {
-        return mla_string_empty();
-    }
-
-    return mla_string_copy(data, p_Builder.position);
+    return mla_string(p_Builder.buffer, p_Builder.position);
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_string_t& p_Value) {

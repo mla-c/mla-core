@@ -391,7 +391,7 @@ mla_bool_t mla_hash_map_get(const mla_hash_map_t<mla_hash_map_t_param_full> &map
 }
 
 template < mla_hash_map_template_full >
-TValue* mla_hash_map_get_ref (mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key) {
+TValue* mla_hash_map_get_ref (const mla_hash_map_t<mla_hash_map_t_param_full> &map, const TKey &key) {
 
     if (map.size == 0 || map.bucketCount == 0) {
         return nullptr; // Empty map cannot contain any keys

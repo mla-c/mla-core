@@ -41,6 +41,10 @@ mla_string_builder_t mla_string_builder_create(const mla_pointer_t& p_Buffer, ml
  */
 mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder);
 
+mla_size_t mla_string_builder_length(const mla_string_builder_t& p_Builder);
+
+void mla_string_builder_reset(mla_string_builder_t& p_Builder);
+
 /**
  * @brief Append a value to the builder as text.
  */
