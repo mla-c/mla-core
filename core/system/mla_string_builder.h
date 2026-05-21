@@ -49,6 +49,7 @@ void mla_string_builder_reset(mla_string_builder_t& p_Builder);
  * @brief Append a value to the builder as text.
  */
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_string_t& p_Value);
+mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_char_t* p_Value);
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_bool_t p_Value);
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_int8_t p_Value);
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_uint8_t p_Value);

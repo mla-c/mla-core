@@ -129,6 +129,14 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_
     return __mla_string_builder_append_data(p_Builder, valueData, valueLength);
 }
 
+mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_char_t* p_Value) {
+    if (p_Value == nullptr) {
+        return false;
+    }
+    mla_size_t valueLength = mla_strlen(p_Value);
+    return __mla_string_builder_append_data(p_Builder, p_Value, valueLength);
+}
+
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_bool_t p_Value) {
     mla_string_t converted = mla_string_from_bool(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);

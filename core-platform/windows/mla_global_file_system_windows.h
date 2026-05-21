@@ -117,11 +117,11 @@ mla_bool_t __mla_file_system_native_create_directory_recursive_wide(LPCWSTR wide
     // If parent doesn't exist, we need to create parents recursively
     if (lastError == ERROR_PATH_NOT_FOUND) {
         // Find the last backslash to get parent directory
-        WCHAR* lastBackslash = wcsrchr(wide_path, L'\\');
+        const WCHAR* lastBackslash = wcsrchr(wide_path, L'\\');
 
         if (lastBackslash != nullptr && lastBackslash != wide_path) {
             // Calculate parent path length
-            mla_size_t parentLen = lastBackslash - wide_path;
+            mla_size_t parentLen = static_cast<mla_size_t>(lastBackslash - wide_path);
 
             // Use stack buffer for parent path (Windows supports up to 32767 character paths)
             WCHAR parentPath[MLA_WINDOWS_MAX_PATH];
