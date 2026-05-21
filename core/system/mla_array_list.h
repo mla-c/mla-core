@@ -127,16 +127,9 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
             return false; // Memory allocation failed
 
         if (oldItems != nullptr) {
-            // Memcopy whould be faster but is not possible because of the refcouting in the items
-            // Maybe optimize later
-            //mla_size_t oldSizeInBytes = list.size * sizeof(T);
-            //mla_memcpy(newItems, oldItems, oldSizeInBytes);
-
-            for (mla_size_t i = 0; i < list.size; ++i) {
-                T& newItem = newItems[i];
-                T& oldItem = oldItems[i];
-                newItem = oldItem;
-            }
+            mla_size_t oldSizeInBytes = list.size * sizeof(T);
+            mla_memcpy(newItems, oldItems, oldSizeInBytes);
+            mla_memset(oldItems, 0, oldSizeInBytes); // Clear old items via memset to dont tigger the constructors
 
         }
 
