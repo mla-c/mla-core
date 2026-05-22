@@ -1231,6 +1231,161 @@ void StringEqualsConstTest() {
 }
 
 
+void StringEqualsEmbeddedLayoutTest() {
+    // Test embedded strings (small strings that fit in the embedded storage)
+    mla_string_t embedded1 = mla_string("test");
+    mla_string_t embedded2 = mla_string("test");
+    mla_string_t embedded3 = mla_string("differ");
+
+    assert_equal(mla_string_get_memory_layout(embedded1), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "String should be embedded");
+    assert_equal(mla_string_get_memory_layout(embedded2), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "String should be embedded");
+
+    assert_true(mla_string_equals(embedded1, embedded2), "Two identical embedded strings should be equal");
+    assert_false(mla_string_equals(embedded1, embedded3), "Two different embedded strings should not be equal");
+}
+
+void StringEqualsBufferLayoutTest() {
+    // Test buffer-based strings (medium strings that require heap allocation)
+    mla_string_t buffer1 = mla_string_const("This is a longer test string for buffer layout");
+    mla_string_t buffer2 = mla_string_const("This is a longer test string for buffer layout");
+    mla_string_t buffer3 = mla_string_const("This is a different buffer string entirely");
+
+    assert_equal(mla_string_get_memory_layout(buffer1), MLA_STRING_MEMORY_LAYOUT_BUFFER, "String should be buffer layout");
+    assert_equal(mla_string_get_memory_layout(buffer2), MLA_STRING_MEMORY_LAYOUT_BUFFER, "String should be buffer layout");
+
+    assert_true(mla_string_equals(buffer1, buffer2), "Two identical buffer strings should be equal");
+    assert_false(mla_string_equals(buffer1, buffer3), "Two different buffer strings should not be equal");
+}
+
+void StringEqualsCStringLayoutTest() {
+    // Test C-style strings (null-terminated format)
+    mla_char_t cstr1[50] = "C-style string test";
+    mla_char_t cstr2[50] = "C-style string test";
+    mla_char_t cstr3[50] = "Different C string";
+
+    mla_string_t cstring1 = mla_string(mla_platform_pointer_to_managed_pointer(cstr1));
+    mla_string_t cstring2 = mla_string(mla_platform_pointer_to_managed_pointer(cstr2));
+    mla_string_t cstring3 = mla_string(mla_platform_pointer_to_managed_pointer(cstr3));
+
+    assert_equal(mla_string_get_memory_layout(cstring1), MLA_STRING_MEMORY_LAYOUT_C_STRING, "String should be C-string layout");
+    assert_equal(mla_string_get_memory_layout(cstring2), MLA_STRING_MEMORY_LAYOUT_C_STRING, "String should be C-string layout");
+
+    assert_true(mla_string_equals(cstring1, cstring2), "Two identical C-strings should be equal");
+    assert_false(mla_string_equals(cstring1, cstring3), "Two different C-strings should not be equal");
+}
+
+void StringEqualsStrstrOptimizationTest() {
+    // Test the strstr optimization path: both strings are C-style strings
+    // When both strings are C-style strings, the equals function uses strstr for comparison
+    mla_char_t cstr1[50] = "Hello World C-style";
+    mla_char_t cstr2[50] = "Hello World C-style";
+
+    mla_string_t cstring1 = mla_string(mla_platform_pointer_to_managed_pointer(cstr1));
+    mla_string_t cstring2 = mla_string(mla_platform_pointer_to_managed_pointer(cstr2));
+
+    assert_true(mla_string_equals(cstring1, cstring2), "C-strings should be equal using strstr optimization");
+}
+
+void StringEqualsMixedLayoutTest() {
+    // Test equals with mixed memory layouts
+    mla_string_t embedded = mla_string("test");
+    mla_string_t buffer = mla_string_const("test");
+
+    mla_char_t cstr[50] = "test";
+    mla_string_t cstring = mla_string(mla_platform_pointer_to_managed_pointer(cstr));
+
+    assert_true(mla_string_equals(embedded, buffer), "Embedded and buffer with same content should be equal");
+    assert_true(mla_string_equals(buffer, cstring), "Buffer and C-string with same content should be equal");
+    assert_true(mla_string_equals(embedded, cstring), "Embedded and C-string with same content should be equal");
+}
+
+void StringEqualsLengthMismatchTest() {
+    // Test that equals returns false for strings with different lengths
+    mla_string_t str1 = mla_string("short");
+    mla_string_t str2 = mla_string("much longer string");
+
+    assert_false(mla_string_equals(str1, str2), "Strings with different lengths should not be equal");
+}
+
+void StringEqualsEmptyStringsTest() {
+    // Test equals with empty strings
+    mla_string_t empty1 = mla_string("");
+    mla_string_t empty2 = mla_string("");
+    mla_string_t nonempty = mla_string("not empty");
+
+    assert_true(mla_string_equals(empty1, empty2), "Two empty strings should be equal");
+    assert_false(mla_string_equals(empty1, nonempty), "Empty and non-empty strings should not be equal");
+}
+
+void StringEqualsSamePointerTest() {
+    // Test equals when both strings point to the same data
+    mla_string_t str1 = mla_string("pointer test");
+    mla_string_t str2 = str1;
+
+    assert_true(mla_string_equals(str1, str2), "Same pointer strings should be equal");
+}
+
+void StringEqualsMaxLoopCheckBelowThresholdTest() {
+    // Test equals with strings below the max loop check threshold
+    mla_string_t str1 = mla_string("below threshold");
+    mla_string_t str2 = mla_string("below threshold");
+    mla_string_t differ_at_start = mla_string("xbelow threshold");
+
+    assert_true(mla_string_equals(str1, str2), "Equal strings below threshold should be equal");
+    assert_false(mla_string_equals(str1, differ_at_start), "Different strings should not be equal");
+}
+
+void StringEqualsMaxLoopCheckAboveThresholdTest() {
+    // Test equals with very long strings that exceed the max loop check threshold
+    mla_string_t long_str1 = mla_string_concat(
+        mla_string("very long string with lots of content"),
+        mla_string(" and even more content"),
+        mla_string(" to exceed threshold")
+    );
+
+    mla_string_t long_str2 = mla_string_concat(
+        mla_string("very long string with lots of content"),
+        mla_string(" and even more content"),
+        mla_string(" to exceed threshold")
+    );
+
+    mla_string_t long_str_differ = mla_string_concat(
+        mla_string("very long string with lots of content"),
+        mla_string(" and MORE content"),
+        mla_string(" to exceed threshold")
+    );
+
+    assert_true(mla_string_equals(long_str1, long_str2), "Identical long strings should be equal");
+    assert_false(mla_string_equals(long_str1, long_str_differ), "Different long strings should not be equal");
+
+    mla_string_destroy(long_str1);
+    mla_string_destroy(long_str2);
+    mla_string_destroy(long_str_differ);
+}
+
+void StringEqualsSubstringLayoutTest() {
+    // Test equals with substring (view-based) memory layout
+    mla_string_t original = mla_string_concat(mla_string("prefix:"), mla_string("actual content"));
+    mla_string_t substring = mla_string_substr(original, 7, 14);
+    mla_string_t target = mla_string("actual content");
+
+    assert_equal(mla_string_get_memory_layout(substring), MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
+                 "Substring should have SUB_STRING layout");
+    assert_true(mla_string_equals(substring, target), "Substring and regular string with same content should be equal");
+
+    mla_string_destroy(original);
+}
+
+void StringEqualsNullPointerDataTest() {
+    // Test equals with empty/null pointer strings
+    mla_string_t str1 = mla_string("");
+    mla_string_t str2 = mla_string("");
+
+    // Empty strings should still be equal
+    assert_true(mla_string_equals(str1, str2), "Empty strings should be equal");
+}
+
+
 void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("SizeOf", test_category, SizeOfTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -1410,6 +1565,44 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("EqualsConst", test_category, StringEqualsConstTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    // New tests for mla_string_equals with different memory layouts and optimization paths
+    ///////////////////////////////////////////////////////////////
+    test = mla_test("EqualsEmbeddedLayout", test_category, StringEqualsEmbeddedLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsBufferLayout", test_category, StringEqualsBufferLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsCStringLayout", test_category, StringEqualsCStringLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsStrstrOptimization", test_category, StringEqualsStrstrOptimizationTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsMixedLayout", test_category, StringEqualsMixedLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsLengthMismatch", test_category, StringEqualsLengthMismatchTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsEmptyStrings", test_category, StringEqualsEmptyStringsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsSamePointer", test_category, StringEqualsSamePointerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsMaxLoopCheckBelowThreshold", test_category, StringEqualsMaxLoopCheckBelowThresholdTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsMaxLoopCheckAboveThreshold", test_category, StringEqualsMaxLoopCheckAboveThresholdTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsSubstringLayout", test_category, StringEqualsSubstringLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("EqualsNullPointerData", test_category, StringEqualsNullPointerDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
@@ -1633,7 +1826,7 @@ void String_to_C_LayoutBenchmark() {
     mla_test_bench_sink(cStr);
 }
 
-void String_to_Buffer_LayoutBenchmark() {
+void String_to_buffer_LayoutBenchmark() {
     mla_string_t str = mla_string_const("Hello, World! This is a test string for benchmarking.");
     mla_c_string_t cStr = mla_string_to_cString(str);
     mla_test_bench_sink(cStr);
@@ -1703,6 +1896,36 @@ void RefCountBenchmark() {
     str28 = mla_string_empty();
     str29 = mla_string_empty();
     str30 = mla_string_empty();
+}
+
+// Benchmarks for mla_string_substr
+void SubstringEmbeddedSmallBenchmark() {
+    mla_string_t str = mla_string("Hello");
+    mla_string_t result = mla_string_substr(str, 0, 3);
+    mla_test_bench_sink(mla_string_length(result));
+}
+
+void SubstringBufferShortBenchmark() {
+    mla_string_t str = mla_string_const("Hello World!");
+    mla_string_t result = mla_string_substr(str, 6, 5);
+    mla_test_bench_sink(mla_string_length(result));
+}
+
+void SubstringBufferMediumBenchmark() {
+    mla_string_t str = mla_string_const("This is a medium length string for benchmarking substring operations");
+    mla_string_t result = mla_string_substr(str, 10, 20);
+    mla_test_bench_sink(mla_string_length(result));
+}
+
+void SubstringCStringBenchmark() {
+
+    mla_char_t cstr1[100] = "This is a very long C-style string used for benchmarking the strstr optimization path";
+
+    mla_string_t left = mla_string(mla_platform_pointer_to_managed_pointer(cstr1), 85);
+
+    mla_string_t result = mla_string_substr(left, 10, 20);
+    mla_test_bench_sink(mla_string_length(result));
+
 }
 
 
@@ -1795,11 +2018,22 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     benchmark = mla_benchmark("Equals_Embedded", benchmark_category, StringEquals_Embedded_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
+    // Substring Benchmarks
+    ///////////////////////////////////////////
+    benchmark = mla_benchmark("Substr_Embedded_Small", benchmark_category, SubstringEmbeddedSmallBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Substr_Buffer_Short", benchmark_category, SubstringBufferShortBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Substr_Buffer_Medium", benchmark_category, SubstringBufferMediumBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Substr_C_String", benchmark_category, SubstringCStringBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
     // To C String Benchmarks
     ////////////////////////////////////////////
     benchmark = mla_benchmark("C_String_From_C_Layout", benchmark_category, String_to_C_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
-    benchmark = mla_benchmark("C_String_From_Buffer_Layout", benchmark_category, String_to_Buffer_LayoutBenchmark);
+    benchmark = mla_benchmark("C_String_From_buffer_Layout", benchmark_category, String_to_buffer_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 }
 
