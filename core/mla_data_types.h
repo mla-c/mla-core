@@ -61,11 +61,10 @@ struct mla_dynamic_data_t {
     };
 };
 
-class mla_pointer_t;
+struct mla_pointer_t;
 struct mla_pointer_memory_manager_t;
 
-class mla_pointer_t {
-public:
+struct mla_pointer_t {
     // Copy constructor
     mla_pointer_t(const mla_pointer_t& p_Other);
 
@@ -78,7 +77,6 @@ public:
     // Assignment operator
     mla_pointer_t& operator=(const mla_pointer_t& p_Other);
 
-public:
     mla_dynamic_data_t payload;
     mla_pointer_memory_manager_t* memoryManager;
 };
