@@ -60,15 +60,31 @@ mla_bool_t mla_parse_int64(const mla_string_t &str, mla_int64_t& out_value) {
         return false;
     }
 
-    mla_c_string_t c_str = mla_string_to_cString(str);
+    if (length < (mla_global_config_number_parse_max_stack_buffer_size - 1)) {
 
-    const mla_char_t* c_str_data = mla_c_string_data(c_str);
+        const mla_char_t* c_str = mla_string_data(str);
 
-    if (c_str_data == nullptr) {
-        return false;
+        if (c_str == nullptr) {
+            return false;
+        }
+
+        mla_char_t buffer[mla_global_config_number_parse_max_stack_buffer_size];
+        mla_memcpy(buffer, c_str, length);
+        buffer[length] = '\0';
+
+        return mla_strtoll(buffer, length, &out_value);
+
+    } else {
+
+        mla_c_string_t c_str = mla_string_to_cString(str);
+        const mla_char_t* c_str_data = mla_c_string_data(c_str);
+
+        if (c_str_data == nullptr) {
+            return false;
+        }
+
+        return mla_strtoll(c_str_data, length, &out_value);
     }
-
-    return mla_strtoll(c_str_data, length, &out_value);
 
 }
 
@@ -80,21 +96,39 @@ mla_bool_t mla_parse_uint64(const mla_string_t &str, mla_uint64_t& out_value) {
         return false;
     }
 
-    const mla_char_t* data = mla_string_data(str);
+    if (length < (mla_global_config_number_parse_max_stack_buffer_size - 1)) {
 
-    if (data[0] == '-') {
-        return false; // Negative sign not allowed for unsigned
+        const mla_char_t* c_str = mla_string_data(str);
+
+        if (c_str == nullptr) {
+            return false;
+        }
+
+        if (c_str[0] == '-') {
+            return false; // Negative sign not allowed for unsigned
+        }
+
+        mla_char_t buffer[mla_global_config_number_parse_max_stack_buffer_size];
+        mla_memcpy(buffer, c_str, length);
+        buffer[length] = '\0';
+
+        return mla_strtoull(buffer, length, &out_value);
+
+    } else {
+
+        mla_c_string_t c_str = mla_string_to_cString(str);
+        const mla_char_t* c_str_data = mla_c_string_data(c_str);
+
+        if (c_str_data == nullptr) {
+            return false;
+        }
+
+        if (c_str_data[0] == '-') {
+            return false; // Negative sign not allowed for unsigned
+        }
+
+        return mla_strtoull(c_str_data, length, &out_value);
     }
-
-    mla_c_string_t c_str = mla_string_to_cString(str);
-
-    const mla_char_t* c_str_data = mla_c_string_data(c_str);
-
-    if (c_str_data == nullptr) {
-        return false;
-    }
-
-    return mla_strtoull(c_str_data, length, &out_value);
 }
 
 mla_bool_t mla_parse_int32(const mla_string_t &str, mla_int32_t& out_value) {
