@@ -198,4 +198,18 @@
 #define mla_global_config_rpc_stream_small_buffer_size 1024 // 1 KB
 #endif
 
+
+//////////////////////////////////////////////////
+/// Number Parsing
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum buffer size for stack-based number parsing operations.
+ * This buffer is used for temporary storage during number parsing to avoid heap allocations.
+ */
+#ifndef mla_global_config_number_parse_max_stack_buffer_size
+#define mla_global_config_number_parse_max_stack_buffer_size 16
+#endif
+
+
 #endif

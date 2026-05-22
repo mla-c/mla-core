@@ -4,6 +4,8 @@
 
 #include "mla_number.h"
 
+
+
 mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
 
     mla_size_t length = mla_string_length(str);
@@ -12,15 +14,31 @@ mla_bool_t mla_parse_double(const mla_string_t &str, mla_double_t& out_value) {
         return false;
     }
 
-    mla_c_string_t c_str = mla_string_to_cString(str);
+    if (length < (mla_global_config_number_parse_max_stack_buffer_size -1)) {
 
-    const mla_char_t* c_str_data = mla_c_string_data(c_str);
+        const mla_char_t* c_str = mla_string_data(str);
 
-    if (c_str_data == nullptr) {
-        return false;
+        if (c_str == nullptr) {
+            return false;
+        }
+
+        mla_char_t buffer[mla_global_config_number_parse_max_stack_buffer_size];
+        mla_memcpy(buffer, c_str, length);
+        buffer[length] = '\0'; // Null-terminate the buffer
+
+        return mla_strtod(buffer, length, &out_value);
+
+    } else {
+
+        // For longer strings, we can convert to a C-style string to ensure null-termination
+        mla_c_string_t c_string = mla_string_to_cString(str);
+        const mla_char_t* c_str = mla_c_string_data(c_string);
+        if (c_str == nullptr) {
+            return false;
+        }
+
+        return mla_strtod(c_str, length, &out_value);
     }
-
-    return mla_strtod(c_str_data, length, &out_value);
 }
 
 mla_bool_t mla_parse_float(const mla_string_t &str, mla_float_t& out_value) {
