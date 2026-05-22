@@ -421,8 +421,8 @@ struct mla_pointer_memory_manager_t {
 
     mla_pointer_t (*malloc)(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name);
     mla_platform_pointer_t (*get_platform_pointer)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
-    void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
-    void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
+    void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload); // (Optional can be null)
+    void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload); // (Optional can be null)
     mla_int32_t (*get_ref_count)(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload); // return -1 if not supported
 };
 

@@ -23,17 +23,6 @@ mla_platform_pointer_t __noop_pointer_memory_manager_get_platform_pointer(mla_po
     return payload.asPointer;
 }
 
-void __noop_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
-    (void)memory_manager;
-    (void)payload;
-}
-
-void __noop_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
-
-    (void)memory_manager;
-    (void)payload;
-}
-
 mla_int32_t __noop_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
     (void)payload;
