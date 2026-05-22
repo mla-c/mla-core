@@ -75,6 +75,12 @@ mla_string_t mla_string_copy(const mla_string_t &p_String) {
     }
 }
 
+mla_string_t mla_string_from_c_string(const mla_pointer_t& data, mla_size_t p_Length) {
+    mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.length = p_Length;
+    return result;
+}
+
 mla_string_t mla_string(const mla_pointer_t& data, mla_size_t p_Length) {
     mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.length = p_Length;
@@ -166,6 +172,24 @@ mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &
 
     if (data1 == nullptr || data2 == nullptr) {
         return false; // One is null, the other is not
+    }
+
+    if (mla_string_is_c_string(p_String1) && mla_string_is_c_string(p_String2)) {
+
+        // If both strings are C-style strings, use strstr for compare
+        return mla_strstr(data1, data2) == data1;
+    }
+
+    if (length1 <= mla_global_config_string_equals_max_loop_check) {
+
+        for (mla_size_t i = 0; i < length1; i++) {
+            if (data1[i] != data2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+
     }
 
     return mla_memcmp(data1, data2, length1) == 0; // Compare the actual data
@@ -655,6 +679,32 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
         }
 
     }
+
+
+    // Fast path without memcmp
+    if (lengthSub == 1) {
+
+        for (mla_size_t i = 0; i < length; ++i) {
+
+            if (data[i] == dataSub[0]) {
+                return static_cast<mla_int32_t>(i);
+            }
+
+        }
+
+        return -1; // Substring not found
+    }
+
+    if (lengthSub == 2) {
+        for (mla_size_t i = 0; i < (length -1); ++i) {
+            if (data[i] == dataSub[0] && data[i + 1] == dataSub[1]) {
+                return static_cast<mla_int32_t>(i);
+            }
+        }
+
+        return -1;
+    }
+
 
     // Manual search for the substring
     for (mla_size_t i = 0; i <= length - lengthSub; ++i) {

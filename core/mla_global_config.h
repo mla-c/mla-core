@@ -59,6 +59,13 @@
 #define mla_global_config_string_builder_default_buffer_size 128
 #endif
 
+/**
+ * @brief Maximum number of char which are compared using a simple loop before call memcmp
+ */
+#ifndef mla_global_config_string_equals_max_loop_check
+#define mla_global_config_string_equals_max_loop_check 32
+#endif
+
 /////////////////////////////////////////////////
 // Data Structure Defaults
 /////////////////////////////////////////////////

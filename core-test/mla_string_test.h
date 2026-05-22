@@ -106,6 +106,29 @@ void IndexOfEmbeddedLayoutTest() {
                  "MlaString index of 'world' should be -1 (not found)");
 }
 
+void IndexOfFastPathTest() {
+    mla_string_t bufferStr = mla_string_const("01234567890123456789");
+    assert_equal(mla_string_get_memory_layout(bufferStr), MLA_STRING_MEMORY_LAYOUT_BUFFER,
+                 "MlaString should be buffer layout");
+
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("5")), (mla_int32_t)5,
+                 "Fast path with 1-char substring should return first match");
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("56")), (mla_int32_t)5,
+                 "Fast path with 2-char substring should return first match");
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("AA")), (mla_int32_t)-1,
+                 "Fast path with 2-char substring should return -1 when not found");
+
+    mla_string_t embeddedStr = mla_string_const("01234567890123456789");
+    mla_string_change_memory_layout(embeddedStr, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
+    assert_equal(mla_string_get_memory_layout(embeddedStr), MLA_STRING_MEMORY_LAYOUT_EMBEDDED,
+                 "MlaString should be embedded layout");
+
+    assert_equal(mla_string_index_of(embeddedStr, mla_string_const("5")), (mla_int32_t)5,
+                 "Embedded layout fast path with 1-char substring should return first match");
+    assert_equal(mla_string_index_of(embeddedStr, mla_string_const("56")), (mla_int32_t)5,
+                 "Embedded layout fast path with 2-char substring should return first match");
+}
+
 void LastIndexOfTest() {
     mla_string_t mla_str = mla_string("Hello, World! Hello, Universe!");
     assert_equal(mla_string_last_index_of(mla_str, mla_string("Hello")), (mla_int32_t)14,
@@ -1245,6 +1268,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("IndexOfEmbeddedLayout", test_category, IndexOfEmbeddedLayoutTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("IndexOfFastPath", test_category, IndexOfFastPathTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
     test = mla_test("LastIndexOf", test_category, LastIndexOfTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -1542,9 +1568,12 @@ void StringIndexOf_Buffer_LayoutBenchmark() {
     }
 }
 
-void StringIndexOf_C_LayoutBenchmark() {
-    mla_string_t str = mla_string("Hello, World! This is a test string for benchmarking.");
-    mla_string_t subString = mla_string("for");
+void StringIndexOfShort_Buffer_LayoutBenchmark() {
+    const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
+    mla_test_int32_t length = (mla_test_int32_t) mla_test_strlen(data); // Length of the string
+
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
+    mla_string_t subString = mla_string("is");
 
     mla_test_int32_t index = mla_string_index_of(str, subString);
     if (index != 38) {
@@ -1552,6 +1581,50 @@ void StringIndexOf_C_LayoutBenchmark() {
     }
 }
 
+void StringIndexOf_C_LayoutBenchmark() {
+    mla_string_t str = mla_string_const("Hello, World! This is a test string for benchmarking.");
+    mla_string_t subString = mla_string_const("for");
+
+    mla_test_int32_t index = mla_string_index_of(str, subString);
+    if (index != 38) {
+        static_assert(true, "Index of substring not found in MlaStringIndexOfBenchmark");
+    }
+}
+
+void StringEquals_C_LayoutBenchmark() {
+    mla_char_t leftData[64] = "Hello, World! This is a test string for benchmarking.";
+    mla_char_t rightData[64] = "Hello, World! This is a test string for benchmarking.";
+
+    mla_string_t left = mla_string(mla_platform_pointer_to_managed_pointer(leftData));
+    mla_string_t right = mla_string(mla_platform_pointer_to_managed_pointer(rightData));
+
+    mla_test_bench_sink(mla_string_equals(left, right));
+}
+
+void StringEquals_Buffer_LayoutBenchmark() {
+
+    mla_char_t leftData[64] = "Hello, World! This is a test string for benchmarking.";
+    mla_char_t rightData[64] = "Hello, World! This is a test string for benchmarking.";
+
+    mla_string_t left = mla_string(mla_platform_pointer_to_managed_pointer(leftData), 53);
+    mla_string_t right = mla_string(mla_platform_pointer_to_managed_pointer(rightData), 53);
+
+    mla_test_bench_sink(mla_string_equals(left, right));
+}
+
+void StringEquals_BufferShort_LayoutBenchmark() {
+    mla_string_t left = mla_string("Hello, World! This is a test");
+    mla_string_t right = mla_string_const("Hello, World! This is a test");
+
+    mla_test_bench_sink(mla_string_equals(left, right));
+}
+
+void StringEquals_Embedded_LayoutBenchmark() {
+    mla_string_t left = mla_string("Hello, World");
+    mla_string_t right = mla_string("Hello, World");
+
+    mla_test_bench_sink(mla_string_equals(left, right));
+}
 
 void String_to_C_LayoutBenchmark() {
 
@@ -1706,7 +1779,20 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     ////////////////////////////////////////////
     benchmark = mla_benchmark("IndexOf_Buffer", benchmark_category, StringIndexOf_Buffer_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("IndexOfShort_Buffer", benchmark_category, StringIndexOfShort_Buffer_LayoutBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
     benchmark = mla_benchmark("IndexOf_CStr", benchmark_category, StringIndexOf_C_LayoutBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+
+    // Equal
+    ///////////////////////////////////////////
+    benchmark = mla_benchmark("Equals_CStr", benchmark_category, StringEquals_C_LayoutBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Equals_Buffer", benchmark_category, StringEquals_Buffer_LayoutBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Equals_BufferShort", benchmark_category, StringEquals_BufferShort_LayoutBenchmark);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+    benchmark = mla_benchmark("Equals_Embedded", benchmark_category, StringEquals_Embedded_LayoutBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // To C String Benchmarks

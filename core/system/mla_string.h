@@ -101,6 +101,7 @@ struct mla_string_t {
 };
 
 mla_string_t mla_string_empty();
+mla_string_t mla_string_from_c_string(const mla_pointer_t& data, mla_size_t p_Length);
 mla_string_t mla_string(const mla_pointer_t& data, mla_size_t p_Length);
 mla_string_t mla_string(const mla_pointer_t& data);
 mla_string_t mla_string(const mla_char_t *p_Data);
@@ -207,7 +208,7 @@ struct mla_string_hash_t {
 template<mla_size_t N>
 mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
     mla_pointer_t str_ptr = mla_platform_pointer_to_managed_pointer(literal);
-    return mla_string(str_ptr, N-1);  // N includes null terminator
+    return mla_string_from_c_string(str_ptr, N-1);  // N includes null terminator
 }
 
 # define mla_string_equals_const(value1, value2) mla_string_equals(value1, mla_string_const(value2))
