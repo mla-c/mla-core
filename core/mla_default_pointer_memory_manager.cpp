@@ -7,7 +7,9 @@
 
 
 struct mla_pointer_header_t {
-    mla_atomic_int32_t refCount;
+    mla_task_id_t creatorTaskId;
+    mla_int32_t creatorTaskRefCount;
+    mla_atomic_int32_t otherTaskRefCount;
     mla_pointer_cleanup_hook_t cleanupHook;
     mla_dynamic_data_t cleanupHookUserData;
 };
@@ -33,6 +35,7 @@ mla_pointer_t __default_pointer_memory_manager_malloc(mla_pointer_memory_manager
 
     // Initialize header
     mla_pointer_header_t* header = reinterpret_cast<mla_pointer_header_t*>(rawPtr);
+    header->creatorTaskId = mla_current_task_id;
     header->cleanupHook = cleanup_hook;
     header->cleanupHookUserData = cleanup_data;
 
@@ -60,7 +63,13 @@ void __default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t
         return;
     }
 
-    mla_atomic_increment(header->refCount);
+    // Multi Threading optimization
+    // the most data or only touched by the creator thread so we dont need the atomic stuff
+    if (header->creatorTaskId == mla_current_task_id) {
+        header->creatorTaskRefCount++;
+    } else {
+        mla_atomic_increment(header->otherTaskRefCount);
+    }
 }
 
 void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
@@ -73,7 +82,15 @@ void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t
         return;
     }
 
-    if (mla_atomic_decrement(header->refCount) == 0) {
+    mla_int32_t remaining_ref_count;
+
+    if (header->creatorTaskId == mla_current_task_id) {
+        remaining_ref_count = (--header->creatorTaskRefCount) + header->otherTaskRefCount.value;
+    } else {
+        remaining_ref_count = mla_atomic_decrement(header->otherTaskRefCount) - header->creatorTaskRefCount;
+    }
+
+    if (remaining_ref_count == 0) {
 
         mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 
@@ -94,7 +111,7 @@ mla_int32_t __default_pointer_memory_manager_get_ref_count(const mla_pointer_mem
         return -1; // Not supported
     }
 
-    return header->refCount.value;
+    return header->creatorTaskRefCount + header->otherTaskRefCount.value;
 }
 
 mla_pointer_memory_manager_t g_default_pointer_memory_manager = {

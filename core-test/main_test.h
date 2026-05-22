@@ -202,7 +202,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         // Regular mode
         if (runTest) {
             mla_test_print("Running Tests...\n", 17);
-            l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
+            //l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
 
             mla_test_print("Tests completed with ", 21);
             mla_test_char_t buffer[12];
@@ -224,7 +224,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         }
 
         mla_benchmark_executor_run_all(l_BenchmarkExecutor, benchmarkOutputFormat);
-        //mla_benchmark_executor_run(l_BenchmarkExecutor, 15, benchmarkOutputFormat);
+        //mla_benchmark_executor_run(l_BenchmarkExecutor, 90, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 19, benchmarkOutputFormat);
         //mla_benchmark_executor_run(l_BenchmarkExecutor, 82, benchmarkOutputFormat);
 

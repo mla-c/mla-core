@@ -4,6 +4,17 @@
 
 #include "mla_data_types.h"
 
+#include "task/mla_atomic.h"
+
+static mla_atomic_int32_t __mla_last_task_id = {0};
+
+mla_task_id_t mla_generate_task_id() {
+    return mla_atomic_increment(__mla_last_task_id);
+}
+
+mla_thread_local mla_task_id_t g_current_task_id = mla_generate_task_id();
+
+
 const mla_char_t* mla_find_filename_from_path(const mla_char_t* path) {
 
     const mla_char_t* last = nullptr;

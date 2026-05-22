@@ -153,16 +153,18 @@ typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla
 #define mla_byte_min mla_uint8_min
 #define mla_byte_max mla_uint8_max
 
-// Atomic types
-struct mla_atomic_int32_t {
-    volatile mla_int32_t value;
-};
-
 // Methode Visibility
 #define mla_global extern
 
 // Volatile qualifier for memory operations that require it
 #define mla_volatile volatile
+
+#define mla_thread_local thread_local
+
+// Atomic types
+struct mla_atomic_int32_t {
+    mla_volatile mla_int32_t value;
+};
 
 /////////////////////////////////////////////////
 // Commonly used macros for memory operations and type limits
@@ -198,6 +200,32 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path);
 //////////////////////////////////////////////////
 /// Low level memory operations and access to printf and other C functions
 
+
+/**
+ * @brief Identifier type for a logical MLA task.
+ *
+ * The runtime assigns one `mla_task_id_t` value per executing task context.
+ * This value is intended for lightweight task-aware logic such as tracing,
+ * logging, profiling, or associating temporary state with the active task.
+ */
+typedef mla_uint32_t mla_task_id_t;
+
+/**
+ * @brief Thread-local storage containing the current task id.
+ *
+ * Each thread keeps its own copy of this variable (`mla_thread_local`), so
+ * reads and writes do not affect other threads. Platform startup / scheduler
+ * code is responsible for setting this value before task code runs.
+ */
+mla_global mla_thread_local mla_task_id_t g_current_task_id;
+
+/**
+ * @brief Returns the task id of the currently executing task context.
+ *
+ * This macro expands to `g_current_task_id` and is provided as the public
+ * access point for code that needs the active task identifier.
+ */
+#define mla_current_task_id (g_current_task_id)
 
 typedef struct mla_low_level_operations_t {
     // Function pointers for memory operations
