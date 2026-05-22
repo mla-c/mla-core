@@ -45,8 +45,8 @@ mla_int32_t __noop_pointer_memory_manager_get_ref_count(const mla_pointer_memory
 mla_pointer_memory_manager_t g_noop_pointer_memory_manager = {
     __noop_pointer_memory_manager_malloc,
     __noop_pointer_memory_manager_get_platform_pointer,
-    __noop_pointer_memory_manager_incReferences,
-    __noop_pointer_memory_manager_decReferences,
+    nullptr,
+    nullptr,
     __noop_pointer_memory_manager_get_ref_count
 };
 
