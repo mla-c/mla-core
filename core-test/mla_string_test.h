@@ -1609,6 +1609,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
+
+
+
 void StringConcatBenchmark() {
     mla_string_t str1 = mla_string("Hello, ");
     mla_string_t str2 = mla_string("World!");
@@ -1809,7 +1812,7 @@ void StringEquals_Buffer_LayoutBenchmark() {
 }
 
 void StringEquals_BufferShort_LayoutBenchmark() {
-    mla_string_t left = mla_string("Hello, World! This is a test");
+    mla_string_t left = mla_string(mla_platform_pointer_to_managed_pointer("Hello, World! This is a test"), 28);
     mla_string_t right = mla_string_const("Hello, World! This is a test");
 
     mla_test_bench_sink(mla_string_equals(left, right));
@@ -1830,7 +1833,7 @@ void String_to_C_LayoutBenchmark() {
 }
 
 void String_to_buffer_LayoutBenchmark() {
-    mla_string_t str = mla_string_const("Hello, World! This is a test string for benchmarking.");
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer("Hello, World! This is a test string for benchmarking."), 53);
     mla_c_string_t cStr = mla_string_to_cString(str);
     mla_test_bench_sink(cStr);
 
@@ -1902,20 +1905,22 @@ void RefCountBenchmark() {
 }
 
 // Benchmarks for mla_string_substr
-void SubstringEmbeddedSmallBenchmark() {
+void SubstringEmbeddedBenchmark() {
+
     mla_string_t str = mla_string("Hello");
     mla_string_t result = mla_string_substr(str, 0, 3);
     mla_test_bench_sink(mla_string_length(result));
 }
 
 void SubstringBufferShortBenchmark() {
-    mla_string_t str = mla_string_const("Hello World!");
+
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer("Hello World!"), 12);
     mla_string_t result = mla_string_substr(str, 6, 5);
     mla_test_bench_sink(mla_string_length(result));
 }
 
 void SubstringBufferMediumBenchmark() {
-    mla_string_t str = mla_string_const("This is a medium length string for benchmarking substring operations");
+    mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer("This is a medium length string for benchmarking substring operations"), 68);
     mla_string_t result = mla_string_substr(str, 10, 20);
     mla_test_bench_sink(mla_string_length(result));
 }
@@ -2023,7 +2028,7 @@ void RegisterStringBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     // Substring Benchmarks
     ///////////////////////////////////////////
-    benchmark = mla_benchmark("Substr_Embedded_Small", benchmark_category, SubstringEmbeddedSmallBenchmark);
+    benchmark = mla_benchmark("Substr_Embedded", benchmark_category, SubstringEmbeddedBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
     benchmark = mla_benchmark("Substr_Buffer_Short", benchmark_category, SubstringBufferShortBenchmark);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
