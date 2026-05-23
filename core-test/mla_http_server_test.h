@@ -311,6 +311,8 @@ static mla_http_server_t test_server = mla_http_server_invalid();
 
 void StartSimpleHttpServerTest_Setup() {
     test_server = mla_http_server(test_server_host);
+    mla_http_server_set_timeout(test_server, 500);
+
     mla_http_server_handler_item_t handlerItem = mla_http_server_handler_all(
         mla_http_method_get, mla_http_server_request_hello_world_handler);
     mla_http_server_register_handler(test_server, handlerItem);
@@ -325,11 +327,22 @@ void StartSimpleHttpServerTest_TearDown() {
 
 void SimpleHttpServerBenchmark() {
     mla_http_request_t request = mla_http_get_request(test_server_url);
-    mla_http_client_response_t response = mla_http_client_send_request(request);
+    mla_http_client_t client = mla_http_client();
+    mla_http_client_set_timeout(client, 500);
+
+    mla_http_client_response_t response = mla_http_client_send_request(client, request);
+
 
     if (response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK) {
-        mla_error(mla_string_concat("HTTP request to simple server failed with status: ",
-            mla_string_from_uint32((mla_uint32_t)response.status)));
+        mla_string_t message = mla_string_concat("HTTP request to simple server failed with status: ",
+            mla_string_from_uint32((mla_uint32_t)response.status), mla_string_const("\n"));
+
+        const mla_char_t* error_data = mla_string_data(message);
+
+        if (error_data != nullptr) {
+            mla_test_print(error_data, mla_string_length(message));
+        }
+
     }
 }
 

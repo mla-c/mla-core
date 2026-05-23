@@ -1283,31 +1283,38 @@ inline void RegisterStreamDeflateBenchmarks(mla_benchmark_executor_t &p_Benchmar
 
     // Compress benchmarks
     mla_benchmark_t benchmark = mla_benchmark("CompressSmall", benchmark_category, DeflateCompressSmallBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("CompressMedium", benchmark_category, DeflateCompressMediumBenchmark,
                               SetupDeflateCompressMediumBenchmark, nullptr);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("CompressLarge", benchmark_category, DeflateCompressLargeBenchmark,
                               SetupDeflateCompressLargeBenchmark, nullptr);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // Decompress benchmarks
     benchmark = mla_benchmark("DecompressSmall", benchmark_category, DeflateDecompressSmallBenchmark,
                               SetupDeflateDecompressSmallBenchmark, TearDownDeflateDecompressSmallBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("DecompressMedium", benchmark_category, DeflateDecompressMediumBenchmark,
                               SetupDeflateDecompressMediumBenchmark, TearDownDeflateDecompressMediumBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("DecompressLarge", benchmark_category, DeflateDecompressLargeBenchmark,
                               SetupDeflateDecompressLargeBenchmark, TearDownDeflateDecompressLargeBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 100);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     // Round-trip benchmark
     benchmark = mla_benchmark("RoundTripSmall", benchmark_category, DeflateRoundTripSmallBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 1000);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 }
 
