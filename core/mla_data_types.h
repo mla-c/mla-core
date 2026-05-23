@@ -421,7 +421,7 @@ struct mla_pointer_memory_manager_t {
     mla_platform_pointer_t (*get_platform_pointer)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload);
     void (*incReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload); // (Optional can be null)
     void (*decReferences)(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload); // (Optional can be null)
-    mla_int32_t (*get_ref_count)(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload); // return -1 if not supported
+    mla_int32_t (*get_ref_count)(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload);  // (Optional can be null) // return -1 if not supported
 };
 
 // Default initializer for structs and classes which is used to initialize items in data structures like arrays or hash maps.

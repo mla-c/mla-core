@@ -11,14 +11,29 @@ mla_pointer_t mla_pointer_null() {
     };
 }
 
+inline mla_bool_t __mla_pointer_is_platform_pointer(const mla_pointer_t& ptr) {
+    return ptr.memoryManager == nullptr;
+}
+
 mla_bool_t mla_pointer_is_null(const mla_pointer_t& ptr) {
-    return ptr.memoryManager == nullptr || ptr.memoryManager->get_platform_pointer(*ptr.memoryManager, ptr.payload) == nullptr;
+
+    if (__mla_pointer_is_platform_pointer(ptr)) {
+        return ptr.payload.asPointer == nullptr;
+    }
+
+
+    return ptr.memoryManager->get_platform_pointer(*ptr.memoryManager, ptr.payload) == nullptr;
 }
 
 mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr) {
 
-    if (ptr.memoryManager == nullptr) {
-        return 0;
+    if (__mla_pointer_is_platform_pointer(ptr)) {
+        return -1;
+    }
+
+
+    if (ptr.memoryManager->get_ref_count == nullptr) {
+        return -1; // Ref count not supported
     }
 
     return ptr.memoryManager->get_ref_count(*ptr.memoryManager, ptr.payload);
@@ -27,8 +42,8 @@ mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr) {
 
 mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr) {
 
-    if (ptr.memoryManager == nullptr) {
-        return nullptr;
+    if (__mla_pointer_is_platform_pointer(ptr)) {
+        return ptr.payload.asPointer;
     }
 
     return ptr.memoryManager->get_platform_pointer(*ptr.memoryManager, ptr.payload);
@@ -37,19 +52,27 @@ mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr
 
 mla_pointer_t::mla_pointer_t(const mla_pointer_t& p_Other) : payload(p_Other.payload), memoryManager(p_Other.memoryManager) {
 
-    if (this->memoryManager != nullptr && this->memoryManager->incReferences != nullptr) {
-        this->memoryManager->incReferences(*this->memoryManager, this->payload);
+    if (!__mla_pointer_is_platform_pointer(*this)) {
+
+        if (this->memoryManager->incReferences != nullptr) {
+            this->memoryManager->incReferences(*this->memoryManager, this->payload);
+        }
+
     }
 }
 
 mla_pointer_t::mla_pointer_t(mla_dynamic_data_t payload, mla_pointer_memory_manager_t* memoryManager) : payload(payload), memoryManager(memoryManager) {
 
-    if (this->memoryManager != nullptr && this->memoryManager->incReferences != nullptr) {
-        this->memoryManager->incReferences(*this->memoryManager, this->payload);
+    if (!__mla_pointer_is_platform_pointer(*this)) {
+
+        if (this->memoryManager->incReferences != nullptr) {
+            this->memoryManager->incReferences(*this->memoryManager, this->payload);
+        }
+
     }
 }
 
-void __mla_pointer_destroy(mla_pointer_memory_manager_t* memoryManager, mla_dynamic_data_t payload) {
+inline void __mla_pointer_destroy(mla_pointer_memory_manager_t* memoryManager, mla_dynamic_data_t payload) {
 
     if (memoryManager == nullptr || memoryManager->decReferences == nullptr) {
         return;
