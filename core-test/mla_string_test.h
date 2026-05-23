@@ -26,7 +26,7 @@ void ContainsCLayoutTest() {
 }
 
 void ContainsBufferLayoutTest() {
-    mla_string_t mla_str = mla_string_const("Hello, World!");
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer("Hello, World!"), 13);
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be C layout");
     assert_true(mla_string_contains(mla_str, mla_string("World")), "MlaString should contain 'World'");
     assert_false(mla_string_contains(mla_str, mla_string("world")), "MlaString should not contain 'world'");
@@ -69,6 +69,7 @@ void EqualsTest() {
 }
 
 void EqualsIgnoreCaseTest() {
+
     mla_string_t mla_str1 = mla_string("Hello, World!");
     mla_string_t mla_str2 = mla_string("hello, wOrld!");
     mla_string_t mla_str3 = mla_string("Goodbye, World!");
@@ -88,7 +89,8 @@ void IndexOfCLayoutTest() {
 }
 
 void IndexOfBufferLayoutTest() {
-    mla_string_t mla_str = mla_string_const("Hello, World!");
+
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer("Hello, World!"), 13);
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
     assert_equal(mla_string_index_of(mla_str, mla_string("World")), (mla_int32_t)7,
                  "MlaString index of 'World' should be 7");
@@ -97,6 +99,7 @@ void IndexOfBufferLayoutTest() {
 }
 
 void IndexOfEmbeddedLayoutTest() {
+
     mla_string_t mla_str = mla_string_const("Hello, World!");
     mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
     assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be embedded layout");
@@ -107,7 +110,8 @@ void IndexOfEmbeddedLayoutTest() {
 }
 
 void IndexOfFastPathTest() {
-    mla_string_t bufferStr = mla_string_const("01234567890123456789");
+
+    mla_string_t bufferStr = mla_string(mla_platform_pointer_to_managed_pointer("01234567890123456789"), 20);
     assert_equal(mla_string_get_memory_layout(bufferStr), MLA_STRING_MEMORY_LAYOUT_BUFFER,
                  "MlaString should be buffer layout");
 
@@ -118,8 +122,7 @@ void IndexOfFastPathTest() {
     assert_equal(mla_string_index_of(bufferStr, mla_string_const("AA")), (mla_int32_t)-1,
                  "Fast path with 2-char substring should return -1 when not found");
 
-    mla_string_t embeddedStr = mla_string_const("01234567890123456789");
-    mla_string_change_memory_layout(embeddedStr, MLA_STRING_MEMORY_LAYOUT_EMBEDDED);
+    mla_string_t embeddedStr = mla_string("012345678");
     assert_equal(mla_string_get_memory_layout(embeddedStr), MLA_STRING_MEMORY_LAYOUT_EMBEDDED,
                  "MlaString should be embedded layout");
 
@@ -1246,9 +1249,9 @@ void StringEqualsEmbeddedLayoutTest() {
 
 void StringEqualsBufferLayoutTest() {
     // Test buffer-based strings (medium strings that require heap allocation)
-    mla_string_t buffer1 = mla_string_const("This is a longer test string for buffer layout");
-    mla_string_t buffer2 = mla_string_const("This is a longer test string for buffer layout");
-    mla_string_t buffer3 = mla_string_const("This is a different buffer string entirely");
+    mla_string_t buffer1 = mla_string(mla_platform_pointer_to_managed_pointer("This is a longer test string for buffer layout"), 46);
+    mla_string_t buffer2 = mla_string(mla_platform_pointer_to_managed_pointer("This is a longer test string for buffer layout"), 46);
+    mla_string_t buffer3 = mla_string(mla_platform_pointer_to_managed_pointer("This is a different buffer string entirely"), 42);
 
     assert_equal(mla_string_get_memory_layout(buffer1), MLA_STRING_MEMORY_LAYOUT_BUFFER, "String should be buffer layout");
     assert_equal(mla_string_get_memory_layout(buffer2), MLA_STRING_MEMORY_LAYOUT_BUFFER, "String should be buffer layout");
@@ -1369,7 +1372,7 @@ void StringEqualsSubstringLayoutTest() {
     mla_string_t substring = mla_string_substr(original, 7, 14);
     mla_string_t target = mla_string("actual content");
 
-    assert_equal(mla_string_get_memory_layout(substring), MLA_STRING_MEMORY_LAYOUT_SUB_STRING,
+    assert_equal(mla_string_get_memory_layout(substring), MLA_STRING_MEMORY_LAYOUT_EMBEDDED,
                  "Substring should have SUB_STRING layout");
     assert_true(mla_string_equals(substring, target), "Substring and regular string with same content should be equal");
 

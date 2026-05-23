@@ -203,6 +203,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
         if (runTest) {
             mla_test_print("Running Tests...\n", 17);
             l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor);
+            //l_FailedTest = mla_test_executor_run_test(l_TestExecutor, 389);
 
             mla_test_print("Tests completed with ", 21);
             mla_test_char_t buffer[12];

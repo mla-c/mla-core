@@ -87,7 +87,7 @@ void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t
     if (header->creatorTaskId == mla_current_task_id) {
         remaining_ref_count = (--header->creatorTaskRefCount) + header->otherTaskRefCount.value;
     } else {
-        remaining_ref_count = mla_atomic_decrement(header->otherTaskRefCount) - header->creatorTaskRefCount;
+        remaining_ref_count = mla_atomic_decrement(header->otherTaskRefCount) + header->creatorTaskRefCount;
     }
 
     if (remaining_ref_count == 0) {
