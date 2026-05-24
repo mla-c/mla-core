@@ -9,8 +9,6 @@
 #include "../core-test-support/mla_test_executor.h"
 #include "../core-test-support/mla_benchmark_executor.h"
 
-#define test_category "AreaMemory"
-
 inline void MlaAreaMemoryAllocationTest() {
     mla_area_pointer_memory_manager_t area_manager = mla_area_pointer_memory_manager_create(1024);
 
@@ -82,17 +80,16 @@ inline void MlaAreaMemoryBenchmark_TearDown() {
 inline void MlaAreaMemoryBenchmark() {
     // Keep page alive
     mla_pointer_t keepAlive = mla_malloc_buffer_with_manager(&g_bench_area_manager.manager, 1);
-    for (int i = 0; i < 100; ++i) {
-        mla_pointer_t ptr = mla_malloc_buffer_with_manager(&g_bench_area_manager.manager, 32);
-        (void)ptr;
-    }
+    mla_pointer_t ptr = mla_malloc_buffer_with_manager(&g_bench_area_manager.manager, 32);
+    (void)ptr;
+    (void)keepAlive;
 }
 
 inline void MlaDefaultMemoryBenchmark() {
-    for (int i = 0; i < 100; ++i) {
-        mla_pointer_t ptr = mla_malloc_buffer(32);
-        (void)ptr;
-    }
+    mla_pointer_t keepAlive = mla_malloc_buffer_with_manager(&g_bench_area_manager.manager, 1);
+    mla_pointer_t ptr = mla_malloc_buffer(32);
+    (void)ptr;
+    (void)keepAlive;
 }
 
 void RegisterAreaMemoryBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {

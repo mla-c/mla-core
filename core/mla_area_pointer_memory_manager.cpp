@@ -40,13 +40,14 @@ static void __mla_area_unlock(mla_atomic_int32_t& lock) {
 }
 
 static mla_area_page_header_t* __mla_area_allocate_page(mla_size_t size) {
+
     mla_platform_pointer_t rawPtr = mla_platform_malloc(size);
     if (rawPtr == nullptr) {
         return nullptr;
     }
     mla_memset(rawPtr, 0, size);
     mla_area_page_header_t* page = reinterpret_cast<mla_area_page_header_t*>(rawPtr);
-    page->Pagesize = size;
+    page->page_size = size;
     page->refCount = 0;
     page->OtherTaskRefCount.value = 0;
     page->CurrentPosition.value = (mla_int32_t)__mla_area_align_up(sizeof(mla_area_page_header_t));
@@ -69,7 +70,8 @@ mla_pointer_t __area_pointer_memory_manager_malloc(mla_pointer_memory_manager_t&
         if (page != nullptr) {
             // Try lock-free reservation of space in the current page
             mla_int32_t currentPos = page->CurrentPosition.value;
-            while ((mla_size_t)currentPos + totalNeeded <= page->Pagesize) {
+            while ((mla_size_t)currentPos + totalNeeded <= page->page_size) {
+
                 if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + (mla_int32_t)totalNeeded)) {
                     // Success! Reserved space.
                     mla_platform_pointer_t itemPtr = reinterpret_cast<mla_byte_t*>(page) + currentPos;
@@ -135,6 +137,7 @@ void __area_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& m
 }
 
 static void __mla_area_free_page(mla_area_pointer_memory_manager_t& area_manager, mla_area_page_header_t* page) {
+
     mla_size_t currentPos = __mla_area_align_up(sizeof(mla_area_page_header_t));
     mla_size_t headerSize = __mla_area_align_up(sizeof(mla_area_pointer_header_t));
 
@@ -194,7 +197,9 @@ void __area_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& m
 mla_int32_t __area_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
     mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
-    if (header == nullptr) return -1;
+    if (header == nullptr)
+        return -1;
+
     return header->page->refCount + header->page->OtherTaskRefCount.value;
 }
 

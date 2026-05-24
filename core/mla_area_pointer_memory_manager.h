@@ -9,7 +9,7 @@
 #include "task/mla_atomic.h"
 
 struct mla_area_page_header_t {
-    mla_size_t Pagesize;
+    mla_size_t page_size;
     mla_int32_t refCount;
     mla_atomic_int32_t OtherTaskRefCount;
     mla_atomic_int32_t CurrentPosition; // Made atomic for lock-free sub-allocation
