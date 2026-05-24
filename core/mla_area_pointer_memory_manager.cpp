@@ -11,6 +11,20 @@ struct mla_area_pointer_header_t {
     mla_dynamic_data_t cleanupHookUserData;
 };
 
+/**
+ * @brief Aligns a size up to the nearest multiple of 8.
+ *
+ * 8-byte alignment is a common requirement for modern CPUs to perform
+ * efficient memory access and to avoid alignment faults on certain
+ * architectures.
+ *
+ * Logic: (size + 7) & ~7
+ * Adding 7 ensures that any value not already a multiple of 8 moves
+ * into the next "8-byte block" range. The bitwise AND with ~7 (which
+ * is ...11111000 in binary) then clears the lower 3 bits, effectively
+ * rounding down to the start of that block, which is the nearest
+ * multiple of 8.
+ */
 static inline mla_size_t __mla_area_align_up(mla_size_t size) {
     return (size + 7) & ~static_cast<mla_size_t>(7);
 }
@@ -35,7 +49,7 @@ static mla_area_page_header_t* __mla_area_allocate_page(mla_size_t size) {
     page->Pagesize = size;
     page->refCount = 0;
     page->OtherTaskRefCount.value = 0;
-    page->CurrentPosition = __mla_area_align_up(sizeof(mla_area_page_header_t));
+    page->CurrentPosition.value = (mla_int32_t)__mla_area_align_up(sizeof(mla_area_page_header_t));
     page->NextPage = nullptr;
     page->creatorTaskId = mla_current_task_id;
     return page;
@@ -49,42 +63,52 @@ mla_pointer_t __area_pointer_memory_manager_malloc(mla_pointer_memory_manager_t&
     mla_size_t headerSize = __mla_area_align_up(sizeof(mla_area_pointer_header_t));
     mla_size_t totalNeeded = headerSize + __mla_area_align_up(size);
 
-    __mla_area_lock(area_manager.lock);
+    while (true) {
+        mla_area_page_header_t* page = area_manager.currentPage;
 
-    if (area_manager.currentPage == nullptr || (area_manager.currentPage->CurrentPosition + totalNeeded > area_manager.currentPage->Pagesize)) {
-        mla_size_t pageSize = area_manager.defaultPageSize;
-        if (totalNeeded + __mla_area_align_up(sizeof(mla_area_page_header_t)) > pageSize) {
-            pageSize = totalNeeded + __mla_area_align_up(sizeof(mla_area_page_header_t));
+        if (page != nullptr) {
+            // Try lock-free reservation of space in the current page
+            mla_int32_t currentPos = page->CurrentPosition.value;
+            while ((mla_size_t)currentPos + totalNeeded <= page->Pagesize) {
+                if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + (mla_int32_t)totalNeeded)) {
+                    // Success! Reserved space.
+                    mla_platform_pointer_t itemPtr = reinterpret_cast<mla_byte_t*>(page) + currentPos;
+
+                    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(itemPtr);
+                    header->page = page;
+                    header->itemSize = totalNeeded;
+                    header->cleanupHook = cleanup_hook;
+                    header->cleanupHookUserData = cleanup_data;
+
+                    return {
+                        mla_dynamic_data_from_pointer(itemPtr),
+                        &memory_manager
+                    };
+                }
+                // Contention or update happened, retry with new currentPos
+                currentPos = page->CurrentPosition.value;
+            }
         }
-        mla_area_page_header_t* newPage = __mla_area_allocate_page(pageSize);
-        if (newPage == nullptr) {
-            __mla_area_unlock(area_manager.lock);
-            return mla_pointer_null();
+
+        // Need new page
+        __mla_area_lock(area_manager.lock);
+        // Double check if page changed while waiting for lock
+        if (area_manager.currentPage == page) {
+            mla_size_t pageSize = area_manager.defaultPageSize;
+            if (totalNeeded + __mla_area_align_up(sizeof(mla_area_page_header_t)) > pageSize) {
+                pageSize = totalNeeded + __mla_area_align_up(sizeof(mla_area_page_header_t));
+            }
+            mla_area_page_header_t* newPage = __mla_area_allocate_page(pageSize);
+            if (newPage == nullptr) {
+                __mla_area_unlock(area_manager.lock);
+                return mla_pointer_null();
+            }
+            newPage->NextPage = area_manager.currentPage;
+            area_manager.currentPage = newPage;
         }
-        newPage->NextPage = area_manager.currentPage;
-        area_manager.currentPage = newPage;
+        __mla_area_unlock(area_manager.lock);
+        // Continue loop to allocate from the newly created page
     }
-
-    mla_area_page_header_t* page = area_manager.currentPage;
-    mla_platform_pointer_t itemPtr = reinterpret_cast<mla_byte_t*>(page) + page->CurrentPosition;
-    page->CurrentPosition += totalNeeded;
-
-    // We don't increment here to stay consistent with mla_pointer_t constructor
-    // but the page remains in the list and is the "currentPage", so it won't be freed
-    // until decReferences is called.
-
-    __mla_area_unlock(area_manager.lock);
-
-    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(itemPtr);
-    header->page = page;
-    header->itemSize = totalNeeded;
-    header->cleanupHook = cleanup_hook;
-    header->cleanupHookUserData = cleanup_data;
-
-    return {
-        mla_dynamic_data_from_pointer(itemPtr),
-        &memory_manager
-    };
 }
 
 mla_platform_pointer_t __area_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
@@ -114,7 +138,8 @@ static void __mla_area_free_page(mla_area_pointer_memory_manager_t& area_manager
     mla_size_t currentPos = __mla_area_align_up(sizeof(mla_area_page_header_t));
     mla_size_t headerSize = __mla_area_align_up(sizeof(mla_area_pointer_header_t));
 
-    while (currentPos < page->CurrentPosition) {
+    mla_int32_t finalPos = page->CurrentPosition.value;
+    while (currentPos < (mla_size_t)finalPos) {
         mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(reinterpret_cast<mla_byte_t*>(page) + currentPos);
         if (header->cleanupHook != nullptr) {
             mla_platform_pointer_t data = reinterpret_cast<mla_byte_t*>(header) + headerSize;
