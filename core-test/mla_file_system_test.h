@@ -533,7 +533,7 @@ static const mla_string_t g_file_system_benchmark_directory = mla_string_const("
 static const mla_string_t g_file_system_benchmark_file_path = mla_string_const("/fsbench/read-throughput.bin");
 static const mla_size_t g_file_system_benchmark_max_file_size = 8u * 1024u * 1024u;
 
-static mla_file_system_stream_t g_file_system_benchmark_stream = {};
+static mla_file_system_stream_t g_file_system_benchmark_stream = mla_file_system_stream_empty();
 static mla_byte_t* g_file_system_benchmark_write_buffer = nullptr;
 static mla_byte_t* g_file_system_benchmark_read_buffer = nullptr;
 static mla_size_t g_file_system_benchmark_read_size = 0;

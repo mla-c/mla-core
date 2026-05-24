@@ -460,14 +460,19 @@ mla_size_t __mla_file_system_native_open_file_read_sync(const mla_file_system_st
 
 mla_size_t __mla_file_system_native_open_file_read_count(mla_size_t length) {
 
-    const mla_size_t targetChunkSize = 512u * 1024u;
+    const mla_size_t minimumParallelReadSize = 4u * 1024u * 1024u;
+    const mla_size_t targetChunkSize = 1024u * 1024u;
+    const mla_size_t minimumOutstandingReads = 4u;
     const mla_size_t maxOutstandingReads = 16u;
 
-    if (length <= targetChunkSize) {
+    if (length < minimumParallelReadSize) {
         return 1;
     }
 
     mla_size_t readCount = (length + targetChunkSize - 1u) / targetChunkSize;
+    if (readCount < minimumOutstandingReads) {
+        readCount = minimumOutstandingReads;
+    }
     if (readCount > maxOutstandingReads) {
         readCount = maxOutstandingReads;
     }
