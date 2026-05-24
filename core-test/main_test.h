@@ -43,6 +43,7 @@
 #include "mla_memory_test.h"
 #include "mla_math_utils_test.h"
 #include "mla_user_data_test.h"
+#include "mla_area_memory_test.h"
 
 #if !defined mla_test_disable_external_task || mla_test_disable_external_task != 1
 #include "mla_external_task_test.h"
@@ -76,6 +77,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     mla_test_executor_t l_TestExecutor = mla_test_executor();
     RegisterDataTypesTests(l_TestExecutor);
     RegisterPointerTests(l_TestExecutor);
+    RegisterAreaMemoryTests(l_TestExecutor);
     RegisterStringTests(l_TestExecutor);
     RegisterStringBuilderTests(l_TestExecutor);
     RegisterNumberTests(l_TestExecutor);
@@ -131,6 +133,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
     mla_benchmark_executor_t l_BenchmarkExecutor = mla_benchmark_executor();
     RegisterPointerBenchmarks(l_BenchmarkExecutor);
+    RegisterAreaMemoryBenchmarks(l_BenchmarkExecutor);
     RegisterStringBenchmarks(l_BenchmarkExecutor);
     RegisterNumberBenchmarks(l_BenchmarkExecutor);
     RegisterMemoryHookBenchmarks(l_BenchmarkExecutor);
