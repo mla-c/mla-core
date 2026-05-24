@@ -150,6 +150,10 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterUserDataBenchmarks(l_BenchmarkExecutor);
     RegisterStreamDeflateBenchmarks(l_BenchmarkExecutor);
 
+#if !defined mla_test_disable_file_system|| mla_test_disable_file_system != 1
+    RegisterFileSystemBenchmarks(l_BenchmarkExecutor);
+#endif
+
 #if !defined mla_test_disable_network || mla_test_disable_network != 1
     // Network Benchmarks
 

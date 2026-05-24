@@ -26,6 +26,11 @@ struct mla_file_system_native_t {
     }
 };
 
+struct mla_file_system_windows_native_stream_t {
+    HANDLE syncHandle;
+    HANDLE overlappedReadHandle;
+};
+
 static const mla_string_t mla_windows_fs_directory_seperator = mla_string_const("\\");
 
 mla_file_system_native_t* __mla_file_system_native_get_native_data(mla_file_system_t& file_system) {
@@ -312,25 +317,59 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     return true;
 }
 
+mla_file_system_windows_native_stream_t* __mla_file_system_native_get_stream_data(const mla_file_system_stream_t& stream) {
+
+    mla_native_resource_t* native_resource = mla_native_resource_from_managed_pointer(stream.resource);
+
+    if (native_resource == nullptr || native_resource->asPointer == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<mla_file_system_windows_native_stream_t*>(native_resource->asPointer);
+}
+
 void __mla_file_system_native_close_file(const mla_native_resource_t& userData) {
 
-    (void)userData;
-    HANDLE hFile = reinterpret_cast<HANDLE>(userData.asPointer);
+    mla_file_system_windows_native_stream_t* streamData = reinterpret_cast<mla_file_system_windows_native_stream_t*>(userData.asPointer);
 
-    CloseHandle(hFile);
+    if (streamData == nullptr) {
+        return;
+    }
 
+    if (streamData->overlappedReadHandle != INVALID_HANDLE_VALUE && streamData->overlappedReadHandle != nullptr) {
+        CloseHandle(streamData->overlappedReadHandle);
+        streamData->overlappedReadHandle = INVALID_HANDLE_VALUE;
+    }
+
+    if (streamData->syncHandle != INVALID_HANDLE_VALUE && streamData->syncHandle != nullptr) {
+        CloseHandle(streamData->syncHandle);
+        streamData->syncHandle = INVALID_HANDLE_VALUE;
+    }
+
+    mla_platform_free(streamData);
 }
 
 HANDLE __mla_file_system_native_get_handle_from_stream(const mla_file_system_stream_t& stream) {
 
-    mla_native_resource_t* native_resource = mla_native_resource_from_managed_pointer(stream.resource);
+    mla_file_system_windows_native_stream_t* streamData = __mla_file_system_native_get_stream_data(stream);
 
-    if (native_resource == nullptr) {
+    if (streamData == nullptr) {
         return INVALID_HANDLE_VALUE;
     }
 
-    return native_resource->asPointer;
+    return streamData->syncHandle;
 
+}
+
+HANDLE __mla_file_system_native_get_overlapped_handle_from_stream(const mla_file_system_stream_t& stream) {
+
+    mla_file_system_windows_native_stream_t* streamData = __mla_file_system_native_get_stream_data(stream);
+
+    if (streamData == nullptr) {
+        return INVALID_HANDLE_VALUE;
+    }
+
+    return streamData->overlappedReadHandle;
 }
 
 mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
@@ -403,7 +442,7 @@ mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_s
     return false;
 }
 
-mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_file_system_native_open_file_read_sync(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     HANDLE hFile = __mla_file_system_native_get_handle_from_stream(input);
 
@@ -411,13 +450,149 @@ mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_
         return 0;
     }
 
-
     DWORD bytesRead = 0;
     if (ReadFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesRead, nullptr)) {
         return static_cast<mla_size_t>(bytesRead);
     }
 
     return 0;
+}
+
+mla_size_t __mla_file_system_native_open_file_read_count(mla_size_t length) {
+
+    const mla_size_t targetChunkSize = 512u * 1024u;
+    const mla_size_t maxOutstandingReads = 16u;
+
+    if (length <= targetChunkSize) {
+        return 1;
+    }
+
+    mla_size_t readCount = (length + targetChunkSize - 1u) / targetChunkSize;
+    if (readCount > maxOutstandingReads) {
+        readCount = maxOutstandingReads;
+    }
+
+    return readCount;
+}
+
+mla_size_t __mla_file_system_native_open_file_read_parallel(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    const mla_size_t maxOutstandingReads = 16u;
+
+    HANDLE syncHandle = __mla_file_system_native_get_handle_from_stream(input);
+    HANDLE overlappedHandle = __mla_file_system_native_get_overlapped_handle_from_stream(input);
+
+    if (syncHandle == INVALID_HANDLE_VALUE || overlappedHandle == INVALID_HANDLE_VALUE) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    mla_size_t readCount = __mla_file_system_native_open_file_read_count(length);
+    if (readCount <= 1u) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    LARGE_INTEGER currentPosition;
+    LARGE_INTEGER zeroOffset;
+    zeroOffset.QuadPart = 0;
+
+    if (!SetFilePointerEx(syncHandle, zeroOffset, &currentPosition, FILE_CURRENT)) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    OVERLAPPED overlapped[maxOutstandingReads] = {};
+    HANDLE events[maxOutstandingReads] = {};
+
+    mla_size_t totalBytesRead = 0;
+    mla_size_t bytesScheduled = 0;
+    const mla_size_t baseChunkSize = length / readCount;
+    const mla_size_t remainder = length % readCount;
+
+    for (mla_size_t i = 0; i < readCount; ++i) {
+        const mla_size_t chunkSize = baseChunkSize + (i < remainder ? 1u : 0u);
+        if (chunkSize == 0u) {
+            continue;
+        }
+
+        events[i] = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+        if (events[i] == nullptr) {
+            for (mla_size_t j = 0; j < i; ++j) {
+                if (events[j] != nullptr) {
+                    CancelIoEx(overlappedHandle, &overlapped[j]);
+                    CloseHandle(events[j]);
+                }
+            }
+            return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+        }
+
+        overlapped[i].hEvent = events[i];
+
+        const mla_uint64_t fileOffset = static_cast<mla_uint64_t>(currentPosition.QuadPart) + bytesScheduled;
+        overlapped[i].Offset = static_cast<DWORD>(fileOffset & 0xFFFFFFFFu);
+        overlapped[i].OffsetHigh = static_cast<DWORD>((fileOffset >> 32u) & 0xFFFFFFFFu);
+
+        BOOL readResult = ReadFile(
+            overlappedHandle,
+            buffer + offset + bytesScheduled,
+            static_cast<DWORD>(chunkSize),
+            nullptr,
+            &overlapped[i]
+        );
+
+        if (!readResult && GetLastError() != ERROR_IO_PENDING) {
+            CloseHandle(events[i]);
+            events[i] = nullptr;
+
+            for (mla_size_t j = 0; j < i; ++j) {
+                if (events[j] != nullptr) {
+                    CancelIoEx(overlappedHandle, &overlapped[j]);
+                    WaitForSingleObject(events[j], INFINITE);
+                    CloseHandle(events[j]);
+                    events[j] = nullptr;
+                }
+            }
+
+            return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+        }
+
+        bytesScheduled += chunkSize;
+    }
+
+    if (readCount > 0u) {
+        DWORD waitResult = WaitForMultipleObjects(static_cast<DWORD>(readCount), events, TRUE, INFINITE);
+        if (waitResult < WAIT_OBJECT_0 || waitResult >= (WAIT_OBJECT_0 + readCount)) {
+            for (mla_size_t i = 0; i < readCount; ++i) {
+                if (events[i] != nullptr) {
+                    CancelIoEx(overlappedHandle, &overlapped[i]);
+                    CloseHandle(events[i]);
+                }
+            }
+            return 0;
+        }
+    }
+
+    for (mla_size_t i = 0; i < readCount; ++i) {
+        if (events[i] == nullptr) {
+            continue;
+        }
+
+        DWORD bytesRead = 0;
+        if (GetOverlappedResult(overlappedHandle, &overlapped[i], &bytesRead, FALSE)) {
+            totalBytesRead += static_cast<mla_size_t>(bytesRead);
+        }
+
+        CloseHandle(events[i]);
+    }
+
+    LARGE_INTEGER newPosition;
+    newPosition.QuadPart = currentPosition.QuadPart + totalBytesRead;
+    SetFilePointerEx(syncHandle, newPosition, nullptr, FILE_BEGIN);
+
+    return totalBytesRead;
+}
+
+mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    return __mla_file_system_native_open_file_read_parallel(input, offset, length, buffer);
 }
 
 mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
@@ -498,7 +673,33 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
         return false;
     }
 
-    mla_native_resource_t resource = mla_dynamic_data_from_pointer(hFile);
+    HANDLE overlappedReadHandle = INVALID_HANDLE_VALUE;
+    if (canRead) {
+        overlappedReadHandle = CreateFileW(
+            wide_path,
+            GENERIC_READ,
+            FILE_SHARE_READ,
+            nullptr,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+            nullptr
+        );
+    }
+
+    mla_file_system_windows_native_stream_t* streamData = static_cast<mla_file_system_windows_native_stream_t*>(mla_platform_malloc(sizeof(mla_file_system_windows_native_stream_t)));
+    if (streamData == nullptr) {
+        if (overlappedReadHandle != INVALID_HANDLE_VALUE) {
+            CloseHandle(overlappedReadHandle);
+        }
+        CloseHandle(hFile);
+        mla_string_destroy(fullPath);
+        return false;
+    }
+
+    streamData->syncHandle = hFile;
+    streamData->overlappedReadHandle = overlappedReadHandle;
+
+    mla_native_resource_t resource = mla_dynamic_data_from_pointer(streamData);
     mla_pointer_t resource_ptr = mla_native_resource_to_managed_pointer(resource, __mla_file_system_native_close_file);
 
     if (canRead && canWrite) {
@@ -535,7 +736,11 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             resource_ptr
         };
     } else {
+        if (overlappedReadHandle != INVALID_HANDLE_VALUE) {
+            CloseHandle(overlappedReadHandle);
+        }
         CloseHandle(hFile);
+        mla_platform_free(streamData);
         mla_string_destroy(fullPath);
         return false;
     }

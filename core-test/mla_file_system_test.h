@@ -6,6 +6,7 @@
 #define MLA_FILE_SYSTEM_TEST_H
 
 #include "../core-test-support/mla_test_executor.h"
+#include "../core-test-support/mla_benchmark_executor.h"
 #include "../core/filesystem/mla_file_system.h"
 
 void FileSystemIsDirectoryPathTest() {
@@ -524,6 +525,174 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
 
     test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
+}
+
+#if defined(_WIN32)
+
+static const mla_string_t g_file_system_benchmark_directory = mla_string_const("/fsbench/");
+static const mla_string_t g_file_system_benchmark_file_path = mla_string_const("/fsbench/read-throughput.bin");
+static const mla_size_t g_file_system_benchmark_max_file_size = 8u * 1024u * 1024u;
+
+static mla_file_system_stream_t g_file_system_benchmark_stream = {};
+static mla_byte_t* g_file_system_benchmark_write_buffer = nullptr;
+static mla_byte_t* g_file_system_benchmark_read_buffer = nullptr;
+static mla_size_t g_file_system_benchmark_read_size = 0;
+
+void FileSystemBenchmarkSetup() {
+    if (g_file_system_benchmark_write_buffer != nullptr &&
+        g_file_system_benchmark_read_buffer != nullptr &&
+        g_file_system_benchmark_stream.read != nullptr) {
+        return;
+    }
+
+    mla_fs_delete_file(g_file_system_benchmark_file_path);
+    mla_fs_delete_directory(g_file_system_benchmark_directory);
+    assert_true(mla_fs_create_directory(g_file_system_benchmark_directory),
+                "Benchmark setup should create directory");
+
+    g_file_system_benchmark_write_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(g_file_system_benchmark_max_file_size));
+    g_file_system_benchmark_read_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(g_file_system_benchmark_max_file_size));
+
+    assert_true(g_file_system_benchmark_write_buffer != nullptr,
+                "Benchmark setup should allocate write buffer");
+    assert_true(g_file_system_benchmark_read_buffer != nullptr,
+                "Benchmark setup should allocate read buffer");
+
+    for (mla_size_t i = 0; i < g_file_system_benchmark_max_file_size; ++i) {
+        g_file_system_benchmark_write_buffer[i] = static_cast<mla_byte_t>(i & 0xFFu);
+    }
+
+    mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(g_file_system_benchmark_file_path,
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
+                "Benchmark setup should open write stream");
+    assert_true(writeStream.write != nullptr,
+                "Benchmark setup write callback should exist");
+    assert_equal(writeStream.write(writeStream, 0, g_file_system_benchmark_max_file_size, g_file_system_benchmark_write_buffer),
+                g_file_system_benchmark_max_file_size,
+                "Benchmark setup should write the benchmark file");
+    writeStream = mla_file_system_stream_empty();
+
+    assert_true(mla_fs_open_file(g_file_system_benchmark_file_path,
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, g_file_system_benchmark_stream),
+                "Benchmark setup should open read stream");
+    assert_true(g_file_system_benchmark_stream.read != nullptr,
+                "Benchmark setup read callback should exist");
+}
+
+void FileSystemBenchmarkTearDown() {
+    g_file_system_benchmark_stream = mla_file_system_stream_empty();
+
+    if (g_file_system_benchmark_write_buffer != nullptr) {
+        mla_platform_free(g_file_system_benchmark_write_buffer);
+        g_file_system_benchmark_write_buffer = nullptr;
+    }
+
+    if (g_file_system_benchmark_read_buffer != nullptr) {
+        mla_platform_free(g_file_system_benchmark_read_buffer);
+        g_file_system_benchmark_read_buffer = nullptr;
+    }
+
+    mla_fs_delete_file(g_file_system_benchmark_file_path);
+    mla_fs_delete_directory(g_file_system_benchmark_directory);
+}
+
+void FileSystemBenchmarkReadSync() {
+    assert_true(g_file_system_benchmark_stream.seek != nullptr,
+                "Sync benchmark seek callback should exist");
+    assert_true(g_file_system_benchmark_stream.seek(g_file_system_benchmark_stream, 0),
+                "Sync benchmark should seek to file start");
+
+    mla_size_t bytesRead = __mla_file_system_native_open_file_read_sync(
+        g_file_system_benchmark_stream,
+        0,
+        g_file_system_benchmark_read_size,
+        g_file_system_benchmark_read_buffer
+    );
+
+    assert_equal(bytesRead, g_file_system_benchmark_read_size,
+                "Sync benchmark should read the requested amount");
+
+    volatile mla_byte_t firstByte = g_file_system_benchmark_read_buffer[0];
+    volatile mla_byte_t lastByte = g_file_system_benchmark_read_buffer[g_file_system_benchmark_read_size - 1];
+    (void)firstByte;
+    (void)lastByte;
+}
+
+void FileSystemBenchmarkReadAuto() {
+    assert_true(g_file_system_benchmark_stream.seek != nullptr,
+                "Auto benchmark seek callback should exist");
+    assert_true(g_file_system_benchmark_stream.seek(g_file_system_benchmark_stream, 0),
+                "Auto benchmark should seek to file start");
+
+    mla_size_t bytesRead = g_file_system_benchmark_stream.read(
+        g_file_system_benchmark_stream,
+        0,
+        g_file_system_benchmark_read_size,
+        g_file_system_benchmark_read_buffer
+    );
+
+    assert_equal(bytesRead, g_file_system_benchmark_read_size,
+                "Auto benchmark should read the requested amount");
+
+    volatile mla_byte_t firstByte = g_file_system_benchmark_read_buffer[0];
+    volatile mla_byte_t lastByte = g_file_system_benchmark_read_buffer[g_file_system_benchmark_read_size - 1];
+    (void)firstByte;
+    (void)lastByte;
+}
+
+void RegisterFileSystemReadBenchmark(mla_benchmark_executor_t &p_BenchmarkExecutor,
+                                     const mla_test_char_t* name,
+                                     void (*run)(void)) {
+    mla_benchmark_t benchmark = mla_benchmark(name, benchmark_category, run,
+                                              FileSystemBenchmarkSetup, FileSystemBenchmarkTearDown);
+    mla_benchmark_set_iteration_division(benchmark, 200000);
+    mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
+}
+
+void FileSystemBenchmarkRead256KbSync() {
+    g_file_system_benchmark_read_size = 256u * 1024u;
+    FileSystemBenchmarkReadSync();
+}
+
+void FileSystemBenchmarkRead256KbAuto() {
+    g_file_system_benchmark_read_size = 256u * 1024u;
+    FileSystemBenchmarkReadAuto();
+}
+
+void FileSystemBenchmarkRead1MbSync() {
+    g_file_system_benchmark_read_size = 1024u * 1024u;
+    FileSystemBenchmarkReadSync();
+}
+
+void FileSystemBenchmarkRead1MbAuto() {
+    g_file_system_benchmark_read_size = 1024u * 1024u;
+    FileSystemBenchmarkReadAuto();
+}
+
+void FileSystemBenchmarkRead8MbSync() {
+    g_file_system_benchmark_read_size = 8u * 1024u * 1024u;
+    FileSystemBenchmarkReadSync();
+}
+
+void FileSystemBenchmarkRead8MbAuto() {
+    g_file_system_benchmark_read_size = 8u * 1024u * 1024u;
+    FileSystemBenchmarkReadAuto();
+}
+
+#endif
+
+void RegisterFileSystemBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
+#if defined(_WIN32)
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read256KbSync", FileSystemBenchmarkRead256KbSync);
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read256KbAuto", FileSystemBenchmarkRead256KbAuto);
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read1MbSync", FileSystemBenchmarkRead1MbSync);
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read1MbAuto", FileSystemBenchmarkRead1MbAuto);
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read8MbSync", FileSystemBenchmarkRead8MbSync);
+    RegisterFileSystemReadBenchmark(p_BenchmarkExecutor, "Read8MbAuto", FileSystemBenchmarkRead8MbAuto);
+#else
+    (void)p_BenchmarkExecutor;
+#endif
 }
 
 
