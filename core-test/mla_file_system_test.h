@@ -480,6 +480,56 @@ void FileSystemReadWriteDataTest() {
     mla_fs_delete_directory(mla_string("/rwtest/"));
 }
 
+void FileSystemReadLargeDataTest() {
+    assert_true(mla_fs_create_directory(mla_string("/largerwtest/")),
+                "Should create large read test directory");
+
+    const mla_size_t dataLength = 5u * 1024u * 1024u;
+    mla_byte_t* writeBuffer = static_cast<mla_byte_t*>(mla_platform_malloc(dataLength));
+    mla_byte_t* readBuffer = static_cast<mla_byte_t*>(mla_platform_malloc(dataLength));
+
+    assert_true(writeBuffer != nullptr, "Should allocate large write buffer");
+    assert_true(readBuffer != nullptr, "Should allocate large read buffer");
+
+    for (mla_size_t i = 0; i < dataLength; ++i) {
+        writeBuffer[i] = static_cast<mla_byte_t>(i & 0xFFu);
+    }
+
+    mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/largerwtest/data.bin"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
+                "Should open large data file in write mode");
+    assert_true(writeStream.write != nullptr,
+                "Large data write callback should exist");
+    assert_equal(writeStream.write(writeStream, 0, dataLength, writeBuffer), dataLength,
+                "Should write the full large data payload");
+    writeStream = mla_file_system_stream_empty();
+
+    mla_file_system_stream_t readStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/largerwtest/data.bin"),
+                MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, readStream),
+                "Should open large data file in read mode");
+    assert_true(readStream.read != nullptr,
+                "Large data read callback should exist");
+    assert_true(readStream.position != nullptr,
+                "Large data position callback should exist");
+
+    mla_size_t bytesRead = readStream.read(readStream, 0, dataLength, readBuffer);
+    assert_equal(bytesRead, dataLength,
+                "Should read the full large data payload");
+    assert_equal(readStream.position(readStream), dataLength,
+                "Large data read should advance the stream position");
+    assert_equal(mla_memcmp(writeBuffer, readBuffer, dataLength), 0,
+                "Large data read should preserve all bytes");
+
+    readStream = mla_file_system_stream_empty();
+
+    mla_platform_free(readBuffer);
+    mla_platform_free(writeBuffer);
+    mla_fs_delete_file(mla_string("/largerwtest/data.bin"));
+    mla_fs_delete_directory(mla_string("/largerwtest/"));
+}
+
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -524,6 +574,9 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ReadLargeData", test_category, FileSystemReadLargeDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

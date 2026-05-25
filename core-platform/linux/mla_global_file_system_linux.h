@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <cstring>
+#include <pthread.h>
 
 struct mla_file_system_native_t {
     mla_string_t basePath;
@@ -222,6 +223,157 @@ int __mla_file_system_native_get_fd_from_stream(const mla_file_system_stream_t& 
     return *reinterpret_cast<int*>(native_resource->asPointer);
 }
 
+struct mla_file_system_linux_parallel_read_task_t {
+    int fd;
+    off_t fileOffset;
+    mla_byte_t* buffer;
+    mla_size_t length;
+    mla_size_t bytesRead;
+    mla_bool_t failed;
+};
+
+void* __mla_file_system_native_open_file_read_worker(void* context) {
+
+    mla_file_system_linux_parallel_read_task_t* task = static_cast<mla_file_system_linux_parallel_read_task_t*>(context);
+
+    if (task == nullptr) {
+        return nullptr;
+    }
+
+    task->bytesRead = 0;
+    task->failed = false;
+
+    while (task->bytesRead < task->length) {
+        ssize_t readResult = pread(
+            task->fd,
+            task->buffer + task->bytesRead,
+            task->length - task->bytesRead,
+            task->fileOffset + static_cast<off_t>(task->bytesRead)
+        );
+
+        if (readResult < 0) {
+            task->failed = true;
+            return nullptr;
+        }
+
+        if (readResult == 0) {
+            return nullptr;
+        }
+
+        task->bytesRead += static_cast<mla_size_t>(readResult);
+    }
+
+    return nullptr;
+}
+
+mla_size_t __mla_file_system_native_open_file_read_sync(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    int fd = __mla_file_system_native_get_fd_from_stream(input);
+
+    if (fd == -1)
+        return 0;
+
+    ssize_t bytesRead = read(fd, buffer + offset, length);
+    return bytesRead > 0 ? static_cast<mla_size_t>(bytesRead) : 0;
+}
+
+mla_size_t __mla_file_system_native_open_file_read_count(mla_size_t length) {
+
+    const mla_size_t minimumParallelReadSize = 4u * 1024u * 1024u;
+    const mla_size_t targetChunkSize = 1024u * 1024u;
+    const mla_size_t minimumOutstandingReads = 4u;
+    const mla_size_t maxOutstandingReads = 16u;
+
+    if (length < minimumParallelReadSize) {
+        return 1;
+    }
+
+    mla_size_t readCount = (length + targetChunkSize - 1u) / targetChunkSize;
+    if (readCount < minimumOutstandingReads) {
+        readCount = minimumOutstandingReads;
+    }
+    if (readCount > maxOutstandingReads) {
+        readCount = maxOutstandingReads;
+    }
+
+    return readCount;
+}
+
+mla_size_t __mla_file_system_native_open_file_read_parallel(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    const mla_size_t maxOutstandingReads = 16u;
+
+    int fd = __mla_file_system_native_get_fd_from_stream(input);
+
+    if (fd == -1) {
+        return 0;
+    }
+
+    mla_size_t readCount = __mla_file_system_native_open_file_read_count(length);
+    if (readCount <= 1u) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    off_t currentPosition = lseek(fd, 0, SEEK_CUR);
+    if (currentPosition == (off_t)-1) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    pthread_t threads[maxOutstandingReads] = {};
+    mla_file_system_linux_parallel_read_task_t tasks[maxOutstandingReads] = {};
+
+    mla_size_t createdThreadCount = 0;
+    mla_size_t bytesScheduled = 0;
+    const mla_size_t baseChunkSize = length / readCount;
+    const mla_size_t remainder = length % readCount;
+
+    for (mla_size_t i = 0; i < readCount; ++i) {
+        const mla_size_t chunkSize = baseChunkSize + (i < remainder ? 1u : 0u);
+        if (chunkSize == 0u) {
+            continue;
+        }
+
+        tasks[i] = {
+            fd,
+            currentPosition + static_cast<off_t>(bytesScheduled),
+            buffer + offset + bytesScheduled,
+            chunkSize,
+            0,
+            false
+        };
+
+        if (pthread_create(&threads[i], nullptr, __mla_file_system_native_open_file_read_worker, &tasks[i]) != 0) {
+            for (mla_size_t j = 0; j < createdThreadCount; ++j) {
+                pthread_join(threads[j], nullptr);
+            }
+            return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+        }
+
+        ++createdThreadCount;
+        bytesScheduled += chunkSize;
+    }
+
+    mla_size_t totalBytesRead = 0;
+    mla_bool_t hasFailure = false;
+    for (mla_size_t i = 0; i < createdThreadCount; ++i) {
+        pthread_join(threads[i], nullptr);
+        if (tasks[i].failed) {
+            hasFailure = true;
+        }
+        totalBytesRead += tasks[i].bytesRead;
+    }
+
+    if (hasFailure) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    if (lseek(fd, currentPosition + static_cast<off_t>(totalBytesRead), SEEK_SET) == (off_t)-1) {
+        return __mla_file_system_native_open_file_read_sync(input, offset, length, buffer);
+    }
+
+    return totalBytesRead;
+}
+
 mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
 
     int fd = __mla_file_system_native_get_fd_from_stream(stream);
@@ -274,14 +426,7 @@ mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_s
 }
 
 mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
-
-    int fd = __mla_file_system_native_get_fd_from_stream(input);
-
-    if (fd == -1)
-        return 0;
-
-    ssize_t bytesRead = read(fd, buffer + offset, length);
-    return bytesRead > 0 ? static_cast<mla_size_t>(bytesRead) : 0;
+    return __mla_file_system_native_open_file_read_parallel(input, offset, length, buffer);
 }
 
 mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
