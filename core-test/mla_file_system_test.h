@@ -490,6 +490,16 @@ void FileSystemReadLargeDataTest() {
 
     assert_true(writeBuffer != nullptr, "Should allocate large write buffer");
     assert_true(readBuffer != nullptr, "Should allocate large read buffer");
+    if (writeBuffer == nullptr || readBuffer == nullptr) {
+        if (readBuffer != nullptr) {
+            mla_platform_free(readBuffer);
+        }
+        if (writeBuffer != nullptr) {
+            mla_platform_free(writeBuffer);
+        }
+        mla_fs_delete_directory(mla_string("/largerwtest/"));
+        return;
+    }
 
     for (mla_size_t i = 0; i < dataLength; ++i) {
         writeBuffer[i] = static_cast<mla_byte_t>(i & 0xFFu);
