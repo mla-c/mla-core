@@ -7,11 +7,10 @@ The mla-c build system uses CMake for cross-platform compilation, supporting mul
 The build system consists of:
 
 - **`default-compile-config.cmake`**: Compiler-specific flags and configuration for all supported toolchains.
-- **`default-toolchain.cmake`**: Toolchain setup including C/C++ standard versions, cross-compilation targets, and debug configuration.
-- **`clang-tidy.cmake`**: Reusable module for enabling clang-tidy static analysis on any CMake target (see [Clang-tidy](#clang-tidy-static-analysis) below).
+- **`default-toolchain.cmake`**: Toolchain setup including C/C++ standard versions, cross-compilation targets, debug configuration, and clang-tidy integration. Any project that includes this file automatically has the `MLA_ENABLE_CLANG_TIDY` option and `mla_enable_clang_tidy()` helper available.
+- **`clang-tidy.cmake`**: Reusable module included by `default-toolchain.cmake`. Declares the `MLA_ENABLE_CLANG_TIDY` option, locates the clang-tidy binary, and provides the `mla_enable_clang_tidy(<target>)` helper function.
 - **`tools/zig/`**: Zig compiler wrapper scripts for building WASM targets.
 - **`sources.cmake`** (root): Master source file list organizing all mla-c library components.
-- **`CMakeLists.txt`** (root): Standalone build that compiles all tests with clang-tidy enabled.
 
 ## Supported Compilers
 
@@ -83,48 +82,30 @@ The `sources.cmake` file at the repository root defines the complete set of sour
 
 ## Clang-tidy Static Analysis
 
-Static analysis is integrated into the CMake build via `core/build/clang-tidy.cmake`.  The shared check configuration lives in `.clang-tidy` at the repository root and is automatically picked up by clang-tidy for every file in the project tree.
+Static analysis is integrated directly into `default-toolchain.cmake` via `clang-tidy.cmake`.  The shared check configuration lives in `.clang-tidy` at the repository root and is automatically picked up by clang-tidy for every file in the project tree.
 
-### Standalone Test Build with Clang-tidy
+Every project that includes `default-toolchain.cmake` automatically gets:
 
-The `CMakeLists.txt` at the repository root builds the full test suite and runs clang-tidy on every translation unit as part of the normal compilation step.
+- The `MLA_ENABLE_CLANG_TIDY` option (default `ON`).
+- The `mla_enable_clang_tidy(<target>)` CMake function.
 
-```bash
-# Configure (clang-tidy ON by default)
-cmake -S . -B build
-
-# Build and analyse — findings are reported inline with the compiler output
-cmake --build build -- -j$(nproc)
-
-# Run the tests
-./build/mla_tests --test
-```
-
-Pass `-DMLA_ENABLE_CLANG_TIDY=OFF` to disable analysis (e.g. for fast iteration):
-
-```bash
-cmake -S . -B build -DMLA_ENABLE_CLANG_TIDY=OFF
-```
-
-Optional feature groups are disabled by default (to keep the build self-contained) but can be enabled:
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `MLA_ENABLE_NETWORK` | `OFF` | HTTP/WebSocket/URL sources and tests |
-| `MLA_ENABLE_EXTERNAL_TASK` | `OFF` | External-task source and tests |
-| `MLA_ENABLE_FILE_SYSTEM` | `OFF` | File-system source and tests |
-| `MLA_ENABLE_CLANG_TIDY` | `ON` | Run clang-tidy during compilation |
-
-### Using Clang-tidy in Other mla-c Projects
-
-Any project that imports mla-core (typically as a `lib/mla-core` submodule) can reuse the same module:
+After creating a target, call `mla_enable_clang_tidy` to attach analysis to it:
 
 ```cmake
-include(lib/mla-core/core/build/clang-tidy.cmake)
+include(lib/mla-core/core/build/default-toolchain.cmake)
+include(lib/mla-core/core/build/default-compile-config.cmake)
 
 add_executable(my_app ...)
 
 mla_enable_clang_tidy(my_app)
+```
+
+Clang-tidy runs on every translation unit as part of the normal build.  Findings are reported inline alongside the compiler output.
+
+Pass `-DMLA_ENABLE_CLANG_TIDY=OFF` to disable analysis (e.g. for fast iteration):
+
+```bash
+cmake -DMLA_ENABLE_CLANG_TIDY=OFF ..
 ```
 
 The `.clang-tidy` file at the mla-core root is picked up automatically when clang-tidy processes files inside that directory tree.  Projects may place their own `.clang-tidy` at their repository root (with `InheritParentConfig: false`) to extend or override the shared checks.
