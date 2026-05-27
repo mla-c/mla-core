@@ -15,7 +15,10 @@ Checks: >-
   clang-analyzer-*,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
 
-# Treat these checks as errors to catch critical issues in CI.
+# Treat these checks as errors in CI by overriding this in your project's
+# .clang-tidy or by passing --warnings-as-errors=* on the command line.
+# The empty string here means findings are reported but do not fail the build
+# by default, so projects can adopt the checks incrementally.
 WarningsAsErrors: ''
 
 # Report diagnostics from headers inside the project directories.

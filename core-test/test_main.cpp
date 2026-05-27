@@ -33,9 +33,9 @@
 
 int main(int argc, char** argv) {
 
-    mla_test_bool_t runTest;
-    mla_test_bool_t runBenchmark;
-    mla_test_output_format_t benchmarkOutputFormat;
+    mla_test_bool_t runTest = false;
+    mla_test_bool_t runBenchmark = false;
+    mla_test_output_format_t benchmarkOutputFormat = mla_test_output_format_text;
 
     mla_test_parse_cmd(argc, argv, runTest, runBenchmark, benchmarkOutputFormat);
 
