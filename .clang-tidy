@@ -1,0 +1,25 @@
+---
+# Clang-tidy configuration for all mla-c projects.
+# This file is the shared baseline. Projects that import mla-core as a
+# submodule can extend or override checks by placing their own .clang-tidy
+# at their repository root with InheritParentConfig: false.
+
+Checks: >-
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  cert-dcl50-cpp,
+  cert-err34-c,
+  cert-err52-cpp,
+  cert-err60-cpp,
+  performance-*,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+
+# Treat these checks as errors to catch critical issues in CI.
+WarningsAsErrors: ''
+
+# Report diagnostics from headers inside the project directories.
+HeaderFilterRegex: '(core|core-platform|core-test|core-test-support)/'
+
+FormatStyle: none
+...
