@@ -2,6 +2,13 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
 
+# Clang-tidy static analysis – available to every project that uses this
+# toolchain.  The option MLA_ENABLE_CLANG_TIDY (default ON) and the
+# mla_enable_clang_tidy() helper function are defined here so consuming
+# projects only need to call  mla_enable_clang_tidy(<target>)  after
+# creating their target.
+include("${CMAKE_CURRENT_LIST_DIR}/clang-tidy.cmake")
+
 if (MLA_WASM_STANDALONE)
     # Fix: Tell CMake we are cross-compiling to a generic system (WASM), not Windows
     # This prevents CMake from adding flags like -femit-implib or --major-image-version

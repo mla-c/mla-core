@@ -7,7 +7,8 @@ The mla-c build system uses CMake for cross-platform compilation, supporting mul
 The build system consists of:
 
 - **`default-compile-config.cmake`**: Compiler-specific flags and configuration for all supported toolchains.
-- **`default-toolchain.cmake`**: Toolchain setup including C/C++ standard versions, cross-compilation targets, and debug configuration.
+- **`default-toolchain.cmake`**: Toolchain setup including C/C++ standard versions, cross-compilation targets, debug configuration, and clang-tidy integration. Any project that includes this file automatically has the `MLA_ENABLE_CLANG_TIDY` option and `mla_enable_clang_tidy()` helper available.
+- **`clang-tidy.cmake`**: Reusable module included by `default-toolchain.cmake`. Declares the `MLA_ENABLE_CLANG_TIDY` option, locates the clang-tidy binary, and provides the `mla_enable_clang_tidy(<target>)` helper function.
 - **`tools/zig/`**: Zig compiler wrapper scripts for building WASM targets.
 - **`sources.cmake`** (root): Master source file list organizing all mla-c library components.
 
@@ -78,3 +79,33 @@ The `sources.cmake` file at the repository root defines the complete set of sour
 - **File System Sources**: Platform-abstracted file operations
 - **UI Display Sources**: Native display surface implementations
 - **Test Support Sources** (6 files): Test framework, benchmark framework, test utilities
+
+## Clang-tidy Static Analysis
+
+Static analysis is integrated directly into `default-toolchain.cmake` via `clang-tidy.cmake`.  The shared check configuration lives in `.clang-tidy` at the repository root and is automatically picked up by clang-tidy for every file in the project tree.
+
+Every project that includes `default-toolchain.cmake` automatically gets:
+
+- The `MLA_ENABLE_CLANG_TIDY` option (default `ON`).
+- The `mla_enable_clang_tidy(<target>)` CMake function.
+
+After creating a target, call `mla_enable_clang_tidy` to attach analysis to it:
+
+```cmake
+include(lib/mla-core/core/build/default-toolchain.cmake)
+include(lib/mla-core/core/build/default-compile-config.cmake)
+
+add_executable(my_app ...)
+
+mla_enable_clang_tidy(my_app)
+```
+
+Clang-tidy runs on every translation unit as part of the normal build.  Findings are reported inline alongside the compiler output.
+
+Pass `-DMLA_ENABLE_CLANG_TIDY=OFF` to disable analysis (e.g. for fast iteration):
+
+```bash
+cmake -DMLA_ENABLE_CLANG_TIDY=OFF ..
+```
+
+The `.clang-tidy` file at the mla-core root is picked up automatically when clang-tidy processes files inside that directory tree.  Projects may place their own `.clang-tidy` at their repository root (with `InheritParentConfig: false`) to extend or override the shared checks.

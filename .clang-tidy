@@ -1,0 +1,65 @@
+---
+# Clang-tidy configuration for all mla-c projects.
+# This file is the shared baseline. Projects that import mla-core as a
+# submodule can extend or override checks by placing their own .clang-tidy
+# at their repository root with InheritParentConfig: false.
+
+# Enabled checks (comma-separated glob patterns):
+#
+#   bugprone-*
+#     Catches a wide range of common C++ pitfalls and error-prone coding patterns
+#     (e.g. integer overflow, suspicious string operations, misuse of move, etc.).
+#
+#   -bugprone-easily-swappable-parameters
+#     Disabled: produces too many false positives on C-style APIs where adjacent
+#     parameters of the same type are intentional by design.
+#
+#   cert-dcl50-cpp
+#     Forbids the definition of variadic functions (C-style '...') per CERT rule
+#     DCL50-CPP, which is unsafe in C++ codebases.
+#
+#   cert-err34-c
+#     Detects the use of unsafe numeric-conversion functions such as atoi() that
+#     do not report conversion errors (CERT rule ERR34-C).
+#
+#   cert-err52-cpp
+#     Forbids the use of setjmp/longjmp, which bypass C++ object lifetime rules
+#     and can cause undefined behaviour (CERT rule ERR52-CPP).
+#
+#   cert-err60-cpp
+#     Requires that exception objects be nothrow-copy-constructible, so that
+#     re-throwing an exception does not itself throw (CERT rule ERR60-CPP).
+#
+#   performance-*
+#     Catches performance anti-patterns such as unnecessary copies, inefficient
+#     use of standard-library algorithms, and avoidable dynamic allocations.
+#
+#   clang-analyzer-*
+#     Enables the full Clang Static Analyzer suite, covering memory safety,
+#     null-pointer dereferences, use-after-free, and security issues.
+#
+#   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+#     Disabled: generates too many false positives from system and third-party
+#     headers that are outside the project's control.
+Checks: >-
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  cert-dcl50-cpp,
+  cert-err34-c,
+  cert-err52-cpp,
+  cert-err60-cpp,
+  performance-*,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+
+# Treat these checks as errors in CI by overriding this in your project's
+# .clang-tidy or by passing --warnings-as-errors=* on the command line.
+# The empty string here means findings are reported but do not fail the build
+# by default, so projects can adopt the checks incrementally.
+WarningsAsErrors: ''
+
+# Report diagnostics from all header files.
+HeaderFilterRegex: '.*'
+
+FormatStyle: none
+...
