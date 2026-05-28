@@ -21,8 +21,8 @@ Checks: >-
 # by default, so projects can adopt the checks incrementally.
 WarningsAsErrors: ''
 
-# Report diagnostics from headers inside the project directories.
-HeaderFilterRegex: '(core|core-platform|core-test|core-test-support)/'
+# Report diagnostics from all header files.
+HeaderFilterRegex: '.*'
 
 FormatStyle: none
 ...
