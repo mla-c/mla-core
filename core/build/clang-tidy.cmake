@@ -29,8 +29,8 @@ if(MLA_ENABLE_CLANG_TIDY)
     if(MLA_CLANG_TIDY_EXE)
         message(STATUS "clang-tidy found: ${MLA_CLANG_TIDY_EXE}")
     else()
-        message(WARNING "clang-tidy not found – static analysis will be skipped. "
-                        "Install clang-tidy or pass -DMLA_ENABLE_CLANG_TIDY=OFF to suppress this warning.")
+        message(FATAL_ERROR "clang-tidy not found – static analysis cannot run. "
+                            "Install clang-tidy or pass -DMLA_ENABLE_CLANG_TIDY=OFF to disable this check.")
     endif()
 endif()
 
