@@ -90,6 +90,3 @@ set(SOURCE_FILE_SYSTEM_FILES
 set(SOURCE_UI_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/core/ui/display/mla_ui_display_surface.cpp
 )
-
-# Test support source files
-include(${CMAKE_CURRENT_LIST_DIR}/../test-support/sources.cmake)
