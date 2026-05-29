@@ -7,7 +7,7 @@
 
 #include "../base-lib/core/system/mla_string_builder.h"
 #include "../base-lib/core/system/mla_string_concat.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 void StringBuilder_AppendExpected(mla_string_t& p_Current, const mla_string_t& p_Part) {
     mla_string_t next = mla_string_concat(p_Current, p_Part);

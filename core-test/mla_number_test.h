@@ -7,8 +7,8 @@
 
 #include "../base-lib/core/system/mla_string.h"
 #include "../base-lib/core/system/mla_number.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
-#include "../base-lib/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_benchmark_executor.h"
 
 inline void ParseDoubleTest() {
 

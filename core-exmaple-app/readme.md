@@ -48,7 +48,7 @@ A repeating task runs every 500ms, demonstrating task scheduling, user data mana
 The example application requires a platform header to be included before `main_app.h`. For example, on Linux:
 
 ```cpp
-#include "base-lib/core-platform/linux/mla_global_platform_linux.h"
+#include "base-lib/platform/linux/mla_global_platform_linux.h"
 #include "main_app.h"
 
 int main() {

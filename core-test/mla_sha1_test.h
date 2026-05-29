@@ -2,8 +2,8 @@
 #define MLA_SHA1_TEST_H
 
 #include "../base-lib/core/hash/mla_sha1.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
-#include "../base-lib/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_benchmark_executor.h"
 
 // Test Functions
 void Sha1EmptyStringTest() {

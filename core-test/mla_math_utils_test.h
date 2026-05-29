@@ -6,7 +6,7 @@
 #define MLA_MATH_UTILS_TEST_H
 
 #include "../base-lib/core/utils/mla_math_utils.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 inline void MathSinTest() {
     // Test known values

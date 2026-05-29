@@ -8,7 +8,7 @@
 #include "../base-lib/core/rpc/mla_rpc.h"
 #include "../base-lib/core/rpc/mla_rpc_http_server.h"
 #include "../base-lib/core/rpc/mla_rpc_http_client.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 static mla_network_host_t rpc_test_server_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41258);
 static mla_string_t rpc_test_server_url = mla_string_const("http://127.0.0.1:41258");

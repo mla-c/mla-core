@@ -6,7 +6,7 @@
 #define MLA_RPC_TEST_H
 
 #include "../base-lib/core/rpc/mla_rpc.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 struct my_rpc_test_input_t {
     mla_int32_t a;

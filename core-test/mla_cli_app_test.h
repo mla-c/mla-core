@@ -5,7 +5,7 @@
 #ifndef MLA_CLI_APP_TEST_H
 #define MLA_CLI_APP_TEST_H
 
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 #include "../base-lib/core/cli/mla_cli_app.h"
 #include "../base-lib/core/system/mla_stream.h"
 

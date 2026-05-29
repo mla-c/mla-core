@@ -10,8 +10,8 @@
 #include "../base-lib/core/serializer/mla_json_serializer.h"
 #include "../base-lib/core/serializer/mla_xml_serializer.h"
 #include "../base-lib/core/system/mla_array_list.h"
-#include "../base-lib/core-test-support/mla_benchmark_executor.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_benchmark_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 static mla_byte_t *mla_serializer_buffer = nullptr;
 
