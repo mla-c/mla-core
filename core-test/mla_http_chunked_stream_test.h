@@ -5,9 +5,9 @@
 #ifndef MLA_HTTP_CHUNKED_STREAM_TEST_H
 #define MLA_HTTP_CHUNKED_STREAM_TEST_H
 
-#include "../core/http/mla_http_chunked_stream.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core/system/mla_stream.h"
+#include "../framework/core/http/mla_http_chunked_stream.h"
+#include "../framework/core-test-support/mla_test_executor.h"
+#include "../framework/core/system/mla_stream.h"
 
 static void HttpChunkedStreamOutputTest() {
     mla_memory_stream_t wire = mla_memory_stream(1024, true);

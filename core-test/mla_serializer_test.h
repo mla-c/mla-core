@@ -6,12 +6,12 @@
 #define MLA_SERIALIZER_TEST_H
 
 
-#include "../core/serializer/mla_binary_serializer.h"
-#include "../core/serializer/mla_json_serializer.h"
-#include "../core/serializer/mla_xml_serializer.h"
-#include "../core/system/mla_array_list.h"
-#include "../core-test-support/mla_benchmark_executor.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../framework/core/serializer/mla_binary_serializer.h"
+#include "../framework/core/serializer/mla_json_serializer.h"
+#include "../framework/core/serializer/mla_xml_serializer.h"
+#include "../framework/core/system/mla_array_list.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
+#include "../framework/core-test-support/mla_test_executor.h"
 
 static mla_byte_t *mla_serializer_buffer = nullptr;
 

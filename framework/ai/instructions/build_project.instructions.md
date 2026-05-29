@@ -19,19 +19,19 @@ To build the project for testing or benchmarking, you need to create your own te
 First, you must include all necessary platform headers for the low-level API. For a Linux environment, these typically include:
 
 ```cpp
-#include "lib/core-platform/linux/mla_global_platform_linux.h"
-#include "lib/core-platform/linux/mla_global_config_linux.h"
-#include "lib/core-platform/linux/mla_global_network_linux.h"
-#include "lib/core-platform/linux/mla_global_file_system_linux.h"
-#include "lib/core-platform/linux/mla_global_platform_task_manager_linux.h"
-#include "lib/core-test-support/platform/mla_test_memory_malloc.h"
-#include "lib/core-test-support/platform/mla_benchmark_timer_std.h"
-#include "lib/core-test-support/platform/mla_test_print_std.h"
-#include "lib/core-test-support/platform/mla_test_mutex_std.h"
+#include "lib/framework/core-platform/linux/mla_global_platform_linux.h"
+#include "lib/framework/core-platform/linux/mla_global_config_linux.h"
+#include "lib/framework/core-platform/linux/mla_global_network_linux.h"
+#include "lib/framework/core-platform/linux/mla_global_file_system_linux.h"
+#include "lib/framework/core-platform/linux/mla_global_platform_task_manager_linux.h"
+#include "lib/framework/core-test-support/platform/mla_test_memory_malloc.h"
+#include "lib/framework/core-test-support/platform/mla_benchmark_timer_std.h"
+#include "lib/framework/core-test-support/platform/mla_test_print_std.h"
+#include "lib/framework/core-test-support/platform/mla_test_mutex_std.h"
 
-#include "lib/core-test-support/mla_test_cli_utils.h"
+#include "lib/framework/core-test-support/mla_test_cli_utils.h"
 #include "lib/core-test/main_test.h"
-#include "lib/core-test-support/mla_test_data_types.h"
+#include "lib/framework/core-test-support/mla_test_data_types.h"
 ```
 
 *Note: Depending on your include path configuration, you may need to adjust these paths or ensure the compiler can find them.*

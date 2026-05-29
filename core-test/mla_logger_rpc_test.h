@@ -1,8 +1,8 @@
 #ifndef MLA_LOGGER_RPC_TEST_H
 #define MLA_LOGGER_RPC_TEST_H
 
-#include "../core/log/mla_logger_rpc.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../framework/core/log/mla_logger_rpc.h"
+#include "../framework/core-test-support/mla_test_executor.h"
 
 inline void LoggerRpcActivationLifecycleTest() {
 

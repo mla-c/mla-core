@@ -1,9 +1,9 @@
 #ifndef MLA_SHA1_TEST_H
 #define MLA_SHA1_TEST_H
 
-#include "../core/hash/mla_sha1.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core/hash/mla_sha1.h"
+#include "../framework/core-test-support/mla_test_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 // Test Functions
 void Sha1EmptyStringTest() {

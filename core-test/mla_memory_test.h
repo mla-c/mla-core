@@ -5,8 +5,8 @@
 #ifndef MLA_MEMORY_TEST_H
 #define MLA_MEMORY_TEST_H
 
-#include "../core/mla_data_types.h"
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core/mla_data_types.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 void MlaMemset16KbBenchmark() {
 

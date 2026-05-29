@@ -60,7 +60,7 @@ Linux task management is implemented using POSIX threads (pthreads) or single-th
 To use the Linux platform, include the main platform header in your application:
 
 ```cpp
-#include "core-platform/linux/mla_global_platform_linux.h"
+#include "framework/core-platform/linux/mla_global_platform_linux.h"
 ```
 
 ### Configuration

@@ -18,7 +18,7 @@ The WASM platform module includes the following components:
 Uses native POSIX functions provided by the Emscripten runtime or a WASI-compatible environment:
 
 ```cpp
-#include "core-platform/wasm/mla_global_platform_wasm.h"
+#include "framework/core-platform/wasm/mla_global_platform_wasm.h"
 ```
 
 - Memory operations: `memcpy`, `memset`, `memcmp`, `memmove`
@@ -31,7 +31,7 @@ Uses native POSIX functions provided by the Emscripten runtime or a WASI-compati
 All low-level operations are imported from JavaScript via WebAssembly import attributes, resulting in a minimal WASM binary with no C library dependency:
 
 ```cpp
-#include "core-platform/wasm/mla_global_platform_wasm_standalone.h"
+#include "framework/core-platform/wasm/mla_global_platform_wasm_standalone.h"
 ```
 
 Each C library function is replaced by a JavaScript import (e.g., `external_memcpy`, `external_strlen`), allowing the JavaScript host to provide all implementations.
@@ -41,7 +41,7 @@ Each C library function is replaced by a JavaScript import (e.g., `external_memc
 WASM environments use single-threaded task scheduling:
 
 ```cpp
-#include "core-platform/wasm/mla_global_platform_task_manager_wasm.h"
+#include "framework/core-platform/wasm/mla_global_platform_task_manager_wasm.h"
 ```
 
 This delegates to the generic `mla_task_manager_single_thread.h` implementation.

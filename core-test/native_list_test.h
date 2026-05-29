@@ -10,7 +10,7 @@
 #include <algorithm>
 #endif
 
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 void CArrayContainsBenchmark() {
     int* l_Array = (int*)mla_test_malloc(sizeof(int) * 100);

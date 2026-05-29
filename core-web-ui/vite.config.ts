@@ -46,7 +46,7 @@ function generateCHeader(compress: boolean = false): PluginOption {
 			header += `const char* ${arrayName}_content_encoding = ${compress ? '"gzip"' : '""'};\n\n`;
 			header += `#endif\n`;
 
-			const outputPath = resolve(__dirname, '../core/ui/web/mla_ui_web_embedded.h');
+			const outputPath = resolve(__dirname, '../framework/core/ui/web/mla_ui_web_embedded.h');
 			writeFileSync(outputPath, header);
 			console.log(`Generated C header: ${outputPath}${compress ? ' (gzipped, level 9)' : ''}`);
 		}
