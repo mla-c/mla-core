@@ -18,7 +18,7 @@ Single HTML file (bundled JS/CSS)
         ↓ (vite-plugin-singlefile)
 Gzip-compressed byte array
         ↓ (custom Vite plugin: generateCHeader)
-C header: core/ui/web/mla_ui_web_embedded.h
+C header: base-lib/core/ui/web/mla_ui_web_embedded.h
         ↓ (compiled into mla-c)
 Served via mla_ui_http_server at runtime
 ```
@@ -80,6 +80,6 @@ npm install
 
 ## Integration with mla-c
 
-The production build generates `core/ui/web/mla_ui_web_embedded.h`, which contains the entire web application as a gzip-compressed byte array. This header is included in the mla-c library and served by `mla_ui_http_server` when a client connects via browser.
+The production build generates `base-lib/core/ui/web/mla_ui_web_embedded.h`, which contains the entire web application as a gzip-compressed byte array. This header is included in the mla-c library and served by `mla_ui_http_server` when a client connects via browser.
 
-For more information on the server-side integration, see the [UI Module Documentation](../core/ui/readme.md).
+For more information on the server-side integration, see the [UI Module Documentation](../base-lib/core/ui/readme.md).

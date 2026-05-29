@@ -5,8 +5,8 @@
 #ifndef MLA_MATH_UTILS_TEST_H
 #define MLA_MATH_UTILS_TEST_H
 
-#include "../core/utils/mla_math_utils.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../base-lib/core/utils/mla_math_utils.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 inline void MathSinTest() {
     // Test known values

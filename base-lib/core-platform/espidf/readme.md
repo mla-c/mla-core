@@ -79,10 +79,10 @@ To use the ESP-IDF platform, include the appropriate platform header based on yo
 
 ```cpp
 // For ESP32
-#include "core-platform/espidf/mla_global_platform_esp32.h"
+#include "base-lib/core-platform/espidf/mla_global_platform_esp32.h"
 
 // For ESP8266
-#include "core-platform/espidf/mla_global_platform_esp8266.h"
+#include "base-lib/core-platform/espidf/mla_global_platform_esp8266.h"
 ```
 
 ### Configuration

@@ -5,9 +5,9 @@
 #ifndef MLA_HTTP_CLIENT_TEST_H
 #define MLA_HTTP_CLIENT_TEST_H
 
-#include "../core/http/mla_http_client.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/core/http/mla_http_client.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/mla_benchmark_executor.h"
 
 void SimpleGetRequestWithoutDeflateTest() {
 

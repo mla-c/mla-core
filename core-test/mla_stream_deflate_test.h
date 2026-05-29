@@ -5,8 +5,8 @@
 #ifndef MLA_STREAM_DEFLATE_TEST_H
 #define MLA_STREAM_DEFLATE_TEST_H
 
-#include "../core/system/mla_stream.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../base-lib/core/system/mla_stream.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 #if mla_test_featureflag_zlib == 1
 #include <zlib.h>

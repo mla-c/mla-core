@@ -19,11 +19,11 @@ mla-c is a modular, lightweight operating system abstraction library that provid
 
 ## 📦 Library Components
 
-### mla-c (`core/`)
+### mla-c (`base-lib/core/`)
 
-The main library providing fundamental operating system abstractions and utilities. [Documentation](core/readme.md)
+The main library providing fundamental operating system abstractions and utilities. [Documentation](base-lib/core/readme.md)
 
-#### **System** (`system/`) - [Documentation](core/system/readme.md)
+#### **System** (`system/`) - [Documentation](base-lib/core/system/readme.md)
 - **String Management** - `mla_string.h` - UTF-8/16/32 string handling with conversion utilities
 - **Buffers** - `mla_buffer.h` - Dynamic byte buffer management
 - **Collections**:
@@ -34,7 +34,7 @@ The main library providing fundamental operating system abstractions and utiliti
 - **Streams** - `mla_stream.h` - I/O stream abstractions
 - **Reference Counting** - `mla_reference.h` - Smart pointer utilities
 
-#### **Task Management** (`task/`) - [Documentation](core/task/readme.md)
+#### **Task Management** (`task/`) - [Documentation](base-lib/core/task/readme.md)
 - **Task Manager** - `mla_task_manager.h` - Async task execution and scheduling
 - **Mutex** - `mla_mutx.h` - Mutual exclusion primitives
 - **RW Lock** - `mla_rw_lock.h` - Reader-writer synchronization
@@ -42,60 +42,60 @@ The main library providing fundamental operating system abstractions and utiliti
 - **CLI Module** - `mla_task_cli_module.h` - CLI integration for task management
 
 #### **HTTP & Networking** (`http/`, `network/`, `url/`)
-- **HTTP Client** - `mla_http_client.h` - HTTP/HTTPS client implementation - [HTTP Documentation](core/http/readme.md)
-- **HTTP Server** - `mla_http_server.h` - Lightweight HTTP server - [HTTP Documentation](core/http/readme.md)
-- **HTTP Headers** - `mla_http_header.h` - Header parsing and management - [HTTP Documentation](core/http/readme.md)
-- **Network** - `mla_network.h` - Socket abstractions - [Network Documentation](core/network/readme.md)
-- **URL Parser** - `mla_url.h` - URL parsing and manipulation - [URL Documentation](core/url/readme.md)
+- **HTTP Client** - `mla_http_client.h` - HTTP/HTTPS client implementation - [HTTP Documentation](base-lib/core/http/readme.md)
+- **HTTP Server** - `mla_http_server.h` - Lightweight HTTP server - [HTTP Documentation](base-lib/core/http/readme.md)
+- **HTTP Headers** - `mla_http_header.h` - Header parsing and management - [HTTP Documentation](base-lib/core/http/readme.md)
+- **Network** - `mla_network.h` - Socket abstractions - [Network Documentation](base-lib/core/network/readme.md)
+- **URL Parser** - `mla_url.h` - URL parsing and manipulation - [URL Documentation](base-lib/core/url/readme.md)
 
-#### **Remote Procedure Call (RPC)** (`rpc/`) - [Documentation](core/rpc/readme.md)
+#### **Remote Procedure Call (RPC)** (`rpc/`) - [Documentation](base-lib/core/rpc/readme.md)
 - **RPC Framework** - `mla_rpc.h` - Comprehensive RPC implementation with support for both safe and unsafe procedure handlers, remote endpoint registration, and automated procedure registration using lifecycle events.
 - **HTTP Integration** - `mla_rpc_http_client.h`, `mla_rpc_http_server.h` - Built-in support for RPC over HTTP, enabling seamless client-server communication.
 
-#### **Lifecycle Management** (`lifecycle/`) - [Documentation](core/lifecycle/readme.md)
+#### **Lifecycle Management** (`lifecycle/`) - [Documentation](base-lib/core/lifecycle/readme.md)
 - **Boot Events** - `mla_lifecycle_events.h` - Prioritized boot event management system that allows for flexible and ordered initialization of components. Callbacks can be registered with specific priorities to ensure proper startup sequencing.
 
-#### **Serialization** (`serializer/`) - [Documentation](core/serializer/readme.md)
+#### **Serialization** (`serializer/`) - [Documentation](base-lib/core/serializer/readme.md)
 - **JSON Serializer** - `mla_json_serializer.h` - JSON encode/decode
 - **Binary Serializer** - `mla_binary_serializer.h` - Binary data serialization
 - **Serializer Interface** - `mla_serializer.h` - Common serialization API
 
-#### **Logging** (`log/`) - [Documentation](core/log/readme.md)
+#### **Logging** (`log/`) - [Documentation](base-lib/core/log/readme.md)
 - **Logger** - `mla_logger.h` - Flexible logging framework
 - **Console Logger** - `mla_logger_console.h` - Standard output logging
 - **Log Levels** - `mla_logging.h` - Configurable log severity levels
 
-#### **Command Line Interface** (`cli/`) - [Documentation](core/cli/readme.md)
+#### **Command Line Interface** (`cli/`) - [Documentation](base-lib/core/cli/readme.md)
 - **CLI App** - `mla_cli_app.h` - Command-line application framework
 - **CLI Parser** - `mla_cli_parser.h` - Argument parsing utilities
 - **Commands** - `mla_cli_command.h` - Command definition and execution
 
-#### **Configuration** (`config/`) - [Documentation](core/config/readme.md)
+#### **Configuration** (`config/`) - [Documentation](base-lib/core/config/readme.md)
 - **Config Manager** - `mla_config.h` - Configuration file management and parsing
 
 #### **Dependency Injection** (`inject/`)
 - **Service Injector** - `mla_inject.h` - Dependency injection container
 - **Service Registry** - `mla_inject_services.h` - Service registration and lookup
 
-#### **File System** (`filesystem/`) - [Documentation](core/filesystem/readme.md)
+#### **File System** (`filesystem/`) - [Documentation](base-lib/core/filesystem/readme.md)
 - **File System** - `mla_file_system.h` - File and directory operations
 
-#### **Memory Management** (`memory/`) - [Documentation](core/memory/readme.md)
+#### **Memory Management** (`memory/`) - [Documentation](base-lib/core/memory/readme.md)
 - **Memory Hook** - `mla_memory_hook.h` - Custom memory allocator integration
 
 #### **Utilities** (`utils/`, `hash/`)
-- **Character Utils** - `mla_char_utils.h` - Character manipulation functions - [Utils Documentation](core/utils/readme.md)
-- **Endian Utils** - `mla_endian_utils.h` - Handling byte order - [Utils Documentation](core/utils/readme.md)
-- **Hash Functions** - `mla_hash.h` - Hashing algorithms - [Hash Documentation](core/hash/readme.md)
+- **Character Utils** - `mla_char_utils.h` - Character manipulation functions - [Utils Documentation](base-lib/core/utils/readme.md)
+- **Endian Utils** - `mla_endian_utils.h` - Handling byte order - [Utils Documentation](base-lib/core/utils/readme.md)
+- **Hash Functions** - `mla_hash.h` - Hashing algorithms - [Hash Documentation](base-lib/core/hash/readme.md)
 
-#### **User Interface** (`ui/`) - [Documentation](core/ui/readme.md)
+#### **User Interface** (`ui/`) - [Documentation](base-lib/core/ui/readme.md)
 - **UI Controls** - `mla_ui_button.h`, `mla_ui_label.h`, `mla_ui_text_edit.h`, `mla_ui_window.h` - Component-based UI widgets
 - **UI Surfaces** - `mla_ui_surface.h`, `mla_ui_surface_draw.h` - Drawing primitives and surface abstraction
 - **UI HTTP Server** - `mla_ui_http_server.h` - Web-based user interface framework
 - **UI RPC** - `mla_ui_rpc.h` - RPC integration for UI communication
 - **Embedded Web** - `mla_ui_web_embedded.h` - Embedded web resources for serving UI assets
 
-#### **Reflection** (`reflection/`) - [Documentation](core/reflection/readme.md)
+#### **Reflection** (`reflection/`) - [Documentation](base-lib/core/reflection/readme.md)
 - **Reflection System** - `mla_reflection.h` - Runtime type information and metadata
 - **Reflection RPC** - `mla_reflection_rpc.h` - RPC integration with reflection system
 
@@ -103,16 +103,16 @@ The main library providing fundamental operating system abstractions and utiliti
 - Platform-independent type definitions (int8, int16, int32, int64, etc.)
 - Cross-platform compatibility layer
 
-### Platform Abstractions (`core-platform/`)
+### Platform Abstractions (`base-lib/core-platform/`)
 
 Platform-specific implementations providing native functionality:
 
-- **Generic** - Portable implementations for all platforms - [Documentation](core-platform/generic/readme.md)
-- **Windows** - Windows API integration - [Documentation](core-platform/windows/readme.md)
-- **Linux** - POSIX-compliant implementations - [Documentation](core-platform/linux/readme.md)
-- **WASM** - WebAssembly browser/Node.js runtime - [Documentation](core-platform/wasm/readme.md)
-- **Raspberry Pi** - ARM-specific optimizations - [Documentation](core-platform/raspberry/readme.md)
-- **ESP-IDF** - ESP32/ESP8266 embedded support - [Documentation](core-platform/espidf/readme.md)
+- **Generic** - Portable implementations for all platforms - [Documentation](base-lib/core-platform/generic/readme.md)
+- **Windows** - Windows API integration - [Documentation](base-lib/core-platform/windows/readme.md)
+- **Linux** - POSIX-compliant implementations - [Documentation](base-lib/core-platform/linux/readme.md)
+- **WASM** - WebAssembly browser/Node.js runtime - [Documentation](base-lib/core-platform/wasm/readme.md)
+- **Raspberry Pi** - ARM-specific optimizations - [Documentation](base-lib/core-platform/raspberry/readme.md)
+- **ESP-IDF** - ESP32/ESP8266 embedded support - [Documentation](base-lib/core-platform/espidf/readme.md)
 
 ### Test Framework (`core-test/`) - [Documentation](core-test/readme.md)
 
@@ -139,7 +139,7 @@ Comprehensive test suite covering all core functionality:
 - URL Tests
 - Native Integration Tests
 
-### Test Support Library (`core-test-support/`) - [Documentation](core-test-support/readme.md)
+### Test Support Library (`base-lib/core-test-support/`) - [Documentation](base-lib/core-test-support/readme.md)
 
 Testing and benchmarking infrastructure:
 
@@ -177,7 +177,7 @@ mla-c follows a **C-style API with C++ features** to keep the library portable a
 
 ### 1) Type System: Use MLA data types
 
-Use types from `core/mla_data_types.h` in APIs and module code (`mla_int32_t`, `mla_size_t`, `mla_bool_t`, `mla_char_t`, ...).
+Use types from `base-lib/core/mla_data_types.h` in APIs and module code (`mla_int32_t`, `mla_size_t`, `mla_bool_t`, `mla_char_t`, ...).
 
 ```cpp
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2);
@@ -208,7 +208,7 @@ mla_string_t mla_string_copy(const mla_string_t &p_String);
 - Use MLA low-level wrappers (`mla_memcpy`, `mla_memset`, `mla_strlen`, ...).
 - Use `mla_pointer_t` for heap ownership.
 - Use `mla_platform_pointer_t` for transient/raw access only.
-- Keep platform-specific implementation in `core-platform/*` so shared module APIs remain cross-platform.
+- Keep platform-specific implementation in `base-lib/core-platform/*` so shared module APIs remain cross-platform.
 
 ## 🧠 Heap Memory Ownership: `mla_pointer_t`
 
@@ -230,7 +230,7 @@ if (data != nullptr) {
 }
 ```
 
-For module-level guidance, see [core/readme.md](core/readme.md) and [core/memory/readme.md](core/memory/readme.md).
+For module-level guidance, see [base-lib/core/readme.md](base-lib/core/readme.md) and [base-lib/core/memory/readme.md](base-lib/core/memory/readme.md).
 
 ## 📚 Architecture
 

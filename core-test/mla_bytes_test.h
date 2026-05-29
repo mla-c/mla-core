@@ -5,10 +5,10 @@
 #ifndef MLA_BYTES_TEST_H
 #define MLA_BYTES_TEST_H
 
-#include "../core/system/mla_bytes.h"
-#include "../core/system/mla_string.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/Test/mla_test.h"
+#include "../base-lib/core/system/mla_bytes.h"
+#include "../base-lib/core/system/mla_string.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/Test/mla_test.h"
 
 inline void BytesEmptyTest() {
     mla_bytes_t bytes = mla_bytes_empty();

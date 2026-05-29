@@ -5,8 +5,8 @@
 #ifndef MLA_TASK_MANAGER_TEST_H
 #define MLA_TASK_MANAGER_TEST_H
 
-#include "../core/task/mla_task_manager.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../base-lib/core/task/mla_task_manager.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 static mla_bool_t OneTimeTaskTestWorkerProcess = false;
 

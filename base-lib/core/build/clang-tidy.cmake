@@ -7,7 +7,7 @@
 #   include(path/to/core/build/clang-tidy.cmake)
 #   mla_enable_clang_tidy(<target>)
 #
-# The .clang-tidy configuration file at the repository root is picked up
+# The .clang-tidy configuration file at base-lib/core/build/ is picked up
 # automatically by clang-tidy when it processes files in that tree.
 #
 # Control whether analysis runs by setting MLA_ENABLE_CLANG_TIDY (default ON).
