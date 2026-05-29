@@ -4,9 +4,9 @@
 #ifndef MLA_CONFIG_TEST_H
 #define MLA_CONFIG_TEST_H
 
-#include "../framework/core/config/mla_config.h"
-#include "../framework/core/system/mla_array_list.h"
-#include "../framework/core-test-support/mla_test_executor.h"
+#include "../base-lib/core/config/mla_config.h"
+#include "../base-lib/core/system/mla_array_list.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 // Test struct for config
 struct test_config_struct {

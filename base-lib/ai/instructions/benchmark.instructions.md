@@ -5,7 +5,7 @@ description: 'Patterns for creating and registering benchmarks in the MLA framew
 
 # Benchmarks
 
-The benchmark module (`framework/core-test-support/Benchmark/`) provides a micro-benchmarking framework for measuring the performance of MLA operations. Benchmarks live alongside tests in `lib/core-test/` and are registered via `mla_benchmark_executor_t`.
+The benchmark module (`base-lib/core-test-support/Benchmark/`) provides a micro-benchmarking framework for measuring the performance of MLA operations. Benchmarks live alongside tests in `lib/core-test/` and are registered via `mla_benchmark_executor_t`.
 
 ## When to Add a Benchmark
 

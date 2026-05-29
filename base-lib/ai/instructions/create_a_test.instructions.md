@@ -16,8 +16,8 @@ When creating test files for this project, follow these conventions:
 
 ### Required Includes
 ```cpp
-#include "../framework/core/utils/[module_name].h"
-#include "../framework/core-test-support/mla_test_executor.h"
+#include "../base-lib/core/utils/[module_name].h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 ```
 
 ### Test Function Format

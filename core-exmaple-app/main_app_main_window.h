@@ -5,12 +5,12 @@
 #ifndef MLA_MAIN_APP_MAIN_WINDOW_H
 #define MLA_MAIN_APP_MAIN_WINDOW_H
 
-#include "../framework/core/ui/controls/mla_ui_control.h"
-#include "../framework/core/ui/surfaces/mla_ui_surface.h"
-#include "../framework/core/ui/controls/mla_ui_label.h"
-#include "../framework/core/ui/controls/mla_ui_button.h"
-#include "../framework/core/ui/controls/mla_ui_text_edit.h"
-#include "../framework/core/ui/controls/mla_ui_loading_indicator.h"
+#include "../base-lib/core/ui/controls/mla_ui_control.h"
+#include "../base-lib/core/ui/surfaces/mla_ui_surface.h"
+#include "../base-lib/core/ui/controls/mla_ui_label.h"
+#include "../base-lib/core/ui/controls/mla_ui_button.h"
+#include "../base-lib/core/ui/controls/mla_ui_text_edit.h"
+#include "../base-lib/core/ui/controls/mla_ui_loading_indicator.h"
 
 struct main_app_main_window_t {
 

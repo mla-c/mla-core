@@ -5,9 +5,9 @@
 #ifndef MLA_LOGGER_CONSOLE_TEST_H
 #define MLA_LOGGER_CONSOLE_TEST_H
 
-#include "../framework/core/log/mla_logger_console.h"
-#include "../framework/core/log/mla_logging.h"
-#include "../framework/core-test-support/mla_test_executor.h"
+#include "../base-lib/core/log/mla_logger_console.h"
+#include "../base-lib/core/log/mla_logging.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 void LoggerConsoleTest() {
 

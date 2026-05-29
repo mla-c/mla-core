@@ -5,11 +5,11 @@
 #ifndef MAIN_APP_CLI_H
 #define MAIN_APP_CLI_H
 
-#include "../framework/core/task/mla_task_manager.h"
-#include "../framework/core/task/mla_task.h"
-#include "../framework/core/cli/mla_cli_app.h"
-#include "../framework/core/task/mla_task_cli_module.h"
-#include "../framework/core/system/mla_stream.h"
+#include "../base-lib/core/task/mla_task_manager.h"
+#include "../base-lib/core/task/mla_task.h"
+#include "../base-lib/core/cli/mla_cli_app.h"
+#include "../base-lib/core/task/mla_task_cli_module.h"
+#include "../base-lib/core/system/mla_stream.h"
 
 
 mla_cli_app_t g_main_app_cli = mla_cli_app_empty();

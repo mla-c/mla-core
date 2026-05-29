@@ -69,7 +69,7 @@ The platform module provides access to RP2040-specific features:
 To use the Raspberry Pi Pico platform, include the main platform header:
 
 ```cpp
-#include "framework/core-platform/raspberry/mla_global_platform_raspberry-pico.h"
+#include "base-lib/core-platform/raspberry/mla_global_platform_raspberry-pico.h"
 ```
 
 ### Configuration

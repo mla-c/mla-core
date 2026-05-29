@@ -5,13 +5,13 @@
 #ifndef MLA_HTTP_SERVER_TEST_H
 #define MLA_HTTP_SERVER_TEST_H
 
-#include "../framework/core/system/mla_stream.h"
-#include "../framework/core/http/mla_http_client.h"
-#include "../framework/core/http/mla_websocket_client.h"
-#include "../framework/core/http/mla_http_server.h"
-#include "../framework/core/system/mla_string_concat.h"
-#include "../framework/core-test-support/mla_test_executor.h"
-#include "../framework/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/core/system/mla_stream.h"
+#include "../base-lib/core/http/mla_http_client.h"
+#include "../base-lib/core/http/mla_websocket_client.h"
+#include "../base-lib/core/http/mla_http_server.h"
+#include "../base-lib/core/system/mla_string_concat.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/mla_benchmark_executor.h"
 
 static mla_network_host_t test_server_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41258);
 static mla_string_t test_server_url = mla_string_const("http://127.0.0.1:41258");

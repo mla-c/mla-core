@@ -5,11 +5,11 @@
 #ifndef MLA_LINK_LIST_TEST_H
 #define MLA_LINK_LIST_TEST_H
 
-#include "../framework/core/system/mla_string.h"
-#include "../framework/core/system/mla_link_list.h"
-#include "../framework/core/system/mla_string_concat.h"
-#include "../framework/core-test-support/mla_test_executor.h"
-#include "../framework/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/core/system/mla_string.h"
+#include "../base-lib/core/system/mla_link_list.h"
+#include "../base-lib/core/system/mla_string_concat.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/mla_benchmark_executor.h"
 #include "mla_list_contains_const.h"
 
 struct my_link_list_test_struct {

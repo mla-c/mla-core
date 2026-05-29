@@ -1,4 +1,4 @@
-// src/lib/framework/core-platform/generic/mla_global_network_disabled.h
+// src/lib/base-lib/core-platform/generic/mla_global_network_disabled.h
 //
 // Created by chris on 1/30/2026.
 //

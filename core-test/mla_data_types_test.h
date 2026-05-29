@@ -5,8 +5,8 @@
 #ifndef MLA_DATA_TYPES_TEST_H
 #define MLA_DATA_TYPES_TEST_H
 
-#include "../framework/core/mla_data_types.h"
-#include "../framework/core-test-support/mla_test_executor.h"
+#include "../base-lib/core/mla_data_types.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
 
 inline void SizeOfDataTypesTest() {
 

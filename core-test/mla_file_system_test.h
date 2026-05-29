@@ -5,8 +5,8 @@
 #ifndef MLA_FILE_SYSTEM_TEST_H
 #define MLA_FILE_SYSTEM_TEST_H
 
-#include "../framework/core-test-support/mla_test_executor.h"
-#include "../framework/core/filesystem/mla_file_system.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core/filesystem/mla_file_system.h"
 
 void FileSystemIsDirectoryPathTest() {
     // Valid directory paths (must start and end with slash)

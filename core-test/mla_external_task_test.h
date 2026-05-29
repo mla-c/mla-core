@@ -5,9 +5,9 @@
 #ifndef MLA_EXTERNAL_TASK_TEST_H
 #define MLA_EXTERNAL_TASK_TEST_H
 
-#include "../framework/core/external_task/mla_external_task.h"
-#include "../framework/core-test-support/mla_test_executor.h"
-#include "../framework/core-test-support/Test/mla_test.h"
+#include "../base-lib/core/external_task/mla_external_task.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/Test/mla_test.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #define __mla_external_task_test_stdout_cmd "echo|set /p=hello"

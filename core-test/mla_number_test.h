@@ -5,10 +5,10 @@
 #ifndef MLA_NUMBER_TEST_H
 #define MLA_NUMBER_TEST_H
 
-#include "../framework/core/system/mla_string.h"
-#include "../framework/core/system/mla_number.h"
-#include "../framework/core-test-support/mla_test_executor.h"
-#include "../framework/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/core/system/mla_string.h"
+#include "../base-lib/core/system/mla_number.h"
+#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/core-test-support/mla_benchmark_executor.h"
 
 inline void ParseDoubleTest() {
 
