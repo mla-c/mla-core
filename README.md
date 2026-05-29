@@ -103,16 +103,16 @@ The main library providing fundamental operating system abstractions and utiliti
 - Platform-independent type definitions (int8, int16, int32, int64, etc.)
 - Cross-platform compatibility layer
 
-### Platform Abstractions (`base-lib/core-platform/`)
+### Platform Abstractions (`base-lib/platform/`)
 
 Platform-specific implementations providing native functionality:
 
-- **Generic** - Portable implementations for all platforms - [Documentation](base-lib/core-platform/generic/readme.md)
-- **Windows** - Windows API integration - [Documentation](base-lib/core-platform/windows/readme.md)
-- **Linux** - POSIX-compliant implementations - [Documentation](base-lib/core-platform/linux/readme.md)
-- **WASM** - WebAssembly browser/Node.js runtime - [Documentation](base-lib/core-platform/wasm/readme.md)
-- **Raspberry Pi** - ARM-specific optimizations - [Documentation](base-lib/core-platform/raspberry/readme.md)
-- **ESP-IDF** - ESP32/ESP8266 embedded support - [Documentation](base-lib/core-platform/espidf/readme.md)
+- **Generic** - Portable implementations for all platforms - [Documentation](base-lib/platform/generic/readme.md)
+- **Windows** - Windows API integration - [Documentation](base-lib/platform/windows/readme.md)
+- **Linux** - POSIX-compliant implementations - [Documentation](base-lib/platform/linux/readme.md)
+- **WASM** - WebAssembly browser/Node.js runtime - [Documentation](base-lib/platform/wasm/readme.md)
+- **Raspberry Pi** - ARM-specific optimizations - [Documentation](base-lib/platform/raspberry/readme.md)
+- **ESP-IDF** - ESP32/ESP8266 embedded support - [Documentation](base-lib/platform/espidf/readme.md)
 
 ### Test Framework (`core-test/`) - [Documentation](core-test/readme.md)
 
@@ -139,7 +139,7 @@ Comprehensive test suite covering all core functionality:
 - URL Tests
 - Native Integration Tests
 
-### Test Support Library (`base-lib/core-test-support/`) - [Documentation](base-lib/core-test-support/readme.md)
+### Test Support Library (`base-lib/test-support/`) - [Documentation](base-lib/test-support/readme.md)
 
 Testing and benchmarking infrastructure:
 
@@ -208,7 +208,7 @@ mla_string_t mla_string_copy(const mla_string_t &p_String);
 - Use MLA low-level wrappers (`mla_memcpy`, `mla_memset`, `mla_strlen`, ...).
 - Use `mla_pointer_t` for heap ownership.
 - Use `mla_platform_pointer_t` for transient/raw access only.
-- Keep platform-specific implementation in `base-lib/core-platform/*` so shared module APIs remain cross-platform.
+- Keep platform-specific implementation in `base-lib/platform/*` so shared module APIs remain cross-platform.
 
 ## 🧠 Heap Memory Ownership: `mla_pointer_t`
 

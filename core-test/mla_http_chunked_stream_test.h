@@ -6,7 +6,7 @@
 #define MLA_HTTP_CHUNKED_STREAM_TEST_H
 
 #include "../base-lib/core/http/mla_http_chunked_stream.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 #include "../base-lib/core/system/mla_stream.h"
 
 static void HttpChunkedStreamOutputTest() {

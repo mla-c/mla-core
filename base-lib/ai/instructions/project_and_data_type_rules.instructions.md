@@ -265,7 +265,7 @@ The framework uses a centralized configuration system to manage system-wide and 
 
 ### 1. Configuration Headers
 - **Framework Config:** `core/mla_global_config.h` (included via `mla_data_types.h`)
-- **Test Config:** `base-lib/core-test-support/mla_test_global_config.h` (included via `mla_test_data_types.h`)
+- **Test Config:** `base-lib/test-support/mla_test_global_config.h` (included via `mla_test_data_types.h`)
 
 ### 2. Naming Conventions
 - **Feature Flags (Booleans):** Use the prefix `mla_global_feature_flag_` (e.g., `mla_global_feature_flag_logging_use_native`).

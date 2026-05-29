@@ -66,7 +66,7 @@
  * ```
  *
  * @note This API is intended **only** for platform-integration code
- *       (e.g. `base-lib/core-platform/<os>/`).  Application and framework code must
+ *       (e.g. `base-lib/platform/<os>/`).  Application and framework code must
  *       never interact with raw OS handles directly.
  */
 

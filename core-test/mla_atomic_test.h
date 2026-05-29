@@ -6,7 +6,7 @@
 #define MLA_ATOMIC_TEST_H
 
 #include "../base-lib/core/task/mla_atomic.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 
 void AtomicIncrementTest() {
     mla_atomic_int32_t v = mla_atomic_int32(0);

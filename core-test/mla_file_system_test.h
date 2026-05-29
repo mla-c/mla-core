@@ -5,7 +5,7 @@
 #ifndef MLA_FILE_SYSTEM_TEST_H
 #define MLA_FILE_SYSTEM_TEST_H
 
-#include "../base-lib/core-test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
 #include "../base-lib/core/filesystem/mla_file_system.h"
 
 void FileSystemIsDirectoryPathTest() {

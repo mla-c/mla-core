@@ -6,8 +6,8 @@
 #define MLA_AREA_MEMORY_TEST_H
 
 #include "../base-lib/core/mla_area_pointer_memory_manager.h"
-#include "../base-lib/core-test-support/mla_test_executor.h"
-#include "../base-lib/core-test-support/mla_benchmark_executor.h"
+#include "../base-lib/test-support/mla_test_executor.h"
+#include "../base-lib/test-support/mla_benchmark_executor.h"
 
 inline void MlaAreaMemoryAllocationTest() {
     mla_area_pointer_memory_manager_t area_manager = mla_area_pointer_memory_manager_create(1024);
