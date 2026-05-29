@@ -5,9 +5,9 @@
 #ifndef MLA_POINTER_TEST_H
 #define MLA_POINTER_TEST_H
 
-#include "../core/memory/mla_memory_hook.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core/memory/mla_memory_hook.h"
+#include "../framework/core-test-support/mla_test_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 struct my_pointer_test_native_auto_test_t {
     mla_test_int8_t data[16];

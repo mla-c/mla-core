@@ -13,7 +13,7 @@
 #include "cstring"
 #endif
 
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 #if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 void StdStringConcatBenchmark() {

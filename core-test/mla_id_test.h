@@ -5,9 +5,9 @@
 #ifndef MLA_ID_TEST_H
 #define MLA_ID_TEST_H
 
-#include "../core/system/mla_id.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/mla_benchmark_executor.h"
+#include "../framework/core/system/mla_id.h"
+#include "../framework/core-test-support/mla_test_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
 
 
 inline void GenerateUuidTest() {

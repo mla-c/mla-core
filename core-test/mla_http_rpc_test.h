@@ -5,10 +5,10 @@
 #ifndef MLA_HTTP_RPC_TEST_H
 #define MLA_HTTP_RPC_TEST_H
 
-#include "../core/rpc/mla_rpc.h"
-#include "../core/rpc/mla_rpc_http_server.h"
-#include "../core/rpc/mla_rpc_http_client.h"
-#include "../core-test-support/mla_test_executor.h"
+#include "../framework/core/rpc/mla_rpc.h"
+#include "../framework/core/rpc/mla_rpc_http_server.h"
+#include "../framework/core/rpc/mla_rpc_http_client.h"
+#include "../framework/core-test-support/mla_test_executor.h"
 
 static mla_network_host_t rpc_test_server_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41258);
 static mla_string_t rpc_test_server_url = mla_string_const("http://127.0.0.1:41258");

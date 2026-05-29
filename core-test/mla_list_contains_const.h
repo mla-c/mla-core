@@ -5,7 +5,7 @@
 #ifndef MLA_LIST_CONTAINS_CONST_H
 #define MLA_LIST_CONTAINS_CONST_H
 
-#include "../core-test-support/mla_test_data_types.h"
+#include "../framework/core-test-support/mla_test_data_types.h"
 
 // You can define mla_benchmark_constains_count to override the default number of contains checks
 // e.g. #define mla_benchmark_constains_count 50000

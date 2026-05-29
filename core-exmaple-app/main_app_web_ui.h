@@ -5,10 +5,10 @@
 #ifndef MAIN_APP_WEB_UI_H
 #define MAIN_APP_WEB_UI_H
 
-#include "../core/http/mla_http_server.h"
-#include "../core/rpc/mla_rpc_http_server.h"
-#include "../core/ui/web/mla_ui_http_server.h"
-#include "../core/log/mla_logger_rpc.h"
+#include "../framework/core/http/mla_http_server.h"
+#include "../framework/core/rpc/mla_rpc_http_server.h"
+#include "../framework/core/ui/web/mla_ui_http_server.h"
+#include "../framework/core/log/mla_logger_rpc.h"
 
 #ifndef mla_app_web_ui_http_task_count
 #define mla_app_web_ui_http_task_count 2

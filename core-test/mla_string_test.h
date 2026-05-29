@@ -5,12 +5,12 @@
 #ifndef MLA_STRING_TEST_H
 #define MLA_STRING_TEST_H
 
-#include "../core/memory/mla_memory_hook.h"
-#include "../core/system/mla_string.h"
-#include "../core/system/mla_string_concat.h"
-#include "../core-test-support/mla_test_executor.h"
-#include "../core-test-support/mla_benchmark_executor.h"
-#include "../core-test-support/mla_test_utils.h"
+#include "../framework/core/memory/mla_memory_hook.h"
+#include "../framework/core/system/mla_string.h"
+#include "../framework/core/system/mla_string_concat.h"
+#include "../framework/core-test-support/mla_test_executor.h"
+#include "../framework/core-test-support/mla_benchmark_executor.h"
+#include "../framework/core-test-support/mla_test_utils.h"
 
 void SizeOfTest() {
     assert_true(sizeof(mla_string_t) <= 32, "Size of mla_string_t should be less than or equal to 32 bytes");
