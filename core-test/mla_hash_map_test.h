@@ -6,11 +6,11 @@
 #define MLA_HASH_MAP_TEST_H
 
 
-#include "../base-lib/core/hash/mla_hash.h"
-#include "../base-lib/core/system/mla_hash_map.h"
-#include "../base-lib/core/system/mla_string_concat.h"
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/test-support/mla_benchmark_executor.h"
+#include "../lib/base-lib/core/hash/mla_hash.h"
+#include "../lib/base-lib/core/system/mla_hash_map.h"
+#include "../lib/base-lib/core/system/mla_string_concat.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/test-support/mla_benchmark_executor.h"
 #include "mla_list_contains_const.h"
 
 struct my_hash_map_test_struct {

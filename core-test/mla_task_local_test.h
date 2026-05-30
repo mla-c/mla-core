@@ -5,9 +5,9 @@
 #ifndef MLA_TASK_LOCAL_TEST_H
 #define MLA_TASK_LOCAL_TEST_H
 
-#include "../base-lib/core/task/mla_task_local.h"
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/test-support/mla_benchmark_executor.h"
+#include "../lib/base-lib/core/task/mla_task_local.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/test-support/mla_benchmark_executor.h"
 
 void TaskLocalCreateTest() {
     mla_task_local_t local = mla_task_local_create();

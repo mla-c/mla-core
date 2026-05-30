@@ -5,9 +5,9 @@
 #ifndef MLA_MEMORY_HOOK_TEST_H
 #define MLA_MEMORY_HOOK_TEST_H
 
-#include "../base-lib/core/memory/mla_memory_hook.h"
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/test-support/mla_benchmark_executor.h"
+#include "../lib/base-lib/core/memory/mla_memory_hook.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/test-support/mla_benchmark_executor.h"
 
 static mla_bool_t m_hook_called = false;
 

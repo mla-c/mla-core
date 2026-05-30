@@ -5,8 +5,8 @@
 #ifndef MLA_URL_TEST_H
 #define MLA_URL_TEST_H
 
-#include "../base-lib/core/url/mla_url.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/url/mla_url.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 
 void BasicUrlParseTest() {

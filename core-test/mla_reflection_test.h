@@ -5,8 +5,8 @@
 #ifndef MLA_REFLECTION_TEST_H
 #define MLA_REFLECTION_TEST_H
 
-#include "../base-lib/core/reflection/mla_reflection.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/reflection/mla_reflection.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 // Test struct definitions
 struct test_simple_struct_t {

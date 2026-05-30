@@ -4,8 +4,8 @@
 
 ## Repository Layout
 
-- **base-lib/** — core library, platform abstractions, and test-support utilities  
-  [Documentation](base-lib/readme.md)
+- **lib/base-lib/** — core library, platform abstractions, and test-support utilities  
+  [Documentation](lib/base-lib/readme.md)
 - **core-test/** — test suite for core functionality  
   [Documentation](core-test/readme.md)
 - **core-exmaple-app/** — reference/example application using mla-c modules  
@@ -22,7 +22,7 @@
 
 ## Start Here
 
-- For library internals and module-level docs: [base-lib/readme.md](base-lib/readme.md)
+- For library internals and module-level docs: [lib/base-lib/readme.md](lib/base-lib/readme.md)
 - For running/expanding tests: [core-test/readme.md](core-test/readme.md)
 - For the web UI build workflow: [core-web-ui/README.md](core-web-ui/README.md)
 

@@ -49,7 +49,7 @@ if (state == MLA_EXTERNAL_TASK_STATE_RUNNING) {
 
 ## Platform Support
 
-- Linux: `base-lib/platform/linux/mla_global_external_task_linux.h`
-- Windows: `base-lib/platform/windows/mla_global_external_task_windows.h`
+- Linux: `lib/base-lib/platform/linux/mla_global_external_task_linux.h`
+- Windows: `lib/base-lib/platform/windows/mla_global_external_task_windows.h`
 
 Platforms without external task support can omit `SOURCE_EXTERNAL_TASK_FILES` and/or leave `g_external_task_management` unbound.

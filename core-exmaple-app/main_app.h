@@ -6,8 +6,8 @@
 #define MAIN_APP_H
 
 // Include Global Storage
-#include "../base-lib/core/log/mla_logger_console.h"
-#include "../base-lib/core/log/mla_logging.h"
+#include "../lib/base-lib/core/log/mla_logger_console.h"
+#include "../lib/base-lib/core/log/mla_logging.h"
 #include "main_app_cli.h"
 #include "main_app_web_ui.h"
 #include "main_app_window_ui.h"
