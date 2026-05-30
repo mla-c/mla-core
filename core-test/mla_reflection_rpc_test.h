@@ -5,10 +5,10 @@
 #ifndef MLA_REFLECTION_RPC_TEST_H
 #define MLA_REFLECTION_RPC_TEST_H
 
-#include "../base-lib/core/reflection/mla_reflection_rpc.h"
-#include "../base-lib/core/reflection/mla_reflection.h"
-#include "../base-lib/core/serializer/mla_serializer.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/reflection/mla_reflection_rpc.h"
+#include "../lib/base-lib/core/reflection/mla_reflection.h"
+#include "../lib/base-lib/core/serializer/mla_serializer.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 // Test struct for testing reflection RPC
 struct test_rpc_simple_struct_t {

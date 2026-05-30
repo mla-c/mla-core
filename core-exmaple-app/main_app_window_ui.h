@@ -5,10 +5,10 @@
 #ifndef MAIN_APP_WINDOW_UI_H
 #define MAIN_APP_WINDOW_UI_H
 
-#include "../base-lib/core/ui/surfaces/mla_ui_surface.h"
-#include "../base-lib/core/ui/controls/mla_ui_button.h"
-#include "../base-lib/core/ui/controls/mla_ui_control_surface.h"
-#include "../base-lib/core/ui/display/mla_ui_display_surface.h"
+#include "../lib/base-lib/core/ui/surfaces/mla_ui_surface.h"
+#include "../lib/base-lib/core/ui/controls/mla_ui_button.h"
+#include "../lib/base-lib/core/ui/controls/mla_ui_control_surface.h"
+#include "../lib/base-lib/core/ui/display/mla_ui_display_surface.h"
 
 static mla_ui_surface_t g_main_app_window_ui_surface = mla_ui_surface_invalid();
 static mla_ui_control_surface_t g_main_app_window_ui_surface_connector = mla_ui_control_surface_empty();

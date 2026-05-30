@@ -5,9 +5,9 @@
 #ifndef MLA_HTTP_HEADER_TEST_H
 #define MLA_HTTP_HEADER_TEST_H
 
-#include "../base-lib/core/http/mla_http_header.h"
-#include "../base-lib/core/system/mla_string.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/http/mla_http_header.h"
+#include "../lib/base-lib/core/system/mla_string.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 // Adds a single header and verifies retrieval via value and values API.
 void HttpHeader_AddSingleTest() {

@@ -5,7 +5,7 @@
 #ifndef MLA_MAIN_APP_BACKGROUND_TASK_H
 #define MLA_MAIN_APP_BACKGROUND_TASK_H
 
-#include "../base-lib/core/task/mla_task_manager.h"
+#include "../lib/base-lib/core/task/mla_task_manager.h"
 
 #define mla_log_interval 500
 

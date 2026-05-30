@@ -7,8 +7,8 @@
 
 
 // Include Global Storage
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/test-support/mla_benchmark_executor.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/test-support/mla_benchmark_executor.h"
 
 #include "mla_data_types_test.h"
 #include "mla_pointer_test.h"

@@ -4,7 +4,7 @@ The `core-test/` directory contains the complete set of unit and integration tes
 
 ## Architecture
 
-Tests are defined as header files (`.h`) that register test cases using the mla-c test framework (see [Test Support Library](../base-lib/test-support/readme.md)). Tests use `mla_test_t` definitions with assert macros for validation.
+Tests are defined as header files (`.h`) that register test cases using the mla-c test framework (see [Test Support Library](../lib/base-lib/test-support/readme.md)). Tests use `mla_test_t` definitions with assert macros for validation.
 
 ## Test Categories
 
@@ -92,4 +92,4 @@ Tests are defined as header files (`.h`) that register test cases using the mla-
 
 ## Running Tests
 
-Tests are compiled and linked with the test support library and a platform-specific main entry point. See the [Test Support Library](../base-lib/test-support/readme.md) for framework details and the build system for compilation instructions.
+Tests are compiled and linked with the test support library and a platform-specific main entry point. See the [Test Support Library](../lib/base-lib/test-support/readme.md) for framework details and the build system for compilation instructions.

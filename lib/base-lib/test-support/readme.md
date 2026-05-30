@@ -1,6 +1,6 @@
 # Test Support Library
 
-The `base-lib/test-support/` directory provides the testing and benchmarking infrastructure for mla-c. It includes a custom test framework, a benchmark framework, and platform-specific utilities for running tests across all supported platforms.
+The `lib/base-lib/test-support/` directory provides the testing and benchmarking infrastructure for mla-c. It includes a custom test framework, a benchmark framework, and platform-specific utilities for running tests across all supported platforms.
 
 ## Architecture
 

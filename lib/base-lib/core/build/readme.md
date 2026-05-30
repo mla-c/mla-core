@@ -72,7 +72,7 @@ make
 
 ## Source Organization
 
-The `sources.cmake` file at `base-lib/core/` defines the complete set of source files organized by category:
+The `sources.cmake` file at `lib/base-lib/core/` defines the complete set of source files organized by category:
 
 - **Core Sources** (55 files): Data types, strings, buffers, collections, streams, serializers, logging, CLI, reflection, RPC, lifecycle, tasks, UI controls
 - **Network Sources** (12 files): HTTP client/server, WebSocket, URL, network, RPC HTTP transport, web UI server
@@ -82,7 +82,7 @@ The `sources.cmake` file at `base-lib/core/` defines the complete set of source 
 
 ## Clang-tidy Static Analysis
 
-Static analysis is integrated directly into `default-toolchain.cmake` via `clang-tidy.cmake`.  The shared check configuration lives in `.clang-tidy` at `base-lib/core/build/` and is automatically picked up by clang-tidy for every file in the project tree.
+Static analysis is integrated directly into `default-toolchain.cmake` via `clang-tidy.cmake`.  The shared check configuration lives in `.clang-tidy` at `lib/base-lib/core/build/` and is automatically picked up by clang-tidy for every file in the project tree.
 
 Every project that includes `default-toolchain.cmake` automatically gets:
 
@@ -108,4 +108,4 @@ Pass `-DMLA_ENABLE_CLANG_TIDY=OFF` to disable analysis (e.g. for fast iteration)
 cmake -DMLA_ENABLE_CLANG_TIDY=OFF ..
 ```
 
-The `.clang-tidy` file at `base-lib/core/build/` is picked up automatically when clang-tidy processes files inside that directory tree.  Projects may place their own `.clang-tidy` at their repository root (with `InheritParentConfig: false`) to extend or override the shared checks.
+The `.clang-tidy` file at `lib/base-lib/core/build/` is picked up automatically when clang-tidy processes files inside that directory tree.  Projects may place their own `.clang-tidy` at their repository root (with `InheritParentConfig: false`) to extend or override the shared checks.

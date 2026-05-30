@@ -5,9 +5,9 @@
 #ifndef MLA_CLI_PARSER_TEST_H
 #define MLA_CLI_PARSER_TEST_H
 
-#include "../base-lib/core/cli/mla_cli_app.h"
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/core/cli/mla_cli_parser.h"
+#include "../lib/base-lib/core/cli/mla_cli_app.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/cli/mla_cli_parser.h"
 
 inline void ParseCommandWithParameters() {
 

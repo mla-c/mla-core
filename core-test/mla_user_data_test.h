@@ -5,8 +5,8 @@
 #ifndef MLA_USER_DATA_TEST_H
 #define MLA_USER_DATA_TEST_H
 
-#include "../base-lib/core/system/mla_user_data.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/system/mla_user_data.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 
 mla_user_data_id_init(mla_user_data_test_id)

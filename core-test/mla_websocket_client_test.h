@@ -5,8 +5,8 @@
 #ifndef MLA_WEBSOCKET_CLIENT_TEST_H
 #define MLA_WEBSOCKET_CLIENT_TEST_H
 
-#include "../base-lib/core/http/mla_websocket_client.h"
-#include "../base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/core/http/mla_websocket_client.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
 
 void SimpleLocalEchoTest() {
 

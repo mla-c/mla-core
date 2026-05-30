@@ -5,10 +5,10 @@
 #ifndef MLA_NETWORK_TEST_H
 #define MLA_NETWORK_TEST_H
 
-#include "../base-lib/core/network/mla_network.h"
-#include "../base-lib/test-support/mla_test_executor.h"
-#include "../base-lib/test-support/mla_test_utils.h"
-#include "../base-lib/test-support/Test/mla_test.h"
+#include "../lib/base-lib/core/network/mla_network.h"
+#include "../lib/base-lib/test-support/mla_test_executor.h"
+#include "../lib/base-lib/test-support/mla_test_utils.h"
+#include "../lib/base-lib/test-support/Test/mla_test.h"
 
 extern mla_network_low_level_operations_t g_network_low_level_operations;
 

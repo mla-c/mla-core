@@ -68,7 +68,7 @@ Windows task management is implemented using native Windows threads and synchron
 To use the Windows platform, include the main platform header in your application:
 
 ```cpp
-#include "base-lib/platform/windows/mla_global_platform_windows.h"
+#include "lib/base-lib/platform/windows/mla_global_platform_windows.h"
 ```
 
 ### Configuration
