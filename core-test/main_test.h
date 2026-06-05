@@ -55,6 +55,7 @@
 #include "mla_http_header_test.h"
 #include "mla_url_test.h"
 #include "mla_http_client_test.h"
+#include "mla_http_multipart_test.h"
 #include "mla_http_server_test.h"
 #include "mla_websocket_client_test.h"
 #include "mla_http_rpc_test.h"
@@ -119,6 +120,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHttpHeaderTests(l_TestExecutor);
     RegisterUrlTests(l_TestExecutor);
     RegisterHttpClientTests(l_TestExecutor);
+    RegisterHttpMultipartTests(l_TestExecutor);
     RegisterHttpServerTests(l_TestExecutor);
     RegisterWebsocketClientTests(l_TestExecutor);
     RegisterHttpRpcTests(l_TestExecutor);
