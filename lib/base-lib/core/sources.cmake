@@ -66,6 +66,7 @@ set(SOURCE_NETWORK_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_http_server.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_http_utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_http_chunked_stream.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_http_multipart.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_websocket_utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/http/mla_websocket_client.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/url/mla_url.cpp
