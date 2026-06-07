@@ -26,7 +26,7 @@ void HttpMultipartClientTest() {
 }
 
 void RegisterHttpMultipartTests(mla_test_executor_t &p_TestExecutor) {
-    mla_string_t test_category = mla_string_const("HTTP");
+
     mla_test_t test = mla_test("HttpMultipartClientTest", test_category, HttpMultipartClientTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }

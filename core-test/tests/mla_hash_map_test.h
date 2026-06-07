@@ -11,7 +11,7 @@
 #include "../../lib/base-lib/core/system/mla_string_concat.h"
 #include "../../lib/base-lib/test-support/mla_test_executor.h"
 #include "../../lib/base-lib/test-support/mla_benchmark_executor.h"
-#include "../mla_list_contains_const.h"
+#include "mla_list_contains_const.h"
 
 struct my_hash_map_test_struct {
     mla_int32_t test1;

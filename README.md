@@ -9,7 +9,7 @@
 - **core-test/** — test suite for core functionality  
   [Documentation](core-test/readme.md)
 - **core-exmaple-app/** — reference/example application using mla-c modules  
-  [Documentation](core-exmaple-app/readme.md)
+  [Documentation](core-example-app/readme.md)
 - **core-web-ui/** — TypeScript/Preact web UI build package whose output is embedded in the C++ UI module  
   [Documentation](core-web-ui/README.md)
 

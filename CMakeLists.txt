@@ -1,12 +1,13 @@
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/core/build/default-toolchain.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/build/default-toolchain.cmake")
 
 cmake_minimum_required(VERSION 3.25)
 project(MLA_C_Application_Test)
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/lib/core/build/default-compile-config.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/build/default-compile-config.cmake")
 
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/lib/sources.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/sources.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/test-support/sources.cmake")
 
 
 ##########################################################
@@ -67,7 +68,7 @@ if(UNIX AND NOT APPLE)
     ## APP
     ############################
     set(SOURCE_FILES_LINUX_APP
-            ${CMAKE_CURRENT_SOURCE_DIR}/main_app_linux.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/core-example-app/main_app_linux.cpp
             ${SOURCE_FILES}
             ${SOURCE_NETWORK_FILES}
             ${SOURCE_UI_FILES}
@@ -98,7 +99,7 @@ if (MLA_EMSDK_PATH OR MLA_WASM_STANDALONE)
     ## APP
     ############################
     set(SOURCE_FILES_WASM_APP
-            core-exmaple-app/main_app_wasm.cpp
+            core-example-app/main_app_wasm.cpp
             ${SOURCE_FILES}
     )
     add_executable(MLA_C_App_WASM ${SOURCE_FILES_WASM_APP})
