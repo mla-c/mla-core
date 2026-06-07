@@ -1,0 +1,395 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+#   schedule:
+#    - cron: '0 4 * * *'
+
+jobs:
+  build:
+    # Runner is set from the matrix (ubuntu-latest or windows-latest)
+    runs-on: ${{ (matrix.os == 'ubuntu-latest' && fromJSON('["self-hosted", "linux"]')) || (matrix.os == 'windows-latest' && fromJSON('["self-hosted", "windows"]')) || matrix.os }}
+    #runs-on: ${{ matrix.os }} # Use this line to test on GitHub-hosted runners
+    timeout-minutes: ${{ (matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest') && 60 || 10 }}
+    #timeout-minutes: 10
+
+    strategy:
+      # Do not stop other matrix jobs if one fails; set to true when stable
+      fail-fast: false
+      matrix:
+        include:
+
+          # =========================
+          # WINDOWS
+          # =========================
+
+          # cl
+          - os: windows-latest
+            build_type: Release
+            c_compiler: cl
+            cpp_compiler: cl
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: cl
+            cpp_compiler: cl
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          # gcc (MinGW)
+          - os: windows-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          # zig
+          - os: windows-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+
+          # =========================
+          # LINUX
+          # =========================
+
+          # gcc
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # clang
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # zig
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # fil-c
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: fil-c
+            cpp_compiler: fil-cxx
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: fil-c
+            cpp_compiler: fil-cxx
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+
+          # =========================
+          # WASM (Linux only, clang only)
+          # =========================
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_WASM_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+    steps:
+      - name: Set Run Timestamp
+        id: timestamp
+        shell: bash
+        run: echo "value=$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')" >> "$GITHUB_OUTPUT"
+
+      # Checkout the repository with submodules
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0 # Needed to check commit history
+
+      - name: Check for recent commits
+        id: check_commits
+        if: github.event_name == 'schedule'
+        shell: bash
+        run: |
+          # Check for commits in the last 24 hours on the current branch
+          COMMIT_COUNT=$(git rev-list --count --since="24 hours ago" HEAD)
+          if [ "$COMMIT_COUNT" -gt 0 ]; then
+            echo "has_recent_commits=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_recent_commits=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup WASM build environment
+        id: wasm-check
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && matrix.target_executable == 'MLA_C_Test_WASM_Single_Thread'
+        shell: bash
+        run: echo "is_wasm=1" >> "$GITHUB_OUTPUT"
+
+      - uses: mymindstorm/setup-emsdk@v14
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && steps.wasm-check.outputs.is_wasm == '1'
+
+      # Install Zig when zig-cc is selected
+      - uses: mlugg/setup-zig@v2
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && matrix.c_compiler == 'zig-cc'
+
+      - name: Set reusable strings
+        id: strings
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        # Use bash so conditional logic and output file work consistently on runners that support bash
+        shell: bash
+        run: |
+          # Compose a build output directory path and expose it as an output
+          echo "build-output-dir=${{ github.workspace }}${{matrix.directory_sperator}}build" >> "$GITHUB_OUTPUT"
+
+          # For zig-cxx, point CXX to an internal wrapper script inside the repo's build tools
+          if [ "${{ matrix.cpp_compiler }}" = "zig-cxx" ]; then
+            echo "cxx_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cxx${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+          else
+            # Otherwise forward the compiler name provided by the matrix
+            echo "cxx_compiler=${{ matrix.cpp_compiler }}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Similarly handle zig-cc for C compiler
+          if [ "${{ matrix.c_compiler }}" = "zig-cc" ]; then
+            echo "c_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cc${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+          else
+            echo "c_compiler=${{ matrix.c_compiler }}" >> "$GITHUB_OUTPUT"
+          fi
+          
+          # For fil-c, point to the expected location of the fil-c clang binaries; this assumes fil-c is pre-installed on the runner at this location
+          if [ "${{ matrix.c_compiler }}" = "fil-c" ]; then
+            echo "c_compiler=/lib/fil-c/filc-0.678-linux-x86_64/build/bin/clang" >> "$GITHUB_OUTPUT"
+            echo "cxx_compiler=/lib/fil-c/filc-0.678-linux-x86_64/build/bin/clang++" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: prepare compilers on linux
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && matrix.os == 'ubuntu-latest' && (matrix.c_compiler == 'zig-cc')
+        # Make the generated zig wrapper scripts executable when running on Ubuntu with zig
+        run: |
+          chmod +x ${{ steps.strings.outputs.c_compiler }}
+          chmod +x ${{ steps.strings.outputs.cxx_compiler }}
+
+      - name: Configure CMake
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        # Configure CMake in the build directory and set compilers & build type.
+        # Note: on Windows with gcc (MinGW) we select the "MinGW Makefiles" generator,
+        # and with zig-cc we select Ninja. The long ternary-like expression below selects generators conditionally.
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          ${{ matrix.os == 'windows-latest' && matrix.c_compiler == 'gcc' && '-G "MinGW Makefiles"' || matrix.os == 'windows-latest' && matrix.c_compiler == 'zig-cc' && '-G "Ninja"' || '' }}
+          -DCMAKE_CXX_COMPILER=${{ steps.strings.outputs.cxx_compiler }}
+          -DCMAKE_C_COMPILER=${{ steps.strings.outputs.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DMLA_EMSDK_PATH=${{ steps.wasm-check.outputs.is_wasm == '1' && env.EMSDK || '' }}
+          -S ${{ github.workspace }}
+
+      - name: Build
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        # Build the specific target; `--config` is used for multi-config generators (e.g. MSVC)
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --target ${{ matrix.target_executable }}
+
+      - name: Show build directory contents
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        shell: bash
+        # List build outputs for debugging and artifact discovery
+        run: ls
+
+      - name: Install Supabase Python Client
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        run: pip install supabase
+
+      - name: Parse Benchmark Results
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && success()
+        shell: bash
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: |
+          cat > parse_benchmark.py << 'EOPARSER'
+          import json
+          import sys
+          import os
+          from datetime import datetime
+          from supabase import create_client, Client
+
+          def parse_benchmark_output(output_text, os_name, compiler, timestamp, commit, target_executable):
+            # Parse JSON output
+            data = json.loads(output_text)
+            results = []
+          
+            # Extract threading mode from target_executable
+            threading_mode = "Multi_Thread" if "Multi_Thread" in target_executable else "Single_Thread"
+          
+            # Add metadata to each benchmark entry
+            for entry in data:
+              entry["timestamp"] = timestamp
+              entry["os"] = f"{os_name}_{threading_mode}"
+              entry["compiler"] = compiler
+              entry["commit"] = commit
+              results.append(entry)
+            return results
+
+          def send_to_supabase(results, supabase_url, supabase_key):
+            # Initialize Supabase client
+            supabase: Client = create_client(supabase_url, supabase_key)
+
+            # Transform data according to specified mapping
+            supabase_rows = []
+            for result in results:
+              row = {
+              "project": "CoreOS-Application-Test",
+              "timestamp": result["timestamp"],
+              "category1": result["os"],
+              "category2": result["compiler"],
+              "category3": result["Category"],
+              "category4": result["Name"],
+              "category5": "Arena" if result["WithMemoryArena"] else "Regular",
+              "commit": result["commit"],
+              "value1": result["AverageTimeNs"],
+              "value2": result["AllocatedMemoryPerIterationBytes"],
+              "value3": result["MinTimeNs"],
+              "value4": result["MaxTimeNs"],
+              "value5": None  # No mapping provided for value5
+            }
+              supabase_rows.append(row)
+
+            # Insert data into Supabase
+            response = supabase.table("benchmarks").insert(supabase_rows).execute()
+
+            # Check for errors
+            if hasattr(response, 'error') and response.error:
+              print(f"Error inserting data: {response.error}")
+              return False
+
+            print(f"Successfully inserted {len(supabase_rows)} benchmark results into Supabase")
+            return True
+
+          if __name__ == "__main__":
+            if len(sys.argv) < 7:
+              print("Usage: parse_benchmark.py <output_file> <os> <compiler> <timestamp> <commit> <target_executable>")
+              sys.exit(1)
+            
+            output_file = sys.argv[1]
+            os_name = sys.argv[2]
+            compiler = sys.argv[3]
+            timestamp = sys.argv[4]
+            commit = sys.argv[5]
+            target_executable = sys.argv[6]
+
+            # Get Supabase credentials from environment
+            supabase_url = os.environ.get("SUPABASE_URL")
+            supabase_key = os.environ.get("SUPABASE_KEY")
+
+            if not supabase_url or not supabase_key:
+              print("Error: SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+              sys.exit(1)
+
+            try:
+              with open(output_file, 'r') as f:
+                output_text = f.read()
+            except FileNotFoundError:
+              print(f"Error: Could not find output file {output_file}")
+              sys.exit(1)
+
+            results = parse_benchmark_output(output_text, os_name, compiler, timestamp, commit, target_executable)
+
+            # Send to Supabase
+            success = send_to_supabase(results, supabase_url, supabase_key)
+            if not success:
+              sys.exit(1)
+
+            print(f"\nProcessed {len(results)} benchmark results", file=sys.stderr)
+
+          EOPARSER
+
+      - name: Run Benchmark and Capture Output
+        if: github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true'
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        shell: bash
+        run: |
+          if [ "${{ steps.wasm-check.outputs.is_wasm }}" == "1" ]; then
+            BENCHMARK_CMD="node ./${{ matrix.target_executable }}.js --benchmark --benchmark-output=json"
+          elif [ "${{ matrix.os }}" == "windows-latest" ] && [ "${{ matrix.c_compiler }}" == "cl" ]; then
+            BENCHMARK_CMD="./${{ matrix.build_type }}/${{ matrix.target_executable }}.exe --benchmark --benchmark-output=json"
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            BENCHMARK_CMD="./${{ matrix.target_executable }}.exe --benchmark --benchmark-output=json"
+          else
+            BENCHMARK_CMD="./${{ matrix.target_executable }} --benchmark --benchmark-output=json"
+          fi
+          eval "$BENCHMARK_CMD" | tee benchmark_output.txt
+
+      - name: Parse Results to Supabase
+        if: (github.event_name != 'schedule' || steps.check_commits.outputs.has_recent_commits == 'true') && success()
+        shell: bash
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          pip install supabase
+          python parse_benchmark.py benchmark_output.txt "${{ matrix.os }}" "${{ matrix.c_compiler }}" "${{ steps.timestamp.outputs.value }}" "${{ github.sha }}" "${{ matrix.target_executable }}"

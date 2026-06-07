@@ -8,11 +8,11 @@
 // Include Global Storage
 #include "../lib/base-lib/core/log/mla_logger_console.h"
 #include "../lib/base-lib/core/log/mla_logging.h"
-#include "main_app_cli.h"
-#include "main_app_web_ui.h"
-#include "main_app_window_ui.h"
-#include "main_app_main_window.h"
-#include "main_app_background_task.h"
+#include "modules/main_app_cli.h"
+#include "modules/main_app_web_ui.h"
+#include "modules/main_app_window_ui.h"
+#include "modules/main_app_main_window.h"
+#include "modules/main_app_background_task.h"
 
 int run() {
 

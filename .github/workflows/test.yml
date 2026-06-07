@@ -1,0 +1,324 @@
+# GitHub Actions workflow that builds and runs tests for multiple OS/compiler/target combinations
+name: Test
+
+# Trigger on pushes to main and manual dispatch
+on:
+  #push:
+  #  branches:
+  #    - main
+  schedule:
+    - cron: '0 0 * * *' # Run at 00:00 UTC every day
+  workflow_dispatch:
+    inputs:
+      allocation_failure_seed_count:
+        description: 'Number of allocation failure seeds to test. If greater than 0, regular tests are skipped and allocation failure testing is performed instead.'
+        type: number
+        default: 0
+
+jobs:
+  build:
+    # Runner is set from the matrix (ubuntu-latest or windows-latest)
+    runs-on: ${{ (matrix.os == 'ubuntu-latest' && fromJSON('["self-hosted", "linux"]')) || (matrix.os == 'windows-latest' && fromJSON('["self-hosted", "windows"]')) || matrix.os }}
+    #runs-on: ${{ matrix.os }} # Use this line to test on GitHub-hosted runners
+    timeout-minutes: ${{ (matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest') && 60 || 6 }}
+    #timeout-minutes: 6
+
+    strategy:
+      # Do not stop other matrix jobs if one fails; set to true when stable
+      fail-fast: false
+      matrix:
+        include:
+
+          # =========================
+          # WINDOWS
+          # =========================
+
+          # cl
+          - os: windows-latest
+            build_type: Release
+            c_compiler: cl
+            cpp_compiler: cl
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: cl
+            cpp_compiler: cl
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          # gcc (MinGW)
+          - os: windows-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          # zig
+          - os: windows-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Windows_Multi_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+          - os: windows-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Windows_Single_Thread
+            directory_sperator: '\'
+            script_extension: '.bat'
+
+
+          # =========================
+          # LINUX
+          # =========================
+
+          # gcc
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # clang
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # zig
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: zig-cc
+            cpp_compiler: zig-cxx
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          # fil-c
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: fil-c
+            cpp_compiler: fil-cxx
+            target_executable: MLA_C_Test_Linux_Multi_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: fil-c
+            cpp_compiler: fil-cxx
+            target_executable: MLA_C_Test_Linux_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+
+          # =========================
+          # WASM (Linux only, clang only)
+          # =========================
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            target_executable: MLA_C_Test_WASM_Single_Thread
+            directory_sperator: '/'
+            script_extension: '.sh'
+
+
+    steps:
+      - name: Setup WASM build environment
+        id: wasm-check  # Add this ID
+        shell: bash
+        if: matrix.target_executable == 'MLA_C_Test_WASM_Single_Thread'
+        run: echo "is_wasm=1" >> "$GITHUB_OUTPUT"
+
+      - uses: mymindstorm/setup-emsdk@v14
+        if: steps.wasm-check.outputs.is_wasm == '1'  # Reference the correct step
+
+      # Install Zig when zig-cc is selected
+      - uses: mlugg/setup-zig@v2
+        if: matrix.c_compiler == 'zig-cc'
+
+      # Checkout the repository with submodules
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set reusable strings
+        id: strings
+        # Use bash so conditional logic and output file work consistently on runners that support bash
+        shell: bash
+        run: |
+          # Compose a build output directory path and expose it as an output
+          echo "build-output-dir=${{ github.workspace }}${{matrix.directory_sperator}}build" >> "$GITHUB_OUTPUT"
+
+          # For zig-cxx, point CXX to an internal wrapper script inside the repo's build tools
+          if [ "${{ matrix.cpp_compiler }}" = "zig-cxx" ]; then
+            echo "cxx_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cxx${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+          else
+            # Otherwise forward the compiler name provided by the matrix
+            echo "cxx_compiler=${{ matrix.cpp_compiler }}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Similarly handle zig-cc for C compiler
+          if [ "${{ matrix.c_compiler }}" = "zig-cc" ]; then
+            echo "c_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cc${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+          else
+            echo "c_compiler=${{ matrix.c_compiler }}" >> "$GITHUB_OUTPUT"
+          fi
+          
+          # For fil-c, point to the expected location of the fil-c clang binaries; this assumes fil-c is pre-installed on the runner at this location
+          if [ "${{ matrix.c_compiler }}" = "fil-c" ]; then
+            echo "c_compiler=/lib/fil-c/filc-0.678-linux-x86_64/build/bin/clang" >> "$GITHUB_OUTPUT"
+            echo "cxx_compiler=/lib/fil-c/filc-0.678-linux-x86_64/build/bin/clang++" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: prepare compilers on linux
+        # Make the generated zig wrapper scripts executable when running on Ubuntu with zig
+        if: matrix.os == 'ubuntu-latest' && (matrix.c_compiler == 'zig-cc')
+        run: |
+          chmod +x ${{ steps.strings.outputs.c_compiler }}
+          chmod +x ${{ steps.strings.outputs.cxx_compiler }}
+
+      - name: Configure CMake
+        # Configure CMake in the build directory and set compilers & build type.
+        # Note: on Windows with gcc (MinGW) we select the "MinGW Makefiles" generator,
+        # and with zig-cc we select Ninja. The long ternary-like expression below selects generators conditionally.
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          ${{ matrix.os == 'windows-latest' && matrix.c_compiler == 'gcc' && '-G "MinGW Makefiles"' || matrix.os == 'windows-latest' && matrix.c_compiler == 'zig-cc' && '-G "Ninja"' || '' }}
+          -DCMAKE_CXX_COMPILER=${{ steps.strings.outputs.cxx_compiler }}
+          -DCMAKE_C_COMPILER=${{ steps.strings.outputs.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DMLA_EMSDK_PATH=${{ steps.wasm-check.outputs.is_wasm == '1' && env.EMSDK || '' }}
+          -S ${{ github.workspace }}
+
+      - name: Build
+        # Build the specific target; `--config` is used for multi-config generators (e.g. MSVC)
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --target ${{ matrix.target_executable }}
+
+      - name: Show build directory contents
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        shell: bash
+        # List build outputs for debugging and artifact discovery
+        run: ls
+
+      - name: Test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        if: steps.wasm-check.outputs.is_wasm != '1' && inputs.allocation_failure_seed_count == 0
+        # Run the target executable with `--test`. For MSVC builds on Windows the executable may be under a config folder,
+        # so the first part of the expression prefixes the target with the config folder when using cl on windows.
+        run: ${{ matrix.os == 'windows-latest' && matrix.c_compiler == 'cl' && matrix.build_type || '.' }}${{ matrix.directory_sperator }}${{ matrix.target_executable }} --test
+
+      - name: Test Wasm
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        if: steps.wasm-check.outputs.is_wasm == '1' && inputs.allocation_failure_seed_count == 0
+
+        run: node .${{ matrix.directory_sperator }}${{ matrix.target_executable }}.js --test
+
+      - name: Test Allocation Failure
+        id: alloc-failure-test
+        if: inputs.allocation_failure_seed_count > 0
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        shell: bash
+        run: |
+          if [ "${{ steps.wasm-check.outputs.is_wasm }}" == "1" ]; then
+            TEST_CMD="node ./${{ matrix.target_executable }}.js"
+          elif [ "${{ matrix.os }}" == "windows-latest" ] && [ "${{ matrix.c_compiler }}" == "cl" ]; then
+            TEST_CMD="./${{ matrix.build_type }}/${{ matrix.target_executable }}"
+          else
+            TEST_CMD="./${{ matrix.target_executable }}"
+          fi
+
+          set +e
+          $TEST_CMD --allocation-failure-seed-count=${{ inputs.allocation_failure_seed_count }} 2>&1 | tee alloc_failure_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "crashed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "crashed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Issue for Crashing Seed
+        if: inputs.allocation_failure_seed_count > 0 && steps.alloc-failure-test.outputs.crashed == 'true'
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          SEED=$(grep -i 'allocation failure seed:' "alloc_failure_output.txt" | grep -oE '[0-9]+$' | tail -1 || true)
+
+          if [ -z "$SEED" ]; then
+            echo "No crashing seed found in output"
+            exit 0
+          fi
+
+          echo "Found crashing seed: $SEED"
+
+          # Check if an open issue already exists with this exact seed title
+          EXISTING_COUNT=$(gh issue list \
+            --repo "mla-c/mla-core" \
+            --state open \
+            --search '"Allocation failure seed: '"$SEED"'" in:title' \
+            --json number \
+            --jq 'length')
+
+          if [ "$EXISTING_COUNT" -gt 0 ]; then
+            echo "Open issue already exists for seed $SEED"
+            exit 0
+          fi
+
+          # Create a new issue with seed and commit information
+          BODY=$(printf "## Allocation Failure Detected\n\nSeed: \`%s\`\nCommit: \`${{ github.sha }}\`\nOS: ${{ matrix.os }}\nCompiler: ${{ matrix.c_compiler }}\nTarget: ${{ matrix.target_executable }}" "$SEED")
+          gh issue create \
+            --repo "mla-c/mla-core" \
+            --title "Allocation failure seed: $SEED" \
+            --body "$BODY"
