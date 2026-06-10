@@ -59,7 +59,7 @@ void MyOperationBenchmark() {
     (void)length;
 
     // Clean up if the operation allocates
-    mla_string_destroy(result);
+    result = mla_string_empty();
 }
 ```
 

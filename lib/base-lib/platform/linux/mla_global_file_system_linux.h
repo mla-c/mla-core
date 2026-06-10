@@ -70,7 +70,6 @@ mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, 
     int result = stat(mla_string_data(fullPath), &statbuf);
     mla_bool_t exists = (result == 0 && S_ISREG(statbuf.st_mode));
 
-    mla_string_destroy(fullPath);
     return exists;
 }
 
@@ -84,7 +83,6 @@ mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, 
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     int result = unlink(mla_string_data(fullPath));
-    mla_string_destroy(fullPath);
 
     return result == 0;
 }
@@ -99,7 +97,6 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     int result = mkdir(mla_string_data(fullPath), 0755); // rwxr-xr-x permissions
-    mla_string_destroy(fullPath);
 
     return result == 0 || errno == EEXIST;
 }
@@ -117,7 +114,6 @@ mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_sys
     int result = stat(mla_string_data(fullPath), &statbuf);
     mla_bool_t exists = (result == 0 && S_ISDIR(statbuf.st_mode));
 
-    mla_string_destroy(fullPath);
     return exists;
 }
 
@@ -131,7 +127,6 @@ mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_sys
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     int result = rmdir(mla_string_data(fullPath));
-    mla_string_destroy(fullPath);
 
     return result == 0;
 }
@@ -146,7 +141,6 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     DIR* dir = opendir(mla_string_data(fullPath));
-    mla_string_destroy(fullPath);
 
     if (dir == NULL) {
         return false;
@@ -177,7 +171,6 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
 
     DIR* dir = opendir(mla_string_data(fullPath));
-    mla_string_destroy(fullPath);
 
     if (dir == NULL) {
         return false;
@@ -323,12 +316,10 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             canWrite = true;
             break;
         default:
-            mla_string_destroy(fullPath);
             return false;
     }
 
     int fd = open(mla_string_data(fullPath), flags, 0644); // rw-r--r-- permissions
-    mla_string_destroy(fullPath);
 
     if (fd == -1)
         return false;
@@ -433,14 +424,12 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Append "data/" to the module path
     mla_string_t dataPath = mla_string_concat(modulePath, mla_string_const("data/"));
-    mla_string_destroy(modulePath);
 
     // Create the data directory if it doesn't exist
     mkdir(mla_string_data(dataPath), 0755);
 
     // Append the basePath
     mla_string_t fullPath = mla_string_concat(dataPath, basePath);
-    mla_string_destroy(dataPath);
 
     // Create the final directory if it doesn't exist
     mkdir(mla_string_data(fullPath), 0755);

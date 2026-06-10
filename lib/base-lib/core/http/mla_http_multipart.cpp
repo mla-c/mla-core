@@ -60,7 +60,6 @@ static mla_bool_t mla_http_multipart_content_writer(const mla_http_request_conte
     if (ok) {
         mla_string_t footer_str = mla_string_concat("\r\n--", ctx->boundary, "--\r\n");
         ok = mla_stream_output_write_string(out, footer_str);
-        mla_string_destroy(footer_str);
     }
 
     if (ctx->is_chunked) {

@@ -173,7 +173,6 @@ mla_bool_t mla_ui_surface_parse_color_from_hex_string(const mla_string_t& colorS
         if (!mla_parse_uint8_hex(aStr, outColor.a))
             return false;
 
-        mla_string_destroy(aStr);
     } else {
         outColor.a = 255;
     }

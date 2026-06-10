@@ -145,7 +145,7 @@ void UrlToStringBasicTest() {
     mla_string_t result = mla_url_to_string(url);
     assert_struct_equal(mla_string_t, result, mla_string("https://example.com:443/path"),
                 "URL string should match expected format");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringWithQueryTest() {
@@ -168,7 +168,7 @@ void UrlToStringWithQueryTest() {
     mla_string_t result = mla_url_to_string(url);
     assert_struct_equal(mla_string_t, result, mla_string("http://example.com:80/search?q=test&page=1"),
                 "URL string with query should match expected format");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringWithFragmentTest() {
@@ -183,7 +183,7 @@ void UrlToStringWithFragmentTest() {
     mla_string_t result = mla_url_to_string(url);
     assert_struct_equal(mla_string_t, result, mla_string("https://example.com:443/page#section"),
                 "URL string with fragment should match expected format");
-    mla_string_destroy(result);
+
 }
 
 void RoundTripParseAndToStringTest() {
@@ -194,7 +194,7 @@ void RoundTripParseAndToStringTest() {
     mla_string_t reconstructed = mla_url_to_string(url);
     assert_struct_equal(mla_string_t, original, reconstructed,
                 "Reconstructed URL should match original");
-    mla_string_destroy(reconstructed);
+
 }
 
 void UrlToStringPathAndQueryBasicTest() {
@@ -207,7 +207,7 @@ void UrlToStringPathAndQueryBasicTest() {
     mla_string_t result = mla_url_to_string_pathAndQuery(url);
     assert_struct_equal(mla_string_t, result, mla_string("/path"),
                 "Path only should return '/path'");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringPathAndQueryWithQueryTest() {
@@ -230,7 +230,7 @@ void UrlToStringPathAndQueryWithQueryTest() {
     mla_string_t result = mla_url_to_string_pathAndQuery(url);
     assert_struct_equal(mla_string_t, result, mla_string("/search?q=test&page=1"),
                 "Path with query should match expected format");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringPathAndQueryNoPathTest() {
@@ -242,7 +242,7 @@ void UrlToStringPathAndQueryNoPathTest() {
     mla_string_t result = mla_url_to_string_pathAndQuery(url);
     assert_struct_equal(mla_string_t, result, mla_string("/"),
                 "Empty path should default to '/'");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringPathAndQueryIgnoreFragmentTest() {
@@ -256,7 +256,7 @@ void UrlToStringPathAndQueryIgnoreFragmentTest() {
     mla_string_t result = mla_url_to_string_pathAndQuery(url);
     assert_struct_equal(mla_string_t, result, mla_string("/page"),
                 "Fragment should be ignored");
-    mla_string_destroy(result);
+
 }
 
 void UrlToStringPathAndQueryWithQueryNoPathTest() {
@@ -273,7 +273,7 @@ void UrlToStringPathAndQueryWithQueryNoPathTest() {
     mla_string_t result = mla_url_to_string_pathAndQuery(url);
     assert_struct_equal(mla_string_t, result, mla_string("/?search=value"),
                 "Query without path should include default '/'");
-    mla_string_destroy(result);
+
 }
 
 

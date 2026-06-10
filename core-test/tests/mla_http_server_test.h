@@ -7,6 +7,7 @@
 
 #include "../../lib/base-lib/core/system/mla_stream.h"
 #include "../../lib/base-lib/core/http/mla_http_client.h"
+#include "../../lib/base-lib/core/http/mla_http_multipart.h"
 #include "../../lib/base-lib/core/http/mla_websocket_client.h"
 #include "../../lib/base-lib/core/http/mla_http_server.h"
 #include "../../lib/base-lib/core/system/mla_string_concat.h"
@@ -43,6 +44,87 @@ inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_s
     response.statusMessage = mla_string_const("OK");
     const mla_char_t *body = "test";
     response.content = mla_stream_input_from_buffer((mla_byte_t *) body, sizeof(mla_char_t) * 4);
+
+    return true;
+}
+
+mla_user_data_id_init(mla_http_server_multipart_roundtrip_context_user_data_id)
+
+struct mla_http_server_multipart_roundtrip_context_t {
+    mla_size_t part_count;
+    mla_string_t field_name;
+    mla_string_t file_name;
+    mla_string_t content_type;
+    mla_string_t content;
+};
+
+inline mla_bool_t mla_http_server_multipart_roundtrip_part_handler(const mla_user_data_t& userdata,
+                                                                   const mla_http_multipart_part_t& part) {
+    auto* context =
+        mla_user_data_get_pointer_data<mla_http_server_multipart_roundtrip_context_t>(
+            userdata,
+            mla_http_server_multipart_roundtrip_context_user_data_id);
+
+    if (context == nullptr) {
+        return false;
+    }
+
+    context->part_count++;
+    context->field_name = part.field_name;
+    context->file_name = part.file_name;
+    context->content_type = part.content_type;
+
+    mla_memory_stream_t part_content_stream = mla_memory_stream(64);
+    mla_stream_input_t part_content = part.content;
+
+    if (!mla_stream_copy(part_content, part_content_stream.output)) {
+        return false;
+    }
+
+    if (!mla_memory_stream_set_position(part_content_stream, 0)) {
+        return false;
+    }
+
+    context->content = mla_string_from_stream(part_content_stream.input,
+                                              mla_memory_stream_get_size(part_content_stream));
+    return true;
+}
+
+inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_server_t& http_server,
+                                                                      const mla_http_request_t &request,
+                                                                      mla_http_response_t &response) {
+    (void) http_server;
+
+    response.statusCode = mla_http_status_bad_request;
+    response.statusMessage = mla_string_const("Bad Request");
+
+    mla_http_server_multipart_roundtrip_context_t context = {
+        0,
+        mla_string_empty(),
+        mla_string_empty(),
+        mla_string_empty(),
+        mla_string_empty()
+    };
+
+    mla_user_data_t userdata = mla_user_data_empty();
+    mla_pointer_t context_ptr = mla_platform_pointer_to_managed_pointer(&context);
+    mla_user_data_set_pointer(userdata, mla_http_server_multipart_roundtrip_context_user_data_id, context_ptr);
+
+    if (!mla_http_server_parse_multipart(request, userdata, mla_http_server_multipart_roundtrip_part_handler)) {
+        return true;
+    }
+
+    if (context.part_count != 1) {
+        return true;
+    }
+
+    response.statusCode = mla_http_status_ok;
+    response.statusMessage = mla_string_const("OK");
+    mla_http_headers_add(response.headers, mla_string_const("X-Field-Name"), context.field_name);
+    mla_http_headers_add(response.headers, mla_string_const("X-File-Name"), context.file_name);
+    mla_http_headers_add(response.headers, mla_string_const("X-Part-Content-Type"), context.content_type);
+    mla_http_headers_add(response.headers, mla_string_const("X-Part-Count"), mla_string_from_size(context.part_count));
+    response.content = mla_stream_input_from_string(context.content);
 
     return true;
 }
@@ -126,6 +208,66 @@ inline void HttpServerMultiHandlerTest() {
                      "Should receive 404 Not Found from multi handler server");
     } else {
         assert_fail("Should start multi handler HTTP server");
+    }
+
+    server = mla_http_server_invalid();
+}
+
+inline void HttpMultipartRoundTripTest() {
+
+    mla_http_server_t server = mla_http_server(test_server_host);
+    mla_http_server_handler_item_t handlerItem = mla_http_server_handler_starts_with(
+        mla_http_method_post, mla_string_const("/multipart/upload"), mla_http_server_request_multipart_roundtrip_handler);
+    assert_true(mla_http_server_register_handler(server, handlerItem), "Should register multipart roundtrip handler");
+
+    mla_http_server_set_timeout(server, 2000);
+
+    if (mla_http_server_start(server, 1)) {
+        mla_http_client_t client = mla_http_client();
+        mla_http_client_set_timeout(client, 2000);
+
+        mla_string_t file_data = mla_string_const("dummy file data");
+        mla_string_t upload_url = mla_string_concat(test_server_url, mla_string_const("/multipart/upload"));
+
+        mla_http_client_response_t response = mla_http_client_upload_file(
+            client,
+            upload_url,
+            mla_string_const("file"),
+            mla_string_const("test.txt"),
+            mla_string_const("text/plain"),
+            mla_stream_input_from_string(file_data)
+        );
+
+        assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
+                     "Multipart upload request should succeed");
+        assert_equal(response.response.statusCode, mla_http_status_ok,
+                     "Multipart upload roundtrip should return 200 OK");
+        assert_struct_equal(mla_string_t,
+                            mla_http_headers_get_value(response.response.headers, mla_string_const("X-Field-Name")),
+                            mla_string_const("file"),
+                            "Server should parse multipart field name");
+        assert_struct_equal(mla_string_t,
+                            mla_http_headers_get_value(response.response.headers, mla_string_const("X-File-Name")),
+                            mla_string_const("test.txt"),
+                            "Server should parse multipart file name");
+        assert_struct_equal(mla_string_t,
+                            mla_http_headers_get_value(response.response.headers, mla_string_const("X-Part-Content-Type")),
+                            mla_string_const("text/plain"),
+                            "Server should parse multipart content type");
+        assert_struct_equal(mla_string_t,
+                            mla_http_headers_get_value(response.response.headers, mla_string_const("X-Part-Count")),
+                            mla_string_const("1"),
+                            "Server should parse exactly one multipart part");
+
+        mla_stream_input_t response_content = response.response.content;
+        mla_string_t response_body = mla_string_from_stream(response_content, mla_string_length(file_data));
+        assert_struct_equal(mla_string_t, response_body, file_data,
+                            "Multipart upload roundtrip should echo the uploaded file content");
+
+        mla_http_client_response_destroy(response);
+        mla_http_server_stop(server);
+    } else {
+        assert_fail("Should start multipart roundtrip HTTP server");
     }
 
     server = mla_http_server_invalid();
@@ -293,6 +435,9 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("HttpServerMultiHandler", test_category, HttpServerMultiHandlerTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("HttpMultipartRoundTrip", test_category, HttpMultipartRoundTripTest);
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("WebSocketEchoServer", test_category, WebSocketEchoServerTest);

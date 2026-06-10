@@ -119,30 +119,25 @@ void FileSystemChangeFileExtensionTest() {
     mla_string_t newPath = mla_fs_change_file_extension(mla_string("/test/dummy.txt"), mla_string("md"));
     assert_true(mla_string_equals(newPath, mla_string("/test/dummy.md")),
                 "Changing 'test/dummy.txt' to 'md' should give '/test/dummy.md'");
-    mla_string_destroy(newPath);
 
     newPath = mla_fs_change_file_extension(mla_string("/test/file.doc.bak"), mla_string("tmp"));
     assert_true(mla_string_equals(newPath, mla_string("/test/file.doc.tmp")),
                 "Changing 'test/file.doc.bak' to 'tmp' should give '/test/file.doc.tmp'");
-    mla_string_destroy(newPath);
 
     // Remove extension
     newPath = mla_fs_change_file_extension(mla_string("/test/dummy.txt"), mla_string_empty());
     assert_true(mla_string_equals(newPath, mla_string("/test/dummy")),
                 "Removing extension from 'test/dummy.txt' should give 'test/dummy'");
-    mla_string_destroy(newPath);
 
     // File without extension
     newPath = mla_fs_change_file_extension(mla_string("/test/noext"), mla_string("bin"));
     assert_true(mla_string_equals(newPath, mla_string("/test/noext.bin")),
                 "Adding extension to 'test/noext' should give 'test/noext.bin'");
-    mla_string_destroy(newPath);
 
     // No parent directory
     newPath = mla_fs_change_file_extension(mla_string("/file.txt"), mla_string("log"));
     assert_true(mla_string_equals(newPath, mla_string("/file.log")),
                 "Changing 'file.txt' to 'log' should give 'file.log'");
-    mla_string_destroy(newPath);
 }
 
 void FileSystemCombinePathsTest() {
@@ -150,39 +145,33 @@ void FileSystemCombinePathsTest() {
     mla_string_t combined = mla_fs_combine_paths(mla_string("test"), mla_string("dummy.txt"));
     assert_true(mla_string_equals(combined, mla_string("/test/dummy.txt")),
                 "Combining 'test' and 'dummy.txt' should give '/test/dummy.txt'");
-    mla_string_destroy(combined);
 
     combined = mla_fs_combine_paths(mla_string("test/"), mla_string("dummy.txt"));
     assert_true(mla_string_equals(combined, mla_string("/test/dummy.txt")),
                 "Combining 'test/' and 'dummy.txt' should give '/test/dummy.txt'");
-    mla_string_destroy(combined);
 
     combined = mla_fs_combine_paths(mla_string("test"), mla_string("/dummy.txt"));
     assert_true(mla_string_equals(combined, mla_string("/test/dummy.txt")),
                 "Combining 'test' and '/dummy.txt' should give '/test/dummy.txt'");
-    mla_string_destroy(combined);
 
     combined = mla_fs_combine_paths(mla_string("test/"), mla_string("/dummy.txt"));
     assert_true(mla_string_equals(combined, mla_string("/test/dummy.txt")),
                 "Combining 'test/' and '/dummy.txt' should give '/test/dummy.txt'");
-    mla_string_destroy(combined);
 
     // Edge cases
     combined = mla_fs_combine_paths(mla_string(""), mla_string("dummy.txt"));
     assert_true(mla_string_equals(combined, mla_string("/dummy.txt")),
                 "Combining empty and 'dummy.txt' should give '/dummy.txt'");
-    mla_string_destroy(combined);
 
     combined = mla_fs_combine_paths(mla_string("test"), mla_string(""));
     assert_true(mla_string_equals(combined, mla_string("/test")),
                 "Combining 'test' and empty should give 'test'");
-    mla_string_destroy(combined);
 
     // Multiple levels
     combined = mla_fs_combine_paths(mla_string("root/nested"), mla_string("file.txt"));
     assert_true(mla_string_equals(combined, mla_string("/root/nested/file.txt")),
                 "Combining 'root/nested' and 'file.txt' should give 'root/nested/file.txt'");
-    mla_string_destroy(combined);
+
 }
 
 void FileSystemFileExistsTest() {

@@ -145,7 +145,7 @@ inline void NetworkHostResolveTest() {
     assert_false(mock_resolve_host_called, "Mock resolve_host should NOT be called for empty hostname");
     assert_false(success, "Resolve should fail for empty hostname");
 
-    mla_string_destroy(mock_resolved_host.address.address);
+    mock_resolved_host.address.address = mla_string_empty();
     mock_resolved_host = mla_network_host_invalid();
     g_network_low_level_operations = original;
 }

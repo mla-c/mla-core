@@ -143,63 +143,54 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_bool_t p_Value) {
     mla_string_t converted = mla_string_from_bool(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_int8_t p_Value) {
     mla_string_t converted = mla_string_from_int8(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_uint8_t p_Value) {
     mla_string_t converted = mla_string_from_uint8(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_int16_t p_Value) {
     mla_string_t converted = mla_string_from_int16(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_uint16_t p_Value) {
     mla_string_t converted = mla_string_from_uint16(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_int32_t p_Value) {
     mla_string_t converted = mla_string_from_int32(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_uint32_t p_Value) {
     mla_string_t converted = mla_string_from_uint32(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_int64_t p_Value) {
     mla_string_t converted = mla_string_from_int64(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_uint64_t p_Value) {
     mla_string_t converted = mla_string_from_uint64(p_Value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
@@ -210,7 +201,6 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_float_
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_float_t p_Value, mla_size_t p_DecimalPlaces) {
     mla_string_t converted = mla_string_from_float(p_Value, p_DecimalPlaces);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
@@ -221,7 +211,6 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_double
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_double_t p_Value, mla_size_t p_DecimalPlaces) {
     mla_string_t converted = mla_string_from_double(p_Value, p_DecimalPlaces);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }
 
@@ -233,6 +222,5 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_platfo
     mla_uint64_t value = reinterpret_cast<mla_uint64_t>(p_Value);
     mla_string_t converted = mla_string_from_uint64_hex(value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
-    mla_string_destroy(converted);
     return result;
 }

@@ -277,8 +277,6 @@ void ConcatTest() {
     assert_equal(mla_string_length(mla_result), (mla_uint32_t)13, "MlaString concatenated length should be 13");
     assert_true(mla_string_equals(mla_result, mla_string("Hello, World!")),
                 "MlaString concatenated should equal 'Hello, World!'");
-
-    mla_string_destroy(mla_result);
 }
 
 static mla_bool_t AutoMemoryManagementTest_Free_Called;
@@ -575,223 +573,185 @@ void StringFromInt8Test() {
     // Test positive value
     mla_string_t str = mla_string_from_int8(42);
     assert_true(mla_string_equals(str, mla_string("42")), "int8(42) should equal '42'");
-    mla_string_destroy(str);
 
     // Test negative value
     str = mla_string_from_int8(-42);
     assert_true(mla_string_equals(str, mla_string("-42")), "int8(-42) should equal '-42'");
-    mla_string_destroy(str);
 
     // Test min value
     str = mla_string_from_int8(-128);
     assert_true(mla_string_equals(str, mla_string("-128")), "int8 min should equal '-128'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_int8(127);
     assert_true(mla_string_equals(str, mla_string("127")), "int8 max should equal '127'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_int8(0);
     assert_true(mla_string_equals(str, mla_string("0")), "int8(0) should equal '0'");
-    mla_string_destroy(str);
 }
 
 void StringFromUInt8Test() {
     // Test typical value
     mla_string_t str = mla_string_from_uint8(42);
     assert_true(mla_string_equals(str, mla_string("42")), "uint8(42) should equal '42'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_uint8(255);
     assert_true(mla_string_equals(str, mla_string("255")), "uint8 max should equal '255'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_uint8(0);
     assert_true(mla_string_equals(str, mla_string("0")), "uint8(0) should equal '0'");
-    mla_string_destroy(str);
 }
 
 void StringFromInt16Test() {
     // Test positive value
     mla_string_t str = mla_string_from_int16(1234);
     assert_true(mla_string_equals(str, mla_string("1234")), "int16(1234) should equal '1234'");
-    mla_string_destroy(str);
 
     // Test negative value
     str = mla_string_from_int16(-1234);
     assert_true(mla_string_equals(str, mla_string("-1234")), "int16(-1234) should equal '-1234'");
-    mla_string_destroy(str);
 
     // Test min value
     str = mla_string_from_int16(-32768);
     assert_true(mla_string_equals(str, mla_string("-32768")), "int16 min should equal '-32768'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_int16(32767);
     assert_true(mla_string_equals(str, mla_string("32767")), "int16 max should equal '32767'");
-    mla_string_destroy(str);
 }
 
 void StringFromUInt16Test() {
     // Test typical value
     mla_string_t str = mla_string_from_uint16(1234);
     assert_true(mla_string_equals(str, mla_string("1234")), "uint16(1234) should equal '1234'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_uint16(65535);
     assert_true(mla_string_equals(str, mla_string("65535")), "uint16 max should equal '65535'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_uint16(0);
     assert_true(mla_string_equals(str, mla_string("0")), "uint16(0) should equal '0'");
-    mla_string_destroy(str);
 }
 
 void StringFromInt32Test() {
     // Test positive value
     mla_string_t str = mla_string_from_int32(123456);
     assert_true(mla_string_equals(str, mla_string("123456")), "int32(123456) should equal '123456'");
-    mla_string_destroy(str);
 
     // Test negative value
     str = mla_string_from_int32(-123456);
     assert_true(mla_string_equals(str, mla_string("-123456")), "int32(-123456) should equal '-123456'");
-    mla_string_destroy(str);
 
     // Test min value
     str = mla_string_from_int32(mla_int32_min);
     assert_true(mla_string_equals(str, mla_string("-2147483648")), "int32 min should equal '-2147483648'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_int32(mla_int32_max);
     assert_true(mla_string_equals(str, mla_string("2147483647")), "int32 max should equal '2147483647'");
-    mla_string_destroy(str);
 }
 
 void StringFromUInt32Test() {
     // Test typical value
     mla_string_t str = mla_string_from_uint32(123456);
     assert_true(mla_string_equals(str, mla_string("123456")), "uint32(123456) should equal '123456'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_uint32(mla_uint32_max);
     assert_true(mla_string_equals(str, mla_string("4294967295")), "uint32 max should equal '4294967295'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_uint32(0);
     assert_true(mla_string_equals(str, mla_string("0")), "uint32(0) should equal '0'");
-    mla_string_destroy(str);
+
 }
 
 void StringFromInt64Test() {
     // Test positive value
     mla_string_t str = mla_string_from_int64(123456789012LL);
     assert_true(mla_string_equals(str, mla_string("123456789012")), "int64(123456789012) should equal '123456789012'");
-    mla_string_destroy(str);
 
     // Test negative value
     str = mla_string_from_int64(-123456789012LL);
     assert_true(mla_string_equals(str, mla_string("-123456789012")),
                 "int64(-123456789012) should equal '-123456789012'");
-    mla_string_destroy(str);
 
     // Test min value
     str = mla_string_from_int64(mla_int64_min);
     assert_true(mla_string_equals(str, mla_string("-9223372036854775808")),
                 "int64 min should equal '-9223372036854775808'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_int64(mla_int64_max);
     assert_true(mla_string_equals(str, mla_string("9223372036854775807")),
                 "int64 max should equal '9223372036854775807'");
-    mla_string_destroy(str);
 }
 
 void StringFromUInt64Test() {
     // Test typical value
     mla_string_t str = mla_string_from_uint64(123456789012ULL);
     assert_true(mla_string_equals(str, mla_string("123456789012")), "uint64(123456789012) should equal '123456789012'");
-    mla_string_destroy(str);
 
     // Test max value
     str = mla_string_from_uint64(mla_uint64_max);
     assert_true(mla_string_equals(str, mla_string("18446744073709551615")),
                 "uint64 max should equal '18446744073709551615'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_uint64(0);
     assert_true(mla_string_equals(str, mla_string("0")), "uint64(0) should equal '0'");
-    mla_string_destroy(str);
 }
 
 void StringFromFloatTest() {
     // Test with 2 decimal places (Short result - likely SSO)
     mla_string_t str = mla_string_from_float(3.14f, 2);
     assert_true(mla_string_equals(str, mla_string("3.14")), "float(3.14, 2) should equal '3.14'");
-    mla_string_destroy(str);
 
     // Test negative with 3 decimal places (Short result - likely SSO)
     str = mla_string_from_float(-123.456f, 3);
     assert_true(mla_string_equals(str, mla_string("-123.456")), "float(-123.456, 3) should equal '-123.456'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_float(0.0f, 1);
     assert_true(mla_string_equals(str, mla_string("0.0")), "float(0.0, 1) should equal '0.0'");
-    mla_string_destroy(str);
 
     // Test with 0 decimal places
     str = mla_string_from_float(42.789f, 0);
     assert_true(mla_string_equals(str, mla_string("43")), "float(42.789, 0) should round to '43'");
-    mla_string_destroy(str);
 
     // Test long string (Heap allocation > 14 chars)
     // 333333.34375 is perfectly representable in float (exact binary fraction)
     str = mla_string_from_float(333333.34375f, 10);
     // Expected length is 17 chars: "333333.3437500000"
     assert_true(mla_string_equals(str, mla_string("333333.3437500000")), "float(333333.34375, 10) should equal '333333.3437500000'");
-    mla_string_destroy(str);
 }
 
 void StringFromDoubleTest() {
     // Test with 2 decimal places (Short result - likely SSO)
     mla_string_t str = mla_string_from_double(3.14159265358979, 2);
     assert_true(mla_string_equals(str, mla_string("3.14")), "double(pi, 2) should equal '3.14'");
-    mla_string_destroy(str);
 
     // Test negative with 5 decimal places (Short result - likely SSO)
     str = mla_string_from_double(-123.456789, 5);
     assert_true(mla_string_equals(str, mla_string("-123.45679")), "double(-123.456789, 5) should equal '-123.45679'");
-    mla_string_destroy(str);
 
     // Test zero
     str = mla_string_from_double(0.0, 3);
     assert_true(mla_string_equals(str, mla_string("0.000")), "double(0.0, 3) should equal '0.000'");
-    mla_string_destroy(str);
 
     // Test with 0 decimal places
     str = mla_string_from_double(42.789, 0);
     assert_true(mla_string_equals(str, mla_string("43")), "double(42.789, 0) should round to '43'");
-    mla_string_destroy(str);
 
     // Test long string (Heap allocation > 14 chars)
     // 123456.789012345 is safely representable in double
     str = mla_string_from_double(123456.789012345, 9);
     // Expected length 16 chars: "123456.789012345"
     assert_true(mla_string_equals(str, mla_string("123456.789012345")), "double(large, 9) should equal '123456.789012345'");
-    mla_string_destroy(str);
 }
 
 void StringFromBoolTest() {
@@ -900,7 +860,6 @@ void StringToLowerTest() {
     mla_string_t lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("hello, world!")),
                 "Mixed case should convert to lowercase");
-    mla_string_destroy(lower);
 
     // Test already lowercase string (should not allocate)
     str = mla_string("hello");
@@ -913,7 +872,6 @@ void StringToLowerTest() {
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("hello")),
                 "All uppercase should convert to lowercase");
-    mla_string_destroy(lower);
 
     // Test empty string
     str = mla_string("");
@@ -926,14 +884,12 @@ void StringToLowerTest() {
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("test123!@#")),
                 "Numbers and symbols should remain unchanged");
-    mla_string_destroy(lower);
 
     // Test with UTF-8 characters (Euro sign should remain unchanged)
     str = mla_string("€HELLO");
     lower = mla_string_to_lower(str);
     assert_true(mla_string_equals(lower, mla_string("€hello")),
                 "UTF-8 characters should be handled correctly");
-    mla_string_destroy(lower);
 }
 
 void StringToUpperTest() {
@@ -942,7 +898,6 @@ void StringToUpperTest() {
     mla_string_t upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("HELLO, WORLD!")),
                 "Mixed case should convert to uppercase");
-    mla_string_destroy(upper);
 
     // Test already uppercase string (should not allocate)
     str = mla_string("HELLO");
@@ -955,7 +910,6 @@ void StringToUpperTest() {
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("HELLO")),
                 "All lowercase should convert to uppercase");
-    mla_string_destroy(upper);
 
     // Test empty string
     str = mla_string("");
@@ -968,14 +922,12 @@ void StringToUpperTest() {
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("TEST123!@#")),
                 "Numbers and symbols should remain unchanged");
-    mla_string_destroy(upper);
 
     // Test with UTF-8 characters (Euro sign should remain unchanged)
     str = mla_string("€hello");
     upper = mla_string_to_upper(str);
     assert_true(mla_string_equals(upper, mla_string("€HELLO")),
                 "UTF-8 characters should be handled correctly");
-    mla_string_destroy(upper);
 }
 
 
@@ -985,7 +937,6 @@ void ReplaceTest() {
     mla_string_t result = mla_string_replace(str, mla_string("World"), mla_string("Universe"));
     assert_true(mla_string_equals(result, mla_string("Hello, Universe!")),
                 "Basic replacement should work");
-    mla_string_destroy(result);
 
 
     // Test basic replacement SSO Strings
@@ -994,63 +945,54 @@ void ReplaceTest() {
     assert_true(mla_string_equals(result, mla_string("Heuuo")),
                 "Basic replacement should work");
     assert_equal(mla_string_get_memory_layout(result), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "Result should be SSO string");
-    mla_string_destroy(result);
 
     // Test multiple occurrences
     str = mla_string("foo bar foo baz foo");
     result = mla_string_replace(str, mla_string("foo"), mla_string("qux"));
     assert_true(mla_string_equals(result, mla_string("qux bar qux baz qux")),
                 "Multiple occurrences should be replaced");
-    mla_string_destroy(result);
 
     // Test substring not found
     str = mla_string("Hello, World!");
     result = mla_string_replace(str, mla_string("Mars"), mla_string("Venus"));
     assert_true(mla_string_equals(result, str),
                 "No replacement when substring not found");
-    mla_string_destroy(result);
 
     // Test empty old substring
     str = mla_string("Hello");
     result = mla_string_replace(str, mla_string(""), mla_string("X"));
     assert_true(mla_string_equals(result, str),
                 "Empty old substring should return original");
-    mla_string_destroy(result);
 
     // Test replacement with empty string (deletion)
     str = mla_string("Hello, World!");
     result = mla_string_replace(str, mla_string(", "), mla_string(""));
     assert_true(mla_string_equals(result, mla_string("HelloWorld!")),
                 "Replacing with empty string should delete substring");
-    mla_string_destroy(result);
 
     // Test replacing entire string
     str = mla_string("Test");
     result = mla_string_replace(str, mla_string("Test"), mla_string("Success"));
     assert_true(mla_string_equals(result, mla_string("Success")),
                 "Replacing entire string should work");
-    mla_string_destroy(result);
 
     // Test replacement at start
     str = mla_string("Start Middle End");
     result = mla_string_replace(str, mla_string("Start"), mla_string("Begin"));
     assert_true(mla_string_equals(result, mla_string("Begin Middle End")),
                 "Replacement at start should work");
-    mla_string_destroy(result);
 
     // Test replacement at end
     str = mla_string("Start Middle End");
     result = mla_string_replace(str, mla_string("End"), mla_string("Finish"));
     assert_true(mla_string_equals(result, mla_string("Start Middle Finish")),
                 "Replacement at end should work");
-    mla_string_destroy(result);
 
     // Test replacement with longer string
     str = mla_string("Hi");
     result = mla_string_replace(str, mla_string("Hi"), mla_string("Hello World"));
     assert_true(mla_string_equals(result, mla_string("Hello World")),
                 "Replacement with longer string should work");
-    mla_string_destroy(result);
 
     // Test empty string
     str = mla_string("");
@@ -1065,42 +1007,36 @@ void TrimTest() {
     mla_string_t result = mla_string_trim(str);
     assert_true(mla_string_equals(result, mla_string("Hello, World!")),
                 "Trimming whitespace from both ends should work");
-    mla_string_destroy(result);
 
     // Test trimming only from the left
     str = mla_string("  Leading whitespace");
     result = mla_string_trim(str);
     assert_true(mla_string_equals(result, mla_string("Leading whitespace")),
                 "Trimming leading whitespace should work");
-    mla_string_destroy(result);
 
     // Test trimming only from the right
     str = mla_string("Trailing whitespace  ");
     result = mla_string_trim(str);
     assert_true(mla_string_equals(result, mla_string("Trailing whitespace")),
                 "Trimming trailing whitespace should work");
-    mla_string_destroy(result);
 
     // Test with no whitespace to trim
     str = mla_string("NoWhitespace");
     result = mla_string_trim(str);
     assert_true(mla_string_equals(result, str),
                 "String with no whitespace should remain unchanged");
-    mla_string_destroy(result);
 
     // Test with only whitespace
     str = mla_string("   ");
     result = mla_string_trim(str);
     assert_true(mla_string_equals(result, mla_string("")),
                 "String with only whitespace should become empty");
-    mla_string_destroy(result);
 
     // Test empty string
     str = mla_string("");
     result = mla_string_trim(str);
     assert_true(mla_string_equals(result, mla_string("")),
                 "Empty string should remain empty");
-    mla_string_destroy(result);
 }
 
 void SplitTest() {
@@ -1172,33 +1108,25 @@ void RepeatTest() {
     mla_string_t str = mla_string("ab");
     mla_string_t repeated = mla_string_repeat(str, 3);
     assert_true(mla_string_equals(repeated, mla_string("ababab")), "Repeating 'ab' 3 times should equal 'ababab'");
-    mla_string_destroy(repeated);
 
     // Test repeating 0 times
     repeated = mla_string_repeat(str, 0);
     assert_true(mla_string_is_empty(repeated), "Repeating 0 times should result in empty string");
-    mla_string_destroy(repeated);
 
     // Test repeating 1 time (should basically be a copy)
     repeated = mla_string_repeat(str, 1);
     assert_true(mla_string_equals(repeated, str), "Repeating 1 time should equal original string");
-    mla_string_destroy(repeated);
 
-    mla_string_destroy(str);
 
     // Test repeating empty string
     str = mla_string_empty();
     repeated = mla_string_repeat(str, 5);
     assert_true(mla_string_is_empty(repeated), "Repeating empty string should result in empty string");
-    mla_string_destroy(repeated);
-    mla_string_destroy(str);
 
     // Test repeating multi-byte string
     str = mla_string("€");
     repeated = mla_string_repeat(str, 2);
     assert_true(mla_string_equals(repeated, mla_string("€€")), "Repeating '€' 2 times should equal '€€'");
-    mla_string_destroy(repeated);
-    mla_string_destroy(str);
 }
 
 
@@ -1206,19 +1134,17 @@ void StringCopyTest() {
     // Test copy from char* (Short string -> SSO)
     mla_string_t copy1 = mla_string_copy("hello", 5);
     assert_true(mla_string_equals(copy1, mla_string("hello")), "Copy from char* failed");
-    mla_string_destroy(copy1);
 
     // Test copy from char* (Long string -> Heap)
     mla_string_t copy_long = mla_string_copy("this is a very long string that will definitely be on the heap", 62);
     assert_true(mla_string_equals(copy_long, mla_string("this is a very long string that will definitely be on the heap")),
                 "Copy from long char* failed");
-    mla_string_destroy(copy_long);
 
     // Test copy from mla_string_t (Short string -> SSO)
     mla_string_t orig = mla_string("world");
     mla_string_t copy2 = mla_string_copy(orig);
     assert_true(mla_string_equals(copy2, orig), "Copy from mla_string_t failed");
-    mla_string_destroy(copy2);
+
 }
 
 void StringContainsIgnoreCaseTest() {
@@ -1244,43 +1170,38 @@ void StringEndsWithIgnoreCaseTest() {
 void StringFromSizeTest() {
     mla_string_t str = mla_string_from_size(12345);
     assert_true(mla_string_equals(str, mla_string("12345")), "From size failed");
-    mla_string_destroy(str);
+
 }
 
 void StringFromHexTest() {
     mla_string_t str8 = mla_string_from_uint8_hex(0xAB);
     assert_true(mla_string_equals(str8, mla_string("0xAB")), "uint8 hex failed");
-    mla_string_destroy(str8);
 
     mla_string_t str16 = mla_string_from_uint16_hex(0xABCD);
     assert_true(mla_string_equals(str16, mla_string("0xABCD")), "uint16 hex failed");
-    mla_string_destroy(str16);
 
     mla_string_t str32 = mla_string_from_uint32_hex(0x12345678);
     assert_true(mla_string_equals(str32, mla_string("0x12345678")), "uint32 hex failed");
-    mla_string_destroy(str32);
 
     mla_string_t str64 = mla_string_from_uint64_hex(0x1234567890ABCDEFULL);
     assert_true(mla_string_equals(str64, mla_string("0x1234567890ABCDEF")), "uint64 hex failed");
-    mla_string_destroy(str64);
+
 }
 
 void StringFromHexShortTest() {
     mla_string_t str8 = mla_string_from_uint8_hex_short(0xAB);
     assert_true(mla_string_equals(str8, mla_string("AB")), "uint8 hex short failed");
-    mla_string_destroy(str8);
+
 
     mla_string_t str16 = mla_string_from_uint16_hex_short(0xABCD);
     assert_true(mla_string_equals(str16, mla_string("ABCD")), "uint16 hex short failed");
-    mla_string_destroy(str16);
 
     mla_string_t str32 = mla_string_from_uint32_hex_short(0x12345678);
     assert_true(mla_string_equals(str32, mla_string("12345678")), "uint32 hex short failed");
-    mla_string_destroy(str32);
 
     mla_string_t str64 = mla_string_from_uint64_hex_short(0x1234567890ABCDEFULL);
     assert_true(mla_string_equals(str64, mla_string("1234567890ABCDEF")), "uint64 hex short failed");
-    mla_string_destroy(str64);
+
 }
 
 void StringHashTest() {
@@ -1429,9 +1350,6 @@ void StringEqualsMaxLoopCheckAboveThresholdTest() {
     assert_true(mla_string_equals(long_str1, long_str2), "Identical long strings should be equal");
     assert_false(mla_string_equals(long_str1, long_str_differ), "Different long strings should not be equal");
 
-    mla_string_destroy(long_str1);
-    mla_string_destroy(long_str2);
-    mla_string_destroy(long_str_differ);
 }
 
 void StringEqualsSubstringLayoutTest() {
@@ -1444,7 +1362,7 @@ void StringEqualsSubstringLayoutTest() {
                  "Substring should have SUB_STRING layout");
     assert_true(mla_string_equals(substring, target), "Substring and regular string with same content should be equal");
 
-    mla_string_destroy(original);
+
 }
 
 void StringEqualsNullPointerDataTest() {
@@ -1702,7 +1620,7 @@ void StringConcatBenchmark() {
     mla_test_int32_t length = mla_string_length(result);
     (void) length; // Prevent unused variable warning
 
-    mla_string_destroy(result);
+    result = mla_string_empty();
 }
 
 void StringConcatEmbeddedBenchmark() {
@@ -1715,100 +1633,100 @@ void StringConcatEmbeddedBenchmark() {
     mla_test_int32_t length = mla_string_length(result);
     (void) length; // Prevent unused variable warning
 
-    mla_string_destroy(result);
+    result = mla_string_empty();
 }
 
 void StringFromInt8Benchmark() {
     mla_int8_t value = 42;
     mla_string_t str = mla_string_from_int8(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromInt16Benchmark() {
     mla_int16_t value = 1234;
     mla_string_t str = mla_string_from_int16(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromInt32Benchmark() {
     mla_int32_t value = 123456;
     mla_string_t str = mla_string_from_int32(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromInt64Benchmark() {
     mla_int64_t value = 123456789012LL;
     mla_string_t str = mla_string_from_int64(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUInt8Benchmark() {
     mla_uint8_t value = 42;
     mla_string_t str = mla_string_from_uint8(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUInt16Benchmark() {
     mla_uint16_t value = 1234;
     mla_string_t str = mla_string_from_uint16(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUInt32Benchmark() {
     mla_uint32_t value = 123456;
     mla_string_t str = mla_string_from_uint32(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUInt64Benchmark() {
     mla_uint64_t value = 123456789012ULL;
     mla_string_t str = mla_string_from_uint64(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromFloatBenchmark() {
     mla_float_t value = 9995555553.14159f;
     mla_string_t str = mla_string_from_float(value, 5);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromFloatEmbeddedBenchmark() {
     mla_float_t value = 3.14159f;
     mla_string_t str = mla_string_from_float(value, 5);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 
 void StringFromDoubleBenchmark() {
     mla_double_t value = 8888883.14159265358979;
     mla_string_t str = mla_string_from_double(value, 10);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromDoubleEmbeddedBenchmark() {
     mla_double_t value = 3.141592;
     mla_string_t str = mla_string_from_double(value, 6);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromBoolBenchmark() {
     mla_bool_t value = true;
     mla_string_t str = mla_string_from_bool(value);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUtf16BufferBenchmark() {
     mla_utf_16_char_t data[] = {0x20AC, ' ', '1', '0', '0', 0x00};
     mla_string_utf16_buffer_t buffer = {mla_platform_pointer_to_managed_pointer(data), 5};
     mla_string_t str = mla_string_from_utf16_buffer(buffer);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 void StringFromUtf32BufferBenchmark() {
     mla_utf_32_char_t data[] = {0x000020AC, ' ', '1', '0', '0', 0x00000000};
     mla_string_utf32_buffer_t buffer = {mla_platform_pointer_to_managed_pointer(data), 5};
     mla_string_t str = mla_string_from_utf32_buffer(buffer);
-    mla_string_destroy(str);
+    str = mla_string_empty();
 }
 
 

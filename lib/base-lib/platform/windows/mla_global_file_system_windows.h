@@ -173,7 +173,6 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
         return false;
 
     mla_bool_t result = __mla_file_system_native_create_directory_recursive_wide(wide_path);
-    mla_string_destroy(fullPath);
 
     return result;
 }
@@ -244,9 +243,6 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
 
     HANDLE hFind = FindFirstFileW(wide_path, &findData);
 
-    mla_string_destroy(searchPath);
-    mla_string_destroy(fullPath);
-
     if (hFind == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -286,9 +282,6 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
         return false;
 
     HANDLE hFind = FindFirstFileW(wide_path, &findData);
-
-    mla_string_destroy(searchPath);
-    mla_string_destroy(fullPath);
 
     if (hFind == INVALID_HANDLE_VALUE) {
         return false;
@@ -479,7 +472,6 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
             canWrite = true;
             break;
         default:
-            mla_string_destroy(fullPath);
             return false;
     }
 
@@ -494,7 +486,6 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
     );
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        mla_string_destroy(fullPath);
         return false;
     }
 
@@ -536,7 +527,6 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
         };
     } else {
         CloseHandle(hFile);
-        mla_string_destroy(fullPath);
         return false;
     }
 
@@ -594,7 +584,6 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Append "data\" to the module path
     mla_string_t dataPath = mla_string_concat(modulePath, mla_string_const("data\\"));
-    mla_string_destroy(modulePath);
 
     // Create the data directory if it doesn't exist
     mla_string_utf16_buffer_t dataWideBuffer = mla_string_to_utf16_buffer(dataPath);
@@ -609,13 +598,11 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Check if creation failed (and not because it already exists)
     if (!dataCreated && dataError != ERROR_ALREADY_EXISTS) {
-        mla_string_destroy(dataPath);
         return mla_file_system_empty();
     }
 
     // Append the basePath
     mla_string_t fullPath = mla_string_concat(dataPath, basePath);
-    mla_string_destroy(dataPath);
 
     // Create the final directory if it doesn't exist
     mla_string_utf16_buffer_t fullWideBuffer = mla_string_to_utf16_buffer(fullPath);
@@ -630,7 +617,6 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
 
     // Check if creation failed (and not because it already exists)
     if (!fullCreated && fullError != ERROR_ALREADY_EXISTS) {
-        mla_string_destroy(fullPath);
         return mla_file_system_empty();
     }
 

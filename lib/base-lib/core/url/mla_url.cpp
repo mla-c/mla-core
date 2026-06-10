@@ -71,10 +71,9 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         mla_string_t portString = mla_string_substr(urlString, portPos + 1, pathStart - portPos - 1);
         mla_uint16_t portValue = 0;
         if (!mla_parse_uint16(portString, portValue)) {
-            mla_string_destroy(portString);
             return false; // Invalid port
         }
-        mla_string_destroy(portString);
+        portString = mla_string_empty();
         outUrl.port = portValue;
     } else {
         outUrl.host = mla_string_substr(urlString, hostStart, pathStart - hostStart);
@@ -216,7 +215,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
             mla_size_t portStrLength = mla_string_length(portStr);
             mla_memcpy(result.embedded.data + offset, mla_string_data(portStr), portStrLength);
             offset += portStrLength;
-            mla_string_destroy(portStr);
+            portStr = mla_string_empty();
         }
 
         mla_size_t pathLength = mla_string_length(url.path);
@@ -288,7 +287,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
         mla_size_t portStrLength = mla_string_length(portStr);
         mla_memcpy(buffer + offset, mla_string_data(portStr), portStrLength);
         offset += portStrLength;
-        mla_string_destroy(portStr);
+        portStr = mla_string_empty();
     }
 
     mla_size_t pathLength = mla_string_length(url.path);

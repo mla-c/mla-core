@@ -77,15 +77,11 @@ mla_bool_t isEmpty = mla_string_is_empty(empty); // true
 
 ## Destroying Strings
 
-Call `mla_string_destroy` when the string owns heap memory and is no longer needed:
+Strings are getting destroyed when they go out of scope, but you can also assign an empty string to release resources immediately:
 
 ```cpp
-mla_string_t str = mla_string_copy(mla_string_const("heap-allocated"));
-// … use str …
-mla_string_destroy(str);
+str = mla_string_empty();
 ```
-
-Strings created with `mla_string_const` or `mla_string(ptr, len)` (non-owning) do not need to be destroyed but calling `mla_string_destroy` on them is safe.
 
 ## Basic Operations
 
@@ -213,7 +209,7 @@ mla_hash_map_push(map, mla_string_const("key"), 42);
 - **Never** use `std::string`, `char*` arithmetic, `strlen`, `strcmp`, `strcpy`, etc.
 - Always use `mla_string_const("…")` for compile-time string literals.
 - Use `mla_string_equals_const(value, "literal")` for quick comparisons against literals.
-- Call `mla_string_destroy` on strings that own heap memory when they are no longer needed.
+- String well be destroyed automatically when going out of scope
 - Do not access `mla_string_data(str)` beyond `mla_string_length(str)` — the buffer may not be null-terminated.
 - When passing strings to C APIs, convert with `mla_string_to_cString` and destroy the result afterwards.
 

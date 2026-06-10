@@ -126,7 +126,6 @@ Before constructing an expensive log message, check whether any logger will rece
 if (mla_log_is_active(MLA_LOG_LEVEL_DEBUG)) {
     mla_string_t msg = build_expensive_debug_string();
     mla_debug(msg);
-    mla_string_destroy(msg);
 }
 ```
 

@@ -136,20 +136,6 @@ mla_string_t mla_string(const mla_char_t *p_Data) {
     return result;
 }
 
-void mla_string_destroy(mla_string_t &p_String) {
-
-    if (mla_string_is_embedded(p_String)) {
-        return; // Nothing to destroy for embedded strings
-    }
-
-    if (!mla_pointer_is_null(p_String.data_storage)) {
-        p_String.data_storage = mla_pointer_null(); // Clear the data storage pointer
-    }
-
-    p_String.heap.length = 0; // Reset the length
-    p_String.heap.char_offset = 0;
-}
-
 mla_bool_t mla_string_equals(const mla_string_t &p_String1, const mla_string_t &p_String2) {
 
     mla_size_t length1 = mla_string_length(p_String1);

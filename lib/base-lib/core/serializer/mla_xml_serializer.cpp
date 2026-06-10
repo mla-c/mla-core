@@ -268,7 +268,7 @@ mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_
 
         mla_string_t str = mla_string_from_int8(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
+
 
         if (!result)
             return false;
@@ -294,7 +294,7 @@ mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int1
 
         mla_string_t str = mla_string_from_int16(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
+
 
         if (!result)
             return false;
@@ -320,7 +320,7 @@ mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int3
 
         mla_string_t str = mla_string_from_int32(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
+
 
         if (!result)
             return false;
@@ -346,7 +346,6 @@ mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int6
 
         mla_string_t str = mla_string_from_int64(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -372,7 +371,6 @@ mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint
 
         mla_string_t str = mla_string_from_uint8(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -398,7 +396,6 @@ mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uin
 
         mla_string_t str = mla_string_from_uint16(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -424,7 +421,6 @@ mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uin
 
         mla_string_t str = mla_string_from_uint32(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -450,7 +446,6 @@ mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uin
 
         mla_string_t str = mla_string_from_uint64(value);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -476,7 +471,6 @@ mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_floa
 
         mla_string_t str = mla_string_from_float(value, 6);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -502,7 +496,6 @@ mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_dou
 
         mla_string_t str = mla_string_from_double(value, 6);
         mla_bool_t result = __mla_xml_write_str(inst.output, str);
-        mla_string_destroy(str);
 
         if (!result)
             return false;
@@ -559,7 +552,6 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
         if (!__mla_xml_write_str(inst.output, mla_string_const("\"")))
             return false;
 
-        mla_string_destroy(base64);
         return true;
     } else {
         if (!__mla_xml_close_tag_if_open(inst))
@@ -577,7 +569,6 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
         if (!__mla_xml_write_str(inst.output, mla_string_const("</value>")))
             return false;
 
-        mla_string_destroy(base64);
         return true;
     }
 }
@@ -798,7 +789,6 @@ static void __mla_xml_parse_val(mla_deserializer_t &inst, const mla_string_t &va
             mla_string_t base64Part = mla_string_substr(val_str, mla_string_length(byte_prefix));
             inst.current_token.type = MLA_DESERIALIZER_VALUE_BYTES;
             inst.current_token.complex.bytes_value = mla_bytes_from_base64(base64Part);
-            mla_string_destroy(base64Part);
         } else {
             inst.current_token.type = MLA_DESERIALIZER_VALUE_STRING;
             inst.current_token.complex.string_value = val_str;
