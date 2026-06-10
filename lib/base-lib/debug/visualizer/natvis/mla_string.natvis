@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Natvis visualizer for mla_string_t and related MLA string types.
+  mla_pointer_t is visualized separately in mla_data_types.natvis.
+
+  Current pointer model used here:
+    memoryManager == nullptr                  → payload.asPointer already points at user data
+    memoryManager == &g_default_pointer_memory_manager
+                                             → payload.asPointer points at the managed allocation header
+                                               user data starts after the header
+    any other manager                         → shown as managed/raw fallback
+
+  Current string layout model (mla_string_t):
+    embedded.memoryLayout / heap.memoryLayout selects embedded vs heap storage.
+    Heap strings always use data_storage + heap.length + heap.char_offset.
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_string_t
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_string_t">
+
+    <!-- ── Embedded (SSO) ────────────────────────────────────────────── -->
+    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10 &amp;&amp; embedded.length == 0">[SSO] (empty)</DisplayString>
+    <DisplayString Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10">[SSO] {embedded.data,[embedded.length]s8}</DisplayString>
+
+    <!-- ── Heap empty ────────────────────────────────────────────────── -->
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length == 0">[{(mla_string_memory_layout_t)heap.memoryLayout}] (empty)</DisplayString>
+
+    <!-- ── Heap, direct/platform pointer (memoryManager == nullptr) ─── -->
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x01 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == 0">[C_STR:ext] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x02 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == 0">[BUF:ext] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x03 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == 0">[SUB:ext @ {heap.char_offset,d}] {(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</DisplayString>
+
+    <!-- ── Heap, default pointer manager ─────────────────────────────── -->
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x01 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">[C_STR:owned] {(char*)((char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))) + heap.char_offset,[heap.length]s8}</DisplayString>
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x02 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">[BUF:owned] {(char*)((char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))) + heap.char_offset,[heap.length]s8}</DisplayString>
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x03 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">[SUB:owned @ {heap.char_offset,d}] {(char*)((char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))) + heap.char_offset,[heap.length]s8}</DisplayString>
+
+    <!-- ── Heap, unsupported manager fallback ────────────────────────── -->
+    <DisplayString Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager != 0 &amp;&amp; data_storage.memoryManager != &amp;g_default_pointer_memory_manager">[{(mla_string_memory_layout_t)heap.memoryLayout}] len={heap.length,d} off={heap.char_offset,d} [custom manager]</DisplayString>
+
+    <!-- ── Fallback ──────────────────────────────────────────────────── -->
+    <DisplayString>[invalid mla_string_t]</DisplayString>
+
+    <Expand>
+      <Item Name="[layout]" Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10">(mla_string_memory_layout_t)embedded.memoryLayout</Item>
+      <Item Name="[layout]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20">(mla_string_memory_layout_t)heap.memoryLayout</Item>
+
+      <!-- Embedded -->
+      <Item Name="[length]" Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10">(unsigned int)embedded.length,d</Item>
+      <Item Name="[data]" Condition="(embedded.memoryLayout &amp; 0xF0) == 0x10 &amp;&amp; embedded.length &gt; 0">{embedded.data,[embedded.length]s8}</Item>
+
+      <!-- Heap common fields -->
+      <Item Name="[length]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20">heap.length,d</Item>
+      <Item Name="[char_offset]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20">heap.char_offset,d</Item>
+      <Item Name="[raw storage ptr]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20">data_storage.payload.asPointer</Item>
+      <Item Name="[is substring]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; (heap.memoryLayout &amp; 0x0F) == 0x03">true</Item>
+
+      <!-- Heap manager tags -->
+      <Item Name="[manager]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.memoryManager == 0">"platform / external"</Item>
+      <Item Name="[manager]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">"default"</Item>
+      <Item Name="[manager]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.memoryManager != 0 &amp;&amp; data_storage.memoryManager != &amp;g_default_pointer_memory_manager">"custom / unsupported"</Item>
+
+      <!-- Heap data: external -->
+      <Item Name="[data]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == 0">{(char*)data_storage.payload.asPointer + heap.char_offset,[heap.length]s8}</Item>
+
+      <!-- Heap data: default manager -->
+      <Item Name="[data]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; heap.length &gt; 0 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">{(char*)((char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))) + heap.char_offset,[heap.length]s8}</Item>
+      <Item Name="[base data ptr]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">(char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))</Item>
+      <Item Name="[resolved data ptr]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">(char*)data_storage.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1)) + heap.char_offset</Item>
+      <Item Name="[ref count]" Condition="(heap.memoryLayout &amp; 0xF0) == 0x20 &amp;&amp; data_storage.payload.asPointer != 0 &amp;&amp; data_storage.memoryManager == &amp;g_default_pointer_memory_manager">*(long*)((char*)data_storage.payload.asPointer + sizeof(mla_task_id_t)) + ((mla_atomic_int32_t*)((char*)data_storage.payload.asPointer + sizeof(mla_task_id_t) + sizeof(long)))->value,d</Item>
+
+      <!-- Heap diagnostics for unknown managers -->
+      <ExpandedItem Condition="(heap.memoryLayout &amp; 0xF0) == 0x20">data_storage</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_c_string_t  – wrapper around a heap char*
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_c_string_t">
+    <DisplayString Condition="c_heap_str.payload.asPointer == 0">null</DisplayString>
+    <DisplayString Condition="c_heap_str.payload.asPointer != 0 &amp;&amp; c_heap_str.memoryManager == 0">{(char*)c_heap_str.payload.asPointer,s8}</DisplayString>
+    <DisplayString Condition="c_heap_str.payload.asPointer != 0 &amp;&amp; c_heap_str.memoryManager == &amp;g_default_pointer_memory_manager">{(char*)((char*)c_heap_str.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))),s8}</DisplayString>
+    <DisplayString>[managed c-string]</DisplayString>
+    <Expand>
+      <ExpandedItem>c_heap_str</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_string_utf16_buffer_t
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_string_utf16_buffer_t">
+    <DisplayString Condition="data.payload.asPointer == 0 || charCount == 0">(empty)</DisplayString>
+    <DisplayString Condition="data.payload.asPointer != 0 &amp;&amp; data.memoryManager == 0">{(wchar_t*)data.payload.asPointer,[charCount]su}</DisplayString>
+    <DisplayString Condition="data.payload.asPointer != 0 &amp;&amp; data.memoryManager == &amp;g_default_pointer_memory_manager">{(wchar_t*)((char*)data.payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))),[charCount]su}</DisplayString>
+    <DisplayString>[managed utf16 buffer] chars={charCount,d}</DisplayString>
+    <Expand>
+      <Item Name="[charCount]">charCount,d</Item>
+      <ExpandedItem>data</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       mla_multi_byte_char_t  – UTF-8 character (up to 4 bytes, null-terminated)
+  ════════════════════════════════════════════════════════════════════════ -->
+  <Type Name="mla_multi_byte_char_t">
+    <DisplayString>{bytes,s8}</DisplayString>
+    <Expand>
+      <Item Name="[bytes]">bytes,s8</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>
+

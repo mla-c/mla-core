@@ -48,48 +48,6 @@ inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_s
     return true;
 }
 
-mla_user_data_id_init(mla_http_server_multipart_roundtrip_context_user_data_id)
-
-struct mla_http_server_multipart_roundtrip_context_t {
-    mla_size_t part_count;
-    mla_string_t field_name;
-    mla_string_t file_name;
-    mla_string_t content_type;
-    mla_string_t content;
-};
-
-inline mla_bool_t mla_http_server_multipart_roundtrip_part_handler(const mla_user_data_t& userdata,
-                                                                   const mla_http_multipart_part_t& part) {
-    auto* context =
-        mla_user_data_get_pointer_data<mla_http_server_multipart_roundtrip_context_t>(
-            userdata,
-            mla_http_server_multipart_roundtrip_context_user_data_id);
-
-    if (context == nullptr) {
-        return false;
-    }
-
-    context->part_count++;
-    context->field_name = part.field_name;
-    context->file_name = part.file_name;
-    context->content_type = part.content_type;
-
-    mla_memory_stream_t part_content_stream = mla_memory_stream(64);
-    mla_stream_input_t part_content = part.content;
-
-    if (!mla_stream_copy(part_content, part_content_stream.output)) {
-        return false;
-    }
-
-    if (!mla_memory_stream_set_position(part_content_stream, 0)) {
-        return false;
-    }
-
-    context->content = mla_string_from_stream(part_content_stream.input,
-                                              mla_memory_stream_get_size(part_content_stream));
-    return true;
-}
-
 inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_server_t& http_server,
                                                                       const mla_http_request_t &request,
                                                                       mla_http_response_t &response) {
@@ -98,33 +56,50 @@ inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_s
     response.statusCode = mla_http_status_bad_request;
     response.statusMessage = mla_string_const("Bad Request");
 
-    mla_http_server_multipart_roundtrip_context_t context = {
-        0,
-        mla_string_empty(),
-        mla_string_empty(),
-        mla_string_empty(),
-        mla_string_empty()
-    };
+    mla_http_server_multipart_parse_context_t parse_context = mla_http_server_multipart_parse_context_empty();
 
-    mla_user_data_t userdata = mla_user_data_empty();
-    mla_pointer_t context_ptr = mla_platform_pointer_to_managed_pointer(&context);
-    mla_user_data_set_pointer(userdata, mla_http_server_multipart_roundtrip_context_user_data_id, context_ptr);
-
-    if (!mla_http_server_parse_multipart(request, userdata, mla_http_server_multipart_roundtrip_part_handler)) {
+    // Create the multipart parsing context
+    if (!mla_http_server_parse_multipart_create_context(request, parse_context)) {
         return true;
     }
 
-    if (context.part_count != 1) {
+    mla_http_multipart_part_t extracted_part = mla_http_multipart_part_empty();
+
+    mla_int32_t part_index = 0;
+
+    mla_memory_stream_t content = mla_memory_stream_empty();
+
+    // Iterate through the multipart items and extract the content of the first part
+    while (mla_http_server_parse_multipart_next_item(parse_context, extracted_part)) {
+
+        content = mla_memory_stream(64);
+        mla_stream_input_t part_content = extracted_part.content;
+
+        if (!mla_stream_copy(part_content, content.output)) {
+            return false;
+        }
+
+        if (!mla_memory_stream_set_position(content, 0)) {
+            return false;
+        }
+
+        part_index++;
+
+        // Finish processing the current multipart item
+        mla_http_server_parse_multipart_finish_item(parse_context);
+    }
+
+    if (part_index != 1) {
         return true;
     }
 
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
-    mla_http_headers_add(response.headers, mla_string_const("X-Field-Name"), context.field_name);
-    mla_http_headers_add(response.headers, mla_string_const("X-File-Name"), context.file_name);
-    mla_http_headers_add(response.headers, mla_string_const("X-Part-Content-Type"), context.content_type);
-    mla_http_headers_add(response.headers, mla_string_const("X-Part-Count"), mla_string_from_size(context.part_count));
-    response.content = mla_stream_input_from_string(context.content);
+    mla_http_headers_add(response.headers, mla_string_const("X-Field-Name"), extracted_part.field_name);
+    mla_http_headers_add(response.headers, mla_string_const("X-File-Name"), extracted_part.file_name);
+    mla_http_headers_add(response.headers, mla_string_const("X-Part-Content-Type"), extracted_part.content_type);
+    mla_http_headers_add(response.headers, mla_string_const("X-Part-Count"), mla_string_from_size(part_index));
+    response.content = content.input;
 
     return true;
 }

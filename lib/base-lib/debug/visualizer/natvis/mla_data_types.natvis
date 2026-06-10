@@ -4,14 +4,14 @@
 
   Covered types:
     mla_dynamic_data_t          – tagged union of all scalar MLA types
-    mla_pointer_t               – reference-counted smart pointer (two managers)
+    mla_pointer_t               – smart pointer / external pointer wrapper
     mla_atomic_int32_t          – atomic 32-bit integer
 
-  Pointer managers:
-    g_noop_pointer_memory_manager    – payload.asPointer IS the user data (no header)
-    g_default_pointer_memory_manager – user data starts after mla_pointer_header_t
-                                       (char*)((mla_pointer_header_t*)payload.asPointer + 1)
-                                       sizeof(mla_pointer_header_t) = 24 B (64-bit) / 16 B (32-bit)
+  Current pointer model used here:
+    memoryManager == nullptr                  → payload.asPointer already points at user data
+    memoryManager == &g_default_pointer_memory_manager
+                                             → payload.asPointer points at the managed allocation header
+    any other manager                         → shown as managed/raw fallback
 -->
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
@@ -20,7 +20,7 @@
        expand shows every union member so the real value is always visible.
   ════════════════════════════════════════════════════════════════════════ -->
   <Type Name="mla_dynamic_data_t">
-    <DisplayString>ptr={payload.asPointer,X} | i64={asInt64,d} | f64={asDouble,g}</DisplayString>
+    <DisplayString>ptr={asPointer,X} | i64={asInt64,d} | f64={asDouble,g}</DisplayString>
     <Expand>
       <Item Name="asBool">asBool</Item>
       <Item Name="asInt8">asInt8,d</Item>
@@ -56,38 +56,44 @@
     <!-- Null -->
     <DisplayString Condition="payload.asPointer == 0">null</DisplayString>
 
-    <!-- Noop manager: payload.asPointer IS the resource -->
-    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_noop_pointer_memory_manager">[ext] @ {payload.asPointer,X}</DisplayString>
+    <!-- Direct/platform pointer -->
+    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager == 0">[ext] @ {payload.asPointer,X}</DisplayString>
 
-    <!-- Default manager: skip mla_pointer_header_t, show refcount -->
-    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager">[owned] rc={((mla_pointer_header_t*)payload.asPointer)->refCount.value,d} data @ {(char*)((mla_pointer_header_t*)payload.asPointer + 1),X}</DisplayString>
+    <!-- Default pointer manager -->
+    <DisplayString Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_default_pointer_memory_manager">[owned] rc={*(long*)((char*)payload.asPointer + sizeof(mla_task_id_t)) + ((mla_atomic_int32_t*)((char*)payload.asPointer + sizeof(mla_task_id_t) + sizeof(long)))->value,d} data @ {(char*)payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1)),X}</DisplayString>
+
+    <!-- Unknown/custom manager -->
+    <DisplayString>[managed] raw @ {payload.asPointer,X}</DisplayString>
 
     <Expand>
       <!-- data pointer -->
       <Item Name="[data ptr]"
-            Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_noop_pointer_memory_manager"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager == 0"
             >payload.asPointer</Item>
       <Item Name="[data ptr]"
-            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
-            >(char*)((mla_pointer_header_t*)payload.asPointer + 1)</Item>
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_default_pointer_memory_manager"
+            >(char*)payload.asPointer + ((sizeof(mla_task_id_t) + sizeof(long) + sizeof(mla_atomic_int32_t) + sizeof(mla_pointer_cleanup_hook_t) + sizeof(mla_dynamic_data_t) + sizeof(void*) - 1) &amp; ~(sizeof(void*) - 1))</Item>
 
-      <!-- ref count (owned only) -->
+      <!-- ref count (where supported) -->
       <Item Name="[ref count]"
-            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
-            >((mla_pointer_header_t*)payload.asPointer)->refCount.value,d</Item>
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager == &amp;g_default_pointer_memory_manager"
+            >*(long*)((char*)payload.asPointer + sizeof(mla_task_id_t)) + ((mla_atomic_int32_t*)((char*)payload.asPointer + sizeof(mla_task_id_t) + sizeof(long)))->value,d</Item>
 
-      <!-- raw allocation base (owned only) -->
+      <!-- raw allocation base -->
       <Item Name="[alloc base]"
-            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != &amp;g_noop_pointer_memory_manager"
+            Condition="payload.asPointer != 0 &amp;&amp; memoryManager != 0"
             >payload.asPointer</Item>
 
       <!-- manager tag -->
       <Item Name="[manager]"
-            Condition="memoryManager == &amp;g_noop_pointer_memory_manager"
-            >"noop (external)"</Item>
+            Condition="memoryManager == 0"
+            >"platform / external"</Item>
       <Item Name="[manager]"
-            Condition="memoryManager != &amp;g_noop_pointer_memory_manager"
+            Condition="memoryManager == &amp;g_default_pointer_memory_manager"
             >"default (owned)"</Item>
+      <Item Name="[manager]"
+            Condition="memoryManager != 0 &amp;&amp; memoryManager != &amp;g_default_pointer_memory_manager"
+            >"custom / unsupported"</Item>
     </Expand>
   </Type>
 
