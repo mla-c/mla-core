@@ -91,7 +91,7 @@ void RegisterMemoryHookTests(mla_test_executor_t &p_TestExecutor) {
 void NoMemoryHookBenchmark() {
 
     mla_platform_pointer_t data = mla_platform_malloc(24);
-    (void)data; // Prevent unused variable warning
+    mla_test_bench_sink(data);
     mla_platform_free(data);
 
 }
@@ -110,7 +110,7 @@ void TeardownMemoryHookBenchmark() {
 void MemoryHookBenchmark() {
 
     mla_platform_pointer_t data = mla_platform_malloc(24);
-    (void)data; // Prevent unused variable warning
+    mla_test_bench_sink(data);
     mla_platform_free(data);
 }
 
@@ -128,7 +128,7 @@ void TwoMemoryHookBenchmark() {
 
 
     mla_platform_pointer_t data = mla_platform_malloc(24);
-    (void)data; // Prevent unused variable warning
+    mla_test_bench_sink(data);
     mla_platform_free(data);
 
 }
@@ -136,7 +136,7 @@ void TwoMemoryHookBenchmark() {
 void NativeMemoryBenchmark() {
 
     mla_byte_t* data = (mla_byte_t*)mla_test_malloc(24);
-    (void)data; // Prevent unused variable warning
+    mla_test_bench_sink(data);
     mla_test_free(data);
 
 }
