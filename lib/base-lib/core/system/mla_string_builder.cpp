@@ -112,6 +112,9 @@ mla_size_t mla_string_builder_length(const mla_string_builder_t& p_Builder) {
 
 void mla_string_builder_reset(mla_string_builder_t& p_Builder) {
     p_Builder.position = 0;
+    // Because the buffer can escape on the to string methode we need to recreate it
+    p_Builder.buffer = mla_pointer_null();
+    p_Builder.bufferSize = 0;
 }
 
 mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder) {

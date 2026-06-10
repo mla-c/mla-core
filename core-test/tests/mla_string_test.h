@@ -109,6 +109,74 @@ void IndexOfEmbeddedLayoutTest() {
                  "MlaString index of 'world' should be -1 (not found)");
 }
 
+void IndexOfWithStartCLayoutTest() {
+    mla_char_t data[31] = "Hello, World! Hello, Universe!";
+    mla_char_t helloData[6] = "Hello";
+
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer(data));
+    mla_string_t hello = mla_string(mla_platform_pointer_to_managed_pointer(helloData));
+
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "MlaString should be C layout");
+    assert_equal(mla_string_get_memory_layout(hello), MLA_STRING_MEMORY_LAYOUT_C_STRING, "Substring should be C layout");
+
+    assert_equal(mla_string_index_of(mla_str, hello, 1), (mla_int32_t)14,
+                 "MlaString index of 'Hello' from index 1 should skip the first occurrence");
+    assert_equal(mla_string_index_of(mla_str, hello, 14), (mla_int32_t)14,
+                 "MlaString index of 'Hello' from the second occurrence should return 14");
+    assert_equal(mla_string_index_of(mla_str, hello, 15), (mla_int32_t)-1,
+                 "MlaString index of 'Hello' after the second occurrence should be -1");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const(""), 5), (mla_int32_t)5,
+                 "Empty substring should match at the provided start index");
+    assert_equal(mla_string_index_of(mla_str, hello, mla_string_length(mla_str)), (mla_int32_t)-1,
+                 "Start index at the string length should return -1");
+}
+
+void IndexOfWithStartBufferLayoutTest() {
+    mla_string_t mla_str = mla_string(mla_platform_pointer_to_managed_pointer("abcabcabc"), 9);
+
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_BUFFER, "MlaString should be buffer layout");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 1), (mla_int32_t)3,
+                 "Buffer layout index of 'abc' from index 1 should return the second occurrence");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 3), (mla_int32_t)3,
+                 "Buffer layout index of 'abc' from the second occurrence should return 3");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 4), (mla_int32_t)6,
+                 "Buffer layout index of 'abc' from index 4 should return the third occurrence");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 7), (mla_int32_t)-1,
+                 "Buffer layout index of 'abc' from index 7 should be -1 because the substring no longer fits");
+}
+
+void IndexOfWithStartEmbeddedLayoutTest() {
+    mla_string_t mla_str = mla_string_const("abcabcabc");
+    assert_true(mla_string_change_memory_layout(mla_str, MLA_STRING_MEMORY_LAYOUT_EMBEDDED),
+                "MlaString should convert to embedded layout");
+
+    assert_equal(mla_string_get_memory_layout(mla_str), MLA_STRING_MEMORY_LAYOUT_EMBEDDED, "MlaString should be embedded layout");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 0), (mla_int32_t)0,
+                 "Embedded layout index of 'abc' from index 0 should return the first occurrence");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 1), (mla_int32_t)3,
+                 "Embedded layout index of 'abc' from index 1 should return the second occurrence");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 6), (mla_int32_t)6,
+                 "Embedded layout index of 'abc' from the last valid start should return 6");
+    assert_equal(mla_string_index_of(mla_str, mla_string_const("abc"), 7), (mla_int32_t)-1,
+                 "Embedded layout index of 'abc' from index 7 should be -1 because the substring no longer fits");
+}
+
+void IndexOfWithStartFastPathTest() {
+
+    mla_string_t bufferStr = mla_string(mla_platform_pointer_to_managed_pointer("01234567890123456789"), 20);
+    assert_equal(mla_string_get_memory_layout(bufferStr), MLA_STRING_MEMORY_LAYOUT_BUFFER,
+                 "MlaString should be buffer layout");
+
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("5"), 6), (mla_int32_t)15,
+                 "Fast path with 1-char substring should respect the start index");
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("56"), 6), (mla_int32_t)15,
+                 "Fast path with 2-char substring should respect the start index");
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("0"), 1), (mla_int32_t)10,
+                 "Fast path should find the next matching character after the start index");
+    assert_equal(mla_string_index_of(bufferStr, mla_string_const("56"), 16), (mla_int32_t)-1,
+                 "Fast path with start index beyond the last valid match should return -1");
+}
+
 void IndexOfFastPathTest() {
 
     mla_string_t bufferStr = mla_string(mla_platform_pointer_to_managed_pointer("01234567890123456789"), 20);
@@ -1424,6 +1492,18 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("IndexOfEmbeddedLayout", test_category, IndexOfEmbeddedLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IndexOfWithStartCLayout", test_category, IndexOfWithStartCLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IndexOfWithStartBufferLayout", test_category, IndexOfWithStartBufferLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IndexOfWithStartEmbeddedLayout", test_category, IndexOfWithStartEmbeddedLayoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("IndexOfWithStartFastPath", test_category, IndexOfWithStartFastPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("IndexOfFastPath", test_category, IndexOfFastPathTest);

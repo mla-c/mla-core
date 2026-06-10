@@ -3,6 +3,7 @@
 #include "../system/mla_string_builder.h"
 #include "mla_http_chunked_stream.h"
 #include "../mla_data_types.h"
+#include "../system/mla_string_concat.h"
 
 mla_user_data_id_init(mla_http_client_multipart_context_user_data_id)
 
@@ -33,37 +34,31 @@ static mla_bool_t mla_http_multipart_content_writer(const mla_http_request_conte
     }
 
     mla_string_builder_t sb = mla_string_builder_create(256);
-    mla_string_builder_append(sb, mla_string_const("--"));
-    mla_string_builder_append(sb, ctx->boundary);
-    mla_string_builder_append(sb, mla_string_const("\r\n"));
+    mla_bool_t ok = mla_string_builder_append(sb, mla_string_const("--"));
+    ok = ok && mla_string_builder_append(sb, ctx->boundary);
+    ok = ok && mla_string_builder_append(sb, mla_string_const("\r\n"));
     
-    mla_string_builder_append(sb, mla_string_const("Content-Disposition: form-data; name=\""));
-    mla_string_builder_append(sb, ctx->field_name);
-    mla_string_builder_append(sb, mla_string_const("\"; filename=\""));
-    mla_string_builder_append(sb, ctx->file_name);
-    mla_string_builder_append(sb, mla_string_const("\"\r\n"));
+    ok = ok && mla_string_builder_append(sb, mla_string_const("Content-Disposition: form-data; name=\""));
+    ok = ok && mla_string_builder_append(sb, ctx->field_name);
+    ok = ok && mla_string_builder_append(sb, mla_string_const("\"; filename=\""));
+    ok = ok && mla_string_builder_append(sb, ctx->file_name);
+    ok = ok && mla_string_builder_append(sb, mla_string_const("\"\r\n"));
 
-    mla_string_builder_append(sb, mla_string_const("Content-Type: "));
-    mla_string_builder_append(sb, ctx->content_type);
-    mla_string_builder_append(sb, mla_string_const("\r\n\r\n"));
+    ok = ok && mla_string_builder_append(sb, mla_string_const("Content-Type: "));
+    ok = ok && mla_string_builder_append(sb, ctx->content_type);
+    ok = ok && mla_string_builder_append(sb, mla_string_const("\r\n\r\n"));
 
     mla_string_t header_str = mla_string_builder_to_string(sb);
     mla_string_builder_reset(sb);
 
-    mla_bool_t ok = mla_stream_output_write_string(out, header_str);
+    ok = ok && mla_stream_output_write_string(out, header_str);
 
     if (ok) {
         ok = mla_stream_copy(ctx->file_content, out);
     }
 
     if (ok) {
-        mla_string_builder_t sb_foot = mla_string_builder_create(64);
-        mla_string_builder_append(sb_foot, mla_string_const("\r\n--"));
-        mla_string_builder_append(sb_foot, ctx->boundary);
-        mla_string_builder_append(sb_foot, mla_string_const("--\r\n"));
-        mla_string_t footer_str = mla_string_builder_to_string(sb_foot);
-        mla_string_builder_reset(sb_foot);
-
+        mla_string_t footer_str = mla_string_concat("\r\n--", ctx->boundary, "--\r\n");
         ok = mla_stream_output_write_string(out, footer_str);
         mla_string_destroy(footer_str);
     }
@@ -89,15 +84,8 @@ mla_http_client_response_t mla_http_client_upload_file(
     mla_http_request_t request = mla_http_post_request(url);
 
     mla_string_t boundary = mla_string_const("----MlaMultipartBoundary123456789");
-
-    mla_string_builder_t sb = mla_string_builder_create(64);
-    mla_string_builder_append(sb, mla_string_const("multipart/form-data; boundary="));
-    mla_string_builder_append(sb, boundary);
-    mla_string_t contentTypeHeader = mla_string_builder_to_string(sb);
-    mla_string_builder_reset(sb);
-
+    mla_string_t contentTypeHeader = mla_string_concat("multipart/form-data; boundary=", boundary);
     mla_http_headers_add(request.headers, mla_string_const("Content-Type"), contentTypeHeader);
-    mla_string_destroy(contentTypeHeader);
 
     mla_size_t file_len = mla_size_max;
     if (file_content.remaining_bytes) {
@@ -107,6 +95,7 @@ mla_http_client_response_t mla_http_client_upload_file(
     mla_bool_t is_chunked = false;
 
     if (file_len != mla_size_max) {
+
         mla_size_t header_len = 2 + mla_string_length(boundary) + 2 + 
                                 38 + mla_string_length(field_name) + 13 + mla_string_length(file_name) + 3 + 
                                 14 + mla_string_length(content_type) + 4;
@@ -115,7 +104,6 @@ mla_http_client_response_t mla_http_client_upload_file(
         
         mla_string_t len_str = mla_string_from_size(total_len);
         mla_http_headers_add(request.headers, mla_string_const("Content-Length"), len_str);
-        mla_string_destroy(len_str);
     } else {
         mla_http_headers_add(request.headers, mla_string_const("Transfer-Encoding"), mla_string_const("chunked"));
         is_chunked = true;
@@ -149,19 +137,35 @@ mla_http_client_response_t mla_http_client_upload_file(
 /// Server Multipart Helper
 ////////////////////////////////////////////////////////////////
 
+mla_user_data_id_init(mla_http_server_multipart_context_user_data_id)
+
 struct mla_multipart_stream_state_t {
+
     mla_stream_input_t base_stream;
-    mla_string_t boundary;
-    mla_bool_t eof;
     mla_string_t target_boundary;
-    mla_byte_t buffer[1024];
+    mla_byte_t buffer[mla_global_config_http_multipart_parser_buffer_size];
     mla_size_t buffer_len;
     mla_size_t buffer_pos;
     mla_bool_t hit_boundary;
     mla_bool_t is_last_part;
+    mla_bool_t eof;
+
+    static mla_multipart_stream_state_t init() {
+        return {
+            mla_stream_noop_input(),
+            mla_string_empty(),
+            {0},
+            0,
+            0,
+            false,
+            false,
+            false
+        };
+    }
+
 };
 
-mla_bool_t __mla_http_multipart_content_refill_buffer(mla_multipart_stream_state_t* state) {
+mla_bool_t __mla_http_server_parse_multipart_refill_buffer(mla_multipart_stream_state_t* state) {
 
     if (state->buffer_pos < state->buffer_len)
         return true;
@@ -170,29 +174,37 @@ mla_bool_t __mla_http_multipart_content_refill_buffer(mla_multipart_stream_state
         return false;
     
     mla_size_t r = state->base_stream.read(state->base_stream, 0, sizeof(state->buffer), state->buffer);
+
     if (r == 0) {
         state->eof = true;
         return false;
     }
+
     state->buffer_len = r;
     state->buffer_pos = 0;
     return true;
 }
 
-mla_size_t __mla_multipart_part_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t __mla_http_server_parse_multipart_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)offset;
 
-    mla_platform_pointer_t ptr = mla_pointer_get_platform_pointer(input.userdata.data);
-    mla_multipart_stream_state_t* state = (mla_multipart_stream_state_t*)ptr;
-    if (state->hit_boundary) return 0;
+    mla_multipart_stream_state_t* state  = mla_user_data_get_pointer_data<mla_multipart_stream_state_t>(input.userdata, mla_http_server_multipart_context_user_data_id);
+
+    if (state == nullptr) {
+        return 0;
+    }
+
+    if (state->hit_boundary)
+        return 0;
     
     mla_string_t target = state->target_boundary;
     
     mla_size_t bytes_read = 0;
     
     while (bytes_read < length) {
-        if (!__mla_http_multipart_content_refill_buffer(state)) {
+
+        if (!__mla_http_server_parse_multipart_refill_buffer(state)) {
             break;
         }
 
@@ -242,9 +254,7 @@ mla_size_t __mla_multipart_part_read(mla_stream_input_t& input, mla_size_t offse
                     }
                 } else {
                     mla_size_t remaining = state->buffer_len - state->buffer_pos;
-                    for (mla_size_t i = 0; i < remaining; i++) {
-                        state->buffer[i] = state->buffer[state->buffer_pos + i];
-                    }
+                    mla_memcpy(state->buffer, state->buffer + state->buffer_pos, remaining);
                     state->buffer_pos = 0;
                     state->buffer_len = remaining;
                     mla_size_t r = state->base_stream.read(state->base_stream, 0, sizeof(state->buffer) - state->buffer_len, state->buffer + state->buffer_len);
@@ -264,10 +274,12 @@ mla_size_t __mla_multipart_part_read(mla_stream_input_t& input, mla_size_t offse
     return bytes_read;
 }
 
-mla_bool_t __mla_http_multipart_content_read_line(mla_multipart_stream_state_t* state, mla_string_builder_t& sb) {
+mla_bool_t __mla_http_server_parse_multipart_read_line(mla_multipart_stream_state_t* state, mla_string_builder_t& sb) {
+
     mla_string_builder_reset(sb);
+
     while (true) {
-        if (!__mla_http_multipart_content_refill_buffer(state)) {
+        if (!__mla_http_server_parse_multipart_refill_buffer(state)) {
             return mla_string_builder_length(sb) > 0;
         }
         
@@ -280,40 +292,35 @@ mla_bool_t __mla_http_multipart_content_read_line(mla_multipart_stream_state_t* 
     }
 }
 
-void __mla_http_multipart_content_parse_content_disposition(const mla_string_t& header, mla_string_t& field_name, mla_string_t& file_name) {
-    mla_size_t i = 0;
-    
+void __mla_http_server_parse_multipart_parse_content_disposition(const mla_string_t& header, mla_string_t& field_name, mla_string_t& file_name) {
+
     mla_string_t name_key = mla_string_const("name=\"");
     mla_string_t file_key = mla_string_const("filename=\"");
-    
-    for (i = 0; i < mla_string_length(header); ++i) {
-        if (i + mla_string_length(name_key) <= mla_string_length(header)) {
-            mla_bool_t match = true;
-            for (mla_size_t j = 0; j < mla_string_length(name_key); ++j) {
-                if (mla_string_data(header)[i+j] != mla_string_data(name_key)[j]) { match = false; break; }
-            }
-            if (match) {
-                mla_size_t start = i + mla_string_length(name_key);
-                mla_size_t end = start;
-                while (end < mla_string_length(header) && mla_string_data(header)[end] != '"') end++;
-                
-                field_name = __mla_http_multipart_content_extract_substring(header, start, end - start);
-            }
-        }
-        if (i + mla_string_length(file_key) <= mla_string_length(header)) {
-            mla_bool_t match = true;
-            for (mla_size_t j = 0; j < mla_string_length(file_key); ++j) {
-                if (mla_string_data(header)[i+j] != mla_string_data(file_key)[j]) { match = false; break; }
-            }
-            if (match) {
-                mla_size_t start = i + mla_string_length(file_key);
-                mla_size_t end = start;
-                while (end < mla_string_length(header) && mla_string_data(header)[end] != '"') end++;
-                
-                file_name = __extract_substring(header, start, end - start);
-            }
-        }
+    mla_string_t end_key = mla_string_const("\"");
+
+    // Extract the name
+    mla_int32_t name_pos = mla_string_index_of(header, name_key);
+
+    if (name_pos > -1) {
+        mla_size_t start = name_pos + mla_string_length(name_key);
+
+        mla_int32_t end_pos = mla_string_index_of(header, end_key, start);
+        mla_size_t end = end_pos > -1 ? end_pos : mla_string_length(header);
+        field_name = mla_string_substr(header, start, end - start);
+
     }
+
+    // Extract the filename
+    mla_int32_t filename_pos = mla_string_index_of(header, file_key);
+
+    if (filename_pos > -1) {
+        mla_size_t start = filename_pos + mla_string_length(file_key);
+
+        mla_int32_t end_pos = mla_string_index_of(header, end_key, start);
+        mla_size_t end = end_pos > -1 ? end_pos : mla_string_length(header);
+        file_name = mla_string_substr(header, start, end - start);
+    }
+
 }
 
 mla_bool_t mla_http_server_parse_multipart(const mla_http_request_t& request, mla_user_data_t userdata, mla_http_multipart_part_handler_t handler) {
@@ -324,115 +331,102 @@ mla_bool_t mla_http_server_parse_multipart(const mla_http_request_t& request, ml
         return false;
     
     mla_string_t boundary_prefix = mla_string_const("boundary=");
-    mla_size_t pos = 0;
-    for (mla_size_t i = 0; i + mla_string_length(boundary_prefix) <= mla_string_length(content_type_header); i++) {
-        mla_bool_t match = true;
-        for (mla_size_t j = 0; j < mla_string_length(boundary_prefix); j++) {
-            if (mla_string_data(content_type_header)[i+j] != mla_string_data(boundary_prefix)[j]) {
-                match = false; break;
-            }
-        }
-        if (match) { pos = i + mla_string_length(boundary_prefix); break; }
+    mla_int32_t index_of = mla_string_index_of(content_type_header, boundary_prefix);
+
+    if (index_of < 0) {
+        return false;
     }
-    if (pos == 0) return false;
-    
-    mla_size_t bound_len = mla_string_length(content_type_header) - pos;
-    mla_string_t boundary = __extract_substring(content_type_header, pos, bound_len);
-    
-    mla_string_builder_t tsb = mla_string_builder_create(64);
-    mla_string_builder_append(tsb, mla_string_const("\r\n--"));
-    mla_string_builder_append(tsb, boundary);
-    mla_string_t target_boundary = mla_string_builder_to_string(tsb);
-    mla_string_builder_reset(tsb);
-    
-    mla_multipart_stream_state_t state = { request.content, boundary, false, target_boundary, {0}, 0, 0, false, false };
-    
-    mla_string_builder_t sb = mla_string_builder_create(256);
-    
-    while (__mla_http_multipart_content_read_line(&state, sb)) {
+
+    mla_size_t pos = index_of + mla_string_length(boundary_prefix);
+    mla_string_t boundary = mla_string_substr(content_type_header, pos);
+    mla_string_t target_boundary = mla_string_concat("\r\n--", boundary);
+
+
+    mla_pointer_t state_ptr = mla_malloc_struct(mla_multipart_stream_state_t);
+
+    mla_multipart_stream_state_t* state = mla_pointer_get_data<mla_multipart_stream_state_t>(state_ptr);
+
+    if (state == nullptr)
+        return false;
+
+    state->base_stream = request.content;
+    state->target_boundary = target_boundary;
+
+    mla_string_builder_t sb = mla_string_builder_create();
+
+    // remove the new line char
+    mla_string_t boundary_start = mla_string_substr(boundary, 2);
+
+    // Search for where the boundary starts
+    while (__mla_http_server_parse_multipart_read_line(state, sb)) {
+
         mla_string_t line = mla_string_builder_to_string(sb);
-        mla_bool_t is_boundary = false;
-        if (mla_string_length(line) >= mla_string_length(boundary) + 2) {
-            if (mla_string_data(line)[0] == '-' && mla_string_data(line)[1] == '-') {
-                is_boundary = true;
-                for (mla_size_t i = 0; i < mla_string_length(boundary); i++) {
-                    if (mla_string_data(line)[i+2] != mla_string_data(boundary)[i]) { is_boundary = false; break; }
-                }
-            }
+
+        if (mla_string_starts_with(line, boundary_start)) {
+            break;
         }
-        mla_string_destroy(line);
-        if (is_boundary) break;
     }
     
     mla_bool_t success = true;
     
-    while (!state.eof && !state.is_last_part) {
-        state.hit_boundary = false;
+    while (!state->eof && !state->is_last_part) {
+
+        state->hit_boundary = false;
         mla_string_t field_name = mla_string_empty();
         mla_string_t file_name = mla_string_empty();
         mla_string_t part_content_type = mla_string_empty();
         
-        while (__mla_http_multipart_content_read_line(&state, sb)) {
-            if (mla_string_builder_length(sb) == 0) break; 
+        while (__mla_http_server_parse_multipart_read_line(state, sb)) {
+
+            // Found empty line
+            if (mla_string_builder_length(sb) == 0)
+                break;
             
             mla_string_t line = mla_string_builder_to_string(sb);
             
             mla_string_t cd_prefix = mla_string_const("Content-Disposition:");
             mla_string_t ct_prefix = mla_string_const("Content-Type:");
-            
-            if (mla_string_length(line) >= mla_string_length(cd_prefix)) {
-                mla_bool_t match = true;
-                for (mla_size_t i = 0; i < mla_string_length(cd_prefix); i++) {
-                    if (mla_string_data(line)[i] != mla_string_data(cd_prefix)[i]) { match = false; break; }
-                }
-                if (match) __mla_http_multipart_content_parse_content_disposition(line, field_name, file_name);
+
+            if (mla_string_starts_with(line, cd_prefix)) {
+                __mla_http_server_parse_multipart_parse_content_disposition(line, field_name, file_name);
+            } else if (mla_string_starts_with(line, ct_prefix)) {
+
+                part_content_type = mla_string_substr(line, mla_string_length(ct_prefix));
+                part_content_type = mla_string_trim(part_content_type);
+
             }
-            
-            if (mla_string_length(line) >= mla_string_length(ct_prefix)) {
-                mla_bool_t match = true;
-                for (mla_size_t i = 0; i < mla_string_length(ct_prefix); i++) {
-                    if (mla_string_data(line)[i] != mla_string_data(ct_prefix)[i]) { match = false; break; }
-                }
-                if (match) {
-                    mla_size_t start = mla_string_length(ct_prefix);
-                    while (start < mla_string_length(line) && mla_string_data(line)[start] == ' ') start++;
-                    
-                    part_content_type = __extract_substring(line, start, mla_string_length(line) - start);
-                }
-            }
-            
-            mla_string_destroy(line);
         }
-        
-        mla_stream_input_t part_stream = mla_stream_noop_input();
-        part_stream.userdata = mla_user_data_empty();
-        part_stream.userdata.data = mla_platform_pointer_to_managed_pointer((mla_platform_pointer_t)&state);
-        part_stream.read = __mla_http_multipart_content_part_read;
-        
+
+        mla_user_data_t userdata_stream = mla_user_data_empty();
+        mla_user_data_set_pointer(userdata_stream, mla_http_server_multipart_context_user_data_id, state_ptr);
+
+
+        mla_stream_input_t part_stream = {
+            userdata_stream,
+            __mla_http_server_parse_multipart_read,
+            nullptr
+        };
+
         mla_http_multipart_part_t part = {
             field_name,
             file_name,
             part_content_type,
             part_stream
         };
-        
+
+        // Call the handler
         if (!handler(userdata, part)) {
             success = false;
             break;
         }
-        
-        if (!state.hit_boundary) {
-            mla_byte_t dump[128];
+
+        // Read to the end of the part
+        if (!state->hit_boundary) {
+            mla_byte_t dump[mla_global_config_stream_fast_read_buffer_size];
             while (part_stream.read(part_stream, 0, sizeof(dump), dump) > 0);
         }
-        
-        mla_string_destroy(field_name);
-        mla_string_destroy(file_name);
-        mla_string_destroy(part_content_type);
+
     }
-    
-    mla_string_destroy(boundary);
-    mla_string_destroy(target_boundary);
-    mla_string_builder_reset(sb);
+
     return success;
 }

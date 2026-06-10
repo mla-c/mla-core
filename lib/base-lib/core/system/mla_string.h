@@ -139,6 +139,7 @@ mla_bool_t mla_string_ends_with(const mla_string_t &p_String, const mla_string_t
 mla_bool_t mla_string_ends_with_ignore_case(const mla_string_t &p_String, const mla_string_t &p_Suffix);
 
 mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
+mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring, mla_size_t p_Start);
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring);
 
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start);

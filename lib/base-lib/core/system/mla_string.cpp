@@ -658,33 +658,44 @@ mla_bool_t mla_string_ends_with_ignore_case(const mla_string_t &p_String, const 
 }
 
 mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring) {
+    return mla_string_index_of(p_String, p_Substring, 0);
+}
+
+
+mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring, mla_size_t p_Start) {
 
     mla_size_t length = mla_string_length(p_String);
     mla_size_t lengthSub = mla_string_length(p_Substring);
 
-    if (lengthSub > length) {
-        return -1; // Substring cannot be longer than the string
+    if (p_Start >= length) {
+        return -1; // Start index is outside the string
+    }
+
+    if (lengthSub == 0) {
+        return static_cast<mla_int32_t>(p_Start); // Empty substring matches at the start index
+    }
+
+    if (lengthSub > length || p_Start > length - lengthSub) {
+        return -1; // Substring cannot fit from the start index
     }
 
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataSub = mla_string_data(p_Substring);
 
     if (mla_string_is_c_string(p_String) && mla_string_is_c_string(p_Substring)) {
-        const mla_char_t *found = mla_strstr(data, dataSub);
+        const mla_char_t *found = mla_strstr(data + p_Start, dataSub);
 
         if (found) {
             return static_cast<mla_int32_t>(found - data);
-        } else{
+        } else {
             return -1; // Substring not found
         }
-
     }
-
 
     // Fast path without memcmp
     if (lengthSub == 1) {
 
-        for (mla_size_t i = 0; i < length; ++i) {
+        for (mla_size_t i = p_Start; i < length; ++i) {
 
             if (data[i] == dataSub[0]) {
                 return static_cast<mla_int32_t>(i);
@@ -696,7 +707,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     }
 
     if (lengthSub == 2) {
-        for (mla_size_t i = 0; i < (length -1); ++i) {
+        for (mla_size_t i = p_Start; i <= length - lengthSub; ++i) {
             if (data[i] == dataSub[0] && data[i + 1] == dataSub[1]) {
                 return static_cast<mla_int32_t>(i);
             }
@@ -705,9 +716,8 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
         return -1;
     }
 
-
     // Manual search for the substring
-    for (mla_size_t i = 0; i <= length - lengthSub; ++i) {
+    for (mla_size_t i = p_Start; i <= length - lengthSub; ++i) {
 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0)
             return static_cast<mla_int32_t>(i);

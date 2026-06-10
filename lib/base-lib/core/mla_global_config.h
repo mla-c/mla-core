@@ -151,6 +151,10 @@
 #define mla_global_feature_flag_http_server_use_deflate_compression mla_global_feature_flag_http_use_deflate_compression
 #endif
 
+#ifndef mla_global_config_http_multipart_parser_buffer_size
+#define mla_global_config_http_multipart_parser_buffer_size mla_global_config_stream_fast_read_buffer_size
+#endif
+
 /**
  * @brief specific toggle for HTTP client DEFLATE compression support.
  */

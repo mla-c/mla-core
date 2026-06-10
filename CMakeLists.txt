@@ -169,7 +169,7 @@ if(WIN32)
     ## APP
     ############################
     set(SOURCE_FILES_WINDOWS_APP
-            ${CMAKE_CURRENT_SOURCE_DIR}/main_app_windows.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/core-example-app/main_app_windows.cpp
             ${SOURCE_FILES}
             ${SOURCE_NETWORK_FILES}
             ${SOURCE_UI_FILES}
