@@ -233,7 +233,6 @@ typedef struct mla_low_level_operations_t {
     mla_platform_pointer_t (*memmove)(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
 
     // Function pointers for string operations
-    mla_char_t* (*strcpy)(mla_char_t* dest, const mla_char_t* src);
     mla_size_t (*strlen)(const mla_char_t* str);
     const mla_char_t* (*strstr)(const mla_char_t* str, const mla_char_t* substr);
 
@@ -268,7 +267,6 @@ mla_global mla_low_level_operations_t g_low_level_access;
 #define mla_memmove(dest, src, size) g_low_level_access.memmove((dest), (src), (size))
 
 // Unsafe C String functions
-#define mla_strcpy(dest, src) g_low_level_access.strcpy((dest), (src))
 #define mla_strlen(str) g_low_level_access.strlen((str))
 #define mla_strstr(str, substr) g_low_level_access.strstr((str), (substr))
 

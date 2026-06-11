@@ -29,10 +29,6 @@ mla_platform_pointer_t __generic_memmove(mla_platform_pointer_t dest, const mla_
     return memmove(dest, src, size);
 }
 
-mla_char_t* __generic_strcpy(mla_char_t* dest, const mla_char_t* src) {
-    return strcpy(dest, src);
-}
-
 mla_size_t __generic_strlen(const mla_char_t* str) {
     return (mla_size_t)strlen(str);
 }

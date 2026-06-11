@@ -30,7 +30,6 @@ The header also defines a number of useful macros.
 
 ### String Operations
 
-- **`mla_strcpy`**: A wrapper for `strcpy`.
 - **`mla_strlen`**: A wrapper for `strlen`.
 - **`mla_strstr`**: A wrapper for `strstr`.
 

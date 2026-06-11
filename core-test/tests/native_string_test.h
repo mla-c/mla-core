@@ -58,9 +58,9 @@ void CStringConcatBenchmark() {
     const char* str3 = " This is a test of concatenation.";
     const size_t size = strlen(str1) + strlen(str2) + strlen(str3);
     char* result = new char[size + 1];
-    strcpy(result, str1);
-    strcat(result, str2);
-    strcat(result, str3);
+    strcpy_s(result, size + 1, str1);
+    strcat_s(result, size + 1, str2);
+    strcat_s(result, size + 1, str3);
     result[size] = '\0'; // Null-terminate the string
     // Just to ensure the operation is performed
     mla_test_int32_t length = (mla_test_int32_t)strlen(result);

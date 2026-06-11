@@ -65,8 +65,8 @@ Available for all integer types (e.g., `mla_int8_min`, `mla_int8_max`, `mla_uint
 - ❌ `malloc`, `free`
 - ✅ `mla_platform_malloc`, `mla_platform_free`
 
-- ❌ `strcpy`, `strlen`, `strstr`
-- ✅ `mla_strcpy`, `mla_strlen`, `mla_strstr`
+- ❌ `strlen`, `strstr`
+- ✅ `mla_strlen`, `mla_strstr`
 
 ## Pointer Types
 
