@@ -37,7 +37,7 @@ const mla_test_char_t* mla_test_find_filename_from_path(const mla_test_char_t* p
 
 // Extracts the filename from the full path
 // The macro works for both Unix and Windows style paths
-#define mla_test__FILENAME_ONLY__ mla_test_find_filename_from_path(__FILE__)
+#define mla_test_filename_only mla_test_find_filename_from_path(__FILE__)
 
 
 // Define a print function structure to allow custom print functions

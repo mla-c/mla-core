@@ -29,7 +29,7 @@ void mla_external_task_stop(mla_external_task_t& p_Task);
 // This does not kill the process; it allows the child to finish reading and flush its output.
 void mla_external_task_close_stdin(mla_external_task_t& p_Task);
 
-struct mla_external_task_managment_t {
+struct mla_external_task_management_t {
     mla_bool_t (*create_process)(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine);
     void (*stop_process)(const mla_pointer_t& p_TaskResource);
     mla_external_task_state (*get_state)(const mla_pointer_t& p_TaskResource);
@@ -37,7 +37,5 @@ struct mla_external_task_managment_t {
     mla_size_t (*write_stdin)(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer);
     void (*close_stdin)(const mla_pointer_t& p_TaskResource);
 };
-
-mla_global mla_external_task_managment_t g_external_task_management;
 
 #endif

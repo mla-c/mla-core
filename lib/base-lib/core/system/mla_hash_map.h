@@ -101,7 +101,7 @@ mla_size_t mla_hash_map_size(mla_hash_map_t<mla_hash_map_t_param_full> &map) {
     return map.size; // Return the current size of the hash map
 }
 
-enum mla_hash_map_push_result {
+enum mla_hash_map_push_result: mla_int8_t {
     MLA_HASH_MAP_PUSH_REPLACED,
     MLA_HASH_MAP_PUSH_ADDED,
     MLA_HASH_MAP_PUSH_ERROR

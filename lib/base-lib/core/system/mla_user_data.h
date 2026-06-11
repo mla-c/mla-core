@@ -96,7 +96,7 @@ mla_float_t mla_user_data_get_and_replace_float(const mla_user_data_t& userData,
 mla_double_t mla_user_data_get_and_replace_double(const mla_user_data_t& userData, mla_user_data_id id, mla_double_t newValue, mla_double_t defaultValue = 0);
 mla_bool_t mla_user_data_get_and_replace_bool(const mla_user_data_t& userData, mla_user_data_id id, mla_bool_t newValue, mla_bool_t defaultValue = false);
 mla_char_t mla_user_data_get_and_replace_char(const mla_user_data_t& userData, mla_user_data_id id, mla_char_t newValue, mla_char_t defaultValue = 0);
-mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userData, mla_user_data_id id, mla_string_t newValue, mla_string_t defaultValue = mla_string_empty());
+mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userData, mla_user_data_id id, const mla_string_t& newValue, const mla_string_t& defaultValue = mla_string_empty());
 
 mla_native_resource_t mla_user_data_get_native_resource(const mla_user_data_t& userData, mla_user_data_id id, mla_native_resource_t defaultValue = mla_native_resource_empty());
 

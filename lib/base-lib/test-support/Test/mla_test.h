@@ -142,6 +142,6 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
 #define assert_null(p_Condition, p_Message) mla_check_assert_null(p_Condition, p_Message, __LINE__)
 #define assert_not_null(p_Condition, p_Message) mla_check_assert_not_null(p_Condition, p_Message, __LINE__)
 
-#define test_category mla_test__FILENAME_ONLY__
+#define test_category mla_test_filename_only
 
 #endif

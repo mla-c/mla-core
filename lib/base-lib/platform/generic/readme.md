@@ -121,7 +121,7 @@ Platform-specific headers typically include fast-float conditionally:
     #include "mla_global_platform_fast_float.h"
     #define mla_platform_strtod __fast_float_strtod
 #else
-    #define mla_platform_strtod __generic_strtod
+    #define mla_platform_strtod mla_internal_generic_strtod
 #endif
 ```
 
@@ -179,7 +179,7 @@ Platform-specific modules build on the generic module:
     #include "../generic/mla_global_platform_fast_float.h"
     #define mla_platform_strtod __fast_float_strtod
 #else
-    #define mla_platform_strtod __generic_strtod
+    #define mla_platform_strtod mla_internal_generic_strtod
 #endif
 
 // Add Linux-specific implementations...

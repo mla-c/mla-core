@@ -1310,11 +1310,15 @@ void StringEqualsEmptyStringsTest() {
 }
 
 void StringEqualsSamePointerTest() {
+    // NOLINTBEGIN(performance-unnecessary-copy-initialization)
+
     // Test equals when both strings point to the same data
     mla_string_t str1 = mla_string("pointer test");
     mla_string_t str2 = str1;
 
     assert_true(mla_string_equals(str1, str2), "Same pointer strings should be equal");
+
+    // NOLINTEND(performance-unnecessary-copy-initialization)
 }
 
 void StringEqualsMaxLoopCheckBelowThresholdTest() {
@@ -1617,7 +1621,7 @@ void StringConcatBenchmark() {
 
     mla_string_t result = mla_string_concat(str1, str2, str3);
 
-    mla_test_int32_t length = mla_string_length(result);
+    mla_size_t length = mla_string_length(result);
     (void) length; // Prevent unused variable warning
 
     result = mla_string_empty();
@@ -1630,7 +1634,7 @@ void StringConcatEmbeddedBenchmark() {
 
     mla_string_t result = mla_string_concat(str1, str2, str3);
 
-    mla_test_int32_t length = mla_string_length(result);
+    mla_size_t length = mla_string_length(result);
     (void) length; // Prevent unused variable warning
 
     result = mla_string_empty();

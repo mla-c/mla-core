@@ -13,14 +13,14 @@ mla_http_client_response_t mla_http_client_upload_file(
     const mla_string_t& field_name, 
     const mla_string_t& file_name, 
     const mla_string_t& content_type, 
-    mla_stream_input_t file_content);
+    mla_stream_input_t& file_content);
 
 inline mla_http_client_response_t mla_http_client_upload_file(
     const mla_string_t& url, 
     const mla_string_t& field_name, 
     const mla_string_t& file_name, 
     const mla_string_t& content_type, 
-    mla_stream_input_t file_content) 
+    mla_stream_input_t& file_content)
 {
     mla_http_client_t client = mla_http_client();
     return mla_http_client_upload_file(client, url, field_name, file_name, content_type, file_content);

@@ -18,6 +18,8 @@
 #if !defined(mla_benchmark_std) || (mla_benchmark_std == 1)
 void StdStringConcatBenchmark() {
 
+    // NOLINTBEGIN(bugprone-unused-local-non-trivial-variable)
+
     std::string str1("Hello, ");
     std::string str2("World!");
     std::string str3(" This is a test of concatenation.");
@@ -25,9 +27,13 @@ void StdStringConcatBenchmark() {
     // Just to ensure the operation is performed
     mla_test_int32_t length = (mla_test_int32_t)result.length();
     (void)length; // Prevent unused variable warning
+
+    // NOLINTEND(bugprone-unused-local-non-trivial-variable)
 }
 
 void StdStringContainsBenchmark() {
+
+    // NOLINTBEGIN(bugprone-unused-local-non-trivial-variable)
 
     std::string str("Hello, World! This is a test string for benchmarking.");
     std::string subString("for");
@@ -35,9 +41,13 @@ void StdStringContainsBenchmark() {
     if (str.find(subString) == std::string::npos) {
         static_assert(true, "Substring not found in StdStringContainsBenchmark");
     }
+
+    // NOLINTEND(bugprone-unused-local-non-trivial-variable)
 }
 
 void StdStringIndexOfBenchmark() {
+
+    // NOLINTBEGIN(bugprone-unused-local-non-trivial-variable)
 
     std::string str("Hello, World! This is a test string for benchmarking.");
     std::string subString("for");
@@ -46,6 +56,8 @@ void StdStringIndexOfBenchmark() {
     if (index == std::string::npos || index != 38) {
         static_assert(true, "Index of substring not found in StdStringIndexOfBenchmark");
     }
+
+    // NOLINTEND(bugprone-unused-local-non-trivial-variable)
 }
 
 #endif

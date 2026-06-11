@@ -4,7 +4,7 @@
 
 #include "mla_logger_console.h"
 
-void __mla_log_console_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
+void mla_internal_log_console_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
                               mla_user_data_t& userData) {
 
     (void)userData;
@@ -36,7 +36,7 @@ mla_bool_t mla_log_to_console_activate() {
         CONSOLE_LOGGER_NAME,
         mla_global_config_logger_console_level, // Default log level
         false,
-        __mla_log_console_writer, // Function to write log messages
+        mla_internal_log_console_writer, // Function to write log messages
         mla_user_data_empty()
     };
 

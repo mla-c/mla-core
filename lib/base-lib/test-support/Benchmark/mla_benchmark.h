@@ -39,7 +39,7 @@ struct mla_benchmark_timer_t {
 extern mla_benchmark_timer_t g_benchmark_timer;
 
 
-#define benchmark_category mla_test__FILENAME_ONLY__
+#define benchmark_category mla_test_filename_only
 
 
 #endif

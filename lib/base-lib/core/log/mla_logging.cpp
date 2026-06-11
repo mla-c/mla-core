@@ -4,7 +4,7 @@
 
 #include "mla_logging.h"
 
-void __mla_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function) {
+void mla_internal_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function) {
 
     const mla_size_t fn_len = mla_strlen(filename);
     const mla_size_t func_len = mla_strlen(function);

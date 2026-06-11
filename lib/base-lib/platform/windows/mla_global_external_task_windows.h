@@ -11,13 +11,13 @@
 
 #include <windows.h>
 
-struct __windows_external_task_native_resource_t {
+struct mla_internal_windows_external_task_native_resource_t {
     HANDLE process_handle;
     HANDLE thread_handle;
     HANDLE stdin_write_handle;
     HANDLE stdout_read_handle;
 
-    static __windows_external_task_native_resource_t init() {
+    static mla_internal_windows_external_task_native_resource_t init() {
         return {
             nullptr,
             nullptr,
@@ -26,7 +26,7 @@ struct __windows_external_task_native_resource_t {
         };
     }
 
-    static void clean_up_resource(__windows_external_task_native_resource_t& self) {
+    static void clean_up_resource(mla_internal_windows_external_task_native_resource_t& self) {
 
 
         if (self.stdin_write_handle != nullptr) {
@@ -59,7 +59,7 @@ struct __windows_external_task_native_resource_t {
     }
 };
 
-void __windows_external_task_cleanup_process_data(__windows_external_task_native_resource_t* p_ProcessData) {
+void mla_internal_windows_external_task_cleanup_process_data(mla_internal_windows_external_task_native_resource_t* p_ProcessData) {
 
     if (p_ProcessData == nullptr) {
         return;
@@ -76,7 +76,7 @@ void __windows_external_task_cleanup_process_data(__windows_external_task_native
     }
 }
 
-void __windows_external_task_cleanup_process_handles(__windows_external_task_native_resource_t* p_ProcessData) {
+void mla_internal_windows_external_task_cleanup_process_handles(mla_internal_windows_external_task_native_resource_t* p_ProcessData) {
 
     if (p_ProcessData == nullptr) {
         return;
@@ -93,12 +93,12 @@ void __windows_external_task_cleanup_process_handles(__windows_external_task_nat
     }
 }
 
-__windows_external_task_native_resource_t* __windows_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
+mla_internal_windows_external_task_native_resource_t* mla_internal_windows_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    return mla_pointer_get_data<__windows_external_task_native_resource_t>(p_TaskResource);
+    return mla_pointer_get_data<mla_internal_windows_external_task_native_resource_t>(p_TaskResource);
 }
 
-mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
+mla_bool_t mla_internal_windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
 
     p_OutTaskResource = mla_pointer_null();
 
@@ -206,9 +206,9 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
         return false;
     }
 
-    p_OutTaskResource = mla_malloc_struct_cleanup_extension(__windows_external_task_native_resource_t);
+    p_OutTaskResource = mla_malloc_struct_cleanup_extension(mla_internal_windows_external_task_native_resource_t);
 
-    __windows_external_task_native_resource_t* processData = mla_pointer_get_data<__windows_external_task_native_resource_t>(p_OutTaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_pointer_get_data<mla_internal_windows_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {
         CloseHandle(childStdOutRead);
@@ -229,9 +229,9 @@ mla_bool_t __windows_external_task_create_process(mla_pointer_t& p_OutTaskResour
     return true;
 }
 
-mla_external_task_state __windows_external_task_get_state(const mla_pointer_t& p_TaskResource) {
+mla_external_task_state mla_internal_windows_external_task_get_state(const mla_pointer_t& p_TaskResource) {
 
-    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_internal_windows_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->process_handle == nullptr) {
         return MLA_EXTERNAL_TASK_STATE_STOPPED;
@@ -246,32 +246,32 @@ mla_external_task_state __windows_external_task_get_state(const mla_pointer_t& p
         return MLA_EXTERNAL_TASK_STATE_RUNNING;
     }
 
-    __windows_external_task_cleanup_process_data(processData);
-    __windows_external_task_cleanup_process_handles(processData);
+    mla_internal_windows_external_task_cleanup_process_data(processData);
+    mla_internal_windows_external_task_cleanup_process_handles(processData);
     return MLA_EXTERNAL_TASK_STATE_STOPPED;
 }
 
-void __windows_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
+void mla_internal_windows_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
 
-    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_internal_windows_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr) {
         return;
     }
 
-    __windows_external_task_cleanup_process_data(processData);
+    mla_internal_windows_external_task_cleanup_process_data(processData);
 
     if (processData->process_handle != nullptr) {
         TerminateProcess(processData->process_handle, 1);
         WaitForSingleObject(processData->process_handle, INFINITE);
     }
 
-    __windows_external_task_cleanup_process_handles(processData);
+    mla_internal_windows_external_task_cleanup_process_handles(processData);
 }
 
-mla_size_t __windows_external_task_read_stdout(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
+mla_size_t mla_internal_windows_external_task_read_stdout(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
 
-    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_internal_windows_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdout_read_handle == nullptr || p_Buffer == nullptr) {
         return 0;
@@ -298,9 +298,9 @@ mla_size_t __windows_external_task_read_stdout(const mla_pointer_t& p_TaskResour
     return static_cast<mla_size_t>(bytesRead);
 }
 
-mla_size_t __windows_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
+mla_size_t mla_internal_windows_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
 
-    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_internal_windows_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdin_write_handle == nullptr || p_Buffer == nullptr) {
         return 0;
@@ -318,9 +318,9 @@ mla_size_t __windows_external_task_write_stdin(const mla_pointer_t& p_TaskResour
     return static_cast<mla_size_t>(bytesWritten);
 }
 
-void __windows_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
+void mla_internal_windows_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
 
-    __windows_external_task_native_resource_t* processData = __windows_external_task_get_process_data(p_TaskResource);
+    mla_internal_windows_external_task_native_resource_t* processData = mla_internal_windows_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr) {
         return;
@@ -332,13 +332,13 @@ void __windows_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
     }
 }
 
-mla_external_task_managment_t g_external_task_management = {
-    __windows_external_task_create_process,
-    __windows_external_task_stop_process,
-    __windows_external_task_get_state,
-    __windows_external_task_read_stdout,
-    __windows_external_task_write_stdin,
-    __windows_external_task_close_stdin,
+mla_external_task_management_t g_external_task_management = {
+    mla_internal_windows_external_task_create_process,
+    mla_internal_windows_external_task_stop_process,
+    mla_internal_windows_external_task_get_state,
+    mla_internal_windows_external_task_read_stdout,
+    mla_internal_windows_external_task_write_stdin,
+    mla_internal_windows_external_task_close_stdin,
 };
 
 #endif

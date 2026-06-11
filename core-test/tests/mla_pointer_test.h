@@ -33,6 +33,7 @@ mla_bool_t my_pointer_test_free_hook(mla_platform_pointer_t ptr) {
 }
 
 void SimplePointerReleaseTest() {
+    // NOLINTBEGIN(performance-unnecessary-copy-initialization)
 
     is_pointer_test_destroyed = false;
     mla_memory_hook_t hook = mla_memory_hook_install(my_pointer_test_malloc_hook, my_pointer_test_free_hook);
@@ -56,9 +57,11 @@ void SimplePointerReleaseTest() {
 
     mla_memory_hook_uninstall(hook); // Uninstall the memory hook
 
+    // NOLINTEND(performance-unnecessary-copy-initialization)
 }
 
 void SimplePointerChildReleaseTest() {
+    // NOLINTBEGIN(performance-unnecessary-copy-initialization)
 
     mla_pointer_t container = mla_malloc_struct(my_pointer_test_native_auto_test_t);
     assert_equal(mla_pointer_ref_count(container), (mla_int32_t)1, "Reference count should be 1 after creation");
@@ -86,6 +89,7 @@ void SimplePointerChildReleaseTest() {
 
     assert_equal(mla_pointer_ref_count(child_container), (mla_int32_t)1, "Reference count should be 1 after parent container is cleared");
 
+    // NOLINTEND(performance-unnecessary-copy-initialization)
 }
 
 void RegisterPointerTests(mla_test_executor_t &p_TestExecutor) {

@@ -31,7 +31,7 @@ mla_bytes_t mla_bytes(mla_size_t p_Length) {
 }
 
 
-mla_bytes_t mla_bytes_from_external_buffer(mla_pointer_t p_Data, const mla_size_t p_Size) {
+mla_bytes_t mla_bytes_from_external_buffer(mla_pointer_t& p_Data, const mla_size_t p_Size) {
 
     if (mla_pointer_is_null(p_Data) || p_Size == 0) {
         return mla_bytes_empty();
@@ -218,11 +218,11 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
 
         // Fill decode table
         for (mla_size_t i = 0; i < 26; ++i) {
-            decode_table['A' + i] = i;
-            decode_table['a' + i] = i + 26;
+            decode_table['A' + i] = static_cast<mla_int32_t>(i);
+            decode_table['a' + i] = static_cast<mla_int32_t>(i) + 26;
         }
         for (mla_size_t i = 0; i < 10; ++i) {
-            decode_table['0' + i] = i + 52;
+            decode_table['0' + i] = static_cast<mla_int32_t>(i) + 52;
         }
         decode_table[static_cast<mla_uint8_t>('+')] = 62;
         decode_table[static_cast<mla_uint8_t>('/')] = 63;

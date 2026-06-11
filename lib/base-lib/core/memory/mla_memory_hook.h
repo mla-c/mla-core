@@ -10,7 +10,7 @@
 typedef mla_platform_pointer_t(*mla_memory_malloc_t)(mla_size_t size);
 typedef void (*mla_memory_free_t)(mla_platform_pointer_t ptr);
 
-enum MLA_MEMORY_POINTER_TYPE {
+enum MLA_MEMORY_POINTER_TYPE: mla_int8_t {
     MLA_MEMORY_POINTER_TYPE_UNKNOWN = 0,
     MLA_MEMORY_POINTER_TYPE_GCC = 1,
     MLA_MEMORY_POINTER_TYPE_REGULAR = 2

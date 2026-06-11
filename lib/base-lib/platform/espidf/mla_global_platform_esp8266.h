@@ -24,20 +24,20 @@ void __esp8266_sleep(mla_uint32_t milliseconds) {
 
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
-    __generic_memcpy,
-        __generic_memset,
-        __generic_memcmp,
-        __generic_memmove,
-        __generic_strlen,
+    mla_internal_generic_memcpy,
+        mla_internal_generic_memset,
+        mla_internal_generic_memcmp,
+        mla_internal_generic_memmove,
+        mla_internal_generic_strlen,
         __generic_snprintf,
-        __generic_strstr,
-        __generic_malloc,
-        __generic_free,
-        __generic_printf,
-        __generic_std_read,
-        __generic_strtod,
-        __generic_strtoll,
-        __generic_strtoull,
+        mla_internal_generic_strstr,
+        mla_internal_generic_malloc,
+        mla_internal_generic_free,
+        mla_internal_generic_printf,
+        mla_internal_generic_std_read,
+        mla_internal_generic_strtod,
+        mla_internal_generic_strtoll,
+        mla_internal_generic_strtoull,
         __esp8266_sleep,
     };
 

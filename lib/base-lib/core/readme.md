@@ -36,7 +36,7 @@ The header also defines a number of useful macros.
 ### Other Macros
 
 - **`mla_min`, `mla_max`**: Macros for finding the minimum and maximum of two values.
-- **`__FILENAME_ONLY__`**: A macro that expands to the base name of the current file.
+- **`mla_filename_only`**: A macro that expands to the base name of the current file.
 - **`mla_print`**: A macro to print to the Standard Out.
 
 ## Low-Level Operations

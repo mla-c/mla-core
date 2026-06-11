@@ -8,12 +8,12 @@
 
 #include "../mla_data_types.h"
 
-void __mla_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function);
+void mla_internal_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function);
 
 // Macro to get the filename and the method
-#define __FILENAME_AND_METHOD__()\
+#define mla_filename_and_method()\
 mla_char_t temp[64]; \
-__mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
+mla_internal_logging_concat(temp, mla_filename_only, __func__); \
 
 #if (mla_global_feature_flag_logging_use_native == 0)
 
@@ -22,7 +22,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_log_msg(level, msg) \
     if(mla_log_is_active(level)) \
         { \
-        __FILENAME_AND_METHOD__()\
+        mla_filename_and_method()\
         mla_log_message(level, msg, temp); } \
     else \
         {}
@@ -30,7 +30,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_verbose(msg) \
     if(mla_log_is_active(MLA_LOG_LEVEL_VERBOSE)) \
         { \
-            __FILENAME_AND_METHOD__()\
+            mla_filename_and_method()\
             mla_log_verbose(msg, temp); } \
     else \
         {}
@@ -38,7 +38,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_debug(msg) \
     if(mla_log_is_active(MLA_LOG_LEVEL_DEBUG)) \
         { \
-            __FILENAME_AND_METHOD__()\
+            mla_filename_and_method()\
             mla_log_debug(msg, temp); } \
     else \
         {}
@@ -46,7 +46,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_info(msg) \
     if(mla_log_is_active(MLA_LOG_LEVEL_INFO)) \
         { \
-            __FILENAME_AND_METHOD__()\
+            mla_filename_and_method()\
             mla_log_info(msg, temp); } \
     else \
         {}
@@ -54,7 +54,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_warning(msg) \
     if(mla_log_is_active(MLA_LOG_LEVEL_WARNING)) \
         { \
-            __FILENAME_AND_METHOD__()\
+            mla_filename_and_method()\
             mla_log_warning(msg, temp); } \
     else \
         {}
@@ -62,7 +62,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #define mla_error(msg) \
     if(mla_log_is_active(MLA_LOG_LEVEL_ERROR)) \
     { \
-        __FILENAME_AND_METHOD__()\
+        mla_filename_and_method()\
         mla_log_error(msg, temp); } \
     else \
     {}
@@ -73,7 +73,7 @@ __mla_logging_concat(temp, __FILENAME_ONLY__, __func__); \
 #include "mla_logger.h"
 
 inline void __mla_logging_native(const mla_log_level level, const mla_char_t* message) {
-    __FILENAME_AND_METHOD__()\
+    mla_filename_and_method()\
     mla_print("[", 1);
     mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
     mla_print("] ", 2);
@@ -85,7 +85,7 @@ inline void __mla_logging_native(const mla_log_level level, const mla_char_t* me
 }
 
 inline void __mla_logging_native(const mla_log_level level, const mla_string_t& message) {
-    __FILENAME_AND_METHOD__()\
+    mla_filename_and_method()\
     mla_print("[", 1);
     mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
     mla_print("] ", 2);

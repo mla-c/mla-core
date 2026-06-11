@@ -291,7 +291,7 @@ void __linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
     }
 }
 
-mla_external_task_managment_t g_external_task_management = {
+mla_external_task_management_t g_external_task_management = {
     __linux_external_task_create_process,
     __linux_external_task_stop_process,
     __linux_external_task_get_state,

@@ -10,18 +10,18 @@
 #include "../../lib/base-lib/test-support/Test/mla_test.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#define __mla_external_task_test_stdout_cmd "echo|set /p=hello"
+#define mla_internal_external_task_test_stdout_cmd "echo|set /p=hello"
 // "findstr /R ." matches any non-empty line in regex mode and outputs it.
 // Using close_stdin (EOF) to force findstr to flush its buffered stdout.
-#define __mla_external_task_test_stdin_echo_cmd "findstr /R ."
-#define __mla_external_task_test_sleep_cmd "ping 127.0.0.1 -n 2 >nul"
+#define mla_internal_external_task_test_stdin_echo_cmd "findstr /R ."
+#define mla_internal_external_task_test_sleep_cmd "ping 127.0.0.1 -n 2 >nul"
 #else
-#define __mla_external_task_test_stdout_cmd "printf 'hello'"
-#define __mla_external_task_test_stdin_echo_cmd "cat"
-#define __mla_external_task_test_sleep_cmd "sleep 1"
+#define mla_internal_external_task_test_stdout_cmd "printf 'hello'"
+#define mla_internal_external_task_test_stdin_echo_cmd "cat"
+#define mla_internal_external_task_test_sleep_cmd "sleep 1"
 #endif
 
-#define __mla_external_task_test_default_timeout_ms 250
+#define mla_internal_external_task_test_default_timeout_ms 250
 
 void ExternalTaskCreateInvalidInputTest() {
     mla_external_task_t task = mla_external_task_create(mla_string_empty());
@@ -30,11 +30,11 @@ void ExternalTaskCreateInvalidInputTest() {
 
 void ExternalTaskCreateAndReadStdOutTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_stdout_cmd));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(mla_internal_external_task_test_stdout_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_byte_t buffer[8] = {0};
-    mla_size_t read = mla_stream_input_read_with_timeout(task.std_out, 0, 5, buffer, __mla_external_task_test_default_timeout_ms);
+    mla_size_t read = mla_stream_input_read_with_timeout(task.std_out, 0, 5, buffer, mla_internal_external_task_test_default_timeout_ms);
 
     assert_equal(read, (mla_size_t)5, "Should read process stdout");
     assert_equal((mla_test_int32_t)mla_memcmp(buffer, "hello", 5), (mla_test_int32_t)0, "Stdout content should match");
@@ -44,11 +44,11 @@ void ExternalTaskCreateAndReadStdOutTest() {
 
 void ExternalTaskWriteStdInAndReadStdOutTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_stdin_echo_cmd));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(mla_internal_external_task_test_stdin_echo_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     const mla_char_t* msg = "echo\n";
-    mla_size_t written = mla_stream_output_write_with_timeout(task.std_in, 0, 5, reinterpret_cast<const mla_byte_t*>(msg), __mla_external_task_test_default_timeout_ms);
+    mla_size_t written = mla_stream_output_write_with_timeout(task.std_in, 0, 5, reinterpret_cast<const mla_byte_t*>(msg), mla_internal_external_task_test_default_timeout_ms);
     assert_equal(written, (mla_size_t)5, "Should write all bytes to stdin");
 
     // Close stdin to send EOF to the child process.
@@ -58,7 +58,7 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
     // Read just the payload word "echo" (4 bytes), ignoring the platform-specific line
     // ending (\n on Linux, \r\n on Windows) that the child appends.
     mla_byte_t buffer[8] = {0};
-    mla_size_t read = mla_stream_input_read_with_timeout(task.std_out, 0, 4, buffer, __mla_external_task_test_default_timeout_ms);
+    mla_size_t read = mla_stream_input_read_with_timeout(task.std_out, 0, 4, buffer, mla_internal_external_task_test_default_timeout_ms);
 
     assert_equal(read, (mla_size_t)4, "Should read echoed bytes");
     assert_equal((mla_test_int32_t)mla_memcmp(buffer, "echo", 4), (mla_test_int32_t)0, "Echoed data should match");
@@ -68,7 +68,7 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
 
 void ExternalTaskStateTest() {
 
-    mla_external_task_t task = mla_external_task_create(mla_string_const(__mla_external_task_test_sleep_cmd));
+    mla_external_task_t task = mla_external_task_create(mla_string_const(mla_internal_external_task_test_sleep_cmd));
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     mla_external_task_state state = mla_external_task_get_state(task);

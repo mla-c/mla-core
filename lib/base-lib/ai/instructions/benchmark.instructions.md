@@ -37,7 +37,7 @@ Override both at compile time with `-Dmla_test_global_config_benchmark_iteration
 Every benchmark file uses `benchmark_category` which expands to the current filename via:
 
 ```cpp
-#define benchmark_category mla_test__FILENAME_ONLY__
+#define benchmark_category mla_testmla_filename_only
 ```
 
 This groups benchmarks automatically by source file in the output.

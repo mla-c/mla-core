@@ -62,6 +62,7 @@ if(UNIX AND NOT APPLE)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_Linux_Multi_Thread ${SOURCE_FILES_LINUX_MULTI_THREAD})
+    mla_enable_clang_tidy(MLA_C_Test_Linux_Multi_Thread)
     target_link_libraries(MLA_C_Test_Linux_Multi_Thread)
     configure_zlib_for_target(MLA_C_Test_Linux_Multi_Thread)
 
@@ -91,6 +92,7 @@ if (MLA_EMSDK_PATH OR MLA_WASM_STANDALONE)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_WASM_Single_Thread ${SOURCE_FILES_WASM_SINGLE_THREAD})
+    mla_enable_clang_tidy(MLA_C_Test_WASM_Single_Thread)
     target_link_libraries(MLA_C_Test_WASM_Single_Thread)
 
     # Add target-specific compile definition to disable network for WASM test only
@@ -119,6 +121,7 @@ if (MLA_WASM_STANDALONE OR MLA_EMSDK_PATH)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_WASM_Single_Thread_Standalone ${SOURCE_FILES_WASM_SINGLE_THREAD_STANDALONE})
+    mla_enable_clang_tidy(MLA_C_Test_WASM_Single_Thread_Standalone)
     target_link_libraries(MLA_C_Test_WASM_Single_Thread_Standalone)
 
     # Add target-specific compile definition to disable network for WASM test only
@@ -141,6 +144,7 @@ if(WIN32)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_Windows_Single_Thread ${SOURCE_FILES_WINDOWS_SINGLE_THREAD})
+    mla_enable_clang_tidy(MLA_C_Test_Windows_Single_Thread)
     target_link_libraries(MLA_C_Test_Windows_Single_Thread PRIVATE
             ws2_32
             Iphlpapi
@@ -159,6 +163,7 @@ if(WIN32)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_Windows_Multi_Thread ${SOURCE_FILES_WINDOWS_MULTI_THREAD})
+    mla_enable_clang_tidy(MLA_C_Test_Windows_Multi_Thread)
     target_link_libraries(MLA_C_Test_Windows_Multi_Thread PRIVATE
             ws2_32
             Iphlpapi
@@ -175,6 +180,7 @@ if(WIN32)
             ${SOURCE_UI_FILES}
     )
     add_executable(MLA_C_App_Windows ${SOURCE_FILES_WINDOWS_APP})
+    mla_enable_clang_tidy(MLA_C_App_Windows)
     target_link_libraries(MLA_C_App_Windows PRIVATE
             ws2_32
             Iphlpapi

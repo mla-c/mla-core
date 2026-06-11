@@ -11,22 +11,22 @@ mla_task_manager_t g_TaskManager = {
     mla_rw_lock_create("TaskManager")
 };
 
-mla_int32_t __mla_task_manager_find_task_by_name_no_lock(mla_string_t name) {
+mla_int32_t mla_internal_task_manager_find_task_by_name_no_lock(const mla_string_t& name) {
 
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
         const mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
         if (mla_string_equals(task.name, name)) {
-            return i; // Return the index of the task
+            return static_cast<mla_int32_t>(i); // Return the index of the task
         }
     }
     return -1;
 }
 
-void __mla_task_manager_cleanup_tasks_no_lock() {
+void mla_internal_task_manager_cleanup_tasks_no_lock() {
 
     // Cleanup tasks which are completed
-    for (mla_int32_t i = mla_array_list_size(g_TaskManager.tasks) - 1; i >= 0; --i) {
+    for (mla_int32_t i = static_cast<mla_int32_t>(mla_array_list_size(g_TaskManager.tasks)) - 1; i >= 0; --i) {
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
 
@@ -45,7 +45,7 @@ void mla_task_manager_cleanup() {
     if (!mla_rw_lock_write(g_TaskManager.taskLock))
         return;
 
-    __mla_task_manager_cleanup_tasks_no_lock();
+    mla_internal_task_manager_cleanup_tasks_no_lock();
 
     mla_rw_unlock_write(g_TaskManager.taskLock);
 
@@ -56,14 +56,14 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     if (!mla_rw_lock_write(g_TaskManager.taskLock))
         return false;
 
-    if (__mla_task_manager_find_task_by_name_no_lock(task.name) >= 0) {
+    if (mla_internal_task_manager_find_task_by_name_no_lock(task.name) >= 0) {
         mla_rw_unlock_write(g_TaskManager.taskLock);
         mla_error(mla_string_concat("Task with name ", task.name , " already exists."));
         return false; // Task with the same name already exists
     }
 
     // Cleanup tasks which are completed or aborted before adding a new task
-    __mla_task_manager_cleanup_tasks_no_lock();
+    mla_internal_task_manager_cleanup_tasks_no_lock();
 
     mla_pointer_t shared_states_ptr = mla_malloc_struct(mla_task_shared_states);
 
@@ -96,7 +96,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
         return false;
 
     // Remove the task from the task manager if it could not be created
-    mla_int32_t taskIndex = __mla_task_manager_find_task_by_name_no_lock(task.name);
+    mla_int32_t taskIndex = mla_internal_task_manager_find_task_by_name_no_lock(task.name);
 
     if (taskIndex < 0) {
         mla_rw_unlock_write(g_TaskManager.taskLock);

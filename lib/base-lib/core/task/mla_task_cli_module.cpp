@@ -6,7 +6,7 @@
 #include "mla_task_cli_module.h"
 #include "../cli/mla_cli_command.h"
 
-mla_bool_t __mla_task_cli_list_all_tasks(const mla_cli_command_t &command,
+mla_bool_t mla_internal_task_cli_list_all_tasks(const mla_cli_command_t &command,
                                           const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
                                               mla_string_initializer, mla_string_initializer> &parameters,
                                           const mla_cli_command_execute_outstream_t &out) {
@@ -36,7 +36,7 @@ mla_bool_t __mla_task_cli_list_all_tasks(const mla_cli_command_t &command,
 
 }
 
-mla_bool_t __mla_task_cli_kill_task(const mla_cli_command_t &command,
+mla_bool_t mla_internal_task_cli_kill_task(const mla_cli_command_t &command,
                                           const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
                                               mla_string_initializer, mla_string_initializer> &parameters,
                                           const mla_cli_command_execute_outstream_t &out) {
@@ -81,13 +81,13 @@ mla_cli_module_t mla_task_cli_module_create() {
 
     // Add 'list' command
     mla_cli_command_t cmdList = mla_cli_command(mla_string_const("ls"), mla_string_const("List all tasks"));
-    cmdList.execute = __mla_task_cli_list_all_tasks;
+    cmdList.execute = mla_internal_task_cli_list_all_tasks;
     mla_cli_module_add_command(module, cmdList);
 
     // Add 'kill' command
     mla_cli_command_t cmdKill = mla_cli_command(mla_string_const("kill"), mla_string_const("Kill a task by Name"));
     mla_cli_command_add_parameter(cmdKill, mla_string_const("name"), mla_string_const("Name of the task to kill"), true);
-    cmdKill.execute = __mla_task_cli_kill_task;
+    cmdKill.execute = mla_internal_task_cli_kill_task;
     mla_cli_module_add_command(module, cmdKill);
 
     return module;

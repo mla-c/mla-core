@@ -64,46 +64,46 @@ mla_ui_control_surface_t mla_ui_control_surface_create(const mla_ui_surface_t &s
     };
 }
 
-mla_string_t __mla_ui_control_surface_rendering_task_name(const mla_string_t &taskId) {
+mla_string_t mla_internal_ui_control_surface_rendering_task_name(const mla_string_t &taskId) {
     return mla_string_concat("surface_rendering_", taskId);
 }
 
-mla_string_t __mla_ui_control_surface_drawing_task_name(const mla_string_t &taskId) {
+mla_string_t mla_internal_ui_control_surface_drawing_task_name(const mla_string_t &taskId) {
     return mla_string_concat("surface_drawing_", taskId);
 }
 
-mla_string_t __mla_ui_control_surface_rendering_drawing_task_name(const mla_string_t &taskId) {
+mla_string_t mla_internal_ui_control_surface_rendering_drawing_task_name(const mla_string_t &taskId) {
     return mla_string_concat("surface_rendering_drawing", taskId);
 }
 
-mla_string_t __mla_ui_control_surface_get_task_id(mla_ui_control_surface_t& connector) {
+mla_string_t mla_internal_ui_control_surface_get_task_id(mla_ui_control_surface_t& connector) {
 
     return mla_user_data_get_string(connector.userData, mla_ui_control_surface_task_id_user_data_name);
 }
 
-struct __mla_ui_control_surface_clean_up_t {
+struct mla_internal_ui_control_surface_clean_up_t {
     mla_ui_control_surface_t* connector;
 
-    static __mla_ui_control_surface_clean_up_t init() {
+    static mla_internal_ui_control_surface_clean_up_t init() {
         return {nullptr};
     }
 };
 
 
 
-void __mla_ui_control_surface_cleanup(__mla_ui_control_surface_clean_up_t& data) {
+void mla_internal_ui_control_surface_cleanup(mla_internal_ui_control_surface_clean_up_t& data) {
 
 
     mla_ui_control_surface_t* connector = data.connector;
 
     if (connector) {
 
-        mla_string_t taskId = __mla_ui_control_surface_get_task_id(*connector);
+        mla_string_t taskId = mla_internal_ui_control_surface_get_task_id(*connector);
 
         // Abort rendering task
         if (!mla_string_is_empty(taskId)) {
-            mla_task_manager_abort_task(__mla_ui_control_surface_rendering_task_name(taskId));
-            mla_task_manager_abort_task(__mla_ui_control_surface_drawing_task_name(taskId));
+            mla_task_manager_abort_task(mla_internal_ui_control_surface_rendering_task_name(taskId));
+            mla_task_manager_abort_task(mla_internal_ui_control_surface_drawing_task_name(taskId));
         }
 
         mla_user_data_remove(connector->userData, mla_ui_control_surface_task_id_user_data_name);
@@ -111,17 +111,17 @@ void __mla_ui_control_surface_cleanup(__mla_ui_control_surface_clean_up_t& data)
 
 }
 
-void __mla_ui_control_surface_cleanup_single_thread(__mla_ui_control_surface_clean_up_t& data) {
+void mla_internal_ui_control_surface_cleanup_single_thread(mla_internal_ui_control_surface_clean_up_t& data) {
 
     mla_ui_control_surface_t* connector = data.connector;
 
     if (connector) {
 
-        mla_string_t taskId = __mla_ui_control_surface_get_task_id(*connector);
+        mla_string_t taskId = mla_internal_ui_control_surface_get_task_id(*connector);
 
         // Abort rendering task
         if (!mla_string_is_empty(taskId)) {
-            mla_task_manager_abort_task(__mla_ui_control_surface_rendering_drawing_task_name(taskId));
+            mla_task_manager_abort_task(mla_internal_ui_control_surface_rendering_drawing_task_name(taskId));
         }
     }
 
@@ -129,7 +129,7 @@ void __mla_ui_control_surface_cleanup_single_thread(__mla_ui_control_surface_cle
 
 mla_user_data_id_init(mla_ui_control_surface_text_size_user_data_name)
 
-mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
+mla_ui_surface_draw_size_t mla_internal_ui_control_surface_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
     mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(context.userData, mla_ui_control_surface_text_size_user_data_name);
 
@@ -141,7 +141,7 @@ mla_ui_surface_draw_size_t __mla_ui_control_surface_calc_text_size(const mla_ui_
 }
 
 
-mla_ui_control_t __mla_ui_control_surface_build_loading_indicator(const mla_ui_control_context_t& context) {
+mla_ui_control_t mla_internal_ui_control_surface_build_loading_indicator(const mla_ui_control_context_t& context) {
 
 
     mla_ui_control_t loadingPanel = mla_ui_loading_indicator();
@@ -156,7 +156,7 @@ mla_ui_control_t __mla_ui_control_surface_build_loading_indicator(const mla_ui_c
 
 mla_user_data_id_init(mla_ui_control_surface_connector_user_data_name)
 
-mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_internal_ui_control_surface_render_task(mla_user_data_t& userData) {
 
     mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
@@ -196,7 +196,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
     mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(connector);
     mla_user_data_set_pointer(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector_ptr);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, mla_internal_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t> drawCommands = mla_array_list<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>();
     mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> inputAreas = mla_array_list<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t>();
 
@@ -204,7 +204,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
 
     if (!hasControlsToRender) {
         // If no controls to render, draw a loading screen
-        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
+        mla_ui_control_t loadingIndicator = mla_internal_ui_control_surface_build_loading_indicator(context);
         mla_array_list_add(connector->rendering.root, loadingIndicator);
     }
 
@@ -236,7 +236,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_task(mla_user_data
 
 
 
-mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_internal_ui_control_surface_drawing_task(mla_user_data_t& userData) {
 
     mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
@@ -272,7 +272,7 @@ mla_task_process_result_state __mla_ui_control_surface_drawing_task(mla_user_dat
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
-mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_internal_ui_control_surface_render_and_draw_task(mla_user_data_t& userData) {
 
     mla_ui_control_surface_t* connector = mla_user_data_get_pointer_data<mla_ui_control_surface_t>(userData, mla_ui_control_surface_connector_user_data_name);
 
@@ -287,7 +287,7 @@ mla_task_process_result_state __mla_ui_control_surface_render_and_draw_task(mla_
 
 mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
 
-    if (!mla_string_is_empty(__mla_ui_control_surface_get_task_id(connector))) {
+    if (!mla_string_is_empty(mla_internal_ui_control_surface_get_task_id(connector))) {
         mla_warning("Connector is already started");
         return false;
     }
@@ -303,15 +303,15 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
 
     // Create rendering task
     mla_task_t render_task = mla_task_repeating(
-            __mla_ui_control_surface_rendering_task_name(id),
-            __mla_ui_control_surface_render_task,
+            mla_internal_ui_control_surface_rendering_task_name(id),
+            mla_internal_ui_control_surface_render_task,
             connector.userData
         );
 
     // Create the Drawing Task
     mla_task_t drawing_task = mla_task_repeating(
-            __mla_ui_control_surface_drawing_task_name(id),
-            __mla_ui_control_surface_drawing_task,
+            mla_internal_ui_control_surface_drawing_task_name(id),
+            mla_internal_ui_control_surface_drawing_task,
             connector.userData
         );
 
@@ -331,9 +331,9 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
     }
 
     // Store task reference
-    connector.cleanup = mla_malloc_struct_cleanup_hook(__mla_ui_control_surface_clean_up_t, __mla_ui_control_surface_cleanup);
+    connector.cleanup = mla_malloc_struct_cleanup_hook(mla_internal_ui_control_surface_clean_up_t, mla_internal_ui_control_surface_cleanup);
 
-    __mla_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<__mla_ui_control_surface_clean_up_t>(connector.cleanup);
+    mla_internal_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<mla_internal_ui_control_surface_clean_up_t>(connector.cleanup);
 
     if (clean_up_data == nullptr) {
         mla_error("Failed to create cleanup buffer reference for UI control surface connector!");
@@ -352,7 +352,7 @@ mla_bool_t mla_ui_control_surface_start(mla_ui_control_surface_t &connector) {
 
 mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surface_t &connector) {
 
-    if (!mla_string_is_empty(__mla_ui_control_surface_get_task_id(connector))) {
+    if (!mla_string_is_empty(mla_internal_ui_control_surface_get_task_id(connector))) {
         mla_warning("Connector is already started");
         return false;
     }
@@ -368,8 +368,8 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
 
     // Create rendering task
     mla_task_t render_draw_task = mla_task_repeating(
-            __mla_ui_control_surface_rendering_drawing_task_name(id),
-            __mla_ui_control_surface_render_and_draw_task,
+            mla_internal_ui_control_surface_rendering_drawing_task_name(id),
+            mla_internal_ui_control_surface_render_and_draw_task,
             connector.userData
         );
 
@@ -380,9 +380,9 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
 
     // Store task reference
 
-    connector.cleanup = mla_malloc_struct_cleanup_hook(__mla_ui_control_surface_clean_up_t, __mla_ui_control_surface_cleanup_single_thread);
+    connector.cleanup = mla_malloc_struct_cleanup_hook(mla_internal_ui_control_surface_clean_up_t, mla_internal_ui_control_surface_cleanup_single_thread);
 
-    __mla_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<__mla_ui_control_surface_clean_up_t>(connector.cleanup);
+    mla_internal_ui_control_surface_clean_up_t* clean_up_data = mla_pointer_get_data<mla_internal_ui_control_surface_clean_up_t>(connector.cleanup);
 
     if (clean_up_data == nullptr) {
         mla_error("Failed to create cleanup buffer reference for UI control surface connector!");
@@ -394,7 +394,7 @@ mla_bool_t mla_ui_control_surface_start_single_threaded_mode(mla_ui_control_surf
 
     clean_up_data->connector = &connector;
 
-    //connector.cleanup = mla_buffer_reference_create(&connector, true, __mla_ui_control_surface_cleanup, mla_dynamic_data_empty());
+    //connector.cleanup = mla_buffer_reference_create(&connector, true, mla_internal_ui_control_surface_cleanup, mla_dynamic_data_empty());
     mla_user_data_set_string(connector.userData, mla_ui_control_surface_task_id_user_data_name, id);
 
     return true;
@@ -429,7 +429,7 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
     mla_pointer_t connector_ptr = mla_platform_pointer_to_managed_pointer(&connector);
     mla_user_data_set_pointer(context_user_data, mla_ui_control_surface_text_size_user_data_name, connector_ptr);
 
-    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, __mla_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
+    mla_ui_control_context_t context = mla_ui_control_context(surfaceSize.width, surfaceSize.height, input_states, mla_internal_ui_control_surface_calc_text_size, timeSinceLastFrameMs, context_user_data);
 
     mla_array_list_clear(connector.drawing.drawCommands);
     mla_array_list_clear(connector.rendering.inputAreas);
@@ -438,7 +438,7 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
 
     if (!hasControlsToRender) {
         // If no controls to render, draw a loading screen
-        mla_ui_control_t loadingIndicator = __mla_ui_control_surface_build_loading_indicator(context);
+        mla_ui_control_t loadingIndicator = mla_internal_ui_control_surface_build_loading_indicator(context);
         mla_array_list_add(connector.rendering.root, loadingIndicator);
     }
 

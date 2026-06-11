@@ -14,7 +14,7 @@ struct mla_pointer_header_t {
     mla_dynamic_data_t cleanupHookUserData;
 };
 
-mla_pointer_header_t* __mla_pointer_get_header(mla_dynamic_data_t& payload) {
+mla_pointer_header_t* mla_internal_pointer_get_header(mla_dynamic_data_t& payload) {
 
     if (payload.asPointer == nullptr) {
         return nullptr;
@@ -23,7 +23,7 @@ mla_pointer_header_t* __mla_pointer_get_header(mla_dynamic_data_t& payload) {
     return reinterpret_cast<mla_pointer_header_t*>(payload.asPointer);
 }
 
-mla_pointer_t __default_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
+mla_pointer_t mla_internal_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
 
     mla_size_t totalSize = sizeof(mla_pointer_header_t) + size;
     mla_platform_pointer_t rawPtr = mla_platform_malloc_with_check(totalSize, filename, function_name);
@@ -45,7 +45,7 @@ mla_pointer_t __default_pointer_memory_manager_malloc(mla_pointer_memory_manager
     };
 }
 
-mla_platform_pointer_t __default_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+mla_platform_pointer_t mla_internal_default_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
     if (payload.asPointer == nullptr) {
@@ -55,10 +55,10 @@ mla_platform_pointer_t __default_pointer_memory_manager_get_platform_pointer(mla
     return static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 }
 
-void __default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+void mla_internal_default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
-    mla_pointer_header_t* header = __mla_pointer_get_header(payload);
+    mla_pointer_header_t* header = mla_internal_pointer_get_header(payload);
     if (header == nullptr) {
         return;
     }
@@ -72,11 +72,11 @@ void __default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t
     }
 }
 
-void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+void mla_internal_default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
 
     (void)memory_manager;
 
-    mla_pointer_header_t* header = __mla_pointer_get_header(payload);
+    mla_pointer_header_t* header = mla_internal_pointer_get_header(payload);
 
     if (header == nullptr) {
         return;
@@ -103,10 +103,10 @@ void __default_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t
     }
 }
 
-mla_int32_t __default_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload) {
+mla_int32_t mla_internal_default_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
-    mla_pointer_header_t* header = __mla_pointer_get_header(payload);
+    mla_pointer_header_t* header = mla_internal_pointer_get_header(payload);
     if (header == nullptr) {
         return -1; // Not supported
     }
@@ -115,11 +115,11 @@ mla_int32_t __default_pointer_memory_manager_get_ref_count(const mla_pointer_mem
 }
 
 mla_pointer_memory_manager_t g_default_pointer_memory_manager = {
-    __default_pointer_memory_manager_malloc,
-    __default_pointer_memory_manager_get_platform_pointer,
-    __default_pointer_memory_manager_incReferences,
-    __default_pointer_memory_manager_decReferences,
-    __default_pointer_memory_manager_get_ref_count
+    mla_internal_pointer_memory_manager_malloc,
+    mla_internal_default_pointer_memory_manager_get_platform_pointer,
+    mla_internal_default_pointer_memory_manager_incReferences,
+    mla_internal_default_pointer_memory_manager_decReferences,
+    mla_internal_default_pointer_memory_manager_get_ref_count
 };
 
 mla_pointer_memory_manager_instance_t g_pointer_memory_manager_instance = {

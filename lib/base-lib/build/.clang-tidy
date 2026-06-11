@@ -58,8 +58,5 @@ Checks: >-
 # by default, so projects can adopt the checks incrementally.
 WarningsAsErrors: ''
 
-# Report diagnostics from all header files.
-HeaderFilterRegex: '.*'
-
 FormatStyle: none
 ...

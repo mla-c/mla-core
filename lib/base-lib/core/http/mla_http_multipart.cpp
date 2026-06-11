@@ -77,7 +77,7 @@ mla_http_client_response_t mla_http_client_upload_file(
     const mla_string_t &field_name,
     const mla_string_t &file_name,
     const mla_string_t &content_type,
-    mla_stream_input_t file_content) {
+    mla_stream_input_t& file_content) {
     mla_http_request_t request = mla_http_post_request(url);
 
     mla_string_t boundary = mla_string_const("----MlaMultipartBoundary123456789");

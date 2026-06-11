@@ -47,7 +47,7 @@ struct mla_serializer_t {
 mla_serializer_t mla_serializer_invalid();
 mla_bool_t mla_serializer_is_invalid(const mla_serializer_t& serializer);
 
-enum mla_deserializer_token_type_t {
+enum mla_deserializer_token_type_t : mla_uint8_t {
     MLA_DESERIALIZER_NULL = 0,
     MLA_DESERIALIZER_PROPERTY_NAME = 1,
     MLA_DESERIALIZER_STRUCT_START = 2,
@@ -112,7 +112,7 @@ struct mla_deserializer_t {
 mla_deserializer_t mla_deserializer_invalid();
 mla_bool_t mla_deserializer_is_invalid(const mla_deserializer_t& deserializer);
 
-enum mla_deserializer_read_result_t {
+enum mla_deserializer_read_result_t : mla_uint8_t {
     MLA_DESERIALIZER_READ_HANDLED,
     MLA_DESERIALIZER_READ_SKIPPED,
     MLA_DESERIALIZER_READ_ERROR
@@ -384,8 +384,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_bool(instance, setter)\
     {\
     mla_bool_t value = false;\
-    if (mla_deserializer_convert_to_bool(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_bool((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -395,8 +395,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_int8(instance, setter)\
     {\
     mla_int8_t value = 0;\
-    if (mla_deserializer_convert_to_int8(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_int8((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -406,8 +406,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_int16(instance, setter)\
     {\
     mla_int16_t value = 0;\
-    if (mla_deserializer_convert_to_int16(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_int16((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -417,8 +417,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_int32(instance, setter)\
     {\
     mla_int32_t value = 0;\
-    if (mla_deserializer_convert_to_int32(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_int32((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -428,8 +428,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_int64(instance, setter)\
     {\
     mla_int64_t value = 0;\
-    if (mla_deserializer_convert_to_int64(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_int64((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -439,8 +439,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_uint8(instance, setter)\
     {\
     mla_uint8_t value = 0;\
-    if (mla_deserializer_convert_to_uint8(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_uint8((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -450,8 +450,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_enum(enum_type, instance, setter)\
     {\
     mla_uint8_t value = 0;\
-    if (mla_deserializer_convert_to_uint8(instance.current_token, &value)) {\
-        setter = static_cast<enum_type>(value);\
+    if (mla_deserializer_convert_to_uint8((instance).current_token, &value)) {\
+        (setter) = static_cast<enum_type>(value);\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -461,8 +461,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_uint16(instance, setter)\
     {\
     mla_uint16_t value = 0;\
-    if (mla_deserializer_convert_to_uint16(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_uint16((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -472,8 +472,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_uint32(instance, setter)\
     {\
     mla_uint32_t value = 0;\
-    if (mla_deserializer_convert_to_uint32(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_uint32((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -483,8 +483,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_uint64(instance, setter)\
     {\
     mla_uint64_t value = 0;\
-    if (mla_deserializer_convert_to_uint64(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_uint64((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -494,8 +494,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_float(instance, setter)\
     {\
     mla_float_t value = 0;\
-    if (mla_deserializer_convert_to_float(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_float((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -505,8 +505,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_double(instance, setter)\
     {\
     mla_double_t value = 0;\
-    if (mla_deserializer_convert_to_double(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_double((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -516,8 +516,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_string(instance, setter)\
     {\
     mla_string_t value = mla_string_empty();\
-    if (mla_deserializer_convert_to_string(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_string((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -527,8 +527,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 #define mla_deserializer_read_bytes(instance, setter)\
     {\
     mla_bytes_t value = mla_bytes_empty();\
-    if (mla_deserializer_convert_to_bytes(instance.current_token, &value)) {\
-        setter = value;\
+    if (mla_deserializer_convert_to_bytes((instance).current_token, &value)) {\
+        (setter) = value;\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -537,7 +537,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 
 #define mla_deserializer_read_list_struct(instance, setter, struct_data)\
     {\
-    if (mla_serializer_read_list<struct_data>(instance, setter, struct_data::deserialize)) {\
+    if (mla_serializer_read_list<struct_data>((instance), (setter), struct_data::deserialize)) {\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -546,7 +546,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 
 #define mla_deserializer_read_list_struct_fixed_size(instance, setter, struct_data)\
     {\
-    if (mla_serializer_read_list_fixed_size<struct_data>(instance, setter, struct_data::deserialize, sizeof(setter))) {\
+    if (mla_serializer_read_list_fixed_size<struct_data>((instance), (setter), struct_data::deserialize, sizeof(setter))) {\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -555,8 +555,8 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 
 #define mla_deserializer_read_struct(instance, setter, struct_data)\
     {\
-        mla_pointer_t setter_data = mla_platform_pointer_to_managed_pointer(&setter);\
-        if (mla_deserializer_read_struct_read_function(instance, setter_data, struct_data::deserialize)) {\
+        mla_pointer_t setter_data = mla_platform_pointer_to_managed_pointer(&(setter));\
+        if (mla_deserializer_read_struct_read_function((instance), setter_data, struct_data::deserialize)) {\
             return MLA_DESERIALIZER_READ_HANDLED;\
         } else {\
             return MLA_DESERIALIZER_READ_ERROR;\
@@ -566,114 +566,114 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
 // Serializer
 
 #define mla_serializer_write_bool(instance, name, value) \
-    if (!instance.write_property_name(instance, name)) { \
+    if (!(instance).write_property_name(instance, name)) { \
         return false;\
     }\
-    if (!instance.write_bool(instance, value)) {\
+    if (!(instance).write_bool(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_int8(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_int8(instance, value)) {\
+    if (!(instance).write_int8(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_int16(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_int16(instance, value)) {\
+    if (!(instance).write_int16(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_int32(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_int32(instance, value)) {\
+    if (!(instance).write_int32(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_int64(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_int64(instance, value)) {\
+    if (!(instance).write_int64(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_uint8(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_uint8(instance, value)) {\
+    if (!(instance).write_uint8(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_enum(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_uint8(instance, static_cast<mla_uint8_t>(value))) {\
+    if (!(instance).write_uint8(instance, static_cast<mla_uint8_t>(value))) {\
         return false;\
     }
 
 #define mla_serializer_write_uint16(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_uint16(instance, value)) {\
+    if (!(instance).write_uint16(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_uint32(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_uint32(instance, value)) {\
+    if (!(instance).write_uint32(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_uint64(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_uint64(instance, value)) {\
+    if (!(instance).write_uint64(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_float(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_float(instance, value)) {\
+    if (!(instance).write_float(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_double(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_double(instance, value)) {\
+    if (!(instance).write_double(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_string(instance, name, value)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_string(instance, value)) {\
+    if (!(instance).write_string(instance, value)) {\
         return false;\
     }
 
 #define mla_serializer_write_bytes(instance, name, bytes)\
-    if (!instance.write_property_name(instance, name)) {\
+    if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!instance.write_bytes(instance, bytes)) {\
+    if (!(instance).write_bytes(instance, bytes)) {\
         return false;\
     }
 
@@ -695,7 +695,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     }
 
 #define mla_serializer_write_struct(instance, name, value, struct_data)\
-    if (!mla_serializer_write_data_struct(instance, name, mla_platform_pointer_to_managed_pointer(&value), struct_data::serialize)) {\
+    if (!mla_serializer_write_data_struct(instance, name, mla_platform_pointer_to_managed_pointer(&(value)), struct_data::serialize)) {\
         return false;\
     }
 

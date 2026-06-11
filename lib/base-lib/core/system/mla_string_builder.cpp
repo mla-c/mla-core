@@ -4,16 +4,16 @@
 
 #include "mla_string_builder.h"
 
-static mla_size_t __mla_string_builder_normalize_capacity(mla_size_t p_Capacity) {
+static mla_size_t mla_internal_string_builder_normalize_capacity(mla_size_t p_Capacity) {
     return p_Capacity == 0 ? (mla_size_t)1 : p_Capacity;
 }
 
-static mla_bool_t __mla_string_builder_ensure_capacity(mla_string_builder_t& p_Builder, mla_size_t p_RequiredLength) {
+static mla_bool_t mla_internal_string_builder_ensure_capacity(mla_string_builder_t& p_Builder, mla_size_t p_RequiredLength) {
     if (p_RequiredLength <= p_Builder.bufferSize && !mla_pointer_is_null(p_Builder.buffer)) {
         return true;
     }
 
-    mla_size_t newCapacity = __mla_string_builder_normalize_capacity(p_Builder.bufferSize);
+    mla_size_t newCapacity = mla_internal_string_builder_normalize_capacity(p_Builder.bufferSize);
 
     while (newCapacity < p_RequiredLength) {
         if (newCapacity > (mla_size_max / 2)) {
@@ -23,7 +23,7 @@ static mla_bool_t __mla_string_builder_ensure_capacity(mla_string_builder_t& p_B
         newCapacity *= 2;
     }
 
-    newCapacity = __mla_string_builder_normalize_capacity(newCapacity);
+    newCapacity = mla_internal_string_builder_normalize_capacity(newCapacity);
     mla_pointer_t newBuffer = mla_create_char_array(newCapacity + 1);
     mla_char_t* newBufferData = mla_pointer_get_data<mla_char_t>(newBuffer);
 
@@ -47,7 +47,7 @@ static mla_bool_t __mla_string_builder_ensure_capacity(mla_string_builder_t& p_B
     return true;
 }
 
-static mla_bool_t __mla_string_builder_append_data(mla_string_builder_t& p_Builder, const mla_char_t* p_Data, mla_size_t p_Length) {
+static mla_bool_t mla_internal_string_builder_append_data(mla_string_builder_t& p_Builder, const mla_char_t* p_Data, mla_size_t p_Length) {
     if (p_Length == 0) {
         return true;
     }
@@ -62,7 +62,7 @@ static mla_bool_t __mla_string_builder_append_data(mla_string_builder_t& p_Build
         return false;
     }
 
-    if (!__mla_string_builder_ensure_capacity(p_Builder, requiredLength)) {
+    if (!mla_internal_string_builder_ensure_capacity(p_Builder, requiredLength)) {
         return false;
     }
 
@@ -88,9 +88,9 @@ mla_string_builder_t mla_string_builder_create() {
 
 mla_string_builder_t mla_string_builder_create(mla_size_t p_InitialBufferSize) {
     mla_string_builder_t builder = mla_string_builder_empty();
-    builder.bufferSize = __mla_string_builder_normalize_capacity(p_InitialBufferSize);
+    builder.bufferSize = mla_internal_string_builder_normalize_capacity(p_InitialBufferSize);
 
-    if (!__mla_string_builder_ensure_capacity(builder, 0)) {
+    if (!mla_internal_string_builder_ensure_capacity(builder, 0)) {
         return mla_string_builder_empty();
     }
 
@@ -129,7 +129,7 @@ mla_string_t mla_string_builder_to_string(const mla_string_builder_t& p_Builder)
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_string_t& p_Value) {
     const mla_char_t* valueData = mla_string_data(p_Value);
     mla_size_t valueLength = mla_string_length(p_Value);
-    return __mla_string_builder_append_data(p_Builder, valueData, valueLength);
+    return mla_internal_string_builder_append_data(p_Builder, valueData, valueLength);
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_char_t* p_Value) {
@@ -137,7 +137,7 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, const mla_
         return false;
     }
     mla_size_t valueLength = mla_strlen(p_Value);
-    return __mla_string_builder_append_data(p_Builder, p_Value, valueLength);
+    return mla_internal_string_builder_append_data(p_Builder, p_Value, valueLength);
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_bool_t p_Value) {
@@ -215,7 +215,7 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_double
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_char_t p_Value) {
-    return __mla_string_builder_append_data(p_Builder, &p_Value, 1);
+    return mla_internal_string_builder_append_data(p_Builder, &p_Value, 1);
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_platform_pointer_t p_Value) {

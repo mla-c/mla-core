@@ -62,7 +62,7 @@ struct mla_task_shared_states {
     }
 };
 
-#define mla_task_is_done(state) ((mla_task_state)state == TASK_STATE_COMPLETED || (mla_task_state)state == TASK_STATE_ABORTED)
+#define mla_task_is_done(state) ((mla_task_state)(state) == TASK_STATE_COMPLETED || (mla_task_state)(state) == TASK_STATE_ABORTED)
 
 struct mla_task_manager_low_level_access {
 

@@ -9,7 +9,7 @@ The module consists of a platform-independent API in `mla_external_task.h` and p
 ### Key Components
 
 - **`mla_external_task_t`**: Represents one external process instance including command line, managed native resource, stdout input stream, and stdin output stream.
-- **`mla_external_task_managment_t`**: Low-level platform hooks for process creation, state querying, stop, stdout read, and stdin write.
+- **`mla_external_task_management_t`**: Low-level platform hooks for process creation, state querying, stop, stdout read, and stdin write.
 - **Managed native resource ownership**: Process-specific native state is wrapped in `mla_pointer_t` and cleaned up through `mla_native_resource_to_managed_pointer(...)` cleanup hooks.
 
 ## Usage

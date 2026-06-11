@@ -82,7 +82,7 @@ mla_test_uint32_t mla_uint32_to_string(mla_test_char_t* buffer, mla_test_uint32_
     mla_test_uint32_t pos = digit_count;
     temp = value;
     while (temp > 0) {
-        buffer[--pos] = '0' + (temp % 10);
+        buffer[--pos] = static_cast<mla_test_char_t>('0' + (temp % 10));
         temp /= 10;
     }
 
@@ -107,7 +107,7 @@ mla_test_uint32_t mla_int16_to_string(mla_test_char_t* buffer, mla_test_uint32_t
             }
             return offset;
         }
-        value = -value;
+        value = static_cast<mla_test_int16_t>(-value);
     }
 
     // Convert absolute value using uint32 function
@@ -170,7 +170,7 @@ mla_test_uint32_t mla_uint64_to_string(mla_test_char_t* buffer, mla_test_uint32_
     mla_test_uint32_t pos = digit_count;
     temp = value;
     while (temp > 0) {
-        buffer[--pos] = '0' + (temp % 10);
+        buffer[--pos] = static_cast<mla_test_char_t>('0' + (temp % 10));
         temp /= 10;
     }
 
@@ -225,12 +225,12 @@ mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Get fractional part
-    mla_test_float_t frac_part = value - int_part;
+    mla_test_float_t frac_part = value - static_cast<mla_test_float_t>(int_part);
     for (mla_test_uint32_t i = 0; i < precision && offset < buffer_size - 1; i++) {
         frac_part *= 10;
-        mla_test_int32_t digit = (mla_test_int32_t)frac_part;
-        buffer[offset++] = (mla_test_char_t)('0' + digit);
-        frac_part -= digit;
+        mla_test_int32_t digit = static_cast<mla_test_int32_t>(frac_part);
+        buffer[offset++] = static_cast<mla_test_char_t>('0' + digit);
+        frac_part -=  static_cast<mla_test_float_t>(digit);
     }
 
     return offset;
@@ -258,7 +258,7 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
     }
 
     // Get fractional part
-    mla_test_double_t frac_part = value - int_part;
+    mla_test_double_t frac_part = value - static_cast<mla_test_double_t>(int_part);
     for (mla_test_uint32_t i = 0; i < precision && offset < buffer_size - 1; i++) {
         frac_part *= 10;
         mla_test_int32_t digit = (mla_test_int32_t)frac_part;

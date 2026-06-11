@@ -10,15 +10,15 @@
 // Platform detection and 32-bit type definitions
 #if defined(__LP64__) || defined(_LP64) || defined(__x86_64__) || defined(__aarch64__) || (defined(__SIZEOF_LONG__) && __SIZEOF_LONG__ == 8)
     // 64-bit Unix/Linux (LP64 model): long is 8 bytes
-    #define ___mla_internal_int32 int
+    #define mla_internal_int32 int
 
 #elif defined(_WIN32) || defined(_WIN64)
     // Windows (LLP64 model): long is 4 bytes even on 64-bit
-    #define ___mla_internal_int32 long
+    #define mla_internal_int32 long
 
 #else
     // Fallback for other platforms: use int (safest cross-platform choice)
-    #define ___mla_internal_int32 int
+    #define mla_internal_int32 int
 #endif
 
 #define mla_bool_t bool
@@ -27,8 +27,8 @@
 #define mla_uint8_t unsigned char
 #define mla_int16_t signed short
 #define mla_uint16_t unsigned short
-#define mla_int32_t signed ___mla_internal_int32
-#define mla_uint32_t unsigned ___mla_internal_int32
+#define mla_int32_t signed mla_internal_int32
+#define mla_uint32_t unsigned mla_internal_int32
 #define mla_int64_t signed long long
 #define mla_uint64_t unsigned long long
 
@@ -37,7 +37,7 @@
 
 #define mla_char_t char
 #define mla_utf_16_char_t unsigned short
-#define mla_utf_32_char_t unsigned ___mla_internal_int32
+#define mla_utf_32_char_t unsigned mla_internal_int32
 
 #define mla_void_t void
 #define mla_platform_pointer_t void*
@@ -175,9 +175,9 @@ struct mla_atomic_int32_t {
 // Platform-specific infinity definitions (no std/C library dependencies)
 #if defined(_MSC_VER)
 // MSVC - use IEEE 754 bit pattern for float infinity
-static const union { mla_uint32_t i; mla_float_t f; } __mla_inf_union = { 0x7F800000U };
-#define mla_infinity_pos (__mla_inf_union.f)
-#define mla_infinity_neg (-__mla_inf_union.f)
+static const union { mla_uint32_t i; mla_float_t f; } mla_internal_inf_union = { 0x7F800000U };
+#define mla_infinity_pos (mla_internal_inf_union.f)
+#define mla_infinity_neg (-mla_internal_inf_union.f)
 #else
 // GCC/Clang - use builtin
 #define mla_infinity_pos (__builtin_inff())
@@ -193,7 +193,7 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path);
 
 // Extracts the filename from the full path
 // The macro works for both Unix and Windows style paths
-#define __FILENAME_ONLY__ mla_find_filename_from_path(__FILE__)
+#define mla_filename_only mla_find_filename_from_path(__FILE__)
 
 //////////////////////////////////////////////////
 /// Low level memory operations and access to printf and other C functions
@@ -514,7 +514,7 @@ void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t da
 }
 
 template <typename T>
-mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook) {
+mla_dynamic_data_t mla_internal_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook) {
     return mla_dynamic_data_from_pointer(reinterpret_cast<mla_platform_pointer_t>(clean_up_hook));
 }
 
@@ -532,7 +532,7 @@ mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struc
  * @param  clean_up_hook A function of type `void(*)(T&)` invoked just before the memory is freed.
  * @return               A `mla_pointer_t` holding the first reference to the allocated `T`.
  */
-#define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
+#define mla_malloc_struct_cleanup_hook_with_manager(manager, T, clean_up_hook) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, mla_internal_dynamic_data_from_pointer_cleanup_hook<T>(clean_up_hook))
 
 /**
  * @brief Allocates a managed struct with a custom cleanup hook, through the active memory manager.
@@ -559,7 +559,7 @@ mla_dynamic_data_t __mla_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struc
  * @param  manager The `mla_pointer_memory_manager_t*` to use for the allocation.
  * @return         A `mla_pointer_t` holding the first reference to the allocated `T`.
  */
-#define mla_malloc_struct_cleanup_extension_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, __mla_dynamic_data_from_pointer_cleanup_hook<T>(T::clean_up_resource))
+#define mla_malloc_struct_cleanup_extension_with_manager(manager, T) mla_malloc_with_manager(manager, sizeof(T), mla_pointer_default_struct_with_extension_cleanup<T>, mla_internal_dynamic_data_from_pointer_cleanup_hook<T>(T::clean_up_resource))
 
 /**
  * @brief Allocates a managed struct and uses `T::clean_up_resource` as the cleanup hook,

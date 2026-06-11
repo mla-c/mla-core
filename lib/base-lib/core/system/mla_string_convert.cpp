@@ -23,7 +23,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -59,7 +59,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -92,7 +92,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         mla_uint8_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -123,7 +123,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         mla_uint8_t value = p_Value;
 
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -163,7 +163,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -199,7 +199,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -232,7 +232,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         mla_uint16_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -263,7 +263,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         mla_uint16_t value = p_Value;
 
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -303,7 +303,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -339,7 +339,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -372,7 +372,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         mla_uint32_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -403,7 +403,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         mla_uint32_t value = p_Value;
 
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -444,7 +444,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -480,7 +480,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -513,7 +513,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         mla_uint64_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = '0' + (value % 10);
+            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -544,7 +544,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         mla_uint64_t value = p_Value;
 
         do {
-            str_data[index++] = '0' + (value % 10);
+            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -677,7 +677,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         dest[writerPos] = '0';
     } else {
         while (integerPart > 0) {
-            dest[writerPos--] = '0' + (integerPart % 10);
+            dest[writerPos--] = static_cast<mla_char_t>('0' + (integerPart % 10));
             integerPart /= 10;
         }
     }
@@ -690,7 +690,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0f;
             mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            dest[index++] = '0' + digit;
+            dest[index++] = static_cast<mla_char_t>('0' + digit);
             fractionalPart -= static_cast<mla_float_t>(digit);
         }
     }
@@ -804,7 +804,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         dest[writerPos] = '0';
     } else {
         while (integerPart > 0) {
-            dest[writerPos--] = '0' + (integerPart % 10);
+            dest[writerPos--] = static_cast<mla_char_t>('0' + (integerPart % 10));
             integerPart /= 10;
         }
     }
@@ -817,7 +817,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0;
             mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            dest[index++] = '0' + digit;
+            dest[index++] = static_cast<mla_char_t>('0' + digit);
             fractionalPart -= static_cast<mla_double_t>(digit);
         }
     }

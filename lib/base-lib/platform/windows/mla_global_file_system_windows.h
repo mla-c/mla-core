@@ -28,12 +28,12 @@ struct mla_file_system_native_t {
 
 static const mla_string_t mla_windows_fs_directory_seperator = mla_string_const("\\");
 
-mla_file_system_native_t* __mla_file_system_native_get_native_data(mla_file_system_t& file_system) {
+mla_file_system_native_t* mla_internal_file_system_native_get_native_data(mla_file_system_t& file_system) {
 
     return mla_pointer_get_data<mla_file_system_native_t>(file_system.resource);
 }
 
-mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_native_t* fs, const mla_string_t& path) {
+mla_string_t mla_internal_file_system_native_file_path_to_full_path(mla_file_system_native_t* fs, const mla_string_t& path) {
     // Repleace all slash with backslash
     mla_string_t correctedPath = mla_string_replace(path, mla_fs_directory_seperator, mla_windows_fs_directory_seperator);
 
@@ -54,14 +54,14 @@ mla_string_t __mla_file_system_native_file_path_to_full_path(mla_file_system_nat
     return mla_string_concat(p1, mla_windows_fs_directory_seperator, p2);
 }
 
-mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, const mla_string_t& path) {
+mla_bool_t mla_internal_file_system_native_file_exists(mla_file_system_t& file_system, const mla_string_t& path) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -76,14 +76,14 @@ mla_bool_t __mla_file_system_native_file_exists(mla_file_system_t& file_system, 
     return result;
 }
 
-mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, const mla_string_t& path) {
+mla_bool_t mla_internal_file_system_native_delete_file(mla_file_system_t& file_system, const mla_string_t& path) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -99,7 +99,7 @@ mla_bool_t __mla_file_system_native_delete_file(mla_file_system_t& file_system, 
 }
 
 
-mla_bool_t __mla_file_system_native_create_directory_recursive_wide(LPCWSTR wide_path) {
+mla_bool_t mla_internal_file_system_native_create_directory_recursive_wide(LPCWSTR wide_path) {
 
     // Try to create the directory first
     if (CreateDirectoryW(wide_path, nullptr) != 0) {
@@ -135,7 +135,7 @@ mla_bool_t __mla_file_system_native_create_directory_recursive_wide(LPCWSTR wide
             parentPath[parentLen] = L'\0';
 
             // Recursively create parent directory
-            if (!__mla_file_system_native_create_directory_recursive_wide(parentPath)) {
+            if (!mla_internal_file_system_native_create_directory_recursive_wide(parentPath)) {
                 return false;
             }
 
@@ -156,14 +156,14 @@ mla_bool_t __mla_file_system_native_create_directory_recursive_wide(LPCWSTR wide
 }
 
 
-mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
+mla_bool_t mla_internal_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -172,19 +172,19 @@ mla_bool_t __mla_file_system_native_create_directory(mla_file_system_t& file_sys
     if (wide_path == nullptr)
         return false;
 
-    mla_bool_t result = __mla_file_system_native_create_directory_recursive_wide(wide_path);
+    mla_bool_t result = mla_internal_file_system_native_create_directory_recursive_wide(wide_path);
 
     return result;
 }
 
-mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
+mla_bool_t mla_internal_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -199,14 +199,14 @@ mla_bool_t __mla_file_system_native_directory_exists(mla_file_system_t& file_sys
     return result;
 }
 
-mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_system, const mla_string_t& path) {
+mla_bool_t mla_internal_file_system_native_delete_directory(mla_file_system_t& file_system, const mla_string_t& path) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -220,14 +220,14 @@ mla_bool_t __mla_file_system_native_delete_directory(mla_file_system_t& file_sys
     return result;
 }
 
-mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+mla_bool_t mla_internal_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     // Append wildcard for FindFirstFile
     mla_string_t searchPath = mla_string_concat(fullPath, mla_string_const("/*"));
@@ -260,14 +260,14 @@ mla_bool_t __mla_file_system_native_list_files(mla_file_system_t& file_system, c
     return true;
 }
 
-mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
+mla_bool_t mla_internal_file_system_native_list_directory(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     // Append wildcard for FindFirstFile
     mla_string_t searchPath = mla_string_concat(fullPath, mla_string_const("/*"));
@@ -305,7 +305,7 @@ mla_bool_t __mla_file_system_native_list_directory(mla_file_system_t& file_syste
     return true;
 }
 
-void __mla_file_system_native_close_file(const mla_native_resource_t& userData) {
+void mla_internal_file_system_native_close_file(const mla_native_resource_t& userData) {
 
     (void)userData;
     HANDLE hFile = reinterpret_cast<HANDLE>(userData.asPointer);
@@ -314,7 +314,7 @@ void __mla_file_system_native_close_file(const mla_native_resource_t& userData) 
 
 }
 
-HANDLE __mla_file_system_native_get_handle_from_stream(const mla_file_system_stream_t& stream) {
+HANDLE mla_internal_file_system_native_get_handle_from_stream(const mla_file_system_stream_t& stream) {
 
     mla_native_resource_t* native_resource = mla_native_resource_from_managed_pointer(stream.resource);
 
@@ -326,9 +326,9 @@ HANDLE __mla_file_system_native_get_handle_from_stream(const mla_file_system_str
 
 }
 
-mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
+mla_bool_t mla_internal_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(stream);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(stream);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
@@ -340,9 +340,9 @@ mla_bool_t __mla_file_system_native_open_file_seek(const mla_file_system_stream_
     return SetFilePointerEx(hFile, li, nullptr, FILE_BEGIN) != 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_position(const mla_file_system_stream_t& stream) {
+mla_size_t mla_internal_file_system_native_open_file_position(const mla_file_system_stream_t& stream) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(stream);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(stream);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return 0;
@@ -360,9 +360,9 @@ mla_size_t __mla_file_system_native_open_file_position(const mla_file_system_str
     return 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
+mla_size_t mla_internal_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(stream);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(stream);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return 0;
@@ -377,9 +377,9 @@ mla_size_t __mla_file_system_native_open_file_length(const mla_file_system_strea
     return 0;
 }
 
-mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
+mla_bool_t mla_internal_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(stream);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(stream);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
@@ -396,9 +396,9 @@ mla_bool_t __mla_file_system_native_open_file_set_length(const mla_file_system_s
     return false;
 }
 
-mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t mla_internal_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(input);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(input);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return 0;
@@ -413,9 +413,9 @@ mla_size_t __mla_file_system_native_open_file_read(const mla_file_system_stream_
     return 0;
 }
 
-mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_internal_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
-    HANDLE hFile = __mla_file_system_native_get_handle_from_stream(output);
+    HANDLE hFile = mla_internal_file_system_native_get_handle_from_stream(output);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         return 0;
@@ -430,14 +430,14 @@ mla_size_t __mla_file_system_native_open_file_write(const mla_file_system_stream
     return 0;
 }
 
-mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
+mla_bool_t mla_internal_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
 
-    mla_file_system_native_t* fs = __mla_file_system_native_get_native_data(file_system);
+    mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
     if (fs == nullptr)
         return false;
 
-    mla_string_t fullPath = __mla_file_system_native_file_path_to_full_path(fs, path);
+    mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
     mla_string_utf16_buffer_t wideBuffer = mla_string_to_utf16_buffer(fullPath);
 
@@ -490,39 +490,39 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
     }
 
     mla_native_resource_t resource = mla_dynamic_data_from_pointer(hFile);
-    mla_pointer_t resource_ptr = mla_native_resource_to_managed_pointer(resource, __mla_file_system_native_close_file);
+    mla_pointer_t resource_ptr = mla_native_resource_to_managed_pointer(resource, mla_internal_file_system_native_close_file);
 
     if (canRead && canWrite) {
         out_stream = {
             path,
-            __mla_file_system_native_open_file_seek, // seek
-            __mla_file_system_native_open_file_position, // position
-            __mla_file_system_native_open_file_length, // length
-            __mla_file_system_native_open_file_set_length, // set_length
-            __mla_file_system_native_open_file_read, // read
-            __mla_file_system_native_open_file_write, // write
+            mla_internal_file_system_native_open_file_seek, // seek
+            mla_internal_file_system_native_open_file_position, // position
+            mla_internal_file_system_native_open_file_length, // length
+            mla_internal_file_system_native_open_file_set_length, // set_length
+            mla_internal_file_system_native_open_file_read, // read
+            mla_internal_file_system_native_open_file_write, // write
             resource_ptr
         };
     } else if (canRead) {
         out_stream = {
             fullPath,
-            __mla_file_system_native_open_file_seek, // seek
-            __mla_file_system_native_open_file_position, // position
-            __mla_file_system_native_open_file_length, // length
+            mla_internal_file_system_native_open_file_seek, // seek
+            mla_internal_file_system_native_open_file_position, // position
+            mla_internal_file_system_native_open_file_length, // length
             nullptr, // no set_length
-            __mla_file_system_native_open_file_read, // read
+            mla_internal_file_system_native_open_file_read, // read
             nullptr, // no write
             resource_ptr
         };
     } else if (canWrite) {
         out_stream = {
             path,
-            __mla_file_system_native_open_file_seek, // seek
-            __mla_file_system_native_open_file_position, // position
-            __mla_file_system_native_open_file_length, // length
-            __mla_file_system_native_open_file_set_length, // set_length
+            mla_internal_file_system_native_open_file_seek, // seek
+            mla_internal_file_system_native_open_file_position, // position
+            mla_internal_file_system_native_open_file_length, // length
+            mla_internal_file_system_native_open_file_set_length, // set_length
             nullptr, // no read
-            __mla_file_system_native_open_file_write, // write
+            mla_internal_file_system_native_open_file_write, // write
             resource_ptr
         };
     } else {
@@ -533,7 +533,7 @@ mla_bool_t __mla_file_system_native_open_file(mla_file_system_t& file_system, co
     return true;
 }
 
-mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& basePath) {
+mla_file_system_t mla_internal_file_system_native_create_with_base(const mla_string_t& basePath) {
 
     mla_pointer_t fs_ptr = mla_malloc_struct(mla_file_system_native_t);
 
@@ -545,23 +545,25 @@ mla_file_system_t __mla_file_system_native_create_with_base(const mla_string_t& 
     fs->basePath = basePath;
 
     return {
-        __mla_file_system_native_file_exists,
-        __mla_file_system_native_open_file,
-        __mla_file_system_native_delete_file,
-        __mla_file_system_native_list_files,
-        __mla_file_system_native_create_directory,
-        __mla_file_system_native_directory_exists,
-        __mla_file_system_native_delete_directory,
-        __mla_file_system_native_list_directory,
+        mla_internal_file_system_native_file_exists,
+        mla_internal_file_system_native_open_file,
+        mla_internal_file_system_native_delete_file,
+        mla_internal_file_system_native_list_files,
+        mla_internal_file_system_native_create_directory,
+        mla_internal_file_system_native_directory_exists,
+        mla_internal_file_system_native_delete_directory,
+        mla_internal_file_system_native_list_directory,
         fs_ptr
     };
 }
 
-mla_file_system_t mla_file_system_native_create_restricted(mla_string_t full_basePath) {
-    return __mla_file_system_native_create_with_base(full_basePath);
+mla_file_system_t mla_file_system_native_create_restricted(const mla_string_t& full_basePath) {
+
+    return mla_internal_file_system_native_create_with_base(full_basePath);
 }
 
-mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t basePath) {
+mla_file_system_t mla_file_system_native_create_data_restricted(const mla_string_t& basePath) {
+
     // Get the executable path
     WCHAR moduleFileName[32767];
     GetModuleFileNameW(nullptr, moduleFileName, 32767);
@@ -620,14 +622,14 @@ mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t bas
         return mla_file_system_empty();
     }
 
-    return __mla_file_system_native_create_with_base(fullPath);
+    return mla_internal_file_system_native_create_with_base(fullPath);
 }
 
 
 
 mla_file_system_t mla_file_system_native_create_global() {
 
-    return __mla_file_system_native_create_with_base(mla_string_empty());
+    return mla_internal_file_system_native_create_with_base(mla_string_empty());
 
 }
 

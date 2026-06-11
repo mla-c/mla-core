@@ -156,7 +156,7 @@ mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_hea
     return false;
 }
 
-mla_bool_t __mla_http_headers_has_value(const mla_string_t &headerValue, const mla_string_t &valueToCheck, const mla_string_t &value_seperator) {
+mla_bool_t mla_internal_http_headers_has_value(const mla_string_t &headerValue, const mla_string_t &valueToCheck, const mla_string_t &value_seperator) {
 
     // split the value by the seperator
     mla_array_list_t<mla_string_t, mla_string_initializer> splittedValues = mla_string_split(headerValue, value_seperator);
@@ -191,7 +191,7 @@ mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_hea
             if (header->type == MLA_HTTP_HEADER_TYPE_SINGLE) {
 
                 // split the value by the seperator
-                if (__mla_http_headers_has_value(header->value, p_Value, value_seperator)) {
+                if (mla_internal_http_headers_has_value(header->value, p_Value, value_seperator)) {
                     return true;
                 }
 
@@ -200,7 +200,7 @@ mla_bool_t mla_http_headers_has_header_value(const mla_array_list_t<mla_http_hea
                 for (mla_size_t j = 0; j < mla_array_list_size(header->values); j++) {
 
                     // split the value by the seperator
-                    if (__mla_http_headers_has_value(header->value, mla_array_list_get_unsafe(header->values, j), value_seperator)) {
+                    if (mla_internal_http_headers_has_value(header->value, mla_array_list_get_unsafe(header->values, j), value_seperator)) {
                         return true;
                     }
 
