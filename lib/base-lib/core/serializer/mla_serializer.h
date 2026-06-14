@@ -168,22 +168,28 @@ mla_bool_t mla_serializer_write_data_struct(mla_serializer_t& serializer, const 
 template <mla_array_list_template>
 mla_bool_t mla_serializer_write_list(mla_serializer_t& serializer, const mla_string_t& name, const mla_array_list_t<T, TInit>& list, const mla_serialize_definition_write_function_t& write_function) {
 
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
+    }
 
-    if (!serializer.write_start_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
 
     for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
 
         mla_pointer_t data = mla_platform_pointer_to_managed_pointer(mla_array_list_get_ref(list, i));
 
-        if (!mla_serializer_write_data_struct(serializer, data, write_function))
+        if (!mla_serializer_write_data_struct(serializer, data, write_function)) {
             return false;
+        }
+
     }
 
-    if (!serializer.write_end_list(serializer))
+    if (!serializer.write_end_list(serializer)) {
         return false;
+    }
 
     return true;
 
@@ -192,22 +198,26 @@ mla_bool_t mla_serializer_write_list(mla_serializer_t& serializer, const mla_str
 template <mla_array_list_template>
 mla_bool_t mla_serializer_write_list_fixed_size(mla_serializer_t& serializer, const mla_string_t& name, const T* data, const mla_serialize_definition_write_function_t& write_function, mla_size_t size) {
 
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
+    }
 
-    if (!serializer.write_start_list(serializer))
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
 
     for (mla_size_t i = 0; i < size; ++i) {
 
         mla_pointer_t data_ptr = mla_platform_pointer_to_managed_pointer(&data[i]);
-
-        if (!mla_serializer_write_data_struct(serializer, data_ptr, write_function))
+        
+        if (!mla_serializer_write_data_struct(serializer, data_ptr, write_function)) {
             return false;
+        }
     }
 
-    if (!serializer.write_end_list(serializer))
+    if (!serializer.write_end_list(serializer)) {
         return false;
+    }
 
     return true;
 

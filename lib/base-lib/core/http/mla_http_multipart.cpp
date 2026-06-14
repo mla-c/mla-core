@@ -22,8 +22,9 @@ static mla_bool_t mla_http_multipart_content_writer(const mla_http_request_conte
 
     mla_http_client_multipart_context_t *ctx = mla_pointer_get_data<mla_http_client_multipart_context_t>(ctx_ptr);
 
-    if (!ctx)
+    if (ctx == nullptr) {
         return false;
+    }
 
     mla_stream_output_t out = outputStream;
     mla_http_chunked_stream_output_t chunked = mla_http_chunked_stream_output_invalid();
@@ -85,7 +86,7 @@ mla_http_client_response_t mla_http_client_upload_file(
     mla_http_headers_add(request.headers, mla_string_const("Content-Type"), contentTypeHeader);
 
     mla_size_t file_len = mla_size_max;
-    if (file_content.remaining_bytes) {
+    if (file_content.remaining_bytes != nullptr) {
         file_len = file_content.remaining_bytes(file_content);
     }
 
@@ -160,11 +161,14 @@ struct mla_multipart_stream_state_t {
 };
 
 mla_bool_t mla_internal_http_server_parse_multipart_refill_buffer(mla_multipart_stream_state_t *state) {
-    if (state->buffer_pos < state->buffer_len)
-        return true;
 
-    if (state->eof)
+    if (state->buffer_pos < state->buffer_len) {
+        return true;
+    }
+
+    if (state->eof) {
         return false;
+    }
 
     mla_size_t r = state->base_stream.read(state->base_stream, 0, sizeof(state->buffer), state->buffer);
 
@@ -189,8 +193,9 @@ mla_size_t mla_internal_http_server_parse_multipart_read(mla_stream_input_t &inp
         return 0;
     }
 
-    if (state->hit_boundary)
+    if (state->hit_boundary) {
         return 0;
+    }
 
     mla_string_t target = state->target_boundary;
 
@@ -255,7 +260,10 @@ mla_size_t mla_internal_http_server_parse_multipart_read(mla_stream_input_t &inp
                     mla_size_t r = state->base_stream.read(state->base_stream, 0,
                                                            sizeof(state->buffer) - state->buffer_len,
                                                            state->buffer + state->buffer_len);
-                    if (r > 0) state->buffer_len += r;
+                    if (r > 0) {
+                        state->buffer_len += r;
+                    }
+
                     if (state->buffer_len >= 2 && state->buffer[0] == '-' && state->buffer[1] == '-') {
                         state->is_last_part = true;
                     }
@@ -327,8 +335,9 @@ mla_bool_t mla_http_server_parse_multipart_create_context(const mla_http_request
                                                           mla_http_server_multipart_parse_context_t &context) {
     mla_string_t content_type_header = mla_http_headers_get_value(request.headers, mla_string_const("Content-Type"));
 
-    if (mla_string_is_empty(content_type_header))
+    if (mla_string_is_empty(content_type_header)) {
         return false;
+    }
 
     mla_string_t boundary_prefix = mla_string_const("boundary=");
     mla_int32_t index_of = mla_string_index_of(content_type_header, boundary_prefix);
@@ -346,8 +355,9 @@ mla_bool_t mla_http_server_parse_multipart_create_context(const mla_http_request
 
     mla_multipart_stream_state_t *state = mla_pointer_get_data<mla_multipart_stream_state_t>(state_ptr);
 
-    if (state == nullptr)
+    if (state == nullptr) {
         return false;
+    }
 
     state->base_stream = request.content;
     state->target_boundary = target_boundary;
@@ -401,8 +411,9 @@ mla_bool_t mla_http_server_parse_multipart_next_item(mla_http_server_multipart_p
 
         while (mla_internal_http_server_parse_multipart_read_line(state, sb)) {
             // Found empty line
-            if (mla_string_builder_length(sb) == 0)
+            if (mla_string_builder_length(sb) == 0) {
                 break;
+            }
 
             mla_string_t line = mla_string_builder_to_string(sb);
 
@@ -449,7 +460,9 @@ mla_bool_t mla_http_server_parse_multipart_finish_item(mla_http_server_multipart
 
     if (!state->hit_boundary) {
         mla_byte_t dump[mla_global_config_stream_fast_read_buffer_size];
-        while (state->base_stream.read(state->base_stream, 0, sizeof(dump), dump) > 0);
+        while (state->base_stream.read(state->base_stream, 0, sizeof(dump), dump) > 0) {
+
+        }
     }
 
     return true;

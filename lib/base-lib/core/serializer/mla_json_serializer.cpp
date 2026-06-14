@@ -251,8 +251,9 @@ mla_bool_t mla_internal_json_serializer_write_string_plain(mla_serializer_t &ins
 
     mla_size_t length = mla_string_length(value);
 
-    if (length == 0)
+    if (length == 0) {
         return true;
+    }
 
     const mla_char_t* data = mla_string_data(value);
 
@@ -369,8 +370,9 @@ mla_size_t mla_internal_json_deserializer_read_next_data(mla_deserializer_t &ins
     mla_size_t offset;
     mla_size_t lengthRemaining;
 
-    if (length == 0)
+    if (length == 0) {
         return 0;
+    }
 
     mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
 
@@ -392,8 +394,9 @@ mla_size_t mla_internal_json_deserializer_read_next_data(mla_deserializer_t &ins
 
 mla_bool_t mla_internal_json_deserializer_string_match(mla_deserializer_t &instance, const mla_char_t *data,
                                                 const mla_size_t length) {
-    if (length > 4)
+    if (length > 4) {
         return false;
+    }
 
     // The current max is 5/ never more
     mla_char_t charBuffer[4];
@@ -752,7 +755,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
         mla_string_empty(),
         mla_bytes_empty()
     };
-    instance.current_token.simple = {0};
+    instance.current_token.simple = {false};
 
     while (true) {
         mla_char_t new_char = 0;
@@ -878,7 +881,7 @@ mla_deserializer_t mla_json_deserializer(const mla_stream_input_t &input) {
     return {
         input,
         mla_user_data_empty(),
-        {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
+        {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {false}},
         mla_json_deserializer_read_read_next
     };
 }

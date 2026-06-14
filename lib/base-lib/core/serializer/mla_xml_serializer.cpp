@@ -51,27 +51,34 @@ mla_bool_t mla_internal_xml_write_escaped(mla_stream_output_t &out, const mla_st
         mla_char_t c = data[i];
         switch (c) {
             case '<':
-                if (!mla_internal_xml_write_str(out, mla_string_const("&lt;")))
+                if (!mla_internal_xml_write_str(out, mla_string_const("&lt;"))) {
                     return false;
+                }
                 break;
             case '>':
-                if (!mla_internal_xml_write_str(out, mla_string_const("&gt;")))
+                if (!mla_internal_xml_write_str(out, mla_string_const("&gt;"))) {
                     return false;
+                }
                 break;
             case '&':
-                if (!mla_internal_xml_write_str(out, mla_string_const("&amp;")))
+                if (!mla_internal_xml_write_str(out, mla_string_const("&amp;"))) {
                     return false;
+                }
                 break;
             case '"':
-                if (!mla_internal_xml_write_str(out, mla_string_const("&quot;")))
+                if (!mla_internal_xml_write_str(out, mla_string_const("&quot;"))) {
                     return false;
+                }
                 break;
             case '\'':
-                if (!mla_internal_xml_write_str(out, mla_string_const("&apos;")))
+                if (!mla_internal_xml_write_str(out, mla_string_const("&apos;"))) {
                     return false;
+                }
                 break;
             default:
-                if (out.write(out, 0, 1, reinterpret_cast<const mla_byte_t *>(&c)) != 1) return false;
+                if (out.write(out, 0, 1, reinterpret_cast<const mla_byte_t *>(&c)) != 1) {
+                    return false;
+                }
                 break;
         }
     }
@@ -81,8 +88,9 @@ mla_bool_t mla_internal_xml_write_escaped(mla_stream_output_t &out, const mla_st
 mla_bool_t mla_internal_xml_close_tag_if_open(mla_serializer_t &inst) {
     mla_xml_serializer_state_t *state = mla_internal_xml_ser_get_state(inst);
     if (state->in_open_tag) {
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const(">")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const(">"))) {
             return false;
+        }
 
         state->in_open_tag = false;
     }
@@ -90,8 +98,9 @@ mla_bool_t mla_internal_xml_close_tag_if_open(mla_serializer_t &inst) {
 }
 
 mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t &inst) {
-    if (!mla_internal_xml_close_tag_if_open(inst))
+    if (!mla_internal_xml_close_tag_if_open(inst)) {
         return false;
+    }
 
     mla_xml_serializer_state_t *state = mla_internal_xml_ser_get_state(inst);
 
@@ -108,11 +117,13 @@ mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t &inst) {
     mla_array_list_add(state->tag_stack, tag_name);
 
     // Write opening tag
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const("<")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const("<"))) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_escaped(inst.output, tag_name))
+    if (!mla_internal_xml_write_escaped(inst.output, tag_name)) {
         return false;
+    }
 
     state->in_open_tag = true;
     return true;
@@ -130,20 +141,24 @@ mla_bool_t mla_xml_serializer_write_end_struct(mla_serializer_t &inst) {
 
     if (state->in_open_tag) {
         // Self-closing tag
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const(" />")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const(" />"))) {
             return false;
+        }
 
         state->in_open_tag = false;
     } else {
         // Closing tag
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</"))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, tag_name))
+        if (!mla_internal_xml_write_escaped(inst.output, tag_name)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const(">")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const(">"))) {
             return false;
+        }
     }
 
     // Clear pending property name to prevent it from being reused
@@ -153,7 +168,10 @@ mla_bool_t mla_xml_serializer_write_end_struct(mla_serializer_t &inst) {
 }
 
 mla_bool_t mla_xml_serializer_write_start_list(mla_serializer_t &inst) {
-    if (!mla_internal_xml_close_tag_if_open(inst)) return false;
+
+    if (!mla_internal_xml_close_tag_if_open(inst)) {
+        return false;
+    }
 
     mla_xml_serializer_state_t *state = mla_internal_xml_ser_get_state(inst);
 
@@ -170,14 +188,17 @@ mla_bool_t mla_xml_serializer_write_start_list(mla_serializer_t &inst) {
     mla_array_list_add(state->tag_stack, tag_name);
 
     // Write opening tag
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const("<")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const("<"))) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_escaped(inst.output, tag_name))
+    if (!mla_internal_xml_write_escaped(inst.output, tag_name)) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const(">")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const(">"))) {
         return false;
+    }
 
     return true;
 }
@@ -193,14 +214,17 @@ mla_bool_t mla_xml_serializer_write_end_list(mla_serializer_t &inst) {
     mla_array_list_remove(state->tag_stack, mla_array_list_size(state->tag_stack) - 1);
 
     // Write closing tag
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const("</")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const("</"))) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_escaped(inst.output, tag_name))
+    if (!mla_internal_xml_write_escaped(inst.output, tag_name)) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const(">")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const(">"))) {
         return false;
+    }
 
     return true;
 }
@@ -214,20 +238,25 @@ mla_bool_t mla_xml_serializer_write_property_name(mla_serializer_t &inst, const 
 static mla_bool_t mla_internal_xml_write_attr(mla_serializer_t &inst, const mla_string_t &value) {
     mla_xml_serializer_state_t *state = mla_internal_xml_ser_get_state(inst);
 
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const(" ")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const(" "))) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_escaped(inst.output, state->pending_property_name))
+    if (!mla_internal_xml_write_escaped(inst.output, state->pending_property_name)) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const("=\"")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const("=\""))) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_escaped(inst.output, value))
+    if (!mla_internal_xml_write_escaped(inst.output, value)) {
         return false;
+    }
 
-    if (!mla_internal_xml_write_str(inst.output, mla_string_const("\"")))
+    if (!mla_internal_xml_write_str(inst.output, mla_string_const("\""))) {
         return false;
+    }
 
     return true;
 }
@@ -238,17 +267,21 @@ mla_bool_t mla_xml_serializer_write_bool(mla_serializer_t &inst, const mla_bool_
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, value ? mla_string_const("true") : mla_string_const("false"));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, value ? mla_string_const("true") : mla_string_const("false")))
+        if (!mla_internal_xml_write_str(inst.output, value ? mla_string_const("true") : mla_string_const("false"))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -260,21 +293,25 @@ mla_bool_t mla_xml_serializer_write_int8(mla_serializer_t &inst, const mla_int8_
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_int8(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_int8(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -286,21 +323,25 @@ mla_bool_t mla_xml_serializer_write_int16(mla_serializer_t &inst, const mla_int1
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_int16(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_int16(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -312,21 +353,25 @@ mla_bool_t mla_xml_serializer_write_int32(mla_serializer_t &inst, const mla_int3
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_int32(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_int32(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -338,20 +383,24 @@ mla_bool_t mla_xml_serializer_write_int64(mla_serializer_t &inst, const mla_int6
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_int64(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_int64(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -363,20 +412,24 @@ mla_bool_t mla_xml_serializer_write_uint8(mla_serializer_t &inst, const mla_uint
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_uint8(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_uint8(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -388,20 +441,24 @@ mla_bool_t mla_xml_serializer_write_uint16(mla_serializer_t &inst, const mla_uin
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_uint16(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_uint16(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -413,20 +470,24 @@ mla_bool_t mla_xml_serializer_write_uint32(mla_serializer_t &inst, const mla_uin
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_uint32(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_uint32(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -438,20 +499,24 @@ mla_bool_t mla_xml_serializer_write_uint64(mla_serializer_t &inst, const mla_uin
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_uint64(value));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_uint64(value);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -463,20 +528,24 @@ mla_bool_t mla_xml_serializer_write_float(mla_serializer_t &inst, const mla_floa
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_float(value, 6));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_float(value, 6);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -488,20 +557,24 @@ mla_bool_t mla_xml_serializer_write_double(mla_serializer_t &inst, const mla_dou
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, mla_string_from_double(value, 6));
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
         mla_string_t str = mla_string_from_double(value, 6);
         mla_bool_t result = mla_internal_xml_write_str(inst.output, str);
 
-        if (!result)
+        if (!result) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -513,17 +586,21 @@ mla_bool_t mla_xml_serializer_write_string(mla_serializer_t &inst, const mla_str
     if (mla_string_length(state->pending_property_name) > 0) {
         return mla_internal_xml_write_attr(inst, value);
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, value))
+        if (!mla_internal_xml_write_escaped(inst.output, value)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }
@@ -534,40 +611,51 @@ mla_bool_t mla_xml_serializer_write_bytes(mla_serializer_t &inst, const mla_byte
     mla_string_t base64 = mla_bytes_to_base64(value);
 
     if (mla_string_length(state->pending_property_name) > 0) {
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const(" ")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const(" "))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, state->pending_property_name))
+        if (!mla_internal_xml_write_escaped(inst.output, state->pending_property_name)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("=\"")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("=\""))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
+        if (!mla_internal_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, base64))
+        if (!mla_internal_xml_write_escaped(inst.output, base64)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("\"")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("\""))) {
             return false;
+        }
 
         return true;
     } else {
-        if (!mla_internal_xml_close_tag_if_open(inst))
+        if (!mla_internal_xml_close_tag_if_open(inst)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("<value>"))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix)))
+        if (!mla_internal_xml_write_escaped(inst.output, mla_string_const(mla_bytes_prefix))) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_escaped(inst.output, base64))
+        if (!mla_internal_xml_write_escaped(inst.output, base64)) {
             return false;
+        }
 
-        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>")))
+        if (!mla_internal_xml_write_str(inst.output, mla_string_const("</value>"))) {
             return false;
+        }
 
         return true;
     }

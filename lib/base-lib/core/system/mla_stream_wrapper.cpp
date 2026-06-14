@@ -30,8 +30,9 @@ mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string) {
 
 mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
 
-    if (max_length == 0)
+    if (max_length == 0) {
         return mla_string_empty();
+    }
 
     if (input.read == nullptr) {
         return mla_string_empty();
@@ -62,8 +63,9 @@ mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_le
 
 mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
 
-    if (max_length == 0)
+    if (max_length == 0) {
         return mla_bytes_empty();
+    }
 
     if (input.read == nullptr) {
         return mla_bytes_empty();
@@ -159,8 +161,9 @@ mla_size_t mla_internal_stream_input_timeout_wrapper_remaining_bytes(mla_stream_
 
     mla_stream_input_timeout_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_timeout_wrapper_data_t>(input.userdata, mla_stream_input_timeout_wrapper_data_userdata_name);
 
-    if (data == nullptr)
+    if (data == nullptr) {
         return 0;
+    }
 
     mla_size_t remaining_bytes = data->base_input.remaining_bytes(data->base_input);
 
@@ -183,8 +186,10 @@ mla_size_t mla_internal_stream_input_timeout_wrapper_remaining_bytes(mla_stream_
 
 
 mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_size_t timeout_ms) {
-    if (input.read == nullptr)
+
+    if (input.read == nullptr) {
         return input;
+    }
 
     mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_timeout_wrapper_data_t);
 
@@ -260,8 +265,9 @@ mla_size_t mla_internal_stream_input_limited_wrapper_remaining_bytes(mla_stream_
 
     mla_stream_input_limited_wrapper_data_t *data = mla_user_data_get_pointer_data<mla_stream_input_limited_wrapper_data_t>(input.userdata, mla_stream_input_limited_wrapper_data_name);
 
-    if (data == nullptr)
+    if (data == nullptr) {
         return 0;
+    }
 
     return data->size - data->readed;
 }
@@ -271,8 +277,9 @@ mla_stream_input_t mla_stream_input_limited_wrapper(mla_stream_input_t &input, m
         return mla_stream_noop_input();
     }
 
-    if (input.read == nullptr)
+    if (input.read == nullptr) {
         return input;
+    }
 
     mla_pointer_t data_ptr = mla_malloc_struct(mla_stream_input_limited_wrapper_data_t);
 

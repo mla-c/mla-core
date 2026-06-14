@@ -18,8 +18,10 @@ mla_rw_lock_t mla_rw_lock(const mla_string_t &name, mla_bool_t support_recursive
 
     mla_rw_lock_state_t* state_info = mla_pointer_get_data<mla_rw_lock_state_t>(state_info_ptr);
 
-    if (state_info == nullptr)
+    if (state_info == nullptr) {
         return mla_rw_lock_invalid();
+    }
+
 
     mla_memset(state_info, 0, sizeof(mla_rw_lock_state_t));
 

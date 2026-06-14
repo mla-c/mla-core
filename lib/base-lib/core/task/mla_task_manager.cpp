@@ -42,8 +42,10 @@ void mla_internal_task_manager_cleanup_tasks_no_lock() {
 
 void mla_task_manager_cleanup() {
 
-    if (!mla_rw_lock_write(g_TaskManager.taskLock))
+    if (!mla_rw_lock_write(g_TaskManager.taskLock)) {
         return;
+    }
+
 
     mla_internal_task_manager_cleanup_tasks_no_lock();
 
@@ -53,8 +55,9 @@ void mla_task_manager_cleanup() {
 
 mla_bool_t mla_task_manager_register_task(mla_task_t task) {
 
-    if (!mla_rw_lock_write(g_TaskManager.taskLock))
+    if (!mla_rw_lock_write(g_TaskManager.taskLock)) {
         return false;
+    }
 
     if (mla_internal_task_manager_find_task_by_name_no_lock(task.name) >= 0) {
         mla_rw_unlock_write(g_TaskManager.taskLock);
@@ -92,8 +95,9 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     // Update the task resource in the task manager if the task was created successfully or remove the task if it failed to create
     /////////////////////////////
 
-    if (!mla_rw_lock_write(g_TaskManager.taskLock))
+    if (!mla_rw_lock_write(g_TaskManager.taskLock)) {
         return false;
+    }
 
     // Remove the task from the task manager if it could not be created
     mla_int32_t taskIndex = mla_internal_task_manager_find_task_by_name_no_lock(task.name);

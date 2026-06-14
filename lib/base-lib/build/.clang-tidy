@@ -44,14 +44,27 @@
 Checks: >-
   bugprone-*,
   -bugprone-easily-swappable-parameters,
-  -bugprone-branch-clone, # Disabled: produces too many false positives.
+  -bugprone-branch-clone,
+  -bugprone-signed-char-misuse,
   cert-dcl50-cpp,
   cert-err34-c,
   cert-err52-cpp,
   cert-err60-cpp,
   performance-*,
   clang-analyzer-*,
-  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-else-after-return,
+  -readability-function-cognitive-complexity,
+  -readability-avoid-const-params-in-decls,
+  -readability-non-const-parameter,
+  -readability-use-std-min-max,
+  -readability-redundant-casting,
+  -readability-simplify-boolean-expr,
+  -readability-qualified-auto,
+  portability-*
 
 # Treat these checks as errors in CI by overriding this in your project's
 # .clang-tidy or by passing --warnings-as-errors=* on the command line.

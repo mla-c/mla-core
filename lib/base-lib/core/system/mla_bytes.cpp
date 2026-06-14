@@ -236,11 +236,16 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
     mla_size_t padding = 0;
 
     if (input_length >= 2) {
-        if (base64StringData[input_length - 1] == '=') padding++;
-        if (base64StringData[input_length - 2] == '=') padding++;
+        if (base64StringData[input_length - 1] == '=') {
+            padding++;
+        }
+
+        if (base64StringData[input_length - 2] == '=') {
+            padding++;
+        }
     }
 
-    mla_size_t output_length = (input_length * 3) / 4 - padding;
+    mla_size_t output_length = ((input_length * 3) / 4) - padding;
 
     if (output_length == 0) {
         return mla_bytes_empty();
@@ -265,7 +270,10 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
 
             if (val >= 0) {
                 quad = (quad << 6) | val;
-                if (c != '=') valid_chars++;
+                if (c != '=') {
+                    valid_chars++;
+                }
+
             } else {
                 return mla_bytes_empty();
             }

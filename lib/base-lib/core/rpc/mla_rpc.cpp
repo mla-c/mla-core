@@ -226,8 +226,9 @@ mla_bool_t mla_internal_rpc_remote_endpoint_start_with_checker(const mla_user_da
 
     mla_rpc_remote_endpoint_start_with_user_data_t *pathPrefix = mla_user_data_get_pointer_data<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data, mla_rpc_endpoint_start_with_user_data_name);
 
-    if (pathPrefix == nullptr)
+    if (pathPrefix == nullptr) {
         return false;
+    }
 
     return mla_string_starts_with(procedure_name, pathPrefix->prefix);
 }

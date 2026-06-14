@@ -217,8 +217,9 @@ mla_rpc_remote_endpoint_t mla_rpc_http_register_endpoint(const mla_string_t& ser
 
     mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_all(mla_internal_rpc_http_execute, user_data);
 
-    if (!mla_rpc_register_remote_endpoint(endpoint))
+    if (!mla_rpc_register_remote_endpoint(endpoint)) {
         return mla_rpc_remote_endpoint_invalid();
+    }
 
     return endpoint;
 }

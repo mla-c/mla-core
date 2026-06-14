@@ -432,11 +432,13 @@ mla_ui_control_context_t mla_ui_control_create_context_for_children(const mla_ui
                                                                     const mla_ui_control_t &control) {
     mla_ui_control_context_t context = parentContext;
 
-    if (control.layout.width != 0)
+    if (control.layout.width != 0) {
         context.width = control.layout.width;
+    }
 
-    if (control.layout.height != 0)
+    if (control.layout.height != 0) {
         context.height = control.layout.height;
+    }
 
     return context;
 }

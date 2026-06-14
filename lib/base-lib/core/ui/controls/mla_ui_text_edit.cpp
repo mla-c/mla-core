@@ -15,15 +15,16 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
     // Ensure cursor matches text bounds
     mla_size_t textLen = mla_string_length(currentText);
 
-    if (cursorPosition > textLen)
+    if (cursorPosition > textLen) {
         cursorPosition = textLen;
+    }
 
     bool textModified = false;
 
     // Check modifiers
 
-    const bool shiftPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT);
-    const bool ctrlPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL);
+    const bool shiftPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_SHIFT) != 0;
+    const bool ctrlPressed = (charInputEvent.pressedControlKeys & MLA_UI_SURFACE_INPUT_EVENT_KIND_CONTROL_CTRL) != 0;
 
     if (charInputEvent.kind == MLA_UI_SURFACE_INPUT_EVENT_KIND_CHAR_INPUT) {
         // Handle Ctrl + A (Select All)
@@ -88,12 +89,14 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
                     // If cursor was at start of selection, anchor is at end
-                    if (oldCursorPos == (mla_size_t) idx)
+                    if (oldCursorPos == (mla_size_t) idx) {
                         anchor = idx + selLen;
+                    }
 
-                        // If cursor was at end of selection, anchor is at start
-                    else if (oldCursorPos == idx + selLen)
+                    // If cursor was at end of selection, anchor is at start
+                    else if (oldCursorPos == idx + selLen) {
                         anchor = idx;
+                    }
                 }
             }
 
@@ -119,10 +122,12 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
                 mla_int32_t idx = mla_string_index_of(currentText, activeSel);
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
-                    if (oldCursorPos == (mla_size_t) idx)
+                    if (oldCursorPos == (mla_size_t) idx) {
                         anchor = idx + selLen;
-                    else if (oldCursorPos == idx + selLen)
+                    }
+                    else if (oldCursorPos == idx + selLen) {
                         anchor = idx;
+                    }
                 }
             }
 

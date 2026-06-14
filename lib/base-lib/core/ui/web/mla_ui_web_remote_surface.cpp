@@ -19,8 +19,9 @@ struct mla_ui_web_remote_surface_client_text_size_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_web_remote_surface_client_text_size_t* self = mla_pointer_get_data<const mla_ui_web_remote_surface_client_text_size_t>(obj);
 
-        if (self == nullptr)
+        if (self == nullptr) {
             return false;
+        }
 
         mla_serializer_write_struct(serializer, mla_string_const("fontType"), self->fontType, mla_ui_surface_font_type_t);
         mla_serializer_write_list_struct_fixed_size(serializer, mla_string_const("size_per_char"), self->size_per_char, mla_ui_surface_draw_size_t);
@@ -62,8 +63,9 @@ struct mla_ui_web_remote_surface_client_message_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_web_remote_surface_client_message_t* self = mla_pointer_get_data<const mla_ui_web_remote_surface_client_message_t>(obj);
 
-        if (self == nullptr)
+        if (self == nullptr) {
             return false;
+        }
 
         mla_serializer_write_struct(serializer, mla_string_const("surface_size"), self->surface_size, mla_ui_surface_size_t);
         mla_serializer_write_list_struct(serializer, mla_string_const("inputEvents"),   self->inputEvents,   mla_ui_surface_input_event_t);
@@ -129,8 +131,9 @@ struct mla_ui_web_remote_surface_server_message_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_web_remote_surface_server_message_t* in = mla_pointer_get_data<const mla_ui_web_remote_surface_server_message_t>(obj);
 
-        if (in == nullptr)
+        if (in == nullptr) {
             return false;
+        }
 
         mla_serializer_write_list_struct(serializer, mla_string_const("drawCommands"), in->drawCommands, mla_ui_surface_draw_command_t);
         mla_serializer_write_uint64(serializer, mla_string_const("timestamp"), in->timestamp);
@@ -235,8 +238,9 @@ mla_ui_surface_draw_size_t mla_internal_ui_web_remote_surface_render_calc_text_s
 
             const mla_char_t* char_data = mla_string_data(text);
 
-            if (char_data == nullptr)
+            if (char_data == nullptr) {
                 return textSize;
+            }
 
 
             for (mla_size_t j = 0; j < mla_string_length(text); j++) {

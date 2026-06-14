@@ -78,8 +78,9 @@ mla_bool_t mla_internal_rpc_http_server_handler_content_writer(const mla_http_re
 
     mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(buffer);
 
-    if (header->write_function == nullptr)
+    if (header->write_function == nullptr) {
         return false;
+    }
 
     // Store content type and write function at the beginning of output buffer
     mla_pointer_t outputData = mla_platform_pointer_to_managed_pointer( reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));

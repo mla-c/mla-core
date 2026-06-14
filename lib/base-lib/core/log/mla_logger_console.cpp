@@ -29,8 +29,10 @@ void mla_internal_log_console_writer(const mla_log_level level, mla_string_t &me
 mla_bool_t mla_log_to_console_activate() {
 
     // Check if the low-level access printf function is available
-    if (g_low_level_access.print == nullptr)
+    if (g_low_level_access.print == nullptr) {
         return false;
+    }
+
 
     const mla_logger_t logger = {
         CONSOLE_LOGGER_NAME,

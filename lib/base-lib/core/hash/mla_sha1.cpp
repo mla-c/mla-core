@@ -36,16 +36,19 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
     mla_byte_t *padded = mla_bytes_get_data_for_writing(padded_message);
     const mla_byte_t * input_data = mla_bytes_get_data_readonly(input);
 
-    if (padded == nullptr)
+    if (padded == nullptr) {
         return mla_bytes_empty();
+    }
 
     // Zero initialize
-    for (mla_uint64_t k = 0; k < padded_message_size; ++k)
+    for (mla_uint64_t k = 0; k < padded_message_size; ++k) {
         padded[k] = 0x00;
+    }
 
     // Copy original input
-    if (input_data && msg_size > 0)
+    if (input_data != nullptr && msg_size > 0) {
         mla_memcpy(padded, input_data, (mla_size_t)msg_size);
+    }
 
     // Append 0x80
     padded[msg_size] = 0x80;
@@ -54,7 +57,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
     mla_uint64_t bit_len = msg_size * 8;
     for (mla_uint8_t j = 0; j < 8; ++j) {
         padded[padded_message_size - 8 + j] =
-            (mla_byte_t)((bit_len >> (56 - 8 * j)) & 0xFF);
+            (mla_byte_t)((bit_len >> (56 - (8 * j))) & 0xFF);
     }
 
     // Process each 512-bit block
@@ -64,7 +67,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
         // First 16 words (big-endian)
         for (mla_uint32_t t = 0; t < 16; ++t) {
-            mla_uint64_t idx = chunk * 64ULL + static_cast<mla_uint64_t>(t) * 4ULL;
+            mla_uint64_t idx = (chunk * 64ULL) + (static_cast<mla_uint64_t>(t) * 4ULL);
             W[t] = (padded[idx] << 24) |
                    (padded[idx + 1] << 16) |
                    (padded[idx + 2] << 8) |
@@ -72,15 +75,21 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
         }
 
         // Extend W[16..79]
-        for (mla_uint32_t t = 16; t < 80; ++t)
+        for (mla_uint32_t t = 16; t < 80; ++t) {
             W[t] = leftRotate32bits(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
+        }
 
         // Initialize working variables
-        mla_uint32_t a = h0, b = h1, c = h2, d = h3, e = h4;
+        mla_uint32_t a = h0;
+        mla_uint32_t b = h1;
+        mla_uint32_t c = h2;
+        mla_uint32_t d = h3;
+        mla_uint32_t e = h4;
 
         // 80 rounds
         for (mla_uint32_t t = 0; t < 80; ++t) {
-            mla_uint32_t F, K;
+            mla_uint32_t F;
+            mla_uint32_t K;
 
             if (t < 20) {
                 F = (b & c) | ((~b) & d);
@@ -117,15 +126,17 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
     mla_byte_t *out = mla_bytes_get_data_for_writing(signature);
 
-    if (out == nullptr)
+    if (out == nullptr) {
         return mla_bytes_empty();
+    }
 
     for (mla_uint8_t j = 0; j < 4; ++j) {
-        out[j + 0]  = (h0 >> (24 - 8*j)) & 0xFF;
-        out[j + 4]  = (h1 >> (24 - 8*j)) & 0xFF;
-        out[j + 8]  = (h2 >> (24 - 8*j)) & 0xFF;
-        out[j + 12] = (h3 >> (24 - 8*j)) & 0xFF;
-        out[j + 16] = (h4 >> (24 - 8*j)) & 0xFF;
+        mla_uint8_t temp = (24 - (8*j));
+        out[j + 0]  = (h0 >> temp) & 0xFF;
+        out[j + 4]  = (h1 >> temp) & 0xFF;
+        out[j + 8]  = (h2 >> temp) & 0xFF;
+        out[j + 12] = (h3 >> temp) & 0xFF;
+        out[j + 16] = (h4 >> temp) & 0xFF;
     }
 
     return signature;

@@ -30,14 +30,14 @@ static mla_test_bool_t g_mla_benchmark_memory_arena_out_of_memory_triggered = fa
 static mla_test_pointer_t g_mla_benchmark_arena_mutex = nullptr;
 
 mla_test_uint32_t mla_align_up(mla_test_uint32_t value, mla_test_uint32_t alignment) {
-    return (value + (alignment - 1u)) & ~(alignment - 1u);
+    return (value + (alignment - 1U)) & ~(alignment - 1U);
 }
 
 mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 
     mla_benchmark_allocated_memory += size;
 
-    if (!g_mla_benchmark_memory_arena) {
+    if (g_mla_benchmark_memory_arena == nullptr) {
         return nullptr;
     }
 
@@ -67,7 +67,7 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 }
 
 mla_bool_t mla_benchmark_is_arena_pointer(const mla_test_pointer_t pointer) {
-    if (g_mla_benchmark_memory_arena && pointer) {
+    if (g_mla_benchmark_memory_arena != nullptr && pointer != nullptr) {
         auto* base = static_cast<mla_test_uint8_t*>(g_mla_benchmark_memory_arena);
         auto* ptr  = static_cast<const mla_test_uint8_t*>(pointer);
         return (ptr >= base) && (ptr < (base + g_mla_benchmark_memory_arena_size));
@@ -141,7 +141,9 @@ static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, 
             do { ++i; } while (arr[i] < pivot);
             do { --j; } while (arr[j] > pivot);
 
-            if (i >= j) break;
+            if (i >= j) {
+                break;
+            }
 
             tmp = arr[i];
             arr[i] = arr[j];
@@ -149,7 +151,9 @@ static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, 
         }
 
         // Early exit if partition point matches k
-        if (j == k) return;
+        if (j == k) {
+            return;
+        }
 
         // Branchless interval selection
         mla_test_uint32_t use_left = (j > k);
@@ -159,8 +163,13 @@ static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, 
 }
 
 static mla_test_uint64_t mla_internal_benchmark_calculate_median(mla_test_uint64_t* times, mla_test_uint32_t count) {
-    if (count == 0) return 0;
-    if (count == 1) return times[0];
+    if (count == 0) {
+        return 0;
+    }
+
+    if (count == 1) {
+        return times[0];
+    }
     
     mla_test_uint32_t mid = count / 2;
     mla_internal_benchmark_partition_for_median(times, 0, count - 1, mid);

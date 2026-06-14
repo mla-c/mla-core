@@ -119,6 +119,6 @@ mla_uint32_t mla_random_uint32() {
 
     // LCG formula: next = (a * seed + c) mod m
     // Using constants from Numerical Recipes
-    seed = seed * 1664525u + 1013904223u;
+    seed = (seed * 1664525U) + 1013904223U;
     return seed;
 }

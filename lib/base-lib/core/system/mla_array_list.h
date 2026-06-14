@@ -123,8 +123,9 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
         T* oldItems = mla_internal_array_list_items_data<T, TInit>(list);
         T* newItems = mla_internal_array_list_items_data_from_header<T, TInit>(header);
 
-        if (newItems == nullptr)
+        if (newItems == nullptr) {
             return false; // Memory allocation failed
+        }
 
         if (oldItems != nullptr) {
             mla_size_t oldSizeInBytes = list.size * sizeof(T);
@@ -333,7 +334,7 @@ template <mla_array_list_template>
 void mla_internal_array_list_quicksort_partition(T* items, mla_int32_t low, mla_int32_t high, mla_int32_t (*compare)(const T&, const T&)) {
     if (low < high) {
         // Choose pivot (middle element for better average performance)
-        mla_int32_t mid = low + (high - low) / 2;
+        mla_int32_t mid = low + ((high - low) / 2);
         T pivot = items[mid];
 
         // Move pivot to end

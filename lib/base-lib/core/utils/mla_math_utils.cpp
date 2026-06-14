@@ -16,39 +16,52 @@ static inline mla_double_t local_abs(mla_double_t x) {
 
 static mla_double_t local_fmod(mla_double_t x, mla_double_t y) {
 
-    if (y == 0.0)
+    if (y == 0.0) {
         return 0.0;
+    }
 
     mla_int64_t n = (mla_int64_t) (x / y);
-    return x - (mla_double_t) n * y;
+    return x -  ((mla_double_t) n * y);
 }
 
 mla_double_t mla_math_sin(mla_double_t x) {
     // Range reduction
     x = local_fmod(x, mla_math_internal_two_pi);
-    if (x > mla_math_pi) x -= mla_math_internal_two_pi;
-    if (x < -mla_math_pi) x += mla_math_internal_two_pi;
+    if (x > mla_math_pi) {
+        x -= mla_math_internal_two_pi;
+    }
+    if (x < -mla_math_pi) {
+        x += mla_math_internal_two_pi;
+    }
 
     mla_double_t x2 = x * x;
     // Taylor series (Horner's method)
-    return x * (1.0 + x2 * (-1.0 / 6.0 + x2 * (1.0 / 120.0 + x2 * (-1.0 / 5040.0 + x2 * (1.0 / 362880.0)))));
+    return (x * (1.0 + (x2 * ((-1.0 / 6.0) + (x2 * ((1.0 / 120.0) + (x2 * ((-1.0 / 5040.0) + (x2 * (1.0 / 362880.0))))))))));
 }
 
 mla_double_t mla_math_cos(mla_double_t x) {
     // Range reduction
     x = local_fmod(x, mla_math_internal_two_pi);
-    if (x > mla_math_pi) x -= mla_math_internal_two_pi;
-    if (x < -mla_math_pi) x += mla_math_internal_two_pi;
+    if (x > mla_math_pi) {
+        x -= mla_math_internal_two_pi;
+    }
+
+    if (x < -mla_math_pi) {
+        x += mla_math_internal_two_pi;
+    }
 
     mla_double_t x2 = x * x;
     // Taylor series
-    return 1.0 + x2 * (-0.5 + x2 * (1.0 / 24.0 + x2 * (-1.0 / 720.0 + x2 * (1.0 / 40320.0))));
+    return (1.0 + (x2 * ((-0.5) + (x2 * ((1.0 / 24.0) + (x2 * ((-1.0 / 720.0) + (x2 * (1.0 / 40320.0)))))))));
 }
 
 mla_double_t mla_math_tan(mla_double_t x) {
     mla_double_t c = mla_math_cos(x);
     // Simple singularity check
-    if (local_abs(c) < 1e-15) return 0.0;
+    if (local_abs(c) < 1e-15) {
+        return 0.0;
+    }
+
     return mla_math_sin(x) / c;
 }
 
@@ -56,15 +69,18 @@ mla_double_t mla_math_tan(mla_double_t x) {
 static mla_double_t local_atan_core(mla_double_t x) {
     mla_double_t x2 = x * x;
     // Minimax polynomial approximation
-    return x * (0.99997726 + x2 * (-0.33262347 + x2 * (
-                                       0.19354346 + x2 * (-0.11643287 + x2 * (0.05265332 + x2 * -0.01172120)))));
+    return x * (0.99997726 + (x2 * (-0.33262347 + (x2 * (0.19354346 + (x2 * (-0.11643287 + (x2 * (0.05265332 + (x2 * -0.01172120))))))))));
 }
 
 // Note: Function signature suggests atan2 behavior (y, x)
 mla_double_t mla_math_atan(mla_double_t y, mla_double_t x) {
     if (x == 0.0) {
-        if (y > 0.0) return mla_math_internal_half_pi;
-        if (y < 0.0) return -mla_math_internal_half_pi;
+        if (y > 0.0) {
+            return mla_math_internal_half_pi;
+        }
+        if (y < 0.0) {
+            return -mla_math_internal_half_pi;
+        }
         return 0.0;
     }
 
@@ -78,42 +94,57 @@ mla_double_t mla_math_atan(mla_double_t y, mla_double_t x) {
         result = mla_math_internal_half_pi - local_atan_core(1.0 / abs_z);
     }
 
-    if (z < 0.0) result = -result;
+    if (z < 0.0) {
+        result = -result;
+    }
 
     // Adjust quadrants
     if (x < 0.0) {
-        if (y >= 0.0) result += mla_math_pi;
-        else result -= mla_math_pi;
+        if (y >= 0.0) {
+            result += mla_math_pi;
+        } else {
+            result -= mla_math_pi;
+        }
     }
 
     return result;
 }
 
 mla_double_t mla_math_asin(mla_double_t x) {
-    if (x < -1.0 || x > 1.0) return 0.0;
-    return mla_math_atan(x, mla_math_sqrt(1.0 - x * x));
+    if (x < -1.0 || x > 1.0) {
+        return 0.0;
+    }
+    return mla_math_atan(x, mla_math_sqrt(1.0 - (x * x)));
 }
 
 mla_double_t mla_math_acos(mla_double_t x) {
-    if (x < -1.0 || x > 1.0) return 0.0;
+    if (x < -1.0 || x > 1.0) {
+        return 0.0;
+    }
     return mla_math_internal_half_pi - mla_math_asin(x);
 }
 
 mla_double_t mla_math_sqrt(mla_double_t x) {
-    if (x < 0.0) return 0.0;
-    if (x == 0.0) return 0.0;
+    if (x < 0.0) {
+        return 0.0;
+    }
+    if (x == 0.0) {
+        return 0.0;
+    }
 
     // Newton-Raphson
     mla_double_t guess = x * 0.5;
     for (mla_int32_t i = 0; i < 10; ++i) {
-        guess = 0.5 * (guess + x / guess);
+        guess = 0.5 * (guess + (x / guess));
     }
     return guess;
 }
 
 // Internal Logarithm helper
 static mla_double_t local_ln(mla_double_t x) {
-    if (x <= 0.0) return 0.0;
+    if (x <= 0.0) {
+        return 0.0;
+    }
 
     mla_int32_t p = 0;
     // Scale x close to 1.0
@@ -136,7 +167,7 @@ static mla_double_t local_ln(mla_double_t x) {
         sum += term / (mla_double_t) i;
     }
 
-    return 2.0 * sum + (mla_double_t) p;
+    return (2.0 * sum) + (mla_double_t) p;
 }
 
 // Internal Exponential helper
@@ -147,15 +178,23 @@ static mla_double_t local_exp(mla_double_t x) {
     for (mla_int32_t i = 1; i < 25; ++i) {
         term *= x / (mla_double_t) i;
         sum += term;
-        if (local_abs(term) < 1e-10) break;
+        if (local_abs(term) < 1e-10) {
+            break;
+        }
     }
     return sum;
 }
 
 mla_double_t mla_math_pow(mla_double_t base, mla_double_t exponent) {
-    if (base == 0.0) return 0.0;
-    if (exponent == 0.0) return 1.0;
-    if (exponent == 1.0) return base;
+    if (base == 0.0) {
+        return 0.0;
+    }
+    if (exponent == 0.0) {
+        return 1.0;
+    }
+    if (exponent == 1.0) {
+        return base;
+    }
 
     // Optimization for integer exponents
     mla_int64_t exp_int = (mla_int64_t) exponent;
@@ -165,7 +204,9 @@ mla_double_t mla_math_pow(mla_double_t base, mla_double_t exponent) {
         mla_int64_t e = exp_int < 0 ? -exp_int : exp_int;
 
         while (e > 0) {
-            if (e % 2 == 1) res *= curr;
+            if (e % 2 == 1) {
+                res *= curr;
+            }
             curr *= curr;
             e /= 2;
         }
@@ -173,6 +214,8 @@ mla_double_t mla_math_pow(mla_double_t base, mla_double_t exponent) {
     }
 
     // General case: x^y = e^(y * ln(x))
-    if (base < 0.0) return 0.0;
+    if (base < 0.0) {
+        return 0.0;
+    }
     return local_exp(exponent * local_ln(base));
 }

@@ -608,9 +608,9 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     }
 
     // Apply rounding
-    mla_float_t roundingFactor = 0.5f;
+    mla_float_t roundingFactor = 0.5F;
     for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
-        roundingFactor /= 10.0f;
+        roundingFactor /= 10.0F;
     }
     p_Value += roundingFactor;
 
@@ -632,8 +632,13 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
 
     // Calculate total length
     mla_size_t totalLength = intDigits;
-    if (isNegative) totalLength++;
-    if (p_DecimalPlaces > 0) totalLength += (1 + p_DecimalPlaces); // +1 for dot
+    if (isNegative) {
+        totalLength++;
+    }
+
+    if (p_DecimalPlaces > 0) {
+        totalLength += (1 + p_DecimalPlaces); // +1 for dot
+    }
 
     // 2. Prepare destination
     mla_string_t result = mla_string_empty();
@@ -688,7 +693,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         dest[index++] = '.';
 
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
-            fractionalPart *= 10.0f;
+            fractionalPart *= 10.0F;
             mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
             dest[index++] = static_cast<mla_char_t>('0' + digit);
             fractionalPart -= static_cast<mla_float_t>(digit);
@@ -759,8 +764,12 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
 
     // Calculate total length
     mla_size_t totalLength = intDigits;
-    if (isNegative) totalLength++;
-    if (p_DecimalPlaces > 0) totalLength += (1 + p_DecimalPlaces); // +1 for dot
+    if (isNegative) {
+        totalLength++;
+    }
+    if (p_DecimalPlaces > 0) {
+        totalLength += (1 + p_DecimalPlaces); // +1 for dot
+    }
 
     // 2. Prepare destination
     mla_string_t result = mla_string_empty();

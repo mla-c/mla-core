@@ -1245,8 +1245,9 @@ mla_native_resource_t mla_user_data_get_native_resource(const mla_user_data_t& u
 
     mla_native_resource_t* resource = mla_native_resource_from_managed_pointer(found->external_data);
 
-    if (resource == nullptr)
+    if (resource == nullptr) {
         return defaultValue;
+    }
 
     return *resource;
 }

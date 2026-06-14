@@ -14,7 +14,7 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
     mla_size_t length = mla_string_length(p_String);
     const mla_char_t* data = mla_string_data(p_String);
 
-    if (!data || length == 0) {
+    if (data == nullptr || length == 0) {
         return result;
     }
 
@@ -26,9 +26,13 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
         mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
         mla_size_t advance = 1;
 
-        if      ((first & 0xE0) == 0xC0) advance = 2;      // 110xxxxx
-        else if ((first & 0xF0) == 0xE0) advance = 3;      // 1110xxxx
-        else if ((first & 0xF8) == 0xF0) advance = 4;      // 11110xxx
+        if ((first & 0xE0) == 0xC0) {
+            advance = 2; // 110xxxxx
+        } else if ((first & 0xF0) == 0xE0) {
+            advance = 3; // 1110xxxx
+        } else if ((first & 0xF8) == 0xF0) {
+            advance = 4; // 11110xxx
+        }
         // ASCII and invalid leading bytes both advance by 1
 
         byteIndex += advance;
@@ -44,9 +48,14 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
     mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
     mla_size_t byteCount = 1;
 
-    if      ((first & 0xE0) == 0xC0) byteCount = 2;
-    else if ((first & 0xF0) == 0xE0) byteCount = 3;
-    else if ((first & 0xF8) == 0xF0) byteCount = 4;
+    if      ((first & 0xE0) == 0xC0) {
+        byteCount = 2;
+    }
+    else if ((first & 0xF0) == 0xE0) {
+        byteCount = 3;
+    } else if ((first & 0xF8) == 0xF0) {
+        byteCount = 4;
+    }
     // ASCII and invalid leading bytes both use 1 byte
 
     // Clamp if truncated
@@ -102,7 +111,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
 
     mla_size_t realCharCount = mla_string_multi_byte_char_count(p_String);
     // Allocate potentially more space for surrogate pairs
-    mla_size_t maxSize = realCharCount * 2 + 1; // Max possible size (if all are surrogate pairs) + null terminator
+    mla_size_t maxSize = (realCharCount * 2) + 1; // Max possible size (if all are surrogate pairs) + null terminator
     mla_pointer_t buffer= mla_malloc(sizeof(mla_utf_16_char_t) * maxSize, nullptr, mla_dynamic_data_empty());
 
 
@@ -198,7 +207,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 
     mla_utf_16_char_t* uft_16_data = mla_pointer_get_data<mla_utf_16_char_t>(p_Utf16Buffer.data);
 
-    if (!uft_16_data) {
+    if (uft_16_data == nullptr) {
         return mla_string_empty();
     }
 
@@ -255,7 +264,7 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 
     mla_char_t* utf8_data = mla_pointer_get_data<mla_char_t>(utf8Buffer);
 
-    if (!utf8_data) {
+    if (utf8_data == nullptr) {
         return mla_string_empty();
     }
 

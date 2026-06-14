@@ -1,7 +1,7 @@
 #include "mla_logger_rpc.h"
 #include "../task/mla_mutx.h"
 
-#if !defined(mla_rpc_logger_level)
+#ifndef mla_rpc_logger_level
 #define mla_rpc_logger_level MLA_LOG_LEVEL_INFO
 #endif
 
@@ -54,8 +54,9 @@ void mla_internal_log_rpc_writer(const mla_log_level level, mla_string_t &messag
 
 mla_bool_t mla_logger_rpc_activate() {
 
-    if (!mla_mutex_lock(g_rpc_log_cache.lock))
+    if (!mla_mutex_lock(g_rpc_log_cache.lock)) {
         return false;
+    }
 
     if (g_rpc_log_cache.entries != nullptr) {
         mla_mutex_unlock(g_rpc_log_cache.lock);
@@ -90,8 +91,9 @@ mla_bool_t mla_logger_rpc_activate() {
 
 mla_bool_t mla_logger_rpc_deactivate() {
 
-    if (!mla_mutex_lock(g_rpc_log_cache.lock))
+    if (!mla_mutex_lock(g_rpc_log_cache.lock)) {
         return false;
+    }
 
     if (g_rpc_log_cache.entries != nullptr) {
         mla_platform_free(g_rpc_log_cache.entries);
@@ -135,8 +137,9 @@ mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_rpc_procedure_void_
 
     (void)input;
 
-    if (!mla_mutex_lock(g_rpc_log_cache.lock))
+    if (!mla_mutex_lock(g_rpc_log_cache.lock)) {
         return false;
+    }
 
     output->entries = mla_array_list<mla_logger_rpc_log_entry_t, mla_logger_rpc_log_entry_initializer>(g_rpc_log_cache.entry_count);
     mla_size_t index = g_rpc_log_cache.current_index;

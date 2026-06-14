@@ -157,21 +157,24 @@ mla_bool_t mla_ui_surface_parse_color_from_hex_string(const mla_string_t& colorS
     mla_string_t gStr = mla_string_substr(colorStr, 3, 2);
     mla_string_t bStr = mla_string_substr(colorStr, 5, 2);
 
-    if (!mla_parse_uint8_hex(rStr, outColor.r))
+    if (!mla_parse_uint8_hex(rStr, outColor.r)) {
         return false;
+    }
 
-    if (!mla_parse_uint8_hex(gStr, outColor.g))
+    if (!mla_parse_uint8_hex(gStr, outColor.g)) {
         return false;
+    }
 
-
-    if (!mla_parse_uint8_hex(bStr, outColor.b))
+    if (!mla_parse_uint8_hex(bStr, outColor.b)) {
         return false;
+    }
 
     if (length == 9) {
         mla_string_t aStr = mla_string_substr(colorStr, 7, 2);
 
-        if (!mla_parse_uint8_hex(aStr, outColor.a))
+        if (!mla_parse_uint8_hex(aStr, outColor.a)) {
             return false;
+        }
 
     } else {
         outColor.a = 255;

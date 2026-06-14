@@ -173,7 +173,7 @@ struct mla_atomic_int32_t {
 
 // Macro for INFINITY
 // Platform-specific infinity definitions (no std/C library dependencies)
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 // MSVC - use IEEE 754 bit pattern for float infinity
 static const union { mla_uint32_t i; mla_float_t f; } mla_internal_inf_union = { 0x7F800000U };
 #define mla_infinity_pos (mla_internal_inf_union.f)

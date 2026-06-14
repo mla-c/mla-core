@@ -96,7 +96,7 @@ void mla_internal_ui_control_surface_cleanup(mla_internal_ui_control_surface_cle
 
     mla_ui_control_surface_t* connector = data.connector;
 
-    if (connector) {
+    if (connector != nullptr) {
 
         mla_string_t taskId = mla_internal_ui_control_surface_get_task_id(*connector);
 
@@ -115,7 +115,7 @@ void mla_internal_ui_control_surface_cleanup_single_thread(mla_internal_ui_contr
 
     mla_ui_control_surface_t* connector = data.connector;
 
-    if (connector) {
+    if (connector != nullptr) {
 
         mla_string_t taskId = mla_internal_ui_control_surface_get_task_id(*connector);
 
@@ -179,7 +179,7 @@ mla_task_process_result_state mla_internal_ui_control_surface_render_task(mla_us
     // Process input events
     mla_ui_control_process_input_events(connector->rendering.root, unprocessedInputEvents, connector->rendering.inputAreas, connector->userData);
 
-    if (connector->rendering.processTask) {
+    if (connector->rendering.processTask != nullptr) {
 
         // Call custom rendering task if provided
         if (!connector->rendering.processTask(connector->rendering.root, surfaceSize, input_states)) {
@@ -412,7 +412,7 @@ mla_bool_t mla_ui_control_surface_execute_render_and_draw(mla_ui_control_surface
     mla_ui_control_process_input_events(connector.rendering.root, connector.drawing.unprocessedInputEvents, connector.rendering.inputAreas, connector.userData);
     mla_array_list_clear(connector.drawing.unprocessedInputEvents);
 
-    if (connector.rendering.processTask) {
+    if (connector.rendering.processTask != nullptr) {
 
         // Call custom rendering task if provided
         if (!connector.rendering.processTask(connector.rendering.root, surfaceSize, input_states)) {

@@ -19,8 +19,9 @@ struct mla_ui_rpc_surface_info_t {
 
         const mla_ui_rpc_surface_info_t* surfaceInfo = mla_pointer_get_data<const mla_ui_rpc_surface_info_t>(obj);
 
-        if (surfaceInfo == nullptr)
+        if (surfaceInfo == nullptr) {
             return false;
+        }
 
         mla_serializer_write_string(serializer, mla_string_const("displayName"), surfaceInfo->displayName);
         mla_serializer_write_string(serializer, mla_string_const("surfaceName"), surfaceInfo->surfaceName);
@@ -50,8 +51,9 @@ struct mla_ui_rpc_surface_infos_t {
 
         const mla_ui_rpc_surface_infos_t* surfaceInfos = mla_pointer_get_data<const mla_ui_rpc_surface_infos_t>(obj);
 
-        if (surfaceInfos == nullptr)
+        if (surfaceInfos == nullptr) {
             return false;
+        }
 
         mla_serializer_write_list<mla_ui_rpc_surface_info_t>(serializer, mla_string_const("surfaces"), surfaceInfos->surfaces, mla_ui_rpc_surface_info_t::serialize);
         return true;
@@ -230,8 +232,9 @@ mla_bool_t mla_internal_ui_http_server_web_surface_path_checker(const mla_user_d
 
     mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_t>(userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
-    if (task_data == nullptr)
+    if (task_data == nullptr) {
         return false;
+    }
 
     mla_string_t final_url = mla_internal_ui_http_server_web_surface_path_from_surface_name(task_data->surfaceName);
 
@@ -380,8 +383,9 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, co
         return false;
     }
 
-    if (!mla_http_server_register_websocket_handler(http_server, handler))
+    if (!mla_http_server_register_websocket_handler(http_server, handler)) {
         return false;
+    }
 
     return true;
 }

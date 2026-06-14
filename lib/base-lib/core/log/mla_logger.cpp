@@ -57,8 +57,9 @@ mla_bool_t mla_log_set_logger_level(const mla_string_t& loggerName, const mla_lo
 
     mla_logger_t* logger = mla_array_list_get_ref(g_logger_manager.loggers, index);
 
-    if (logger == nullptr)
+    if (logger == nullptr) {
         return false;
+    }
 
     logger->level = level;
     return true;
@@ -111,7 +112,7 @@ void mla_log_message(const mla_log_level level, const mla_string_t& message, con
 
         mla_logger_t& logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
-        if (logger.level <= level && logger.write) {
+        if (logger.level <= level && logger.write != nullptr) {
 
             if (logger.need_full_managed_strings) {
 

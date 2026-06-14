@@ -44,8 +44,12 @@ mla_bool_t mla_internal_ui_button_render_to_drawCommands(const mla_ui_control_co
     mla_double_t h = element.layout.height;
 
     // Default sizing
-    if (w == 0) w = context.width - x;
-    if (h == 0) h = context.height - y;
+    if (w == 0) {
+        w = context.width - x;
+    }
+    if (h == 0) {
+        h = context.height - y;
+    }
 
     const mla_ui_button_style_t style = mla_ui_button_get_style(element);
 

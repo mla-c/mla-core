@@ -100,11 +100,13 @@ mla_bool_t mla_internal_file_system_isvalid_directory_path(const mla_string_t& p
         return false;
     }
 
-    if (!mla_string_starts_with(path, mla_fs_directory_seperator))
+    if (!mla_string_starts_with(path, mla_fs_directory_seperator)) {
         return false;
+    }
 
-    if (!mla_string_ends_with(path, mla_fs_directory_seperator))
+    if (!mla_string_ends_with(path, mla_fs_directory_seperator)) {
         return false;
+    }
 
     return true;
 

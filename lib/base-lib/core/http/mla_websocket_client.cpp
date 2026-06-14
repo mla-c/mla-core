@@ -187,8 +187,9 @@ mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client) {
 
 mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_uint16_t status_code,
                                            const mla_string_t &reason) {
-    if (!mla_network_connection_is_connected(client.connection))
+    if (!mla_network_connection_is_connected(client.connection)) {
         return true;
+    }
 
     mla_stream_output_t &output = client.connection.outputStream;
     // We dont cate about the result of sending the close frame, we are disconnecting anyway
@@ -200,8 +201,9 @@ mla_bool_t mla_websocket_client_disconnect(mla_websocket_client_t &client, mla_u
 
 
 mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client, const mla_string_t &message) {
-    if (!mla_network_connection_is_connected(client.connection))
+    if (!mla_network_connection_is_connected(client.connection)) {
         return false;
+    }
 
     // Sending the text message
 
@@ -210,8 +212,9 @@ mla_bool_t mla_websocket_client_send_text_message(mla_websocket_client_t &client
 }
 
 mla_bool_t mla_websocket_client_send_binary_message(mla_websocket_client_t &client, const mla_bytes_t &message) {
-    if (!mla_network_connection_is_connected(client.connection))
+    if (!mla_network_connection_is_connected(client.connection)) {
         return false;
+    }
 
     mla_stream_output_t &output = client.connection.outputStream;
 
@@ -223,8 +226,9 @@ mla_websocket_client_message_receive_type_t mla_websocket_client_receive_message
     // Max process 10 messages per call to avoid blocking too long
     for (mla_size_t repeatCount = 0; repeatCount < mla_websocket_max_messages_per_call; repeatCount++) {
 
-        if (!mla_network_connection_is_connected(client.connection))
+        if (!mla_network_connection_is_connected(client.connection)) {
             return MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED;
+        }
 
         mla_websocket_transport_message_receive_type_t result = mla_websocket_transport_receive_message(client.connection, timeout_ms, textMessage.message, binaryMessage.message, true);
 

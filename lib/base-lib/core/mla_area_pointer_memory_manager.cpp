@@ -125,7 +125,10 @@ mla_platform_pointer_t mla_internal_area_pointer_memory_manager_get_platform_poi
 void mla_internal_area_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
     mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
-    if (header == nullptr) return;
+
+    if (header == nullptr) {
+        return;
+    }
 
     // Increment page ref count
     mla_area_page_header_t* page = header->page;
@@ -174,7 +177,10 @@ static void mla_internal_area_free_page(mla_area_pointer_memory_manager_t& area_
 void mla_internal_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     mla_area_pointer_memory_manager_t& area_manager = reinterpret_cast<mla_area_pointer_memory_manager_t&>(memory_manager);
     mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
-    if (header == nullptr) return;
+
+    if (header == nullptr) {
+        return;
+    }
 
     mla_area_page_header_t* page = header->page;
 
@@ -197,8 +203,10 @@ void mla_internal_pointer_memory_manager_decReferences(mla_pointer_memory_manage
 mla_int32_t mla_internal_area_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
     mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
-    if (header == nullptr)
+
+    if (header == nullptr) {
         return -1;
+    }
 
     return header->page->refCount + header->page->OtherTaskRefCount.value;
 }

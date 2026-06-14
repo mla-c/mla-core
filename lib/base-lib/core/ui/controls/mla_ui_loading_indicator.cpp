@@ -18,13 +18,15 @@ mla_bool_t mla_internal_ui_indicator_render_to_drawCommands(const mla_ui_control
     // Determine scale based on 24x24 reference SVG
     // We maintain aspect ratio (circle), so use min dimension
     mla_double_t minDim = (w < h) ? w : h;
-    if (minDim <= 0.0) return true; // Don't draw if size is effectively zero
+    if (minDim <= 0.0) {
+        return true; // Don't draw if size is effectively zero
+    }
 
     mla_double_t scale = minDim / 24.0;
 
     // Center of the element
-    mla_double_t cx = offX + w / 2.0;
-    mla_double_t cy = offY + h / 2.0;
+    mla_double_t cx = offX + (w / 2.0);
+    mla_double_t cy = offY + (h / 2.0);
 
     // Scaled parameters
     mla_double_t r = 9.0 * scale;
@@ -54,16 +56,16 @@ mla_bool_t mla_internal_ui_indicator_render_to_drawCommands(const mla_ui_control
 
     // Original Arc: Starts at top (-PI/2) and goes to right (0)
     // We add the currentRotation to these base angles
-    mla_double_t startAngle = -mla_math_pi / 2.0 + currentRotation;
+    mla_double_t startAngle = (-mla_math_pi / 2.0) + currentRotation;
     mla_double_t endAngle = 0.0 + currentRotation;
 
     // Calculate coordinates for the path
     // Note: Y is down in UI coords, so standard cartesian math works for clockwise rotation if we consider Y-down
-    mla_double_t sx = cx + r * mla_math_cos(startAngle);
-    mla_double_t sy = cy + r * mla_math_sin(startAngle);
+    mla_double_t sx = cx + (r * mla_math_cos(startAngle));
+    mla_double_t sy = cy + (r * mla_math_sin(startAngle));
 
-    mla_double_t ex = cx + r * mla_math_cos(endAngle);
-    mla_double_t ey = cy + r * mla_math_sin(endAngle);
+    mla_double_t ex = cx + (r * mla_math_cos(endAngle));
+    mla_double_t ey = cy + (r * mla_math_sin(endAngle));
 
     mla_ui_surface_draw_command_t activeSegment = mla_ui_surface_draw_command_empty();
     activeSegment.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_PATH;

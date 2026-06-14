@@ -17,8 +17,9 @@ struct mla_ui_surface_size_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_size_t* self = mla_pointer_get_data<const mla_ui_surface_size_t>(obj);
 
-        if (self == nullptr)
+        if (self == nullptr) {
             return false;
+        }
 
         mla_serializer_write_uint32(serializer, mla_string_const("width"),  self->width);
         mla_serializer_write_uint32(serializer, mla_string_const("height"), self->height);

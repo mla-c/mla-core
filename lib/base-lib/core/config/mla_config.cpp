@@ -155,8 +155,9 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, c
                     nested_level--;
 
                     // Only write the end struct if we are not at the top level
-                    if (nested_level != 0)
+                    if (nested_level != 0) {
                         serializer.write_end_struct(serializer);
+                    }
 
                     break;
                 case MLA_DESERIALIZER_LIST_START:

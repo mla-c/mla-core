@@ -113,8 +113,9 @@ mla_stream_input_t mla_http_chunked_stream_input(const mla_stream_input_t &baseS
 
     mla_http_chunked_stream_input_userdata_t* userdata = mla_pointer_get_data<mla_http_chunked_stream_input_userdata_t>(userdata_ptr);
 
-    if (userdata == nullptr)
+    if (userdata == nullptr) {
         return mla_stream_noop_input();
+    }
 
     userdata->baseStream = baseStream;
     userdata->timeout_ms = timeout_ms;

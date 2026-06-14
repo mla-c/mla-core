@@ -162,7 +162,9 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
                             }
                         }
 
-                        if (!initSuccess) break;
+                        if (!initSuccess) {
+                            break;
+                        }
                     }
                 }
 
@@ -244,8 +246,9 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 
         if (item.key == key) {
 
-            if (!allowReplace)
+            if (!allowReplace) {
                 return MLA_HASH_MAP_PUSH_ERROR;
+            }
 
             // Key already exists, update the value
             item.value = value;

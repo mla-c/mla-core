@@ -15,7 +15,7 @@ mla_global_memory_hook_list_t g_memory_hook = {
 static mla_platform_pointer_t mla_internal_memory_malloc_hook(mla_size_t size) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {
-        if (g_memory_hook.hooks[i].malloc_hook) {
+        if (g_memory_hook.hooks[i].malloc_hook != nullptr) {
             mla_platform_pointer_t out_ptr = nullptr;
             if (g_memory_hook.hooks[i].malloc_hook(size, &out_ptr)) {
                 return out_ptr;
@@ -31,7 +31,7 @@ static mla_platform_pointer_t mla_internal_memory_malloc_hook(mla_size_t size) {
 static void mla_internal_memory_free_hook(mla_platform_pointer_t ptr) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {
-        if (g_memory_hook.hooks[i].malloc_hook) {
+        if (g_memory_hook.hooks[i].malloc_hook != nullptr) {
             mla_bool_t done = g_memory_hook.hooks[i].free_hook(ptr);
             if (done) {
                 return;
