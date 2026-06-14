@@ -60,7 +60,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     mla_int32_t portPos = -1;
     for (mla_size_t p = hostStart; p < pathStart; p++) {
         if (data[p] == ':') {
-            portPos = p;
+            portPos = static_cast<mla_int32_t>(p);
             break;
         }
     }
@@ -79,6 +79,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         outUrl.host = mla_string_substr(urlString, hostStart, pathStart - hostStart);
 
         // default ports based on scheme
+        // NOLINTBEGIN(bugprone-branch-clone)
         if (mla_string_equals_const(outUrl.scheme, "http")) {
             outUrl.port = 80;
         } else if (mla_string_equals_const(outUrl.scheme, "https")) {
@@ -90,6 +91,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
         } else {
             outUrl.port = 0; // Unknown scheme, port not set
         }
+        // NOLINTEND(bugprone-branch-clone)
     }
 
     pos = pathStart;
@@ -252,7 +254,6 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
             result.embedded.data[offset++] = '#';
             mla_size_t fragmentLength = mla_string_length(url.fragment);
             mla_memcpy(result.embedded.data + offset, mla_string_data(url.fragment), fragmentLength);
-            offset += fragmentLength;
         }
 
         return result;

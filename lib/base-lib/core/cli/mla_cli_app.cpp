@@ -11,21 +11,21 @@ mla_user_data_id_init(mla_stream_output_user_data_name)
 mla_user_data_id_init(mla_cli_app_user_data_name)
 mla_user_data_id_init(mla_cli_submodule_user_data_name)
 
-void __mla_cli_write_string(mla_stream_output_t &outputStream, mla_string_t str) {
+void mla_internal_cli_write_string(mla_stream_output_t &outputStream, const mla_string_t& str) {
     outputStream.write(outputStream, 0, mla_string_length(str), (mla_byte_t*)mla_string_data(str));
 }
 
-void __mla_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
+void mla_internal_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
     mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
 
     if (output == nullptr) {
         return;
     }
 
-    __mla_cli_write_string(*output, data);
+    mla_internal_cli_write_string(*output, data);
 }
 
-void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
+void mla_internal_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
     mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
 
     if (output == nullptr) {
@@ -35,7 +35,7 @@ void __mla_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_use
     output->write(*output, 0, mla_strlen(data), (mla_byte_t*)data);
 }
 
-void __mla_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+void mla_internal_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
     mla_size_t size = mla_array_list_size(app.activeModules);
 
     if (size > 1) {
@@ -46,18 +46,18 @@ void __mla_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outp
             }
 
             mla_string_t currentModuleName = mla_array_list_get_ref(app.activeModules, i)->moduleName;
-            __mla_cli_write_string(outputStream, currentModuleName);
+            mla_internal_cli_write_string(outputStream, currentModuleName);
         }
     }
 
     outputStream.write(outputStream, 0, 1, (mla_byte_t*)">");
 }
 
-void __mla_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
+void mla_internal_cli_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
     mla_array_list_add(app.activeModules, module);
 }
 
-mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
+mla_bool_t mla_internal_cli_cmd_exit_execute(const mla_cli_command_t &command,
                                 const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
@@ -79,7 +79,7 @@ mla_bool_t __mla_cli_cmd_exit_execute(const mla_cli_command_t &command,
     return true;
 }
 
-mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
+mla_string_t mla_internal_cli_format_command(const mla_cli_command_t &command) {
 
     // Start with command usage
     mla_string_t result = mla_string_concat("  ", command.name);
@@ -119,7 +119,7 @@ mla_string_t __mla_cli_format_command(const mla_cli_command_t &command) {
     return result;
 }
 
-mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
+mla_bool_t mla_internal_cli_cmd_help_execute(const mla_cli_command_t &command,
                                 const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                     mla_string_initializer> &parameters,
                                 const mla_cli_command_execute_outstream_t &out) {
@@ -157,7 +157,7 @@ mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
             if (mla_string_equals(command.name, commandOfModule->name))
                 continue;
 
-            mla_string_t commandFormated = __mla_cli_format_command(*commandOfModule);
+            mla_string_t commandFormated = mla_internal_cli_format_command(*commandOfModule);
             out.write(out.userdata, mla_string_concat(commandFormated, "\n"));
         }
     } else {
@@ -182,7 +182,7 @@ mla_bool_t __mla_cli_cmd_help_execute(const mla_cli_command_t &command,
     return true;
 }
 
-mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &command,
+mla_bool_t mla_internal_cli_cmd_open_sub_module_execute(const mla_cli_command_t &command,
                                            const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer,
                                                mla_string_initializer> &parameters,
                                            const mla_cli_command_execute_outstream_t &out) {
@@ -201,11 +201,11 @@ mla_bool_t __mla_cli_cmd_open_sub_module_execute(const mla_cli_command_t &comman
     }
 
     out.write(out.userdata, mla_string_concat("Open module '", subModule->moduleName, "'\n"));
-    __mla_activate_module(*app, *subModule);
+    mla_internal_cli_activate_module(*app, *subModule);
     return true;
 }
 
-mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
+mla_cli_parser_t mla_internal_cli_setup_parser(mla_cli_app_t &app) {
     mla_cli_parser_t parser = mla_cli_parser();
 
     mla_size_t moduleCount = mla_array_list_size(app.activeModules);
@@ -230,7 +230,7 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
             mla_user_data_set_pointer(cmdEnterModule.user_data, mla_cli_app_user_data_name, app_ptr);
             mla_user_data_set_pointer(cmdEnterModule.user_data, mla_cli_submodule_user_data_name, subModule_ptr);
 
-            cmdEnterModule.execute = __mla_cli_cmd_open_sub_module_execute;
+            cmdEnterModule.execute = mla_internal_cli_cmd_open_sub_module_execute;
             mla_array_list_add(parser.availableCommands, cmdEnterModule);
         }
     }
@@ -241,20 +241,20 @@ mla_cli_parser_t __mla_cli_setup_parser(mla_cli_app_t &app) {
         mla_cli_command_t cmdExit = mla_cli_command(mla_string_const("exit"));
 
         mla_user_data_set_pointer(cmdExit.user_data, mla_cli_app_user_data_name, app_ptr);
-        cmdExit.execute = __mla_cli_cmd_exit_execute;
+        cmdExit.execute = mla_internal_cli_cmd_exit_execute;
         mla_array_list_add(parser.availableCommands, cmdExit);
     }
 
     // Help command
     mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"));
     mla_user_data_set_pointer(cmdHelp.user_data, mla_cli_app_user_data_name, app_ptr);
-    cmdHelp.execute = __mla_cli_cmd_help_execute;
+    cmdHelp.execute = mla_internal_cli_cmd_help_execute;
     mla_array_list_add(parser.availableCommands, cmdHelp);
 
     return parser;
 }
 
-void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, mla_stream_output_t &outputStream) {
+void mla_internal_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, mla_stream_output_t &outputStream) {
     if (parser_result.isValid && mla_string_length(parser_result.matchingCommand.name) != 0) {
         // Validate mandatory parameters
         mla_bool_t missingMandatoryParameter = false;
@@ -263,7 +263,7 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
             mla_cli_command_parameter_t *param = mla_array_list_get_ref(parser_result.matchingCommand.parameters, i);
 
             if (param->mandatory && !mla_hash_map_contains(parser_result.matchingParameters, param->parameterName)) {
-                __mla_cli_write_string(outputStream,
+                mla_internal_cli_write_string(outputStream,
                                        mla_string_concat(mla_string("Parameter '"), param->parameterName,
                                                          mla_string("' is mandatory but not provided\n")));
                 missingMandatoryParameter = true;
@@ -284,8 +284,8 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
 
             mla_cli_command_execute_outstream_t stringOutstream = {
                 user_data,
-                __mla_cli_command_execute_outstream_to_stream_bridge,
-                __mla_cli_command_execute_outstream_c_string_to_stream_bridge
+                mla_internal_cli_command_execute_outstream_to_stream_bridge,
+                mla_internal_cli_command_execute_outstream_c_string_to_stream_bridge
             };
 
             parser_result.matchingCommand.execute(parser_result.matchingCommand, parser_result.matchingParameters,
@@ -296,41 +296,41 @@ void __mla_cli_process_parser_result(const mla_string_t& inputCommand, const mla
                     "' has no execute function")));
         }
     } else {
-        __mla_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
-        __mla_cli_write_string(outputStream, mla_string("  "));
-        __mla_cli_write_string(outputStream, inputCommand);
+        mla_internal_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
+        mla_internal_cli_write_string(outputStream, mla_string("  "));
+        mla_internal_cli_write_string(outputStream, inputCommand);
         outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
 
         // There is something missing show the possible auto completions
         if (mla_array_list_size(parser_result.possibleAutoCompletions) > 0) {
             outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
-            __mla_cli_write_string(outputStream, mla_string("Do you mean:\n"));
+            mla_internal_cli_write_string(outputStream, mla_string("Do you mean:\n"));
             for (mla_size_t i = 0; i < mla_array_list_size(parser_result.possibleAutoCompletions); ++i) {
                 mla_string_t *completion = mla_array_list_get_ref(parser_result.possibleAutoCompletions, i);
-                __mla_cli_write_string(outputStream, mla_string("  "));
-                __mla_cli_write_string(outputStream, inputCommand);
-                __mla_cli_write_string(outputStream, *completion);
+                mla_internal_cli_write_string(outputStream, mla_string("  "));
+                mla_internal_cli_write_string(outputStream, inputCommand);
+                mla_internal_cli_write_string(outputStream, *completion);
                 outputStream.write(outputStream, 0, 1,  (mla_byte_t*)"\n");
             }
         } else {
 
             // No possible completions found
-            __mla_cli_write_string(outputStream, mla_string("Type 'help' to see available commands.\n"));
+            mla_internal_cli_write_string(outputStream, mla_string("Type 'help' to see available commands.\n"));
 
         }
     }
 }
 
-void __mla_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_string_t &command,
+void mla_internal_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_string_t &command,
                                                 mla_stream_output_t &outputStream) {
     // Setup the parser
-    mla_cli_parser_t parser = __mla_cli_setup_parser(app);
+    mla_cli_parser_t parser = mla_internal_cli_setup_parser(app);
 
     // Parse the command
     const mla_cli_parser_result parser_result = mla_cli_parser_parse(parser, command);
 
     // Process the result
-    __mla_cli_process_parser_result(command, parser_result, outputStream);
+    mla_internal_cli_process_parser_result(command, parser_result, outputStream);
 }
 
 mla_cli_app_t mla_cli_app_empty() {
@@ -346,8 +346,8 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, mla_stream_output_t
         mla_string_empty()
     };
 
-    __mla_activate_module(app, rootModule);
-    __mla_cli_write_module_prompt(app, outputStream);
+    mla_internal_cli_activate_module(app, rootModule);
+    mla_internal_cli_write_module_prompt(app, outputStream);
     return app;
 }
 
@@ -382,7 +382,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
         app.unprocessedInput = remainingInput;
 
         // Parse and execute the command
-        __mla_cli_parser_parse_and_execute_command(app, line, outputStream);
+        mla_internal_cli_parser_parse_and_execute_command(app, line, outputStream);
         commandProcessed = true;
 
         // Check for another complete line
@@ -391,7 +391,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
 
     if (commandProcessed) {
         outputStream.write(outputStream, 0, 1, (mla_byte_t*)"\n");
-        __mla_cli_write_module_prompt(app, outputStream);
+        mla_internal_cli_write_module_prompt(app, outputStream);
     }
 }
 

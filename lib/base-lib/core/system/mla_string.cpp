@@ -725,7 +725,7 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataSub = mla_string_data(p_Substring);
 
-    for (mla_int32_t i = length - lengthSub; i != -1; --i) {
+    for (mla_int32_t i = static_cast<mla_int32_t>(length - lengthSub); i != -1; --i) {
 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
             return i; // Found the substring
@@ -796,35 +796,37 @@ mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times)
     mla_size_t length = mla_string_length(p_String);
 
     if (p_Times == 0 || length == 0) {
-        return mla_string_empty(); // Nothing to repeat
+        return mla_string_empty();
     }
 
     mla_size_t resultLength = length * p_Times;
+    const mla_char_t* source = mla_string_data(p_String);
 
     if (resultLength <= mla_global_config_string_sso_max_length) {
 
-        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
         result.embedded.length = static_cast<mla_uint8_t>(resultLength);
 
         for (mla_size_t i = 0; i < p_Times; ++i) {
-            mla_memcpy(result.embedded.data + i * length, mla_string_data(p_String), length);
+            const mla_size_t offset = i * length;
+            mla_memcpy(result.embedded.data + offset, source, length);
         }
         return result;
     }
 
     mla_pointer_t newData = mla_create_char_array(resultLength);
-
     mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
 
     if (new_data_ptr == nullptr) {
-        return mla_string_empty(); // Memory allocation failed
+        return mla_string_empty();
     }
 
     for (mla_size_t i = 0; i < p_Times; ++i) {
-        mla_memcpy(new_data_ptr + i * length, mla_string_data(p_String), length);
+        const mla_size_t offset = i * length;
+        mla_memcpy(new_data_ptr + offset, source, length);
     }
 
-    mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    mla_string_t result = {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
     result.heap.length = resultLength;
     result.heap.char_offset = 0;
     return result;

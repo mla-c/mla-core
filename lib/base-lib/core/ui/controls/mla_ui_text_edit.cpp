@@ -5,7 +5,7 @@
 #include "mla_ui_text_edit.h"
 #include "../../system/mla_string_concat.h"
 
-mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
+mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
                                                        const mla_ui_surface_input_event_char_input_t &charInputEvent,
                                                        mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>
                                                        &uiControls, mla_user_data_t& userData) {
@@ -158,7 +158,7 @@ mla_bool_t __mla_ui_text_edit_process_char_input_event(mla_ui_control_t &control
 }
 
 
-mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context,
+mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context,
                                                      const mla_ui_control_t &element,
                                                      mla_array_list_t<mla_ui_surface_draw_command_t,
                                                          mla_ui_surface_draw_command_initializer_t> &drawCommands,
@@ -332,7 +332,7 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
             // Split Text Rendering: Prefix(Black) - Selected(White) - Suffix(Black)
 
             mla_int32_t idx = mla_string_index_of(text, activeSelectedText);
-            mla_int32_t len = mla_string_length(activeSelectedText);
+            mla_size_t len = mla_string_length(activeSelectedText);
 
             mla_string_t prefix = mla_string_substr(text, 0, idx);
             mla_string_t suffix = mla_string_substr(text, idx + len, mla_string_length(text) - (idx + len));
@@ -407,8 +407,8 @@ mla_bool_t __mla_ui_text_edit_render_to_drawCommands(const mla_ui_control_contex
 
 mla_ui_control_t mla_ui_text_edit() {
     mla_ui_control_t button = mla_ui_control();
-    button.renderToDrawCommands = __mla_ui_text_edit_render_to_drawCommands;
-    button.processCharInputEvent = __mla_ui_text_edit_process_char_input_event;
+    button.renderToDrawCommands = mla_internal_ui_text_edit_render_to_drawCommands;
+    button.processCharInputEvent = mla_internal_ui_text_edit_process_char_input_event;
     return button;
 }
 

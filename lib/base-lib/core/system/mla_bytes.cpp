@@ -31,7 +31,7 @@ mla_bytes_t mla_bytes(mla_size_t p_Length) {
 }
 
 
-mla_bytes_t mla_bytes_from_external_buffer(mla_pointer_t& p_Data, const mla_size_t p_Size) {
+mla_bytes_t mla_bytes_from_external_buffer(const mla_pointer_t& p_Data, const mla_size_t p_Size) {
 
     if (mla_pointer_is_null(p_Data) || p_Size == 0) {
         return mla_bytes_empty();

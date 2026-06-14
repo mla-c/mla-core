@@ -139,7 +139,7 @@ struct mla_ui_web_remote_surface_server_message_t {
 
 };
 
-mla_ui_surface_size_t __mla_ui_web_remote_surface_get_size(const mla_ui_surface_t& surface) {
+mla_ui_surface_size_t mla_internal_ui_web_remote_surface_get_size(const mla_ui_surface_t& surface) {
 
     mla_ui_web_remote_surface_data_t* surfaceData = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
 
@@ -152,7 +152,7 @@ mla_ui_surface_size_t __mla_ui_web_remote_surface_get_size(const mla_ui_surface_
     return surfaceData->lastSurfaceSize;
 }
 
-mla_bool_t __mla_ui_web_remote_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surface_size_t size) {
+mla_bool_t mla_internal_ui_web_remote_surface_set_size(const mla_ui_surface_t& surface, mla_ui_surface_size_t size) {
 
     (void)surface;
     (void)size;
@@ -163,7 +163,7 @@ mla_bool_t __mla_ui_web_remote_surface_set_size(const mla_ui_surface_t& surface,
 mla_user_data_id_init(mla_ui_web_remote_surface_draw_commands_message_user_data_name)
 mla_user_data_id_init(mla_ui_web_remote_surface_timestamp_user_data_name)
 
-mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator(mla_stream_output_t& output, mla_user_data_t& user_data) {
+mla_bool_t mla_internal_ui_web_remote_surface_render_draw_commands_text_message_generator(mla_stream_output_t& output, mla_user_data_t& user_data) {
 
     mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>* drawCommands = mla_user_data_get_pointer_data<mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>>(user_data, mla_ui_web_remote_surface_draw_commands_message_user_data_name);
     mla_uint64_t timestamp = mla_user_data_get_uint64(user_data, mla_ui_web_remote_surface_timestamp_user_data_name);
@@ -183,7 +183,7 @@ mla_bool_t ___mla_ui_web_remote_surface_render_draw_commands_text_message_genera
 
 }
 
-mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs) {
+mla_bool_t mla_internal_ui_web_remote_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame, mla_uint64_t timeSinceLastFrameMs) {
 
     (void)eventsSinceLastFame;
 
@@ -213,12 +213,12 @@ mla_bool_t __mla_ui_web_remote_surface_render_draw_commands(const mla_ui_surface
     mla_user_data_set_uint64(messageData, mla_ui_web_remote_surface_timestamp_user_data_name, mla_system_time_ms());
 
     // Serialize the commands to JSON
-    mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, ___mla_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
+    mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, mla_internal_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
     return sended;
 
 }
 
-mla_ui_surface_draw_size_t __mla_ui_web_remote_surface_render_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
+mla_ui_surface_draw_size_t mla_internal_ui_web_remote_surface_render_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
 
     mla_ui_web_remote_surface_data_t* surface_data = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
     if (surface_data == nullptr) {
@@ -255,7 +255,7 @@ mla_ui_surface_draw_size_t __mla_ui_web_remote_surface_render_calc_text_size(con
 
 }
 
-mla_ui_surface_input_states_t __mla_ui_web_remote_surface_get_input_states(const mla_ui_surface_t &surface) {
+mla_ui_surface_input_states_t mla_internal_ui_web_remote_surface_get_input_states(const mla_ui_surface_t &surface) {
 
     mla_ui_web_remote_surface_data_t* surface_data = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.resource);
     if (surface_data == nullptr) {
@@ -278,7 +278,7 @@ mla_ui_web_remote_surface_message_result_t mla_ui_web_remote_surface_message_res
 }
 
 
-mla_ui_web_remote_surface_message_result_t __mla_ui_web_remote_surface_handle_client_text_message(mla_ui_web_remote_surface_t& surface, const mla_string_t& message) {
+mla_ui_web_remote_surface_message_result_t mla_internal_ui_web_remote_surface_handle_client_text_message(mla_ui_web_remote_surface_t& surface, const mla_string_t& message) {
 
     mla_ui_web_remote_surface_data_t* data_client = mla_pointer_get_data<mla_ui_web_remote_surface_data_t>(surface.surface.resource);
 
@@ -349,13 +349,13 @@ mla_ui_web_remote_surface_t mla_ui_web_remote_surface_create(const mla_http_serv
     return {
         {
             surfaceData_ptr,
-            __mla_ui_web_remote_surface_get_size,
-            __mla_ui_web_remote_surface_set_size,
-            __mla_ui_web_remote_surface_render_draw_commands,
-            __mla_ui_web_remote_surface_render_calc_text_size,
-            __mla_ui_web_remote_surface_get_input_states
+            mla_internal_ui_web_remote_surface_get_size,
+            mla_internal_ui_web_remote_surface_set_size,
+            mla_internal_ui_web_remote_surface_render_draw_commands,
+            mla_internal_ui_web_remote_surface_render_calc_text_size,
+            mla_internal_ui_web_remote_surface_get_input_states
         },
-        __mla_ui_web_remote_surface_handle_client_text_message
+        mla_internal_ui_web_remote_surface_handle_client_text_message
     };
 
 }

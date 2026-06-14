@@ -64,7 +64,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
 
         // First 16 words (big-endian)
         for (mla_uint32_t t = 0; t < 16; ++t) {
-            mla_uint64_t idx = chunk * 64 + t * 4;
+            mla_uint64_t idx = chunk * 64ULL + static_cast<mla_uint64_t>(t) * 4ULL;
             W[t] = (padded[idx] << 24) |
                    (padded[idx + 1] << 16) |
                    (padded[idx + 2] << 8) |

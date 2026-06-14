@@ -38,7 +38,7 @@ struct mla_rpc_http_request_body_config {
 };
 
 
-mla_string_t __mla_http_rpc_content_type_to_string(mla_http_rpc_content_type content_type) {
+mla_string_t mla_internal_http_rpc_content_type_to_string(mla_http_rpc_content_type content_type) {
 
     switch (content_type) {
         case mla_http_rpc_content_type_json:
@@ -50,7 +50,7 @@ mla_string_t __mla_http_rpc_content_type_to_string(mla_http_rpc_content_type con
     }
 }
 
-mla_bool_t __mla_http_rpc_request_content_write(mla_http_rpc_content_type content_type, const mla_stream_output_t &outputStream, const mla_pointer_t& input_data, const mla_serialize_definition_write_function_t &write_function) {
+mla_bool_t mla_internal_http_rpc_request_content_write(mla_http_rpc_content_type content_type, const mla_stream_output_t &outputStream, const mla_pointer_t& input_data, const mla_serialize_definition_write_function_t &write_function) {
 
     mla_serializer_t serializer = mla_serializer_invalid();
 
@@ -74,7 +74,7 @@ mla_bool_t __mla_http_rpc_request_content_write(mla_http_rpc_content_type conten
 
 mla_user_data_id_init(mla_http_rpc_request_content_writer_body_config_user_data_name)
 
-mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream) {
+mla_bool_t mla_internal_http_rpc_request_content_writer(const mla_http_request_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
     mla_pointer_t body_config_ptr = mla_user_data_get_pointer(writer.userData, mla_http_rpc_request_content_writer_body_config_user_data_name);
 
@@ -86,7 +86,7 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
 
     mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output(outputStream);
 
-    mla_bool_t result = __mla_http_rpc_request_content_write(body_config->content_type, chunked_output.output, body_config->input_data, body_config->input_definition.write_function);
+    mla_bool_t result = mla_internal_http_rpc_request_content_write(body_config->content_type, chunked_output.output, body_config->input_data, body_config->input_definition.write_function);
 
     // Finalize chunked output
     if (!mla_http_chunked_stream_output_finished(chunked_output)) {
@@ -99,7 +99,7 @@ mla_bool_t __mla_http_rpc_request_content_writer(const mla_http_request_content_
 
 mla_user_data_id_init(mla_rpc_http_client_config_user_data_name)
 
-mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data) {
+mla_bool_t mla_internal_rpc_http_execute(const mla_user_data_t &userdata, const mla_string_t &procedure_name, const mla_serialize_definition_t &input_definition, const mla_serialize_definition_t &output_definition, const mla_pointer_t& input_data, mla_pointer_t& output_data) {
 
     mla_pointer_t config_ptr = mla_user_data_get_pointer(userdata, mla_rpc_http_client_config_user_data_name);
 
@@ -119,14 +119,14 @@ mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_str
     }
 
     mla_http_request_t request = mla_http_post_request(url);
-    mla_http_headers_add(request.headers, mla_string_const("Content-Type"), __mla_http_rpc_content_type_to_string(config->content_type));
+    mla_http_headers_add(request.headers, mla_string_const("Content-Type"), mla_internal_http_rpc_content_type_to_string(config->content_type));
 
     if (!mla_pointer_is_null(input_data)) {
 
         // If its an short input we can optimize by writing it directly
         mla_memory_stream_t temp_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, false);
 
-        if (__mla_http_rpc_request_content_write(config->content_type, temp_stream.output, input_data, input_definition.write_function)) {
+        if (mla_internal_http_rpc_request_content_write(config->content_type, temp_stream.output, input_data, input_definition.write_function)) {
             // If serialization was successful we can use the memory stream as content
             mla_http_headers_add(request.headers, mla_string_const("Content-Length"), mla_string_from_int32(static_cast<mla_int32_t>(mla_memory_stream_get_size(temp_stream))));
             mla_memory_stream_set_position(temp_stream, 0);
@@ -152,7 +152,7 @@ mla_bool_t __mla_rpc_http_execute(const mla_user_data_t &userdata, const mla_str
             mla_user_data_t writer_user_data = mla_user_data_empty();
             mla_user_data_set_pointer(writer_user_data, mla_http_rpc_request_content_writer_body_config_user_data_name, body_config_ptr);
 
-            request.contentWriter = mla_http_request_content_writer(writer_user_data, __mla_http_rpc_request_content_writer);
+            request.contentWriter = mla_http_request_content_writer(writer_user_data, mla_internal_http_rpc_request_content_writer);
 
         }
 
@@ -215,7 +215,7 @@ mla_rpc_remote_endpoint_t mla_rpc_http_register_endpoint(const mla_string_t& ser
     mla_user_data_t user_data = mla_user_data_empty();
     mla_user_data_set_pointer(user_data, mla_rpc_http_client_config_user_data_name, config_ptr);
 
-    mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_all(__mla_rpc_http_execute, user_data);
+    mla_rpc_remote_endpoint_t endpoint = mla_rpc_remote_endpoint_all(mla_internal_rpc_http_execute, user_data);
 
     if (!mla_rpc_register_remote_endpoint(endpoint))
         return mla_rpc_remote_endpoint_invalid();

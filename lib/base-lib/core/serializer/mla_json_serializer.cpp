@@ -25,7 +25,7 @@ enum mla_json_serializer_element_type_t: mla_uint8_t {
 
 mla_user_data_id_init(mla_json_serializer_element_type_user_data_name)
 
-mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
+mla_bool_t mla_internal_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
                                                  mla_json_serializer_element_type_t new_type) {
 
     mla_json_serializer_element_type_t last_type = (mla_json_serializer_element_type_t)mla_user_data_get_and_replace_int8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type, MLA_JSON_SERIALIZER_ELEMENT_NONE);
@@ -57,13 +57,6 @@ mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instanc
             // No comma needed
             break;
         case MLA_JSON_SERIALIZER_ELEMENT_PROPERTY_NAME:
-            if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
-                last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
-                if (instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>(",")) != 1) {
-                    return false;
-                }
-            }
-            break;
         case MLA_JSON_SERIALIZER_ELEMENT_VALUE:
             if (last_type == MLA_JSON_SERIALIZER_ELEMENT_VALUE || last_type == MLA_JSON_SERIALIZER_ELEMENT_END_LIST ||
                 last_type == MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT) {
@@ -79,7 +72,7 @@ mla_bool_t __mla_json_serializer_write_comma_if_needed(mla_serializer_t &instanc
 
 
 mla_bool_t mla_json_serializer_write_start_struct(mla_serializer_t &instance) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_OBJECT)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_OBJECT)) {
         return false;
     }
 
@@ -87,7 +80,7 @@ mla_bool_t mla_json_serializer_write_start_struct(mla_serializer_t &instance) {
 }
 
 mla_bool_t mla_json_serializer_write_end_struct(mla_serializer_t &instance) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_OBJECT)) {
         return false;
     }
 
@@ -95,7 +88,7 @@ mla_bool_t mla_json_serializer_write_end_struct(mla_serializer_t &instance) {
 }
 
 mla_bool_t mla_json_serializer_write_start_list(mla_serializer_t &instance) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_LIST)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_START_LIST)) {
         return false;
     }
 
@@ -103,14 +96,14 @@ mla_bool_t mla_json_serializer_write_start_list(mla_serializer_t &instance) {
 }
 
 mla_bool_t mla_json_serializer_write_end_list(mla_serializer_t &instance) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_LIST)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_END_LIST)) {
         return false;
     }
     return instance.output.write(instance.output, 0, 1, reinterpret_cast<const mla_byte_t *>("]")) == 1;
 }
 
 mla_bool_t mla_json_serializer_write_property_name(mla_serializer_t &instance, const mla_string_t &name) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_PROPERTY_NAME)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_PROPERTY_NAME)) {
         return false;
     }
 
@@ -136,7 +129,7 @@ mla_bool_t mla_json_serializer_write_property_name(mla_serializer_t &instance, c
 }
 
 mla_bool_t mla_json_serializer_write_bool(mla_serializer_t &instance, const mla_bool_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
 
@@ -149,7 +142,7 @@ mla_bool_t mla_json_serializer_write_bool(mla_serializer_t &instance, const mla_
 }
 
 mla_bool_t mla_json_serializer_write_int8(mla_serializer_t &instance, const mla_int8_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
 
@@ -160,7 +153,7 @@ mla_bool_t mla_json_serializer_write_int8(mla_serializer_t &instance, const mla_
 }
 
 mla_bool_t mla_json_serializer_write_int16(mla_serializer_t &instance, const mla_int16_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_int16(value);
@@ -171,7 +164,7 @@ mla_bool_t mla_json_serializer_write_int16(mla_serializer_t &instance, const mla
 }
 
 mla_bool_t mla_json_serializer_write_int32(mla_serializer_t &instance, const mla_int32_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_int32(value);
@@ -182,7 +175,7 @@ mla_bool_t mla_json_serializer_write_int32(mla_serializer_t &instance, const mla
 
 mla_bool_t mla_json_serializer_write_int64(mla_serializer_t &instance, const mla_int64_t value) {
 
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_int64(value);
@@ -192,7 +185,7 @@ mla_bool_t mla_json_serializer_write_int64(mla_serializer_t &instance, const mla
 }
 
 mla_bool_t mla_json_serializer_write_uint8(mla_serializer_t &instance, const mla_uint8_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_uint8(value);
@@ -202,7 +195,7 @@ mla_bool_t mla_json_serializer_write_uint8(mla_serializer_t &instance, const mla
 }
 
 mla_bool_t mla_json_serializer_write_uint16(mla_serializer_t &instance, const mla_uint16_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_uint16(value);
@@ -213,7 +206,7 @@ mla_bool_t mla_json_serializer_write_uint16(mla_serializer_t &instance, const ml
 }
 
 mla_bool_t mla_json_serializer_write_uint32(mla_serializer_t &instance, const mla_uint32_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE) ) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE) ) {
         return false;
     }
     mla_string_t str = mla_string_from_uint32(value);
@@ -224,7 +217,7 @@ mla_bool_t mla_json_serializer_write_uint32(mla_serializer_t &instance, const ml
 }
 
 mla_bool_t mla_json_serializer_write_uint64(mla_serializer_t &instance, const mla_uint64_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_uint64(value);
@@ -234,7 +227,7 @@ mla_bool_t mla_json_serializer_write_uint64(mla_serializer_t &instance, const ml
 }
 
 mla_bool_t mla_json_serializer_write_float(mla_serializer_t &instance, const mla_float_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_float(value, 6); // Default to 6 decimal places
@@ -245,7 +238,7 @@ mla_bool_t mla_json_serializer_write_float(mla_serializer_t &instance, const mla
 }
 
 mla_bool_t mla_json_serializer_write_double(mla_serializer_t &instance, const mla_double_t value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     mla_string_t str = mla_string_from_double(value, 6); // Default to 6 decimal places
@@ -254,7 +247,7 @@ mla_bool_t mla_json_serializer_write_double(mla_serializer_t &instance, const ml
     return instance.output.write(instance.output, 0, length, reinterpret_cast<const mla_byte_t *>(data)) == length;
 }
 
-mla_bool_t __mla_json_serializer_write_string_plain(mla_serializer_t &instance, const mla_string_t &value) {
+mla_bool_t mla_internal_json_serializer_write_string_plain(mla_serializer_t &instance, const mla_string_t &value) {
 
     mla_size_t length = mla_string_length(value);
 
@@ -269,7 +262,7 @@ mla_bool_t __mla_json_serializer_write_string_plain(mla_serializer_t &instance, 
 
 mla_bool_t mla_json_serializer_write_string(mla_serializer_t &instance, const mla_string_t &value) {
 
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
 
@@ -277,7 +270,7 @@ mla_bool_t mla_json_serializer_write_string(mla_serializer_t &instance, const ml
         return false;
     }
 
-    if (!__mla_json_serializer_write_string_plain(instance, value) ) {
+    if (!mla_internal_json_serializer_write_string_plain(instance, value) ) {
         return false;
     }
 
@@ -286,7 +279,7 @@ mla_bool_t mla_json_serializer_write_string(mla_serializer_t &instance, const ml
 }
 
 mla_bool_t mla_json_serializer_write_bytes(mla_serializer_t &instance, const mla_bytes_t &value) {
-    if (!__mla_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
+    if (!mla_internal_json_serializer_write_comma_if_needed(instance, MLA_JSON_SERIALIZER_ELEMENT_VALUE)) {
         return false;
     }
     // Serialize bytes as a base64 string
@@ -296,11 +289,11 @@ mla_bool_t mla_json_serializer_write_bytes(mla_serializer_t &instance, const mla
         return false;
     }
 
-    if (!__mla_json_serializer_write_string_plain(instance, mla_string_const(mla_bytes_prefix))) {
+    if (!mla_internal_json_serializer_write_string_plain(instance, mla_string_const(mla_bytes_prefix))) {
         return false;
     }
 
-    if (!__mla_json_serializer_write_string_plain(instance, base64Str)) {
+    if (!mla_internal_json_serializer_write_string_plain(instance, base64Str)) {
         return false;
     }
 
@@ -335,7 +328,7 @@ mla_serializer_t mla_json_serializer(const mla_stream_output_t &output) {
 
 mla_user_data_id_init(mla_json_deserializer_char_buffer_user_data_name)
 
-mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserializer_t &instance, mla_char_t &out_char) {
+mla_bool_t mla_internal_json_deserializer_read_next_non_whitespace_char(mla_deserializer_t &instance, mla_char_t &out_char) {
     // Check if there is something in buffer
     mla_char_t buffered_char = mla_user_data_get_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, 0);
 
@@ -371,7 +364,7 @@ mla_bool_t __mla_json_deserializer_read_next_non_whitespace_char(mla_deserialize
     return true;
 }
 
-mla_size_t __mla_json_deserializer_read_next_data(mla_deserializer_t &instance, mla_char_t *charBuffer,
+mla_size_t mla_internal_json_deserializer_read_next_data(mla_deserializer_t &instance, mla_char_t *charBuffer,
                                                   const mla_size_t length) {
     mla_size_t offset;
     mla_size_t lengthRemaining;
@@ -397,7 +390,7 @@ mla_size_t __mla_json_deserializer_read_next_data(mla_deserializer_t &instance, 
     return (readed /  sizeof(mla_char_t)) + offset;
 }
 
-mla_bool_t __mla_json_deserializer_string_match(mla_deserializer_t &instance, const mla_char_t *data,
+mla_bool_t mla_internal_json_deserializer_string_match(mla_deserializer_t &instance, const mla_char_t *data,
                                                 const mla_size_t length) {
     if (length > 4)
         return false;
@@ -405,7 +398,7 @@ mla_bool_t __mla_json_deserializer_string_match(mla_deserializer_t &instance, co
     // The current max is 5/ never more
     mla_char_t charBuffer[4];
 
-    if (__mla_json_deserializer_read_next_data(instance, charBuffer, length) != length) {
+    if (mla_internal_json_deserializer_read_next_data(instance, charBuffer, length) != length) {
         return false;
     }
 
@@ -413,7 +406,7 @@ mla_bool_t __mla_json_deserializer_string_match(mla_deserializer_t &instance, co
 }
 
 
-mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance, mla_string_t &out_str) {
+mla_bool_t mla_internal_json_deserializer_read_string_data(mla_deserializer_t &instance, mla_string_t &out_str) {
     mla_char_t charBuffer[mla_global_config_stream_fast_read_buffer_size];
     mla_size_t position = 0;
     out_str = mla_string_empty();
@@ -612,7 +605,7 @@ mla_bool_t __mla_json_deserializer_read_string_data(mla_deserializer_t &instance
     return true;
 }
 
-mla_bool_t __mla_json_deserializer_read_number_data(mla_deserializer_t &instance) {
+mla_bool_t mla_internal_json_deserializer_read_number_data(mla_deserializer_t &instance) {
     mla_char_t charBuffer[64]; // Buffer for storing the number string
     mla_size_t position = 0;
     mla_bool_t is_negative = false;
@@ -764,7 +757,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
     while (true) {
         mla_char_t new_char = 0;
 
-        if (!__mla_json_deserializer_read_next_non_whitespace_char(instance, new_char)) {
+        if (!mla_internal_json_deserializer_read_next_non_whitespace_char(instance, new_char)) {
             return false;
         }
 
@@ -788,11 +781,11 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
             case '"': {
                 mla_string_t str_data = mla_string_empty();
 
-                if (!__mla_json_deserializer_read_string_data(instance, str_data)) {
+                if (!mla_internal_json_deserializer_read_string_data(instance, str_data)) {
                     return false;
                 }
 
-                if (!__mla_json_deserializer_read_next_non_whitespace_char(instance, new_char)) {
+                if (!mla_internal_json_deserializer_read_next_non_whitespace_char(instance, new_char)) {
                     return false;
                 }
 
@@ -828,7 +821,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
 
             case 't':
                 // Check if the remaining String plus the 't' matches "true"
-                if (__mla_json_deserializer_string_match(instance, "rue", 3)) {
+                if (mla_internal_json_deserializer_string_match(instance, "rue", 3)) {
                     instance.current_token.type = MLA_DESERIALIZER_VALUE_BOOL;
                     instance.current_token.simple.bool_value = true;
                     return true;
@@ -838,7 +831,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
 
             case 'f':
                 // Check if the remaining String plus the 'f' matches "false"
-                if (__mla_json_deserializer_string_match(instance, "alse", 4)) {
+                if (mla_internal_json_deserializer_string_match(instance, "alse", 4)) {
                     instance.current_token.type = MLA_DESERIALIZER_VALUE_BOOL;
                     instance.current_token.simple.bool_value = false;
                     return true;
@@ -848,7 +841,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
 
             case 'n':
                 // Check if the remaining String plus the 'n' matches "null"
-                if (__mla_json_deserializer_string_match(instance, "ull", 3)) {
+                if (mla_internal_json_deserializer_string_match(instance, "ull", 3)) {
                     instance.current_token.type = MLA_DESERIALIZER_NULL;
                     return true;
                 }
@@ -868,7 +861,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
             case '9':
                 // Number detected, read the full number
                 mla_user_data_set_char(instance.user_data, mla_json_deserializer_char_buffer_user_data_name, new_char);
-                return __mla_json_deserializer_read_number_data(instance);
+                return mla_internal_json_deserializer_read_number_data(instance);
 
             case ',':
                 // Skip commas and continue to next token

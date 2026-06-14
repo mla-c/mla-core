@@ -9,7 +9,7 @@
 
 inline mla_char_t mla_char_toLower(const mla_char_t p_Char) {
     if (p_Char >= 'A' && p_Char <= 'Z') {
-        return p_Char + ('a' - 'A');
+        return static_cast<mla_char_t>(p_Char + ('a' - 'A'));
     }
     return p_Char;
 }
@@ -17,7 +17,7 @@ inline mla_char_t mla_char_toLower(const mla_char_t p_Char) {
 inline mla_char_t mla_char_toUpper(const mla_char_t p_Char) {
 
     if (p_Char >= 'a' && p_Char <= 'z') {
-        return p_Char - ('a' - 'A');
+        return static_cast<mla_char_t>(p_Char - ('a' - 'A'));
     }
     return p_Char;
 }

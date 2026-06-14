@@ -5,7 +5,7 @@
 #include "mla_ui_label.h"
 #include "mla_ui_style.h"
 
-void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
+void mla_internal_ui_label_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
 
     if (context.calcTextSize != nullptr) {
         mla_ui_surface_draw_size_t size = context.calcTextSize(context, fontType,text);
@@ -19,7 +19,7 @@ void __mla_ui_label_calc_text_size(const mla_ui_control_context_t &context, cons
 
 }
 
-mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+mla_bool_t mla_internal_ui_label_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
 
     (void)inputAreas;
 
@@ -27,16 +27,6 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     mla_double_t x = element.layout.x;
     mla_double_t y = element.layout.y;
 
-    mla_double_t w = element.layout.width;
-    if (w == 0) {
-        // If x is absolute, this mirrors the window behavior.
-        w = context.width - x;
-    }
-
-    mla_double_t h = element.layout.height;
-    if (h == 0) {
-        h = context.height - y;
-    }
 
     const mla_string_t text = mla_ui_label_get_text(element);
     if (mla_string_is_empty(text)) {
@@ -101,7 +91,7 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
     fontType.size = static_cast<mla_double_t>(fontSize);
 
     if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
-        __mla_ui_label_calc_text_size(context, fontType, text, textWidth, textHeight);
+        mla_internal_ui_label_calc_text_size(context, fontType, text, textWidth, textHeight);
     }
 
     mla_ui_surface_draw_command_t command = mla_ui_surface_draw_command_empty();
@@ -124,7 +114,7 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
             command.text.font_type.bold = true;
 
             // Recalculate text size for bold font
-            __mla_ui_label_calc_text_size(context, command.text.font_type, text, textWidth, textHeight);
+            mla_internal_ui_label_calc_text_size(context, command.text.font_type, text, textWidth, textHeight);
         }
     }
 
@@ -153,7 +143,7 @@ mla_bool_t __mla_ui_label_render_to_drawCommands(const mla_ui_control_context_t 
 mla_ui_control_t mla_ui_label() {
 
     mla_ui_control_t label = mla_ui_control();
-    label.renderToDrawCommands = __mla_ui_label_render_to_drawCommands;
+    label.renderToDrawCommands = mla_internal_ui_label_render_to_drawCommands;
     return label;
 }
 

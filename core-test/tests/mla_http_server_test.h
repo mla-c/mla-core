@@ -204,13 +204,15 @@ inline void HttpMultipartRoundTripTest() {
         mla_string_t file_data = mla_string_const("dummy file data");
         mla_string_t upload_url = mla_string_concat(test_server_url, mla_string_const("/multipart/upload"));
 
+        mla_stream_input_t file_stream = mla_stream_input_from_string(file_data);
+
         mla_http_client_response_t response = mla_http_client_upload_file(
             client,
             upload_url,
             mla_string_const("file"),
             mla_string_const("test.txt"),
             mla_string_const("text/plain"),
-            mla_stream_input_from_string(file_data)
+            file_stream
         );
 
         assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,

@@ -16,7 +16,7 @@ struct mla_bytes_t {
 
 mla_bytes_t mla_bytes_empty();
 mla_bytes_t mla_bytes(mla_size_t p_Length);
-mla_bytes_t mla_bytes_from_external_buffer(mla_pointer_t& p_Data, const mla_size_t p_Size);
+mla_bytes_t mla_bytes_from_external_buffer(const mla_pointer_t& p_Data, const mla_size_t p_Size);
 
 mla_string_t mla_bytes_to_base64(const mla_bytes_t& p_Bytes);
 mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String);

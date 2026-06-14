@@ -44,6 +44,7 @@
 Checks: >-
   bugprone-*,
   -bugprone-easily-swappable-parameters,
+  -bugprone-branch-clone, # Disabled: produces too many false positives.
   cert-dcl50-cpp,
   cert-err34-c,
   cert-err52-cpp,
@@ -56,7 +57,8 @@ Checks: >-
 # .clang-tidy or by passing --warnings-as-errors=* on the command line.
 # The empty string here means findings are reported but do not fail the build
 # by default, so projects can adopt the checks incrementally.
-WarningsAsErrors: ''
-
+WarningsAsErrors: '*'
+SystemHeaders: false
+HeaderFilterRegex: '(^|.*[\\/])(mla-core|main)[\\/]'
 FormatStyle: none
 ...

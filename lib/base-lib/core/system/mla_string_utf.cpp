@@ -26,11 +26,10 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
         mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
         mla_size_t advance = 1;
 
-        if      ((first & 0x80) == 0x00) advance = 1;      // 0xxxxxxx
-        else if ((first & 0xE0) == 0xC0) advance = 2;      // 110xxxxx
+        if      ((first & 0xE0) == 0xC0) advance = 2;      // 110xxxxx
         else if ((first & 0xF0) == 0xE0) advance = 3;      // 1110xxxx
         else if ((first & 0xF8) == 0xF0) advance = 4;      // 11110xxx
-        else advance = 1; // Invalid leading byte, treat as single
+        // ASCII and invalid leading bytes both advance by 1
 
         byteIndex += advance;
         charIndex++;
@@ -44,11 +43,11 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
     // Determine length of current character
     mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
     mla_size_t byteCount = 1;
-    if      ((first & 0x80) == 0x00) byteCount = 1;
-    else if ((first & 0xE0) == 0xC0) byteCount = 2;
+
+    if      ((first & 0xE0) == 0xC0) byteCount = 2;
     else if ((first & 0xF0) == 0xE0) byteCount = 3;
     else if ((first & 0xF8) == 0xF0) byteCount = 4;
-    else byteCount = 1;
+    // ASCII and invalid leading bytes both use 1 byte
 
     // Clamp if truncated
     if (byteIndex + byteCount > length) {

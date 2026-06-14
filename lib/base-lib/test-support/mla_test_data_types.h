@@ -86,8 +86,10 @@ enum mla_test_output_format_t: mla_test_uint8_t {
  */
 template <typename T>
 static inline void mla_test_bench_sink(const T& v) {
+    // NOLINTBEGIN(performance-unnecessary-copy-initialization)
     volatile T sink = v;
     (void)sink;
+    // NOLINTEND(performance-unnecessary-copy-initialization)
 }
 
 #endif

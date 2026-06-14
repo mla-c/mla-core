@@ -9,7 +9,7 @@ mla_user_data_id_init(mla_stream_input_timeout_wrapper_data_userdata_name)
 
 struct mla_stream_input_timeout_wrapper_data_t {
     mla_stream_input_t base_input;
-    mla_int32_t timeout_ms;
+    mla_size_t timeout_ms;
 
     static mla_stream_input_timeout_wrapper_data_t init() {
         return {
@@ -92,9 +92,9 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
     return mla_bytes_from_external_buffer(buffer, read_length);
 }
 
-mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_int32_t timeout_ms) {
+mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_size_t timeout_ms) {
 
-    mla_int32_t remaining_timeout = timeout_ms;
+    mla_int32_t remaining_timeout = static_cast<mla_int32_t>(timeout_ms);
     mla_size_t result = 0;
 
     while (true) {
@@ -116,13 +116,13 @@ mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_siz
     return result;
 }
 
-mla_size_t mla_stream_output_write_with_timeout(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer, mla_int32_t timeout_ms) {
+mla_size_t mla_stream_output_write_with_timeout(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer, mla_size_t timeout_ms) {
 
     if (output.write == nullptr || buffer == nullptr) {
         return 0;
     }
 
-    mla_int32_t remaining_timeout = timeout_ms;
+    mla_int32_t remaining_timeout = static_cast<mla_int32_t>(timeout_ms);
     mla_size_t result = 0;
 
     while (true) {
@@ -182,7 +182,7 @@ mla_size_t mla_internal_stream_input_timeout_wrapper_remaining_bytes(mla_stream_
 }
 
 
-mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_int32_t timeout_ms) {
+mla_stream_input_t mla_stream_input_timeout_wrapper(mla_stream_input_t &input, mla_size_t timeout_ms) {
     if (input.read == nullptr)
         return input;
 

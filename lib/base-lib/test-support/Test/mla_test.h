@@ -102,7 +102,7 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
                 digit_count++;
             }
             for (mla_test_int32_t i = digit_count - 1; i >= 0; i--) {
-                line_buffer[i] = '0' + (line % 10);
+                line_buffer[i] = static_cast<mla_char_t>('0' + (line % 10));
                 line /= 10;
             }
             line_index = digit_count;
