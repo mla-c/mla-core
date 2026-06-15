@@ -16,9 +16,9 @@ static const mla_size_t stream_deflate_test_websocket_zlib_output_buffer_size = 
 #endif
 
 inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_t p_Length) {
-    const mla_uint32_t mod_adler = 65521u;
-    mla_uint32_t sum1 = 1u;
-    mla_uint32_t sum2 = 0u;
+    const mla_uint32_t mod_adler = 65521U;
+    mla_uint32_t sum1 = 1U;
+    mla_uint32_t sum2 = 0U;
 
     for (mla_size_t i = 0; i < p_Length; i++) {
         sum1 += (mla_uint32_t)p_Data[i];
@@ -36,11 +36,11 @@ inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_
 inline void StreamDeflateExpectedZlibHeader(mla_byte_t& p_Cmf, mla_byte_t& p_Flg) {
     mla_memory_stream_t temp = mla_memory_stream_empty();
     mla_size_t window_bits = mla_stream_output_deflate_window_bits(temp.output);
-    p_Cmf = (mla_byte_t)(((window_bits - 8u) << 4u) | 8u);
+    p_Cmf = (mla_byte_t)(((window_bits - 8U) << 4U) | 8U);
     p_Flg = 0;
 
     mla_uint16_t header = (mla_uint16_t)(((mla_uint16_t)p_Cmf << 8) | p_Flg);
-    p_Flg = (mla_byte_t)((31u - (header % 31u)) % 31u);
+    p_Flg = (mla_byte_t)((31U - (header % 31U)) % 31U);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -121,7 +121,9 @@ inline void StreamDeflateCompressAndDecompressRepeatingDataTest() {
     mla_size_t total_read = 0;
     while (total_read < data_size) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -138,7 +140,7 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     if (test_data != nullptr) {
         // Fill with pattern
         for (mla_size_t i = 0; i < data_size; i++) {
-            test_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+            test_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
         }
     }
 
@@ -163,19 +165,23 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_platform_malloc(data_size + 64));
     assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
 
-    if (decompressed_buf != nullptr)
+    if (decompressed_buf != nullptr) {
         mla_memset(decompressed_buf, 0, data_size + 64);
+    }
 
     mla_size_t total_read = 0;
     while (total_read < data_size) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
     assert_equal(total_read, data_size, "Should decompress to original length");
-    if (decompressed_buf != nullptr && test_data != nullptr)
+    if (decompressed_buf != nullptr && test_data != nullptr) {
         assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Decompressed data should match original");
+    }
 
     mla_platform_free(test_data);
     mla_platform_free(decompressed_buf);
@@ -213,7 +219,9 @@ inline void StreamDeflateCompressMultipleWritesTest() {
     mla_size_t total_read = 0;
     while (total_read < total_len) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, total_len - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -243,7 +251,9 @@ inline void StreamDeflateDecompressSmallReadsTest() {
     while (total_read < test_len) {
         mla_size_t chunk = 3; // Read 3 bytes at a time
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, chunk, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -302,7 +312,9 @@ inline void StreamDeflateCompressAllByteValuesTest() {
     mla_size_t total_read = 0;
     while (total_read < 256) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, 256 - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -365,7 +377,9 @@ inline void StreamDeflateDecompressRemainingBytesTest() {
     mla_size_t total_read = 0;
     while (total_read < test_len) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, test_len - total_read, buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -458,7 +472,9 @@ inline void StreamDeflateCompressHighlyRepetitiveTest() {
     mla_size_t total_read = 0;
     while (total_read < data_size) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -630,7 +646,9 @@ inline void StreamDeflateWebSocketModeTest() {
     mla_size_t total_read = 0;
     while (total_read < test_len) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, test_len - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -671,7 +689,9 @@ inline void StreamDeflateWebSocketModeLargerDataTest() {
     mla_size_t total_read = 0;
     while (total_read < data_size) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
@@ -787,15 +807,19 @@ inline mla_uint32_t StreamDeflateTestCrc32(const mla_byte_t* p_Data, mla_size_t 
         for (mla_uint32_t i = 0; i < 256; i++) {
             mla_uint32_t c = i;
             for (mla_uint8_t k = 0; k < 8; k++) {
-                if (c & 1u) c = 0xEDB88320u ^ (c >> 1); else c >>= 1;
+                if ((c & 1U) != 0) {
+                    c = 0xEDB88320U ^ (c >> 1);
+                } else {
+                    c >>= 1;
+                }
             }
             table[i] = c;
         }
         built = true;
     }
-    mla_uint32_t crc = 0xFFFFFFFFu;
+    mla_uint32_t crc = 0xFFFFFFFFU;
     for (mla_size_t i = 0; i < p_Length; i++) {
-        crc = table[(crc ^ p_Data[i]) & 0xFFu] ^ (crc >> 8);
+        crc = table[(crc ^ p_Data[i]) & 0xFFU] ^ (crc >> 8);
     }
     return ~crc;
 }
@@ -835,8 +859,8 @@ inline void StreamDeflateGzipEmptyStreamBytesTest() {
             ((mla_uint32_t)wire_bytes[wire_size - 2] << 16) |
             ((mla_uint32_t)wire_bytes[wire_size - 1] << 24);
 
-        assert_equal((mla_test_uint32_t)trailer_crc, (mla_test_uint32_t)0u, "Gzip mode: CRC32 should be 0 for empty stream");
-        assert_equal((mla_test_uint32_t)trailer_isize, (mla_test_uint32_t)0u, "Gzip mode: ISIZE should be 0 for empty stream");
+        assert_equal((mla_test_uint32_t)trailer_crc, (mla_test_uint32_t)0U, "Gzip mode: CRC32 should be 0 for empty stream");
+        assert_equal((mla_test_uint32_t)trailer_isize, (mla_test_uint32_t)0U, "Gzip mode: ISIZE should be 0 for empty stream");
     }
 }
 
@@ -937,7 +961,7 @@ inline void StreamDeflateGzipLargeRoundTripTest() {
 
     if (test_data != nullptr) {
         for (mla_size_t i = 0; i < data_size; i++) {
-            test_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+            test_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
         }
     }
 
@@ -958,19 +982,23 @@ inline void StreamDeflateGzipLargeRoundTripTest() {
     mla_byte_t *decompressed_buf = static_cast<mla_byte_t *>(mla_platform_malloc(data_size + 64));
     assert_not_null(decompressed_buf, "Should allocate decompressed buffer");
 
-    if (decompressed_buf != nullptr)
+    if (decompressed_buf != nullptr) {
         mla_memset(decompressed_buf, 0, data_size + 64);
+    }
 
     mla_size_t total_read = 0;
     while (total_read < data_size) {
         mla_size_t read_bytes = decompress_in.read(decompress_in, 0, data_size - total_read, decompressed_buf + total_read);
-        if (read_bytes == 0) break;
+        if (read_bytes == 0) {
+            break;
+        }
         total_read += read_bytes;
     }
 
     assert_equal(total_read, data_size, "Gzip large: should decompress to original length");
-    if (decompressed_buf != nullptr && test_data != nullptr)
+    if (decompressed_buf != nullptr && test_data != nullptr) {
         assert_equal((mla_test_int32_t)mla_memcmp(decompressed_buf, test_data, data_size), (mla_test_int32_t)0, "Gzip large: decompressed data should match original");
+    }
 
     mla_platform_free(test_data);
     mla_platform_free(decompressed_buf);
@@ -989,7 +1017,7 @@ inline void StreamDeflateGzipCompressedSizeCalculationTest() {
 
     assert_true(compressed_size > raw_compressed_size, "Gzip compressed size should include header + trailer overhead");
     // Gzip overhead: 10-byte header + 8-byte trailer = 18 bytes
-    assert_equal(compressed_size, raw_compressed_size + 18u, "Gzip overhead should be exactly 18 bytes (10 header + 8 trailer)");
+    assert_equal(compressed_size, raw_compressed_size + 18U, "Gzip overhead should be exactly 18 bytes (10 header + 8 trailer)");
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -1119,7 +1147,7 @@ static void bench_deflate_fill_medium_data() {
 
 static void bench_deflate_fill_large_data() {
     for (mla_size_t i = 0; i < 4096; i++) {
-        bench_deflate_large_data[i] = (mla_byte_t)((i * 7 + 13) % 256);
+        bench_deflate_large_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
     }
 }
 
@@ -1185,7 +1213,9 @@ inline void DeflateDecompressSmallBenchmark() {
     mla_size_t total = 0;
     while (total < bench_deflate_small_len) {
         mla_size_t r = decomp.read(decomp, 0, bench_deflate_small_len - total, buf + total);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         total += r;
     }
     (void)total;
@@ -1212,7 +1242,9 @@ inline void DeflateDecompressMediumBenchmark() {
     mla_size_t total = 0;
     while (total < 512) {
         mla_size_t r = decomp.read(decomp, 0, 512 - total, buf + total);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         total += r;
     }
     (void)total;
@@ -1239,7 +1271,9 @@ inline void DeflateDecompressLargeBenchmark() {
     mla_size_t total = 0;
     while (total < 4096) {
         mla_size_t r = decomp.read(decomp, 0, 4096 - total, buf + total);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         total += r;
     }
     (void)total;
@@ -1268,7 +1302,9 @@ inline void DeflateRoundTripSmallBenchmark() {
     mla_size_t total = 0;
     while (total < bench_deflate_small_len) {
         mla_size_t r = decomp.read(decomp, 0, bench_deflate_small_len - total, result + total);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         total += r;
     }
     (void)total;

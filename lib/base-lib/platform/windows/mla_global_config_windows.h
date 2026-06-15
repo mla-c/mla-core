@@ -9,7 +9,7 @@
 #include "windows.h"
 #include <tchar.h>
 
-#if !defined(mla_max_config_size)
+#ifndef mla_max_config_size
 #define mla_max_config_size (16 * 1024) // 16KB is default
 #endif
 
@@ -89,7 +89,7 @@ mla_bytes_t mla_internal_windows_read_config_input() {
     CloseHandle(hFile);
 
     // Check if read was successful
-    if (!readResult || (bytesRead != fileSize)) {
+    if (readResult == FALSE || (bytesRead != fileSize)) {
         mla_bytes_destroy(config_data);
         config_data = mla_bytes(0);
     }
@@ -191,7 +191,7 @@ mla_bool_t mla_internal_windows_commit_config_output(mla_bytes_t& output, mla_si
             // First rename the original file to backup
             BOOL backupResult = MoveFileEx(configPath, backupPath, MOVEFILE_REPLACE_EXISTING);
 
-            if (!backupResult) {
+            if (backupResult == FALSE) {
                 DeleteFile(tempPath);
                 mla_bytes_destroy(output);
                 return false;

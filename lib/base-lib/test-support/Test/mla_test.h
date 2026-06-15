@@ -74,8 +74,9 @@ void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_M
 template <typename T>
 void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {
 
-    if (!current_test_result.success)
+    if (!current_test_result.success) {
         return;
+    }
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
@@ -118,7 +119,7 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
         }
 
         // Append custom message if provided
-        if (p_Message) {
+        if (p_Message != nullptr) {
             l_Result[offset++] = ' ';
             while (*p_Message && offset < 4095) {
                 l_Result[offset++] = *p_Message++;

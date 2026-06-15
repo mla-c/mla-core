@@ -30,8 +30,9 @@ struct mla_all_types_inner_struct {
     static mla_bool_t serialize(mla_serializer_t &serializer, const mla_pointer_t& config) {
         const mla_all_types_inner_struct *obj = mla_pointer_get_data<const mla_all_types_inner_struct>(config);
 
-        if (obj == nullptr)
+        if (obj == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("int32Value"), obj->int32Value);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
@@ -79,8 +80,9 @@ struct mla_all_types_struct {
     static mla_bool_t serialize(mla_serializer_t &serializer, const mla_pointer_t& config) {
         const mla_all_types_struct *obj = mla_pointer_get_data<const mla_all_types_struct>(config);
 
-        if (obj == nullptr)
+        if (obj == nullptr) {
             return false;
+        }
 
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
         mla_serializer_write_int8(serializer, mla_string_const("int8Value"), obj->int8Value);
@@ -182,7 +184,7 @@ inline void AllTypesTest(mla_serializer_t &serializer, mla_deserializer_t &deser
         16,
         32,
         64,
-        3.14f,
+        3.14F,
         3.141592653589793,
         mla_string("Test String"),
         mla_bytes(5),
@@ -226,7 +228,7 @@ inline void AllTypesTest(mla_serializer_t &serializer, mla_deserializer_t &deser
         1,
         1,
         1,
-        1.0f,
+        1.0F,
         1.0,
         mla_string_empty(),
         mla_bytes_empty(),
@@ -362,7 +364,7 @@ static mla_all_types_struct g_benchmarkAllTypes = {
     1,
     1,
     1,
-    1.0f,
+    1.0F,
     1.0,
     mla_string_empty(),
     mla_bytes_empty(),
@@ -385,7 +387,7 @@ inline void SetupSerializerBenchmark() {
         16,
         32,
         64,
-        3.14f,
+        3.14F,
         3.141592653589793,
         mla_string("Test String"),
         mla_bytes(5),
@@ -422,7 +424,7 @@ inline void TearDownSerializerBenchmark() {
         1,
         1,
         1,
-        1.0f,
+        1.0F,
         1.0,
         mla_string_empty(),
         mla_bytes_empty(),
@@ -446,7 +448,7 @@ inline void SetupDeserializerBenchmark(mla_serializer_t serializer) {
         16,
         32,
         64,
-        3.14f,
+        3.14F,
         3.141592653589793,
         mla_string("Test String"),
         mla_bytes(5),
@@ -487,7 +489,7 @@ inline void TearDownDeserializerBenchmark() {
         1,
         1,
         1,
-        1.0f,
+        1.0F,
         1.0,
         mla_string_empty(),
         mla_bytes_empty(),
@@ -519,7 +521,7 @@ inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
         1,
         1,
         1,
-        1.0f,
+        1.0F,
         1.0,
         mla_string_empty(),
         mla_bytes_empty(),

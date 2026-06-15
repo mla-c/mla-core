@@ -19,8 +19,9 @@ struct test_rpc_simple_struct_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const test_rpc_simple_struct_t* test_struct = mla_pointer_get_data<const test_rpc_simple_struct_t>(obj);
 
-        if (test_struct == nullptr)
+        if (test_struct == nullptr) {
             return false;
+        }
 
         mla_serializer_write_string(serializer, mla_string_const("name"), test_struct->name);
         mla_serializer_write_uint32(serializer, mla_string_const("id"), test_struct->id);
@@ -63,8 +64,9 @@ struct test_rpc_nested_struct_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const test_rpc_nested_struct_t* test_struct = mla_pointer_get_data<const test_rpc_nested_struct_t>(obj);
 
-        if (test_struct == nullptr)
+        if (test_struct == nullptr) {
             return false;
+        }
 
         mla_serializer_write_struct(serializer, mla_string_const("inner"), test_struct->inner, test_rpc_simple_struct_t);
         mla_serializer_write_int32(serializer, mla_string_const("value"), test_struct->value);
@@ -109,8 +111,9 @@ struct test_rpc_with_list_struct_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const test_rpc_with_list_struct_t* test_struct = mla_pointer_get_data<const test_rpc_with_list_struct_t>(obj);
 
-        if (test_struct == nullptr)
+        if (test_struct == nullptr) {
             return false;
+        }
 
         mla_serializer_write_list_struct(serializer, mla_string_const("items"), test_struct->items, test_rpc_simple_struct_t);
         mla_serializer_write_uint32(serializer, mla_string_const("count"), test_struct->count);

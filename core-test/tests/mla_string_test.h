@@ -708,24 +708,24 @@ void StringFromUInt64Test() {
 
 void StringFromFloatTest() {
     // Test with 2 decimal places (Short result - likely SSO)
-    mla_string_t str = mla_string_from_float(3.14f, 2);
+    mla_string_t str = mla_string_from_float(3.14F, 2);
     assert_true(mla_string_equals(str, mla_string("3.14")), "float(3.14, 2) should equal '3.14'");
 
     // Test negative with 3 decimal places (Short result - likely SSO)
-    str = mla_string_from_float(-123.456f, 3);
+    str = mla_string_from_float(-123.456F, 3);
     assert_true(mla_string_equals(str, mla_string("-123.456")), "float(-123.456, 3) should equal '-123.456'");
 
     // Test zero
-    str = mla_string_from_float(0.0f, 1);
+    str = mla_string_from_float(0.0F, 1);
     assert_true(mla_string_equals(str, mla_string("0.0")), "float(0.0, 1) should equal '0.0'");
 
     // Test with 0 decimal places
-    str = mla_string_from_float(42.789f, 0);
+    str = mla_string_from_float(42.789F, 0);
     assert_true(mla_string_equals(str, mla_string("43")), "float(42.789, 0) should round to '43'");
 
     // Test long string (Heap allocation > 14 chars)
     // 333333.34375 is perfectly representable in float (exact binary fraction)
-    str = mla_string_from_float(333333.34375f, 10);
+    str = mla_string_from_float(333333.34375F, 10);
     // Expected length is 17 chars: "333333.3437500000"
     assert_true(mla_string_equals(str, mla_string("333333.3437500000")), "float(333333.34375, 10) should equal '333333.3437500000'");
 }
@@ -763,13 +763,6 @@ void StringFromBoolTest() {
     str = mla_string_from_bool(false);
     assert_true(mla_string_equals(str, mla_string("false")), "bool(false) should equal 'false'");
 
-    // Test with 1 (should be true)
-    str = mla_string_from_bool(1);
-    assert_true(mla_string_equals(str, mla_string("true")), "bool(1) should equal 'true'");
-
-    // Test with 0 (should be false)
-    str = mla_string_from_bool(0);
-    assert_true(mla_string_equals(str, mla_string("false")), "bool(0) should equal 'false'");
 }
 
 void StringCompareTest() {
@@ -1689,13 +1682,13 @@ void StringFromUInt64Benchmark() {
 }
 
 void StringFromFloatBenchmark() {
-    mla_float_t value = 9995555553.14159f;
+    mla_float_t value = 9995555553.14159F;
     mla_string_t str = mla_string_from_float(value, 5);
     str = mla_string_empty();
 }
 
 void StringFromFloatEmbeddedBenchmark() {
-    mla_float_t value = 3.14159f;
+    mla_float_t value = 3.14159F;
     mla_string_t str = mla_string_from_float(value, 5);
     str = mla_string_empty();
 }

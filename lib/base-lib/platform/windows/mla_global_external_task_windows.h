@@ -41,7 +41,7 @@ struct mla_internal_windows_external_task_native_resource_t {
 
         if (self.process_handle != nullptr) {
             DWORD exitCode = 0;
-            if (GetExitCodeProcess(self.process_handle, &exitCode) && exitCode == STILL_ACTIVE) {
+            if (GetExitCodeProcess(self.process_handle, &exitCode) == TRUE && exitCode == STILL_ACTIVE) {
                 TerminateProcess(self.process_handle, 1);
                 WaitForSingleObject(self.process_handle, INFINITE);
             }
@@ -115,23 +115,23 @@ mla_bool_t mla_internal_windows_external_task_create_process(mla_pointer_t& p_Ou
     HANDLE childStdInRead = nullptr;
     HANDLE childStdInWrite = nullptr;
 
-    if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &securityAttributes, 0)) {
+    if (CreatePipe(&childStdOutRead, &childStdOutWrite, &securityAttributes, 0) == FALSE) {
         return false;
     }
 
-    if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0)) {
+    if (SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0) == FALSE) {
         CloseHandle(childStdOutRead);
         CloseHandle(childStdOutWrite);
         return false;
     }
 
-    if (!CreatePipe(&childStdInRead, &childStdInWrite, &securityAttributes, 0)) {
+    if (CreatePipe(&childStdInRead, &childStdInWrite, &securityAttributes, 0) == FALSE) {
         CloseHandle(childStdOutRead);
         CloseHandle(childStdOutWrite);
         return false;
     }
 
-    if (!SetHandleInformation(childStdInWrite, HANDLE_FLAG_INHERIT, 0)) {
+    if (SetHandleInformation(childStdInWrite, HANDLE_FLAG_INHERIT, 0) == FALSE) {
         CloseHandle(childStdOutRead);
         CloseHandle(childStdOutWrite);
         CloseHandle(childStdInRead);
@@ -200,7 +200,7 @@ mla_bool_t mla_internal_windows_external_task_create_process(mla_pointer_t& p_Ou
     CloseHandle(childStdOutWrite);
     CloseHandle(childStdInRead);
 
-    if (!processCreated) {
+    if (processCreated == FALSE) {
         CloseHandle(childStdOutRead);
         CloseHandle(childStdInWrite);
         return false;
@@ -238,7 +238,7 @@ mla_external_task_state mla_internal_windows_external_task_get_state(const mla_p
     }
 
     DWORD exitCode = 0;
-    if (!GetExitCodeProcess(processData->process_handle, &exitCode)) {
+    if (GetExitCodeProcess(processData->process_handle, &exitCode) == FALSE) {
         return MLA_EXTERNAL_TASK_STATE_STOPPED;
     }
 
@@ -280,7 +280,7 @@ mla_size_t mla_internal_windows_external_task_read_stdout(const mla_pointer_t& p
     // Non-blocking: peek first to see how many bytes are available.
     // If none are available we return immediately without blocking.
     DWORD bytesAvailable = 0;
-    if (!PeekNamedPipe(processData->stdout_read_handle, nullptr, 0, nullptr, &bytesAvailable, nullptr)) {
+    if (PeekNamedPipe(processData->stdout_read_handle, nullptr, 0, nullptr, &bytesAvailable, nullptr) == FALSE) {
         return 0;
     }
 
@@ -291,7 +291,7 @@ mla_size_t mla_internal_windows_external_task_read_stdout(const mla_pointer_t& p
     DWORD toRead = static_cast<DWORD>(bytesAvailable < static_cast<DWORD>(p_Length) ? bytesAvailable : static_cast<DWORD>(p_Length));
 
     DWORD bytesRead = 0;
-    if (!ReadFile(processData->stdout_read_handle, p_Buffer + p_Offset, toRead, &bytesRead, nullptr)) {
+    if (ReadFile(processData->stdout_read_handle, p_Buffer + p_Offset, toRead, &bytesRead, nullptr) == FALSE) {
         return 0;
     }
 
@@ -309,7 +309,7 @@ mla_size_t mla_internal_windows_external_task_write_stdin(const mla_pointer_t& p
     // Non-blocking: the write handle was set to PIPE_NOWAIT so WriteFile returns
     // immediately with ERROR_NO_DATA when the pipe buffer is full instead of blocking.
     DWORD bytesWritten = 0;
-    if (!WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset, static_cast<DWORD>(p_Length), &bytesWritten, nullptr)) {
+    if (WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset, static_cast<DWORD>(p_Length), &bytesWritten, nullptr) == FALSE) {
         // ERROR_NO_DATA  — pipe buffer full, nothing written yet (non-blocking return)
         // Any other error — connection broken or similar
         return static_cast<mla_size_t>(bytesWritten);

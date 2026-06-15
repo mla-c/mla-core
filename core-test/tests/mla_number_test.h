@@ -45,7 +45,7 @@ inline void ParseFloatTest() {
     mla_float_t value;
     mla_test_bool_t result = mla_parse_float(str, value);
     assert_true(result, "Parsing should succeed");
-    assert_equal(value, 123.456f, "Parsed value should be 123.456");
+    assert_equal(value, 123.456F, "Parsed value should be 123.456");
 
     str = mla_string("invalid");
     result = mla_parse_float(str, value);
@@ -54,12 +54,12 @@ inline void ParseFloatTest() {
     str = mla_string("3.4028235E+38"); // Max float
     result = mla_parse_float(str, value);
     assert_true(result, "Parsing should succeed for max float");
-    assert_equal(value, 3.4028235E+38f, "Parsed value should be max float");
+    assert_equal(value, 3.4028235E+38F, "Parsed value should be max float");
 
     str = mla_string("-123.456");
     result = mla_parse_float(str, value);
     assert_true(result, "Parsing should succeed for negative number");
-    assert_equal(value, -123.456f, "Parsed value should be -123.456");
+    assert_equal(value, -123.456F, "Parsed value should be -123.456");
 }
 
 inline void ParseInt64Test() {

@@ -103,7 +103,9 @@ inline void BytesCopyTest() {
     mla_bytes_t original = mla_bytes(size);
     mla_byte_t* data = mla_bytes_get_data_for_writing(original);
     if (data != nullptr) {
-        for (mla_size_t i = 0; i < size; ++i) data[i] = (mla_byte_t)i;
+        for (mla_size_t i = 0; i < size; ++i) {
+            data[i] = (mla_byte_t)i;
+        }
     }
 
     mla_bytes_t copy = mla_bytes_copy(original);

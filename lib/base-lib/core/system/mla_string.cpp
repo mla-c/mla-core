@@ -432,8 +432,9 @@ mla_bool_t mla_string_contains(const mla_string_t &p_String, const mla_string_t 
 
     for (mla_size_t i = 0; i <= length - lengthSub; ++i) {
 
-        if (mla_memcmp(data + i, dataSub, lengthSub) == 0)
+        if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
             return true;
+        }
 
     }
     return false; // Substring not found
@@ -671,7 +672,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     if (mla_string_is_c_string(p_String) && mla_string_is_c_string(p_Substring)) {
         const mla_char_t *found = mla_strstr(data + p_Start, dataSub);
 
-        if (found) {
+        if (found != nullptr) {
             return static_cast<mla_int32_t>(found - data);
         } else {
             return -1; // Substring not found
@@ -705,8 +706,9 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     // Manual search for the substring
     for (mla_size_t i = p_Start; i <= length - lengthSub; ++i) {
 
-        if (mla_memcmp(data + i, dataSub, lengthSub) == 0)
+        if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
             return static_cast<mla_int32_t>(i);
+        }
 
     }
     return -1; // Substring not found

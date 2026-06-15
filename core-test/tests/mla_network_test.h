@@ -10,8 +10,6 @@
 #include "../../lib/base-lib/test-support/mla_test_utils.h"
 #include "../../lib/base-lib/test-support/Test/mla_test.h"
 
-extern mla_network_low_level_operations_t g_network_low_level_operations;
-
 static mla_bool_t mock_resolve_host_called = false;
 static mla_bool_t mock_resolve_host_result = true;
 static mla_network_host_t mock_resolved_host = mla_network_host_invalid();
@@ -189,7 +187,9 @@ inline void NetworkConnectionDisconnectTest() {
 }
 
 static mla_bool_t mock_accept_called = false;
-static mla_bool_t mock_accept_connection(const mla_network_listener_t&, mla_network_connection_t&) {
+static mla_bool_t mock_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t& connection) {
+    (void)listener;
+    (void)connection;
     mock_accept_called = true;
     return true;
 }

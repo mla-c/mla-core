@@ -7,23 +7,27 @@
 
 #include "../Benchmark/mla_benchmark.h"
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #include <intrin.h>
 
 // Calibrate TSC frequency once against QPC (busy-waits ~10 ms at startup)
 static double mla_internal_tsc_ns_per_tick() {
     static double ns_per_tick = 0.0;
-    if (ns_per_tick != 0.0) return ns_per_tick;
+    if (ns_per_tick != 0.0) {
+        return ns_per_tick;
+    }
 
-    LARGE_INTEGER freq, start_qpc, end_qpc;
+    LARGE_INTEGER freq;
+    LARGE_INTEGER start_qpc;
+    LARGE_INTEGER end_qpc;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&start_qpc);
     unsigned long long start_tsc = __rdtsc();
 
     // Busy-wait ~10 ms
     LARGE_INTEGER target;
-    target.QuadPart = start_qpc.QuadPart + freq.QuadPart / 100;
+    target.QuadPart = start_qpc.QuadPart + (freq.QuadPart / 100);
     LARGE_INTEGER cur;
     do { QueryPerformanceCounter(&cur); } while (cur.QuadPart < target.QuadPart);
 

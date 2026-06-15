@@ -38,8 +38,9 @@ struct test_config_struct {
 
         const test_config_struct* obj = mla_pointer_get_data<const test_config_struct>(config);
 
-        if (obj == nullptr)
+        if (obj == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);
@@ -102,8 +103,9 @@ struct simple_config {
 
         const simple_config* obj = mla_pointer_get_data<const simple_config>(config);
 
-        if (obj == nullptr)
+        if (obj == nullptr) {
             return false;
+        }
 
         mla_serializer_write_uint8(serializer, mla_string_const("version"), obj->version);
         mla_serializer_write_float(serializer, mla_string_const("value"), obj->value);
@@ -149,8 +151,9 @@ struct complex_config {
 
         const complex_config* obj = mla_pointer_get_data<const complex_config>(config);
 
-        if (obj == nullptr)
+        if (obj == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int64(serializer, mla_string_const("id"), obj->id);
         mla_serializer_write_string(serializer, mla_string_const("name"), obj->name);
@@ -170,7 +173,7 @@ inline void MultiConfigSameOrderTest() {
 
     // Create configs
     test_config_struct config1 = {100, true, mla_string("First")};
-    simple_config config2 = {5, 3.14f};
+    simple_config config2 = {5, 3.14F};
 
     // Create definitions
     mla_config_definition_t def1 = mla_config_definition<test_config_struct>(
@@ -184,7 +187,7 @@ inline void MultiConfigSameOrderTest() {
 
     // Read in same order
     test_config_struct loaded1 = {0, false, mla_string_empty()};
-    simple_config loaded2 = {0, 0.0f};
+    simple_config loaded2 = {0, 0.0F};
 
     assert_true(mla_config_manager_read(def1, loaded1), "Failed to read config1");
     assert_true(mla_config_manager_read(def2, loaded2), "Failed to read config2");
@@ -207,7 +210,7 @@ inline void MultiConfigDifferentOrderTest() {
 
     // Create configs
     test_config_struct config1 = {200, false, mla_string("Alpha")};
-    simple_config config2 = {10, 2.718f};
+    simple_config config2 = {10, 2.718F};
     complex_config config3 = {9876543210, mla_string("Gamma"), mla_array_list<mla_int32_t>()};
     mla_array_list_add(config3.values, (mla_int32_t)1);
     mla_array_list_add(config3.values, (mla_int32_t)2);
@@ -228,7 +231,7 @@ inline void MultiConfigDifferentOrderTest() {
     assert_true(mla_config_manager_write(def3, config3), "Failed to write config3");
 
     // Read in different order
-    simple_config loaded2 = {0, 0.0f};
+    simple_config loaded2 = {0, 0.0F};
     complex_config loaded3 = {0, mla_string_empty(), mla_array_list<mla_int32_t>()};
     test_config_struct loaded1 = {0, false, mla_string_empty()};
 
@@ -262,7 +265,7 @@ inline void MultiConfigUpdateTest() {
 
     // Create configs
     test_config_struct config1 = {300, true, mla_string("Original")};
-    simple_config config2 = {20, 1.618f};
+    simple_config config2 = {20, 1.618F};
 
     // Create definitions
     mla_config_definition_t def1 = mla_config_definition<test_config_struct>(
@@ -280,7 +283,7 @@ inline void MultiConfigUpdateTest() {
 
     // Read both back
     test_config_struct loaded1 = {0, false, mla_string_empty()};
-    simple_config loaded2 = {0, 0.0f};
+    simple_config loaded2 = {0, 0.0F};
 
     assert_true(mla_config_manager_read(def1, loaded1), "Failed to read config1");
     assert_true(mla_config_manager_read(def2, loaded2), "Failed to read config2");

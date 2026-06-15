@@ -447,8 +447,8 @@ void ArrayListWithValueStructTest() {
     }
 
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
-    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0L, "Value test2 should be equal to 0 after retrieval");
 
     assert_null(mla_array_list_get_ref(list, 999), "Get ref for out of bounds index should return null");
 }
@@ -474,8 +474,8 @@ void ArrayListWithValueConstStructTest() {
 
     my_array_list_with_const_test_struct value;
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
-    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200L, "Value test2 should be equal to 200");
 
     my_array_list_with_const_test_struct *valueRef = mla_array_list_get_ref(list, 1);
 
@@ -486,21 +486,29 @@ void ArrayListWithValueConstStructTest() {
     }
 
     assert_true(mla_array_list_get(list, 1, value), "ArrayList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
-    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0L, "Value test2 should be equal to 0 after retrieval");
 
     assert_null(mla_array_list_get_ref(list, 999), "Get ref for out of bounds index should return null");
 }
 
 mla_int32_t compare_int(const mla_test_int32_t &a, const mla_test_int32_t &b) {
-    if (a < b) return -1;
-    if (a > b) return 1;
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
     return 0;
 }
 
 mla_int32_t compare_int_desc(const mla_test_int32_t &a, const mla_test_int32_t &b) {
-    if (a > b) return -1;
-    if (a < b) return 1;
+    if (a > b) {
+        return -1;
+    }
+    if (a < b) {
+        return 1;
+    }
     return 0;
 }
 

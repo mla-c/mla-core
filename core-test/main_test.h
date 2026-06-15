@@ -185,7 +185,9 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     if (p_AllocationFailureSeedCount > 0) {
         // Seed count mode: run regular tests first, then seed-based tests only for passing ones
         l_SuccessMap = (mla_test_bool_t*) mla_test_malloc(sizeof(mla_test_bool_t) * l_TestExecutor.count);
-        for (mla_test_uint32_t i = 0; i < l_TestExecutor.count; i++) l_SuccessMap[i] = false;
+        for (mla_test_uint32_t i = 0; i < l_TestExecutor.count; i++) {
+            l_SuccessMap[i] = false;
+        }
 
         mla_test_print("Seed Count Mode: Running regular tests first...\n", 48);
         l_FailedTest = mla_test_executor_run_all_tests(l_TestExecutor, l_SuccessMap);
@@ -198,7 +200,9 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
         l_FailedTest += mla_test_executor_run_all_tests_with_generated_allocation_failures(l_TestExecutor, p_AllocationFailureSeedCount, l_SuccessMap);
 
-        if (l_SuccessMap) mla_test_free(l_SuccessMap);
+        if (l_SuccessMap != nullptr) {
+            mla_test_free(l_SuccessMap);
+        }
     } else
 #endif
     {

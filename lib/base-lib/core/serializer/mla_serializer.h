@@ -209,7 +209,7 @@ mla_bool_t mla_serializer_write_list_fixed_size(mla_serializer_t& serializer, co
     for (mla_size_t i = 0; i < size; ++i) {
 
         mla_pointer_t data_ptr = mla_platform_pointer_to_managed_pointer(&data[i]);
-        
+
         if (!mla_serializer_write_data_struct(serializer, data_ptr, write_function)) {
             return false;
         }
@@ -246,7 +246,7 @@ mla_deserializer_read_result_t void_deserialize(mla_deserializer_t& deserializer
 /// Deserializer Helpers
 //////////////////////////////////////////////////////////////////////////////////
 
-mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t&, const mla_serialize_definition_read_function_t& read_function);
+mla_bool_t mla_deserializer_read_struct_read_function(mla_deserializer_t& deserializer, mla_pointer_t& data, const mla_serialize_definition_read_function_t& read_function);
 
 template <typename T>
 mla_bool_t mla_serializer_read_data_struct(mla_deserializer_t& deserializer, T &value) {

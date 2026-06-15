@@ -109,12 +109,12 @@ inline void UserDataSetGetUint64Test() {
 // Test setting and getting float values
 inline void UserDataSetGetFloatTest() {
     mla_user_data_t userData = mla_user_data_empty();
-    mla_bool_t success = mla_user_data_set_float(userData, mla_user_data_test_id, 3.14f);
+    mla_bool_t success = mla_user_data_set_float(userData, mla_user_data_test_id, 3.14F);
 
     assert_true(success, "Should successfully set float value");
 
     mla_float_t value = mla_user_data_get_float(userData, mla_user_data_test_id);
-    assert_true(value > 3.13999f && value < 3.14001f, "Should retrieve correct float value");
+    assert_true(value > 3.13999F && value < 3.14001F, "Should retrieve correct float value");
 }
 
 // Test setting and getting double values
@@ -226,12 +226,12 @@ inline void UserDataMixedTypesTest() {
     mla_user_data_t userData = mla_user_data_empty();
 
     mla_user_data_set_int32(userData, mla_user_data_test_id, 42);
-    mla_user_data_set_float(userData, mla_user_data_test_id_2, 3.14f);
+    mla_user_data_set_float(userData, mla_user_data_test_id_2, 3.14F);
     mla_user_data_set_bool(userData, mla_user_data_test_id_3, true);
     mla_user_data_set_char(userData, mla_user_data_test_id_4, 'X');
 
     assert_equal(mla_user_data_get_int32(userData, mla_user_data_test_id), 42, "Should retrieve int32");
-    assert_true(mla_user_data_get_float(userData, mla_user_data_test_id_2) > 3.13f, "Should retrieve float");
+    assert_true(mla_user_data_get_float(userData, mla_user_data_test_id_2) > 3.13F, "Should retrieve float");
     assert_true(mla_user_data_get_bool(userData, mla_user_data_test_id_3), "Should retrieve bool");
     assert_equal(mla_user_data_get_char(userData, mla_user_data_test_id_4), 'X', "Should retrieve char");
 }

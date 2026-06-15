@@ -154,8 +154,9 @@ mla_bool_t mla_internal_cli_cmd_help_execute(const mla_cli_command_t &command,
             mla_cli_command_t *commandOfModule = mla_array_list_get_ref(activeModule->availableCommands, i);
 
             // Remove the help command from the list
-            if (mla_string_equals(command.name, commandOfModule->name))
+            if (mla_string_equals(command.name, commandOfModule->name)) {
                 continue;
+            }
 
             mla_string_t commandFormated = mla_internal_cli_format_command(*commandOfModule);
             out.write(out.userdata, mla_string_concat(commandFormated, "\n"));

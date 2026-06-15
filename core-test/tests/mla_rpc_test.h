@@ -16,8 +16,9 @@ struct my_rpc_test_input_t {
 
         const my_rpc_test_input_t* input = mla_pointer_get_data<const my_rpc_test_input_t>(obj);
 
-        if (input == nullptr)
+        if (input == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
         mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
@@ -58,8 +59,9 @@ struct my_rpc_test_output_t {
 
         const my_rpc_test_output_t* output = mla_pointer_get_data<const my_rpc_test_output_t>(obj);
 
-        if (output == nullptr)
+        if (output == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
         return true;
@@ -108,8 +110,9 @@ struct my_rpc_void_in_output_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const my_rpc_void_in_output_t* o = mla_pointer_get_data<const my_rpc_void_in_output_t>(obj);
 
-        if (o == nullptr)
+        if (o == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("value"), o->value);
         return true;
@@ -144,8 +147,9 @@ struct my_rpc_input_void_out_t {
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const my_rpc_input_void_out_t* in = mla_pointer_get_data<const my_rpc_input_void_out_t>(obj);
 
-        if (in == nullptr)
+        if (in == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("inputValue"), in->inputValue);
         return true;

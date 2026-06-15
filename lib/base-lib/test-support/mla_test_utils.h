@@ -51,4 +51,6 @@ mla_test_uint32_t mla_pointer_to_string(mla_test_char_t* buffer, mla_test_uint32
 // Helper to append a string to a buffer
 mla_test_uint32_t mla_test_strcat(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint32_t offset, const mla_test_char_t* str);
 
+// Helper to convert a bool to string
+mla_test_uint32_t mla_bool_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_bool_t value);
 #endif

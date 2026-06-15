@@ -75,7 +75,9 @@ static void HttpChunkedStreamDeflateTest() {
     mla_size_t total = 0;
     while(true) {
         mla_size_t r = chunkedIn.read(chunkedIn, 0, 100, buffer + total);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         total += r;
     }
 
@@ -109,7 +111,9 @@ static void HttpChunkedStreamRoundtripTest() {
     mla_size_t readPos = 0;
     while(true) {
         mla_size_t r = chunkedIn.read(chunkedIn, 0, 100, buffer + readPos);
-        if (r == 0) break;
+        if (r == 0) {
+            break;
+        }
         readPos += r;
     }
 

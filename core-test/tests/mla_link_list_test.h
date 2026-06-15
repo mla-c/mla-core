@@ -381,8 +381,8 @@ void LinkListWithValueStructTest() {
 
     my_link_list_test_struct value;
     assert_true(mla_link_list_get(list, 1, value), "linkList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
-    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200L, "Value test2 should be equal to 200");
 
     my_link_list_test_struct* valueRef = mla_link_list_get_ref(list, 1);
 
@@ -394,8 +394,8 @@ void LinkListWithValueStructTest() {
 
 
     assert_true(mla_link_list_get(list, 1, value), "linkList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
-    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0L, "Value test2 should be equal to 0 after retrieval");
 
     assert_null(mla_link_list_get_ref(list, 3), "linkList should return null for index 3 (out of bounds)");
 }
@@ -421,8 +421,8 @@ void LinkListWithValueConstStructTest() {
 
     my_link_list_with_const_test_struct value;
     assert_true(mla_link_list_get(list, 1, value), "linkList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2");
-    assert_equal(value.test2, 200l, "Value test2 should be equal to 200");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2");
+    assert_equal(value.test2, 200L, "Value test2 should be equal to 200");
 
     my_link_list_with_const_test_struct* valueRef = mla_link_list_get_ref(list, 1);
 
@@ -433,8 +433,8 @@ void LinkListWithValueConstStructTest() {
     }
 
     assert_true(mla_link_list_get(list, 1, value), "linkList should successfully retrieve value for index 1");
-    assert_equal(value.test1, 2l, "Value test1 should be equal to 2 after retrieval");
-    assert_equal(value.test2, 0l, "Value test2 should be equal to 0 after retrieval");
+    assert_equal(value.test1, 2L, "Value test1 should be equal to 2 after retrieval");
+    assert_equal(value.test2, 0L, "Value test2 should be equal to 0 after retrieval");
 
     assert_null(mla_link_list_get_ref(list, 3), "linkList should return null for index 3 (out of bounds)");
 }

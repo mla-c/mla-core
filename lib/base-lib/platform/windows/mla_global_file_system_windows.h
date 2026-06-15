@@ -37,8 +37,9 @@ mla_string_t mla_internal_file_system_native_file_path_to_full_path(mla_file_sys
     // Repleace all slash with backslash
     mla_string_t correctedPath = mla_string_replace(path, mla_fs_directory_seperator, mla_windows_fs_directory_seperator);
 
-    if (mla_string_length(fs->basePath) == 0)
+    if (mla_string_length(fs->basePath) == 0) {
         return correctedPath;
+    }
 
     mla_string_t p1 = fs->basePath;
     mla_string_t p2 = correctedPath;
@@ -58,8 +59,9 @@ mla_bool_t mla_internal_file_system_native_file_exists(mla_file_system_t& file_s
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -67,11 +69,12 @@ mla_bool_t mla_internal_file_system_native_file_exists(mla_file_system_t& file_s
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     DWORD attribs = GetFileAttributesW(wide_path);
-    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
+    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && ((attribs & FILE_ATTRIBUTE_DIRECTORY) == 0U);
 
     return result;
 }
@@ -80,8 +83,9 @@ mla_bool_t mla_internal_file_system_native_delete_file(mla_file_system_t& file_s
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -111,7 +115,7 @@ mla_bool_t mla_internal_file_system_native_create_directory_recursive_wide(LPCWS
     // If directory already exists, that's success
     if (lastError == ERROR_ALREADY_EXISTS) {
         DWORD attribs = GetFileAttributesW(wide_path);
-        return attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
+        return attribs != INVALID_FILE_ATTRIBUTES && ((attribs & FILE_ATTRIBUTE_DIRECTORY) != 0U);
     }
 
     // If parent doesn't exist, we need to create parents recursively
@@ -147,7 +151,7 @@ mla_bool_t mla_internal_file_system_native_create_directory_recursive_wide(LPCWS
             lastError = GetLastError();
             if (lastError == ERROR_ALREADY_EXISTS) {
                 DWORD attribs = GetFileAttributesW(wide_path);
-                return attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
+                return attribs != INVALID_FILE_ATTRIBUTES && ((attribs & FILE_ATTRIBUTE_DIRECTORY) != 0U);
             }
         }
     }
@@ -160,8 +164,9 @@ mla_bool_t mla_internal_file_system_native_create_directory(mla_file_system_t& f
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -169,8 +174,9 @@ mla_bool_t mla_internal_file_system_native_create_directory(mla_file_system_t& f
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     mla_bool_t result = mla_internal_file_system_native_create_directory_recursive_wide(wide_path);
 
@@ -181,8 +187,9 @@ mla_bool_t mla_internal_file_system_native_directory_exists(mla_file_system_t& f
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -190,11 +197,12 @@ mla_bool_t mla_internal_file_system_native_directory_exists(mla_file_system_t& f
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     DWORD attribs = GetFileAttributesW(wide_path);
-    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY);
+    mla_bool_t result = attribs != INVALID_FILE_ATTRIBUTES && ((attribs & FILE_ATTRIBUTE_DIRECTORY) != 0U);
 
     return result;
 }
@@ -203,8 +211,9 @@ mla_bool_t mla_internal_file_system_native_delete_directory(mla_file_system_t& f
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -212,8 +221,9 @@ mla_bool_t mla_internal_file_system_native_delete_directory(mla_file_system_t& f
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     mla_bool_t result = RemoveDirectoryW(wide_path) != 0;
 
@@ -224,8 +234,9 @@ mla_bool_t mla_internal_file_system_native_list_files(mla_file_system_t& file_sy
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -238,8 +249,9 @@ mla_bool_t mla_internal_file_system_native_list_files(mla_file_system_t& file_sy
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     HANDLE hFind = FindFirstFileW(wide_path, &findData);
 
@@ -249,7 +261,7 @@ mla_bool_t mla_internal_file_system_native_list_files(mla_file_system_t& file_sy
 
     do {
         // Skip directories and special entries (. and ..)
-        if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0U) {
             mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
@@ -264,8 +276,9 @@ mla_bool_t mla_internal_file_system_native_list_directory(mla_file_system_t& fil
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -278,8 +291,9 @@ mla_bool_t mla_internal_file_system_native_list_directory(mla_file_system_t& fil
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
+    }
 
     HANDLE hFind = FindFirstFileW(wide_path, &findData);
 
@@ -294,7 +308,7 @@ mla_bool_t mla_internal_file_system_native_list_directory(mla_file_system_t& fil
         }
 
         // Only include directories
-        if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0U) {
             mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
@@ -353,7 +367,7 @@ mla_size_t mla_internal_file_system_native_open_file_position(const mla_file_sys
     li.QuadPart = 0;
     LARGE_INTEGER pos;
 
-    if (SetFilePointerEx(hFile, li, &pos, FILE_CURRENT)) {
+    if (SetFilePointerEx(hFile, li, &pos, FILE_CURRENT) == TRUE) {
         return static_cast<mla_size_t>(pos.QuadPart);
     }
 
@@ -370,7 +384,7 @@ mla_size_t mla_internal_file_system_native_open_file_length(const mla_file_syste
 
 
     LARGE_INTEGER fileSize;
-    if (GetFileSizeEx(hFile, &fileSize)) {
+    if (GetFileSizeEx(hFile, &fileSize) == TRUE) {
         return static_cast<mla_size_t>(fileSize.QuadPart);
     }
 
@@ -389,7 +403,7 @@ mla_bool_t mla_internal_file_system_native_open_file_set_length(const mla_file_s
     LARGE_INTEGER li;
     li.QuadPart = length;
 
-    if (SetFilePointerEx(hFile, li, nullptr, FILE_BEGIN)) {
+    if (SetFilePointerEx(hFile, li, nullptr, FILE_BEGIN) == TRUE) {
         return SetEndOfFile(hFile) != 0;
     }
 
@@ -406,7 +420,7 @@ mla_size_t mla_internal_file_system_native_open_file_read(const mla_file_system_
 
 
     DWORD bytesRead = 0;
-    if (ReadFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesRead, nullptr)) {
+    if (ReadFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesRead, nullptr) == TRUE) {
         return static_cast<mla_size_t>(bytesRead);
     }
 
@@ -423,7 +437,7 @@ mla_size_t mla_internal_file_system_native_open_file_write(const mla_file_system
 
 
     DWORD bytesWritten = 0;
-    if (WriteFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesWritten, nullptr)) {
+    if (WriteFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesWritten, nullptr) == TRUE) {
         return static_cast<mla_size_t>(bytesWritten);
     }
 
@@ -434,8 +448,9 @@ mla_bool_t mla_internal_file_system_native_open_file(mla_file_system_t& file_sys
 
     mla_file_system_native_t* fs = mla_internal_file_system_native_get_native_data(file_system);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return false;
+    }
 
     mla_string_t fullPath = mla_internal_file_system_native_file_path_to_full_path(fs, path);
 
@@ -444,9 +459,9 @@ mla_bool_t mla_internal_file_system_native_open_file(mla_file_system_t& file_sys
 
     LPCWSTR wide_path = mla_pointer_get_data<WCHAR>(wideBuffer.data);
 
-    if (wide_path == nullptr)
+    if (wide_path == nullptr) {
         return false;
-
+    }
 
     // Determine access mode and creation disposition
     DWORD desiredAccess = 0;
@@ -539,8 +554,9 @@ mla_file_system_t mla_internal_file_system_native_create_with_base(const mla_str
 
     mla_file_system_native_t* fs = mla_pointer_get_data<mla_file_system_native_t>(fs_ptr);
 
-    if (fs == nullptr)
+    if (fs == nullptr) {
         return mla_file_system_empty();
+    }
 
     fs->basePath = basePath;
 
@@ -592,14 +608,15 @@ mla_file_system_t mla_file_system_native_create_data_restricted(const mla_string
 
     LPCWSTR dataWideBuffer_ptr = mla_pointer_get_data<WCHAR>(dataWideBuffer.data);
 
-    if (dataWideBuffer_ptr == nullptr)
+    if (dataWideBuffer_ptr == nullptr) {
         return mla_file_system_empty();
+    }
 
     BOOL dataCreated = CreateDirectoryW(dataWideBuffer_ptr, nullptr);
     DWORD dataError = GetLastError();
 
     // Check if creation failed (and not because it already exists)
-    if (!dataCreated && dataError != ERROR_ALREADY_EXISTS) {
+    if (dataCreated == FALSE && dataError != ERROR_ALREADY_EXISTS) {
         return mla_file_system_empty();
     }
 
@@ -611,14 +628,15 @@ mla_file_system_t mla_file_system_native_create_data_restricted(const mla_string
 
     LPCWSTR fullWideBuffer_ptr = mla_pointer_get_data<WCHAR>(dataWideBuffer.data);
 
-    if (fullWideBuffer_ptr == nullptr)
+    if (fullWideBuffer_ptr == nullptr) {
         return mla_file_system_empty();
+    }
 
     BOOL fullCreated = CreateDirectoryW(fullWideBuffer_ptr, nullptr);
     DWORD fullError = GetLastError();
 
     // Check if creation failed (and not because it already exists)
-    if (!fullCreated && fullError != ERROR_ALREADY_EXISTS) {
+    if (fullCreated == FALSE && fullError != ERROR_ALREADY_EXISTS) {
         return mla_file_system_empty();
     }
 

@@ -81,7 +81,7 @@ DWORD WINAPI mla_internal_task_manager_windows_native_worker(LPVOID lpParam) {
 
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(lpParam);
 
-    if (thread_data) {
+    if (thread_data != nullptr) {
 
         mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
 
@@ -262,7 +262,7 @@ mla_bool_t mla_task_manager_windows_native_lock_mutex(const mla_pointer_t& mutex
 
     for (int i = 0; i < timeoutms / 10; ++i) {
 
-        if (TryEnterCriticalSection(&mutex->section)) {
+        if (TryEnterCriticalSection(&mutex->section) == TRUE) {
 
             if (mutex->supports_recursive_locking) {
                 return true; // Successfully locked the mutex
@@ -290,7 +290,7 @@ mla_bool_t mla_task_manager_windows_native_unlock_mutex(const mla_pointer_t& mut
 
     if (!mutex->supports_recursive_locking) {
 
-        if (TryEnterCriticalSection(&mutex->section)) {
+        if (TryEnterCriticalSection(&mutex->section) == TRUE) {
 
             if (!mutex->locked) {
                 LeaveCriticalSection(&mutex->section); // Leave the critical section if it was not locked

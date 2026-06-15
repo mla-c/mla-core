@@ -20,8 +20,9 @@ struct my_http_rpc_test_large_data_t {
 
         const my_http_rpc_test_large_data_t* input = mla_pointer_get_data<const my_http_rpc_test_large_data_t>(obj);
 
-        if (input == nullptr)
+        if (input == nullptr) {
             return false;
+        }
 
         mla_serializer_write_string(serializer, mla_string_const("large_string"), input->large_string);
         return true;
@@ -58,8 +59,9 @@ struct my_http_rpc_test_input_t {
 
         const my_http_rpc_test_input_t* input = mla_pointer_get_data<const my_http_rpc_test_input_t>(obj);
 
-        if (input == nullptr)
+        if (input == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("a"), input->a);
         mla_serializer_write_int32(serializer, mla_string_const("b"), input->b);
@@ -101,8 +103,9 @@ struct my_http_rpc_test_output_t {
 
         const my_http_rpc_test_output_t* output = mla_pointer_get_data<const my_http_rpc_test_output_t>(obj);
 
-        if (output == nullptr)
+        if (output == nullptr) {
             return false;
+        }
 
         mla_serializer_write_int32(serializer, mla_string_const("sum"), output->sum);
         return true;

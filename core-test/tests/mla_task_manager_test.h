@@ -52,8 +52,9 @@ mla_task_process_result_state RepeatingTaskTestWorker(mla_user_data_t& userData)
 
     mla_uint32_t count = mla_user_data_get_int32(userData, mla_RepeatingTaskTestWorker_call_count_user_data_name);
 
-    if (count == RepeatingTaskTestWorkerCount)
+    if (count == RepeatingTaskTestWorkerCount) {
         return TASK_PROCESS_RESULT_DONE;
+    }
 
     RepeatingTaskTestWorkerCount++;
     return TASK_PROCESS_RESULT_CONTINUE;

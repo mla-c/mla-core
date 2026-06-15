@@ -783,15 +783,17 @@ mla_task_process_result_state mla_internal_http_server_handler_websocket_message
 
         mla_http_server_websocket_connection_t connection = mla_array_list_get_unsafe(copyConnections, i);
 
-        if (!mla_http_server_is_websocket_connection_open(connection))
+        if (!mla_http_server_is_websocket_connection_open(connection)) {
             continue;
+        }
 
         // We lock the connection for the whole processing time because
         // if multiple task are processing messages for the same connection at the same time,
         // it can cause issues with the order of messages and the state of the connection.
         // For example, if one task is processing a text message and another task receives a close message for the same connection
-        if (!mla_mutex_trylock(connection.lock, 25))
+        if (!mla_mutex_trylock(connection.lock, 25)) {
             continue;
+        }
 
         mla_string_t textMessage = mla_string_empty();
         mla_bytes_t binaryMessage = mla_bytes_empty();
@@ -1109,8 +1111,9 @@ mla_size_t mla_http_server_get_websocket_connection_count(mla_http_server_t &ser
 }
 
 mla_bool_t mla_http_server_is_websocket_connection_open(const mla_http_server_websocket_connection_t &connection) {
-    if (mla_string_is_empty(connection.id))
+    if (mla_string_is_empty(connection.id)) {
         return false;
+    }
 
     return mla_network_connection_is_connected(connection.connection);
 }
@@ -1186,12 +1189,14 @@ mla_bool_t mla_http_server_send_websocket_text_message(mla_http_server_t &server
 
 mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
-    if (!mla_http_server_is_websocket_connection_open(connection))
+    if (!mla_http_server_is_websocket_connection_open(connection)) {
         return false;
+    }
 
     if (connection_lock_timeout <= 0) {
-        if (!mla_mutex_lock(connection.lock))
+        if (!mla_mutex_lock(connection.lock)) {
             return false;
+        }
     } else {
         if (!mla_mutex_trylock(connection.lock, ((mla_int32_t)connection_lock_timeout))) {
             return false;
@@ -1220,12 +1225,14 @@ mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_webso
 
 mla_bool_t mla_http_server_try_send_websocket_text_message(mla_http_server_websocket_connection_t& connection, const mla_string_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
-    if (!mla_http_server_is_websocket_connection_open(connection))
+    if (!mla_http_server_is_websocket_connection_open(connection)) {
         return false;
+    }
 
     if (connection_lock_timeout <= 0) {
-        if (!mla_mutex_lock(connection.lock))
+        if (!mla_mutex_lock(connection.lock)) {
             return false;
+        }
     } else {
         if (!mla_mutex_trylock(connection.lock, connection_lock_timeout)) {
             return false;
@@ -1286,12 +1293,14 @@ mla_bool_t mla_http_server_send_websocket_binary_message(mla_http_server_t &serv
 
 mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
-    if (!mla_http_server_is_websocket_connection_open(connection))
+    if (!mla_http_server_is_websocket_connection_open(connection)) {
         return false;
+    }
 
     if (connection_lock_timeout <= 0) {
-        if (!mla_mutex_lock(connection.lock))
+        if (!mla_mutex_lock(connection.lock)) {
             return false;
+        }
     } else {
         if (!mla_mutex_trylock(connection.lock, connection_lock_timeout)) {
             return false;
@@ -1318,12 +1327,14 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 
 mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_websocket_connection_t& connection, const mla_bytes_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported) {
 
-    if (!mla_http_server_is_websocket_connection_open(connection))
+    if (!mla_http_server_is_websocket_connection_open(connection)) {
         return false;
+    }
 
     if (connection_lock_timeout <= 0) {
-        if (!mla_mutex_lock(connection.lock))
+        if (!mla_mutex_lock(connection.lock)) {
             return false;
+        }
     } else {
         if (!mla_mutex_trylock(connection.lock, connection_lock_timeout)) {
             return false;

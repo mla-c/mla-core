@@ -46,10 +46,10 @@ inline void MathAsinTest() {
     assert_true(asin_0 < 0.00001 && asin_0 > -0.00001, "asin(0) should be ~0");
 
     mla_double_t asin_1 = mla_math_asin(1.0);
-    assert_true(asin_1 > (mla_math_pi / 2.0 - 0.00001) && asin_1 < (mla_math_pi / 2.0 + 0.00001), "asin(1) should be ~π/2");
+    assert_true(asin_1 > ((mla_math_pi / 2.0) - 0.00001) && asin_1 < ((mla_math_pi / 2.0) + 0.00001), "asin(1) should be ~π/2");
 
     mla_double_t asin_neg1 = mla_math_asin(-1.0);
-    assert_true(asin_neg1 < (-mla_math_pi / 2.0 + 0.00001) && asin_neg1 > (-mla_math_pi / 2.0 - 0.00001), "asin(-1) should be ~-π/2");
+    assert_true(asin_neg1 < ((-mla_math_pi / 2.0) + 0.00001) && asin_neg1 > ((-mla_math_pi / 2.0) - 0.00001), "asin(-1) should be ~-π/2");
 }
 
 inline void MathAcosTest() {
@@ -57,7 +57,7 @@ inline void MathAcosTest() {
     assert_true(acos_1 < 0.00001 && acos_1 > -0.00001, "acos(1) should be ~0");
 
     mla_double_t acos_0 = mla_math_acos(0.0);
-    assert_true(acos_0 > (mla_math_pi / 2.0 - 0.00001) && acos_0 < (mla_math_pi / 2.0 + 0.00001), "acos(0) should be ~π/2");
+    assert_true(acos_0 > ((mla_math_pi / 2.0) - 0.00001) && acos_0 < ((mla_math_pi / 2.0) + 0.00001), "acos(0) should be ~π/2");
 
     mla_double_t acos_neg1 = mla_math_acos(-1.0);
     assert_true(acos_neg1 > (mla_math_pi - 0.00001) && acos_neg1 < (mla_math_pi + 0.00001), "acos(-1) should be ~π");
@@ -68,10 +68,10 @@ inline void MathAtanTest() {
     assert_true(atan_0_1 < 0.00001 && atan_0_1 > -0.00001, "atan2(0, 1) should be ~0");
 
     mla_double_t atan_1_1 = mla_math_atan(1.0, 1.0);
-    assert_true(atan_1_1 > (mla_math_pi / 4.0 - 0.00001) && atan_1_1 < (mla_math_pi / 4.0 + 0.00001), "atan2(1, 1) should be ~π/4");
+    assert_true(atan_1_1 > ((mla_math_pi / 4.0) - 0.00001) && atan_1_1 < ((mla_math_pi / 4.0) + 0.00001), "atan2(1, 1) should be ~π/4");
 
     mla_double_t atan_1_0 = mla_math_atan(1.0, 0.0);
-    assert_true(atan_1_0 > (mla_math_pi / 2.0 - 0.00001) && atan_1_0 < (mla_math_pi / 2.0 + 0.00001), "atan2(1, 0) should be ~π/2");
+    assert_true(atan_1_0 > ((mla_math_pi / 2.0) - 0.00001) && atan_1_0 < ((mla_math_pi / 2.0) + 0.00001), "atan2(1, 0) should be ~π/2");
 }
 
 inline void MathSqrtTest() {
@@ -96,7 +96,7 @@ inline void MathPythagoreanIdentityTest() {
     for (mla_size_t i = 0; i < 5; i++) {
         mla_double_t sin_val = mla_math_sin(angles[i]);
         mla_double_t cos_val = mla_math_cos(angles[i]);
-        mla_double_t identity = sin_val * sin_val + cos_val * cos_val;
+        mla_double_t identity = (sin_val * sin_val) + (cos_val * cos_val);
         assert_true(identity > 0.99999 && identity < 1.00001, "Pythagorean identity sin²+cos²=1 should hold");
     }
 }

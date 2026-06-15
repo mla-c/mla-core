@@ -11,7 +11,7 @@
 // e.g. #define mla_benchmark_constains_count 50000
 // This can be useful for CI systems where you want to reduce the number of iterations
 // to speed up the tests.
-#if defined(mla_benchmark_constains_count)
+#ifdef mla_benchmark_constains_count
 const int CONST_LIST_CONTAINS_COUNT = mla_benchmark_constains_count;
 #else
 const int CONST_LIST_CONTAINS_COUNT = 10000;

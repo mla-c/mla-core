@@ -901,7 +901,7 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     mla_xml_deser_state_t *state = mla_internal_xml_deser_get_state(inst);
 
     inst.current_token.complex = {mla_string_empty(), mla_string_empty(), mla_bytes_empty()};
-    inst.current_token.simple = {0};
+    inst.current_token.simple = {false};
 
     // If we have a pending property tag, return the struct/list start now
     if (state->pending_tag_is_struct || state->pending_tag_is_list) {
@@ -947,14 +947,17 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     mla_internal_xml_skip_ws(inst);
 
     mla_char_t c;
-    if (!mla_internal_xml_read_char(inst, c))
+    if (!mla_internal_xml_read_char(inst, c)) {
         return false;
+    }
 
-    if (c != '<')
+    if (c != '<') {
         return false;
+    }
 
-    if (!mla_internal_xml_read_char(inst, c))
+    if (!mla_internal_xml_read_char(inst, c)) {
         return false;
+    }
 
     if (c == '/') {
         // Closing tag
@@ -1012,8 +1015,9 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     while (true) {
         mla_internal_xml_skip_ws(inst);
 
-        if (!mla_internal_xml_read_char(inst, c))
+        if (!mla_internal_xml_read_char(inst, c)) {
             break;
+        }
 
         if (c == '>' || c == '/') {
             mla_internal_xml_unread_char(inst, c);
@@ -1035,8 +1039,9 @@ mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
         mla_array_list_add(state->attrs, attr);
     }
 
-    if (!mla_internal_xml_read_char(inst, c))
+    if (!mla_internal_xml_read_char(inst, c)) {
         return false;
+    }
 
     if (c == '/') {
         // Self-closing tag with attributes
@@ -1187,7 +1192,7 @@ mla_deserializer_t mla_xml_deserializer(const mla_stream_input_t &input) {
     return {
         input,
         user_data,
-        {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
+        {MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {false}},
         mla_xml_deserializer_read_next
     };
 }

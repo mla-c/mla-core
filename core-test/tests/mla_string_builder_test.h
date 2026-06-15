@@ -67,7 +67,7 @@ void StringBuilderAppendAllBasicTypesTest() {
     assert_true(mla_string_builder_append(builder, (mla_uint32_t)32), "Append uint32 should succeed");
     assert_true(mla_string_builder_append(builder, (mla_int64_t)-64), "Append int64 should succeed");
     assert_true(mla_string_builder_append(builder, (mla_uint64_t)64), "Append uint64 should succeed");
-    assert_true(mla_string_builder_append(builder, (mla_float_t)1.5f, 1), "Append float should succeed");
+    assert_true(mla_string_builder_append(builder, (mla_float_t)1.5F, 1), "Append float should succeed");
     assert_true(mla_string_builder_append(builder, (mla_double_t)2.25, 2), "Append double should succeed");
     assert_true(mla_string_builder_append(builder, (mla_char_t)'Z'), "Append char should succeed");
     assert_true(mla_string_builder_append(builder, (mla_platform_pointer_t)nullptr), "Append pointer should succeed");
@@ -103,7 +103,7 @@ void StringBuilderAppendAllBasicTypesTest() {
     part = mla_string_from_uint64(64);
     StringBuilder_AppendExpected(expected, part);
 
-    part = mla_string_from_float((mla_float_t)1.5f, 1);
+    part = mla_string_from_float((mla_float_t)1.5F, 1);
     StringBuilder_AppendExpected(expected, part);
 
     part = mla_string_from_double((mla_double_t)2.25, 2);

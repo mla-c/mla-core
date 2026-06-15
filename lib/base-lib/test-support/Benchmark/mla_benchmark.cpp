@@ -156,7 +156,7 @@ static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, 
         }
 
         // Branchless interval selection
-        mla_test_uint32_t use_left = (j > k);
+        mla_test_bool_t use_left = (j > k);
         right = use_left ? j : right;
         left = use_left ? left : (j + 1);
     }
@@ -200,7 +200,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     }
 
 
-    if (benchmark.setUp) {
+    if (benchmark.setUp != nullptr) {
         benchmark.setUp();
     }
 
@@ -321,7 +321,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_test_mutex.destroy_mutex(g_mla_benchmark_arena_mutex);
     g_mla_benchmark_arena_mutex = 0;
 
-    if (benchmark.tearDown) {
+    if (benchmark.tearDown != nullptr) {
         benchmark.tearDown();
     }
 
@@ -392,7 +392,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_char_t buffer_min[20];
     mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
     if (len_min < 9) {
-        for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+        for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) {
+            mla_test_print(" ", 1);
+        }
     }
     mla_test_print(buffer_min, len_min);
 
@@ -401,7 +403,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_char_t buffer_max[20];
     mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
     if (len_max < 12) {
-        for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+        for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) {
+            mla_test_print(" ", 1);
+        }
     }
     mla_test_print(buffer_max, len_max);
 
@@ -410,7 +414,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_char_t buffer_median[20];
     mla_test_uint32_t len_median = mla_uint64_to_string(buffer_median, sizeof(buffer_median), medianTime);
     if (len_median < 9) {
-        for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) mla_test_print(" ", 1);
+        for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) {
+            mla_test_print(" ", 1);
+        }
     }
     mla_test_print(buffer_median, len_median);
 
@@ -419,7 +425,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_char_t buffer_mem[20];
     mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
     if (len_mem < 12) {
-        for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+        for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) {
+            mla_test_print(" ", 1);
+        }
     }
     mla_test_print(buffer_mem, len_mem);
 
@@ -428,7 +436,9 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_char_t buffer_iter[20];
     mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
     if (len_iter < 12) {
-        for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+        for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) {
+            mla_test_print(" ", 1);
+        }
     }
     mla_test_print(buffer_iter, len_iter);
 
@@ -656,7 +666,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
 
 #endif
 
-    if (benchmark.tearDown) {
+    if (benchmark.tearDown != nullptr) {
         benchmark.tearDown();
     }
 
@@ -694,7 +704,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_char_t buffer_min[20];
         mla_test_uint32_t len_min = mla_uint64_to_string(buffer_min, sizeof(buffer_min), minTime);
         if (len_min < 9) {
-            for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) mla_test_print(" ", 1);
+            for (mla_test_uint32_t i = 0; i < 9 - len_min; i++) {
+                mla_test_print(" ", 1);
+            }
         }
         mla_test_print(buffer_min, len_min);
 
@@ -703,7 +715,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_char_t buffer_max[20];
         mla_test_uint32_t len_max = mla_uint64_to_string(buffer_max, sizeof(buffer_max), maxTime);
         if (len_max < 12) {
-            for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) mla_test_print(" ", 1);
+            for (mla_test_uint32_t i = 0; i < 12 - len_max; i++) {
+                mla_test_print(" ", 1);
+            }
         }
         mla_test_print(buffer_max, len_max);
 
@@ -712,7 +726,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_char_t buffer_median[20];
         mla_test_uint32_t len_median = mla_uint64_to_string(buffer_median, sizeof(buffer_median), medianTime);
         if (len_median < 9) {
-            for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) mla_test_print(" ", 1);
+            for (mla_test_uint32_t i = 0; i < 9 - len_median; i++) {
+                mla_test_print(" ", 1);
+            }
         }
         mla_test_print(buffer_median, len_median);
 
@@ -722,7 +738,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_uint64_t allocated_memory_per_iteration = benchmarkIterations > 0 ? (mla_benchmark_allocated_memory / benchmarkIterations) : 0;
         mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), allocated_memory_per_iteration);
         if (len_mem < 12) {
-            for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) mla_test_print(" ", 1);
+            for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) {
+                mla_test_print(" ", 1);
+            }
         }
         mla_test_print(buffer_mem, len_mem);
 
@@ -731,7 +749,9 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_char_t buffer_iter[20];
         mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
         if (len_iter < 12) {
-            for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) mla_test_print(" ", 1);
+            for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) {
+                mla_test_print(" ", 1);
+            }
         }
         mla_test_print(buffer_iter, len_iter);
 

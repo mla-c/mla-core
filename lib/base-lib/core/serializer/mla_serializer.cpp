@@ -40,7 +40,7 @@ mla_deserializer_t mla_deserializer_invalid() {
     return {
         mla_stream_noop_input(),
         mla_user_data_empty(),
-{MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {0}},
+{MLA_DESERIALIZER_NULL, {mla_string_empty(), mla_string_empty(), mla_bytes_empty()}, {false}},
         nullptr
     };
 }
@@ -89,26 +89,30 @@ mla_bool_t mla_deserializer_token_type_is_value(const mla_deserializer_token_typ
 mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
 
-    if (!serializer.write_start_struct(serializer))
+    if (!serializer.write_start_struct(serializer)) {
         return false;
+    }
 
     if (!write_function(serializer, value)) {
         return false;
     }
 
-    if (!serializer.write_end_struct(serializer))
+    if (!serializer.write_end_struct(serializer)) {
         return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
+    }
 
-    if (!mla_serializer_write_data_struct(serializer, value, write_function))
+    if (!mla_serializer_write_data_struct(serializer, value, write_function)) {
         return false;
+    }
 
     return true;
 }
@@ -116,193 +120,266 @@ mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_bool_t> &list) {
 
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_bool(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_bool(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint8_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_uint8(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_uint8(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint16_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_uint16(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_uint16(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint32_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_uint32(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_uint32(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_uint64_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_uint64(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_uint64(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int8_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_int8(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_int8(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int16_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_int16(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_int16(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int32_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_int32(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_int32(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_int64_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_int64(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_int64(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_float_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_float(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_float(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_double_t> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_double(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_double(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
 
 mla_bool_t mla_serializer_write_data_list(mla_serializer_t &serializer, const mla_string_t &name,
                                const mla_array_list_t<mla_string_t, mla_string_initializer> &list) {
-    if (!serializer.write_property_name(serializer, name))
+    if (!serializer.write_property_name(serializer, name)) {
         return false;
-    if (!serializer.write_start_list(serializer))
-        return false;
-    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
-        if (!serializer.write_string(serializer, *mla_array_list_get_ref(list, i)))
-            return false;
     }
-    if (!serializer.write_end_list(serializer))
+
+    if (!serializer.write_start_list(serializer)) {
         return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(list); ++i) {
+        if (!serializer.write_string(serializer, *mla_array_list_get_ref(list, i))) {
+            return false;
+        }
+    }
+
+    if (!serializer.write_end_list(serializer)) {
+        return false;
+    }
 
     return true;
 }
@@ -1333,7 +1410,7 @@ mla_bool_t mla_deserializer_convert_to_uint64(const mla_deserializer_token_t &to
 mla_bool_t mla_deserializer_convert_to_float(const mla_deserializer_token_t &token, mla_float_t *out_value) {
     switch (token.type) {
         case MLA_DESERIALIZER_NULL:
-            *out_value = 0.0f;
+            *out_value = 0.0F;
             return true;
         case MLA_DESERIALIZER_VALUE_INT8:
             *out_value = (mla_float_t) token.simple.int8_value;

@@ -192,8 +192,9 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
 
     // Byte 0: FIN + Close opcode
     mla_uint8_t fin_and_opcode = mla_websocket_fin_bit | mla_websocket_opcode_close;
-    if (output.write(output, 0, 1, &fin_and_opcode) != 1)
+    if (output.write(output, 0, 1, &fin_and_opcode) != 1) {
         return false;
+    }
 
     if (!mla_internal_websocket_client_write_message_length(output, response_length, mask_message)) {
         return false;
@@ -204,8 +205,9 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
 
     if (mask_message) {
         mla_internal_websocket_client_init_masking_key(masking_state.masking_key);
-        if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key))
+        if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
             return false;
+        }
 
         final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
         mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
@@ -613,7 +615,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
         is_final_frame = (fin_and_opcode & mla_websocket_fin_bit) != 0;
         opcode = fin_and_opcode & mla_websocket_opcode_mask;
-        use_deflate_compression = fin_and_opcode & mla_websocket_rsv1_bit;
+        use_deflate_compression = (( fin_and_opcode & mla_websocket_rsv1_bit) != 0);
 
         // read second byte (mask + payload length)
         mla_uint8_t mask_and_length;
@@ -782,14 +784,16 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
                 mla_uint8_t masking_key[mla_websocket_masking_key_size] = {0};
                 mla_internal_websocket_client_init_masking_key(masking_key);
 
-                if (!mla_internal_websocket_client_send_masking_key(output, masking_key))
+                if (!mla_internal_websocket_client_send_masking_key(output, masking_key)) {
                     return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
+                }
 
                 // Echo masked payload if present
                 for (mla_size_t i = 0; i < content_length; i++) {
                     mla_uint8_t masked_byte = buffer[i] ^ masking_key[i % mla_websocket_masking_key_size];
-                    if (output.write(output, 0, 1, &masked_byte) != 1)
+                    if (output.write(output, 0, 1, &masked_byte) != 1) {
                         return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
+                    }
                 }
             } else {
                 // Echo unmasked payload if present

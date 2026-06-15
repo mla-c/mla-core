@@ -98,7 +98,7 @@ mla_size_t mla_internal_generic_std_read(mla_char_t* buffer, mla_size_t size) {
         return 0; // No data read
     }
     char *nul = (mla_char_t*)memchr(buffer, '\0', size);
-    return nul ? (mla_size_t)(nul - buffer) : size;
+    return nul != nullptr ? (mla_size_t)(nul - buffer) : size;
 }
 
 mla_bool_t mla_internal_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {

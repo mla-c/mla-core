@@ -10,7 +10,9 @@
 
 static const mla_test_char_t* mla_test_cli_match_prefix(const mla_test_char_t* p_Str, const mla_test_char_t* p_Prefix) {
     while (*p_Prefix != '\0') {
-        if (*p_Str != *p_Prefix) return nullptr;
+        if (*p_Str != *p_Prefix) {
+            return nullptr;
+        }
         p_Str++;
         p_Prefix++;
     }
@@ -20,7 +22,7 @@ static const mla_test_char_t* mla_test_cli_match_prefix(const mla_test_char_t* p
 static mla_test_uint32_t mla_test_cli_parse_uint32(const mla_test_char_t* p_Str) {
     mla_test_uint32_t result = 0;
     while (*p_Str >= '0' && *p_Str <= '9') {
-        result = result * 10 + (mla_test_uint32_t)(*p_Str - '0');
+        result = (result * 10) + (mla_test_uint32_t)(*p_Str - '0');
         p_Str++;
     }
     return result;

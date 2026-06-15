@@ -17,8 +17,9 @@ mla_test_pointer_t mla_internal_sdt_create_mutex() {
 // Lock the mutex identified by the pointer value
 mla_test_bool_t mla_internal_sdt_lock_mutex(mla_test_pointer_t mutex_id) {
 
-    if (mutex_id == nullptr)
+    if (mutex_id == nullptr) {
         return false;
+    }
 
     std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     mtx->lock();
@@ -27,8 +28,9 @@ mla_test_bool_t mla_internal_sdt_lock_mutex(mla_test_pointer_t mutex_id) {
 
 // Unlock the mutex identified by the pointer value
 void mla_internal_sdt_unlock_mutex(mla_test_pointer_t mutex_id) {
-    if (mutex_id == nullptr)
+    if (mutex_id == nullptr) {
         return;
+    }
 
     std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     mtx->unlock();
@@ -37,8 +39,9 @@ void mla_internal_sdt_unlock_mutex(mla_test_pointer_t mutex_id) {
 // Destroy the mutex identified by the pointer value
 void mla_internal_sdt_destroy_mutex(mla_test_pointer_t mutex_id) {
 
-    if (mutex_id == nullptr)
+    if (mutex_id == nullptr) {
         return;
+    }
 
     std::mutex* mtx = reinterpret_cast<std::mutex*>(mutex_id);
     delete mtx;

@@ -19,8 +19,9 @@ mla_test_executor_t mla_test_executor() {
 }
 
 void mla_test_executor_destroy(mla_test_executor_t &executor) {
+
     for (mla_test_uint32_t i = 0; i < executor.count; ++i) {
-        if (executor.tests[i].name) {
+        if (executor.tests[i].name != nullptr) {
             mla_test_destroy(executor.tests[i]);
         }
     }
@@ -84,7 +85,9 @@ void mla_test_executor_register_test(mla_test_executor_t &executor, mla_test_t &
 
     if (executor.count >= executor.capacity) {
         mla_test_uint32_t increment = (executor.capacity / 4);
-        if (increment < 10) increment = 10;
+        if (increment < 10) {
+            increment = 10;
+        }
         mla_test_uint32_t newCapacity = executor.capacity + increment;
         mla_test_t* newTests = (mla_test_t*) mla_test_malloc(sizeof(mla_test_t) * newCapacity);
 
@@ -120,7 +123,7 @@ mla_test_uint32_t mla_test_generate_seed() {
         mla_test_uint64_t system_time = g_benchmark_timer.current_nanoseconds();
         g_mla_test_seed_generator_state = (mla_test_uint32_t)(system_time ^ (mla_test_uint64_t)&g_mla_test_seed_generator_state);
         if (g_mla_test_seed_generator_state == 0) {
-            g_mla_test_seed_generator_state = 0xACE1u; // Fallback
+            g_mla_test_seed_generator_state = 0xACE1U; // Fallback
         }
     }
 
@@ -136,9 +139,9 @@ mla_test_uint32_t mla_test_generate_seed() {
 static mla_bool_t mla_test_executor_failure_malloc_hook(mla_size_t p_Size, mla_platform_pointer_t* p_OutPtr) {
     (void)p_Size;
 
-    g_mla_test_failure_prng_state = g_mla_test_failure_prng_state * 1664525u + 1013904223u;
+    g_mla_test_failure_prng_state = (g_mla_test_failure_prng_state * 1664525U) + 1013904223U;
 
-    if (((g_mla_test_failure_prng_state >> 16) & 0x7u) == 0u) {
+    if (((g_mla_test_failure_prng_state >> 16) & 0x7U) == 0U) {
         *p_OutPtr = nullptr;
         return true;
     }

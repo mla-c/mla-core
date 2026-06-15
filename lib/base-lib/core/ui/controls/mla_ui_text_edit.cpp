@@ -154,7 +154,7 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
     if (textModified) {
         // Trigger text changed event if set
         mla_ui_text_edit_text_changed_t textChangedEvent = mla_ui_text_edit_get_text_changed_event(control);
-        if (textChangedEvent) {
+        if (textChangedEvent != nullptr) {
             textChangedEvent(control, uiControls, userData);
         }
     }
@@ -175,8 +175,12 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
     mla_double_t h = element.layout.height;
 
     // Default sizing
-    if (w == 0) w = context.width - x;
-    if (h == 0) h = context.height - y;
+    if (w == 0) {
+        w = context.width - x;
+    }
+    if (h == 0) {
+        h = context.height - y;
+    }
 
     const mla_bool_t disabled = mla_ui_text_edit_get_disable(element);
     mla_string_t text = mla_ui_text_edit_get_text(element);
@@ -241,13 +245,13 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
         if (!mla_string_is_empty(selectedText) && !mla_string_is_empty(text)) {
             // Measure selected text width
             mla_ui_surface_draw_size_t selSize = {0, 0};
-            if (context.calcTextSize) {
+            if (context.calcTextSize != nullptr) {
                 selSize = context.calcTextSize(context, fontType, selectedText);
             }
 
             // Calculate x-offset based on text before the selection
             mla_double_t selectionXOffset = 0.0;
-            if (context.calcTextSize) {
+            if (context.calcTextSize != nullptr) {
                 const mla_int32_t idx = mla_string_index_of(text, selectedText);
                 if (idx >= 0) {
                     const mla_string_t prefix = mla_string_substr(text, 0, idx);
@@ -262,7 +266,7 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
             mla_ui_surface_draw_command_t selCmd = mla_ui_surface_draw_command_empty();
             selCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
             selCmd.rect.x = context.offsetX + x + 10.0 + selectionXOffset;
-            selCmd.rect.y = context.offsetY + y + (h - 16.0) / 2.0;
+            selCmd.rect.y = context.offsetY + y + ((h - 16.0) / 2.0);
             selCmd.rect.width = selSize.width > 0 ? selSize.width : 5.0; // Fallback width
             selCmd.rect.height = 16.0;
             selCmd.rect.rx = 2.0;
@@ -277,12 +281,13 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
             if ((currentTimeMs % 1000) < 500) {
                 mla_double_t cursorXOffset = 0.0;
 
-                if (context.calcTextSize && !mla_string_is_empty(text)) {
+                if (context.calcTextSize != nullptr && !mla_string_is_empty(text)) {
                     mla_size_t cursorPosition = mla_ui_text_edit_get_cursor_position(element);
 
                     // Clamp position to valid range
-                    if (cursorPosition > mla_string_length(text))
+                    if (cursorPosition > mla_string_length(text)) {
                         cursorPosition = mla_string_length(text);
+                    }
 
                     // Measure text up to cursor
                     mla_string_t textBeforeCursor = mla_string_substr(text, 0, cursorPosition);
@@ -293,7 +298,7 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
                 mla_ui_surface_draw_command_t curCmd = mla_ui_surface_draw_command_empty();
                 curCmd.kind = MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT;
                 curCmd.rect.x = context.offsetX + x + 10.0 + cursorXOffset;
-                curCmd.rect.y = context.offsetY + y + (h - 14.0) / 2.0;
+                curCmd.rect.y = context.offsetY + y + ((h - 14.0) / 2.0);
                 curCmd.rect.width = 1.0;
                 curCmd.rect.height = 14.0;
                 curCmd.rect.color = {0, 0, 0, 255};
@@ -333,7 +338,7 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
     // Draw Text
     // SVG: x=10, y=21
     if (!mla_string_is_empty(text)) {
-        if (!mla_string_is_empty(activeSelectedText) && context.calcTextSize) {
+        if (!mla_string_is_empty(activeSelectedText) && context.calcTextSize != nullptr) {
             // Split Text Rendering: Prefix(Black) - Selected(White) - Suffix(Black)
 
             mla_int32_t idx = mla_string_index_of(text, activeSelectedText);
