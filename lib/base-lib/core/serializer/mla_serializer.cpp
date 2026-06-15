@@ -1036,7 +1036,7 @@ mla_bool_t mla_deserializer_convert_to_int16(const mla_deserializer_token_t &tok
 mla_bool_t mla_deserializer_convert_to_int32(const mla_deserializer_token_t &token, mla_int32_t *out_value) {
     switch (token.type) {
         case MLA_DESERIALIZER_NULL:
-            out_value = 0;
+            out_value = nullptr;
             return true;
         case MLA_DESERIALIZER_VALUE_INT8:
 

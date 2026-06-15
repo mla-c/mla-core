@@ -31,7 +31,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
     mla_uint64_t padded_message_size = msg_size + pad_len + 8; // +8 for length
 
     // Allocate padded message
-    mla_bytes_t padded_message = mla_bytes((mla_size_t)padded_message_size);
+    mla_bytes_t padded_message = mla_bytes(static_cast<mla_size_t>(padded_message_size));
 
     mla_byte_t *padded = mla_bytes_get_data_for_writing(padded_message);
     const mla_byte_t * input_data = mla_bytes_get_data_readonly(input);
@@ -57,7 +57,7 @@ mla_bytes_t mla_sha1(const mla_bytes_t &input) {
     mla_uint64_t bit_len = msg_size * 8;
     for (mla_uint8_t j = 0; j < 8; ++j) {
         padded[padded_message_size - 8 + j] =
-            (mla_byte_t)((bit_len >> (56 - (8 * j))) & 0xFF);
+            static_cast<mla_byte_t>((bit_len >> (56 - (8 * j))) & 0xFF);
     }
 
     // Process each 512-bit block

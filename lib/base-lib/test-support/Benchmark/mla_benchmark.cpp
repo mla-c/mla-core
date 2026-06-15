@@ -319,7 +319,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_low_level_access.malloc = mla_benchmark_malloc_hook_original;
     mla_benchmark_malloc_hook_original = nullptr;
     g_test_mutex.destroy_mutex(g_mla_benchmark_arena_mutex);
-    g_mla_benchmark_arena_mutex = 0;
+    g_mla_benchmark_arena_mutex = nullptr;
 
     if (benchmark.tearDown != nullptr) {
         benchmark.tearDown();

@@ -13,7 +13,7 @@
 
 mla_bool_t mla_internal_binary_serializer_write_element_type(mla_stream_output_t& output, const mla_deserializer_token_type_t type) {
 
-    mla_uint8_t byteType = (mla_uint8_t)type;
+    mla_uint8_t byteType = type;
     return output.write(output, 0, sizeof(byteType), reinterpret_cast<const mla_byte_t*>(&byteType)) == sizeof(byteType);
 }
 

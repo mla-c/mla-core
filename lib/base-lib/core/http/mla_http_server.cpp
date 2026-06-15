@@ -699,7 +699,7 @@ mla_bool_t mla_internal_http_server_remove_websocket_connection(mla_http_server_
     }
 
     // Hot Path
-    if ((mla_size_t)index < mla_array_list_size(server.websocketConnections)) {
+    if (static_cast<mla_size_t>(index) < mla_array_list_size(server.websocketConnections)) {
 
         mla_http_server_websocket_connection_t& current_connection = mla_array_list_get_unsafe(server.websocketConnections, index);
 

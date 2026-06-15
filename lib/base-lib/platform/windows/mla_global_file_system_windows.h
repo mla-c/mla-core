@@ -262,7 +262,7 @@ mla_bool_t mla_internal_file_system_native_list_files(mla_file_system_t& file_sy
     do {
         // Skip directories and special entries (. and ..)
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0U) {
-            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), static_cast<mla_size_t>(wcslen(findData.cFileName))};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }

@@ -5,7 +5,7 @@
 #include "mla_string_builder.h"
 
 static mla_size_t mla_internal_string_builder_normalize_capacity(mla_size_t p_Capacity) {
-    return p_Capacity == 0 ? (mla_size_t)1 : p_Capacity;
+    return p_Capacity == 0 ? static_cast<mla_size_t>(1) : p_Capacity;
 }
 
 static mla_bool_t mla_internal_string_builder_ensure_capacity(mla_string_builder_t& p_Builder, mla_size_t p_RequiredLength) {
@@ -83,7 +83,7 @@ mla_string_builder_t mla_string_builder_empty() {
 }
 
 mla_string_builder_t mla_string_builder_create() {
-    return mla_string_builder_create((mla_size_t)mla_global_config_string_builder_default_buffer_size);
+    return mla_string_builder_create(static_cast<mla_size_t>(mla_global_config_string_builder_default_buffer_size));
 }
 
 mla_string_builder_t mla_string_builder_create(mla_size_t p_InitialBufferSize) {

@@ -73,7 +73,7 @@ mla_bool_t mla_ui_window_set_resizable(mla_ui_control_t &window, mla_bool_t resi
 mla_ui_window_on_close_callback_t mla_ui_window_get_close(const mla_ui_control_t &window) {
 
     return reinterpret_cast<mla_ui_window_on_close_callback_t>(
-        mla_ui_control_get_value_as_pointer(window, mla_string_const("on_close"), 0)
+        mla_ui_control_get_value_as_pointer(window, mla_string_const("on_close"), nullptr)
     );
 }
 

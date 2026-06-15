@@ -64,8 +64,9 @@ Checks: >-
   -readability-redundant-casting,
   -readability-simplify-boolean-expr,
   -readability-qualified-auto,
-  portability-*
-  modernize-use-nullptr
+  portability-*,
+  modernize-use-nullptr,
+  modernize-avoid-c-style-cast
 
 # Treat these checks as errors in CI by overriding this in your project's
 # .clang-tidy or by passing --warnings-as-errors=* on the command line.

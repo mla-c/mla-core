@@ -173,7 +173,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
     }
 
-    bufferManager->buffer = ((mla_byte_t*)bufferManager) + size;
+    bufferManager->buffer = reinterpret_cast<mla_byte_t*>(bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;
 
@@ -197,7 +197,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
     }
 
-    bufferManager->buffer = ((mla_byte_t*)bufferManager) + size;
+    bufferManager->buffer = reinterpret_cast<mla_byte_t*>(bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;
 

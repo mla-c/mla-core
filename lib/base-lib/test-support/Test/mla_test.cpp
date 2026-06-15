@@ -120,7 +120,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
     if (g_benchmark_timer.current_nanoseconds != nullptr) {
         mla_test_print(" (Runtime: ", 11);
         mla_test_char_t time_buffer[32];
-        mla_test_uint32_t duration_ms = (mla_test_uint32_t) ((end_ns - start_ns) / 1000000);
+        mla_test_uint32_t duration_ms = static_cast<mla_test_uint32_t>((end_ns - start_ns) / 1000000);
         mla_test_uint32_t time_len = mla_uint32_to_string(time_buffer, sizeof(time_buffer), duration_ms);
         mla_test_print(time_buffer, time_len);
         mla_test_print(" ms)", 4);
@@ -185,7 +185,7 @@ void mla_check_assert_fail(const mla_test_char_t *p_Message, mla_test_int16_t p_
     }
 
     current_test_result.success = false;
-    mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+    mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
     mla_test_uint32_t offset = 0;
 
     // Build: "Assertion failed at line "
@@ -213,7 +213,7 @@ void mla_check_assert_true(mla_test_bool_t p_Condition, const mla_test_char_t *p
 
     if (!p_Condition) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -242,7 +242,7 @@ void mla_check_assert_false(mla_test_bool_t p_Condition, const mla_test_char_t *
 
     if (p_Condition) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -270,7 +270,7 @@ void mla_check_assert_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -294,7 +294,7 @@ void mla_check_assert_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -306,7 +306,7 @@ void mla_check_assert_not_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expe
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -330,7 +330,7 @@ void mla_check_assert_not_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -342,7 +342,7 @@ void mla_check_assert_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -366,7 +366,7 @@ void mla_check_assert_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -378,7 +378,7 @@ void mla_check_assert_not_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expe
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -402,7 +402,7 @@ void mla_check_assert_not_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -415,7 +415,7 @@ void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -439,7 +439,7 @@ void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -451,7 +451,7 @@ void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expe
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -475,7 +475,7 @@ void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -487,7 +487,7 @@ void mla_check_assert_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expect
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -511,7 +511,7 @@ void mla_check_assert_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -523,7 +523,7 @@ void mla_check_assert_not_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Ex
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -547,7 +547,7 @@ void mla_check_assert_not_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -559,7 +559,7 @@ void mla_check_assert_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expect
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -583,7 +583,7 @@ void mla_check_assert_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -595,7 +595,7 @@ void mla_check_assert_not_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Ex
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -619,7 +619,7 @@ void mla_check_assert_not_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -631,7 +631,7 @@ void mla_check_assert_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expe
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -655,7 +655,7 @@ void mla_check_assert_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -667,7 +667,7 @@ void mla_check_assert_not_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -691,7 +691,7 @@ void mla_check_assert_not_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -703,7 +703,7 @@ void mla_check_assert_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Expect
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -727,7 +727,7 @@ void mla_check_assert_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -739,7 +739,7 @@ void mla_check_assert_not_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Ex
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -763,7 +763,7 @@ void mla_check_assert_not_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -775,7 +775,7 @@ void mla_check_assert_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_Expe
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -799,7 +799,7 @@ void mla_check_assert_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -811,7 +811,7 @@ void mla_check_assert_not_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -835,7 +835,7 @@ void mla_check_assert_not_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -847,7 +847,7 @@ void mla_check_assert_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Expect
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -871,7 +871,7 @@ void mla_check_assert_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -883,7 +883,7 @@ void mla_check_assert_not_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Ex
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -907,7 +907,7 @@ void mla_check_assert_not_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -920,7 +920,7 @@ void mla_check_assert_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_Expe
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -944,7 +944,7 @@ void mla_check_assert_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -956,7 +956,7 @@ void mla_check_assert_not_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -980,7 +980,7 @@ void mla_check_assert_not_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -993,7 +993,7 @@ void mla_check_assert_equal(mla_test_float_t p_Actual, mla_test_float_t p_Expect
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1017,7 +1017,7 @@ void mla_check_assert_equal(mla_test_float_t p_Actual, mla_test_float_t p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1030,7 +1030,7 @@ void mla_check_assert_not_equal(mla_test_float_t p_Actual, mla_test_float_t p_Ex
     mla_test_float_t diff = p_Actual - p_Expected;
     if ((diff < 0 ? -diff : diff) > 0.000001) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1054,7 +1054,7 @@ void mla_check_assert_not_equal(mla_test_float_t p_Actual, mla_test_float_t p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1067,7 +1067,7 @@ void mla_check_assert_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expe
     mla_test_double_t diff = p_Actual - p_Expected;
     if ((diff < 0 ? -diff : diff) > 0.000001) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1091,7 +1091,7 @@ void mla_check_assert_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expe
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1103,7 +1103,7 @@ void mla_check_assert_not_equal(mla_test_double_t p_Actual, mla_test_double_t p_
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1127,7 +1127,7 @@ void mla_check_assert_not_equal(mla_test_double_t p_Actual, mla_test_double_t p_
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1139,7 +1139,7 @@ void mla_check_assert_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Expect
 
     if (mla_test_strcmp(p_Actual, p_Expected) != 0) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1165,7 +1165,7 @@ void mla_check_assert_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Expect
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1177,7 +1177,7 @@ void mla_check_assert_not_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Ex
 
     if (mla_test_strcmp(p_Actual, p_Expected) == 0) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1203,7 +1203,7 @@ void mla_check_assert_not_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Ex
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1215,7 +1215,7 @@ void mla_check_assert_equal(void *p_Actual, void *p_Expected, const mla_test_cha
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1235,7 +1235,7 @@ void mla_check_assert_equal(void *p_Actual, void *p_Expected, const mla_test_cha
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1247,7 +1247,7 @@ void mla_check_assert_not_equal(void *p_Actual, void *p_Expected, const mla_test
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1267,7 +1267,7 @@ void mla_check_assert_not_equal(void *p_Actual, void *p_Expected, const mla_test
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = static_cast<mla_test_char_t *>(l_Result);
     }
 }
 
@@ -1280,7 +1280,7 @@ void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const 
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1300,7 +1300,6 @@ void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const 
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
     }
 }
 

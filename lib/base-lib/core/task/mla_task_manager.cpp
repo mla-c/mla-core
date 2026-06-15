@@ -194,7 +194,7 @@ mla_array_list_t<mla_task_info_t, mla_task_info_initializer> mla_task_manager_ge
         mla_task_state state = TASK_STATE_UNKNOWN;
 
         if (sharedStates != nullptr) {
-            state = (mla_task_state)sharedStates->processingState.value;
+            state = static_cast<mla_task_state>(sharedStates->processingState.value);
         }
 
         mla_task_info_t info = {
@@ -240,7 +240,7 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
             mla_task_state state = TASK_STATE_UNKNOWN;
 
             if (sharedStates != nullptr) {
-                state = (mla_task_state)sharedStates->processingState.value;
+                state = static_cast<mla_task_state>(sharedStates->processingState.value);
             }
 
             result.priority = task.priority;

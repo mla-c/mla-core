@@ -192,7 +192,7 @@ mla_bool_t mla_internal_file_system_find_file_system_for_file(const mla_string_t
 
     // Split the in the file path into directory and file name
     mla_size_t last_slash_index = mla_string_last_index_of(file_path, mla_fs_directory_seperator);
-    if (last_slash_index == (mla_size_t)-1) {
+    if (last_slash_index == static_cast<mla_size_t>(-1)) {
         return false;
     }
 
@@ -375,7 +375,7 @@ mla_string_t mla_fs_get_file_name(const mla_string_t& path) {
     // Find the last slash in the path
     mla_size_t last_slash_index = mla_string_last_index_of(path, mla_fs_directory_seperator);
 
-    if (last_slash_index == (mla_size_t)-1) {
+    if (last_slash_index == static_cast<mla_size_t>(-1)) {
         return path; // No slashes, return the whole path
     }
 
@@ -388,7 +388,7 @@ mla_string_t mla_fs_get_file_extension(const mla_string_t& path) {
     mla_string_t file_name = mla_fs_get_file_name(path);
 
     mla_size_t last_dot_index = mla_string_last_index_of(file_name, mla_string_const("."));
-    if (last_dot_index == (mla_size_t)-1) {
+    if (last_dot_index == static_cast<mla_size_t>(-1)) {
         return mla_string_empty(); // No extension
     }
 

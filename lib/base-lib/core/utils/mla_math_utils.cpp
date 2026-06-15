@@ -20,8 +20,8 @@ static mla_double_t local_fmod(mla_double_t x, mla_double_t y) {
         return 0.0;
     }
 
-    mla_int64_t n = (mla_int64_t) (x / y);
-    return x -  ((mla_double_t) n * y);
+    mla_int64_t n = static_cast<mla_int64_t>(x / y);
+    return x -  (static_cast<mla_double_t>(n) * y);
 }
 
 mla_double_t mla_math_sin(mla_double_t x) {
@@ -164,10 +164,10 @@ static mla_double_t local_ln(mla_double_t x) {
 
     for (mla_int32_t i = 3; i < 15; i += 2) {
         term *= y2;
-        sum += term / (mla_double_t) i;
+        sum += term / static_cast<mla_double_t>(i);
     }
 
-    return (2.0 * sum) + (mla_double_t) p;
+    return (2.0 * sum) + static_cast<mla_double_t>(p);
 }
 
 // Internal Exponential helper
@@ -176,7 +176,7 @@ static mla_double_t local_exp(mla_double_t x) {
     mla_double_t term = 1.0;
 
     for (mla_int32_t i = 1; i < 25; ++i) {
-        term *= x / (mla_double_t) i;
+        term *= x / static_cast<mla_double_t>(i);
         sum += term;
         if (local_abs(term) < 1e-10) {
             break;
@@ -197,8 +197,8 @@ mla_double_t mla_math_pow(mla_double_t base, mla_double_t exponent) {
     }
 
     // Optimization for integer exponents
-    mla_int64_t exp_int = (mla_int64_t) exponent;
-    if ((mla_double_t) exp_int == exponent) {
+    mla_int64_t exp_int = static_cast<mla_int64_t>(exponent);
+    if (static_cast<mla_double_t>(exp_int) == exponent) {
         mla_double_t res = 1.0;
         mla_double_t curr = base;
         mla_int64_t e = exp_int < 0 ? -exp_int : exp_int;

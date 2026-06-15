@@ -50,7 +50,7 @@ static mla_area_page_header_t* mla_internal_area_allocate_page(mla_size_t size) 
     page->page_size = size;
     page->refCount = 0;
     page->OtherTaskRefCount.value = 0;
-    page->CurrentPosition.value = (mla_int32_t)mla_internal_area_align_up(sizeof(mla_area_page_header_t));
+    page->CurrentPosition.value = static_cast<mla_int32_t>(mla_internal_area_align_up(sizeof(mla_area_page_header_t)));
     page->NextPage = nullptr;
     page->creatorTaskId = mla_current_task_id;
     return page;
@@ -70,9 +70,9 @@ mla_pointer_t mla_internal_area_pointer_memory_manager_malloc(mla_pointer_memory
         if (page != nullptr) {
             // Try lock-free reservation of space in the current page
             mla_int32_t currentPos = page->CurrentPosition.value;
-            while ((mla_size_t)currentPos + totalNeeded <= page->page_size) {
+            while (static_cast<mla_size_t>(currentPos) + totalNeeded <= page->page_size) {
 
-                if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + (mla_int32_t)totalNeeded)) {
+                if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + static_cast<mla_int32_t>(totalNeeded))) {
                     // Success! Reserved space.
                     mla_platform_pointer_t itemPtr = reinterpret_cast<mla_byte_t*>(page) + currentPos;
 
@@ -145,7 +145,7 @@ static void mla_internal_area_free_page(mla_area_pointer_memory_manager_t& area_
     mla_size_t headerSize = mla_internal_area_align_up(sizeof(mla_area_pointer_header_t));
 
     mla_int32_t finalPos = page->CurrentPosition.value;
-    while (currentPos < (mla_size_t)finalPos) {
+    while (currentPos < static_cast<mla_size_t>(finalPos)) {
         mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(reinterpret_cast<mla_byte_t*>(page) + currentPos);
         if (header->cleanupHook != nullptr) {
             mla_platform_pointer_t data = reinterpret_cast<mla_byte_t*>(header) + headerSize;

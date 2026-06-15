@@ -108,7 +108,7 @@ mla_bool_t mla_internal_ui_label_render_to_drawCommands(const mla_ui_control_con
 
     if (kind == MLA_UI_TEXT_KIND_LINK) {
         // Check if the text is hovered if yes change color to hover color
-        const mla_ui_control_layout_t textLayout = {x + 2.0, (mla_double_t)y, textWidth, textHeight};
+        const mla_ui_control_layout_t textLayout = {x + 2.0, y, textWidth, textHeight};
         if (mla_ui_control_is_hovered(context, textLayout)) {
             color = MLA_UI_COLOR_TEXT_LINK_HOVER;
             command.text.font_type.bold = true;

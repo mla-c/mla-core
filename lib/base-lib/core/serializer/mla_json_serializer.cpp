@@ -28,7 +28,8 @@ mla_user_data_id_init(mla_json_serializer_element_type_user_data_name)
 mla_bool_t mla_internal_json_serializer_write_comma_if_needed(mla_serializer_t &instance,
                                                  mla_json_serializer_element_type_t new_type) {
 
-    mla_json_serializer_element_type_t last_type = (mla_json_serializer_element_type_t)mla_user_data_get_and_replace_int8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type, MLA_JSON_SERIALIZER_ELEMENT_NONE);
+    mla_json_serializer_element_type_t last_type = static_cast<mla_json_serializer_element_type_t>(mla_user_data_get_and_replace_int8(instance.user_data, mla_json_serializer_element_type_user_data_name, new_type,
+        MLA_JSON_SERIALIZER_ELEMENT_NONE));
 
 
     switch (new_type) {
@@ -544,43 +545,43 @@ mla_bool_t mla_internal_json_deserializer_read_string_data(mla_deserializer_t &i
                         // Convert to UTF-8
                         if (code_point < 0x80) {
                             // 1-byte character
-                            charBuffer[position] = (mla_char_t) code_point;
+                            charBuffer[position] = static_cast<mla_char_t>(code_point);
                             position++;
                         } else if (code_point < 0x800) {
                             // 2-byte character
-                            charBuffer[position] = (mla_char_t) (0xC0 | (code_point >> 6));
-                            charBuffer[position + 1] = (mla_char_t) (0x80 | (code_point & 0x3F));
+                            charBuffer[position] = static_cast<mla_char_t>(0xC0 | (code_point >> 6));
+                            charBuffer[position + 1] = static_cast<mla_char_t>(0x80 | (code_point & 0x3F));
                             position += 2;
                         } else if (code_point < 0x10000) {
                             // 3-byte character
-                            charBuffer[position] = (mla_char_t) (0xE0 | (code_point >> 12));
-                            charBuffer[position + 1] = (mla_char_t) (0x80 | ((code_point >> 6) & 0x3F));
-                            charBuffer[position + 2] = (mla_char_t) (0x80 | (code_point & 0x3F));
+                            charBuffer[position] = static_cast<mla_char_t>(0xE0 | (code_point >> 12));
+                            charBuffer[position + 1] = static_cast<mla_char_t>(0x80 | ((code_point >> 6) & 0x3F));
+                            charBuffer[position + 2] = static_cast<mla_char_t>(0x80 | (code_point & 0x3F));
                             position += 3;
                         } else {
                             // 4-byte character
-                            charBuffer[position] = (mla_char_t) (0xF0 | (code_point >> 18));
-                            charBuffer[position + 1] = (mla_char_t) (0x80 | ((code_point >> 12) & 0x3F));
-                            charBuffer[position + 2] = (mla_char_t) (0x80 | ((code_point >> 6) & 0x3F));
-                            charBuffer[position + 3] = (mla_char_t) (0x80 | (code_point & 0x3F));
+                            charBuffer[position] = static_cast<mla_char_t>(0xF0 | (code_point >> 18));
+                            charBuffer[position + 1] = static_cast<mla_char_t>(0x80 | ((code_point >> 12) & 0x3F));
+                            charBuffer[position + 2] = static_cast<mla_char_t>(0x80 | ((code_point >> 6) & 0x3F));
+                            charBuffer[position + 3] = static_cast<mla_char_t>(0x80 | (code_point & 0x3F));
                             position += 4;
                         }
                     } else {
                         // Regular Unicode character (not a surrogate pair)
                         if (unicode_val < 0x80) {
                             // 1-byte character
-                            charBuffer[position] = (mla_char_t) unicode_val;
+                            charBuffer[position] = static_cast<mla_char_t>(unicode_val);
                             position++;
                         } else if (unicode_val < 0x800) {
                             // 2-byte character
-                            charBuffer[position] = (mla_char_t) (0xC0 | (unicode_val >> 6));
-                            charBuffer[position + 1] = (mla_char_t) (0x80 | (unicode_val & 0x3F));
+                            charBuffer[position] = static_cast<mla_char_t>(0xC0 | (unicode_val >> 6));
+                            charBuffer[position + 1] = static_cast<mla_char_t>(0x80 | (unicode_val & 0x3F));
                             position += 2;
                         } else {
                             // 3-byte character
-                            charBuffer[position] = (mla_char_t) (0xE0 | (unicode_val >> 12));
-                            charBuffer[position + 1] = (mla_char_t) (0x80 | ((unicode_val >> 6) & 0x3F));
-                            charBuffer[position + 2] = (mla_char_t) (0x80 | (unicode_val & 0x3F));
+                            charBuffer[position] = static_cast<mla_char_t>(0xE0 | (unicode_val >> 12));
+                            charBuffer[position + 1] = static_cast<mla_char_t>(0x80 | ((unicode_val >> 6) & 0x3F));
+                            charBuffer[position + 2] = static_cast<mla_char_t>(0x80 | (unicode_val & 0x3F));
                             position += 3;
                         }
                     }
@@ -697,7 +698,7 @@ mla_bool_t mla_internal_json_deserializer_read_number_data(mla_deserializer_t &i
         // Determine if we should store as float or double based on value
         if (value <= mla_float_max && value >= mla_float_min) {
             instance.current_token.type = MLA_DESERIALIZER_VALUE_FLOAT;
-            instance.current_token.simple.float_value = (mla_float_t) value;
+            instance.current_token.simple.float_value = static_cast<mla_float_t>(value);
         } else {
             instance.current_token.type = MLA_DESERIALIZER_VALUE_DOUBLE;
             instance.current_token.simple.double_value = value;
@@ -714,30 +715,30 @@ mla_bool_t mla_internal_json_deserializer_read_number_data(mla_deserializer_t &i
         if (is_negative) {
             if (value >= mla_int8_min && value <= mla_int8_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_INT8;
-                instance.current_token.simple.int8_value = (mla_int8_t) value;
+                instance.current_token.simple.int8_value = static_cast<mla_int8_t>(value);
             } else if (value >= mla_int16_min && value <= mla_int16_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_INT16;
-                instance.current_token.simple.int16_value = (mla_int16_t) value;
+                instance.current_token.simple.int16_value = static_cast<mla_int16_t>(value);
             } else if (value >= mla_int32_min && value <= mla_int32_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_INT32;
-                instance.current_token.simple.int32_value = (mla_int32_t) value;
+                instance.current_token.simple.int32_value = static_cast<mla_int32_t>(value);
             } else {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_INT64;
                 instance.current_token.simple.int64_value = value;
             }
         } else {
             // Unsigned - reinterpret as unsigned
-            mla_uint64_t uvalue = (mla_uint64_t) value;
+            mla_uint64_t uvalue = static_cast<mla_uint64_t>(value);
 
             if (uvalue <= mla_uint8_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_UINT8;
-                instance.current_token.simple.uint8_value = (mla_uint8_t) uvalue;
+                instance.current_token.simple.uint8_value = static_cast<mla_uint8_t>(uvalue);
             } else if (uvalue <= mla_uint16_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_UINT16;
-                instance.current_token.simple.uint16_value = (mla_uint16_t) uvalue;
+                instance.current_token.simple.uint16_value = static_cast<mla_uint16_t>(uvalue);
             } else if (uvalue <= mla_uint32_max) {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_UINT32;
-                instance.current_token.simple.uint32_value = (mla_uint32_t) uvalue;
+                instance.current_token.simple.uint32_value = static_cast<mla_uint32_t>(uvalue);
             } else {
                 instance.current_token.type = MLA_DESERIALIZER_VALUE_UINT64;
                 instance.current_token.simple.uint64_value = uvalue;

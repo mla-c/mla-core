@@ -10,7 +10,7 @@
 struct mla_int32_hash_t {
 
     static mla_size_t hash(const mla_int32_t& key) {
-        mla_size_t x = (mla_size_t)key;
+        mla_size_t x = static_cast<mla_size_t>(key);
         x = ((x >> 16) ^ x) * 0x45d9f3b;
         x = ((x >> 16) ^ x) * 0x45d9f3b;
         x = (x >> 16) ^ x;
@@ -23,7 +23,7 @@ struct mla_int16_hash_t {
 
     static mla_size_t hash(const mla_int16_t& key) {
 
-        mla_size_t x = (mla_size_t)key;
+        mla_size_t x = static_cast<mla_size_t>(key);
         x = ((x >> 8) ^ x) * 0x45d9f3b;
         x = ((x >> 8) ^ x) * 0x45d9f3b;
         x = (x >> 8) ^ x;

@@ -89,7 +89,7 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
                     // If cursor was at start of selection, anchor is at end
-                    if (oldCursorPos == (mla_size_t) idx) {
+                    if (oldCursorPos == static_cast<mla_size_t>(idx)) {
                         anchor = idx + selLen;
                     }
 
@@ -122,7 +122,7 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
                 mla_int32_t idx = mla_string_index_of(currentText, activeSel);
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
-                    if (oldCursorPos == (mla_size_t) idx) {
+                    if (oldCursorPos == static_cast<mla_size_t>(idx)) {
                         anchor = idx + selLen;
                     }
                     else if (oldCursorPos == idx + selLen) {

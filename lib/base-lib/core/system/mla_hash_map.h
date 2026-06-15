@@ -112,7 +112,7 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
 
     // Check the load factor
     if (map.bucketCount > 0) {
-        mla_float_t currentLoadFactor = (mla_float_t)map.size / (mla_float_t)map.bucketCount;
+        mla_float_t currentLoadFactor = static_cast<mla_float_t>(map.size) / static_cast<mla_float_t>(map.bucketCount);
         if (currentLoadFactor > map.loadFactor) {
 
             // Rebalanced the hash map

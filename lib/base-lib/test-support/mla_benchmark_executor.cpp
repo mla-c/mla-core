@@ -10,7 +10,7 @@ mla_benchmark_executor_t mla_benchmark_executor() {
     mla_benchmark_executor_t executor;
     executor.capacity = 10;
     executor.count = 0;
-    executor.benchmarks = (mla_benchmark_t*)mla_test_malloc(sizeof(mla_benchmark_t) * executor.capacity);
+    executor.benchmarks = static_cast<mla_benchmark_t *>(mla_test_malloc(sizeof(mla_benchmark_t) * executor.capacity));
     for (mla_test_uint32_t i = 0; i < executor.capacity; ++i) {
         executor.benchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
     }
@@ -137,7 +137,7 @@ void mla_benchmark_executor_register(mla_benchmark_executor_t &executor, mla_ben
             increment = 10;
         }
         mla_test_uint32_t newCapacity = executor.capacity + increment;
-        mla_benchmark_t* newBenchmarks = (mla_benchmark_t*) mla_test_malloc(sizeof(mla_benchmark_t) * newCapacity);
+        mla_benchmark_t* newBenchmarks = static_cast<mla_benchmark_t *>(mla_test_malloc(sizeof(mla_benchmark_t) * newCapacity));
 
         // Copy existing benchmarks
         for (mla_test_uint32_t i = 0; i < executor.count; ++i) {

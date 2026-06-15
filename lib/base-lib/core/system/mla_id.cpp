@@ -10,9 +10,9 @@ void mla_internal_string_from_uint32_hex(mla_char_t *buffer, mla_uint32_t value,
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint32_t nibble = value & 0xF;
         if (nibble < 10) {
-            buffer[i - 1] = (mla_char_t) ('0' + nibble);
+            buffer[i - 1] = static_cast<mla_char_t>('0' + nibble);
         } else {
-            buffer[i - 1] = (mla_char_t) ('a' + (nibble - 10));
+            buffer[i - 1] = static_cast<mla_char_t>('a' + (nibble - 10));
         }
         value >>= 4;
     }
@@ -23,9 +23,9 @@ void mla_internal_string_from_uint16_hex(mla_char_t *buffer, mla_uint16_t value,
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint16_t nibble = value & 0xF;
         if (nibble < 10) {
-            buffer[i - 1] = (mla_char_t) ('0' + nibble);
+            buffer[i - 1] = static_cast<mla_char_t>('0' + nibble);
         } else {
-            buffer[i - 1] = (mla_char_t) ('a' + (nibble - 10));
+            buffer[i - 1] = static_cast<mla_char_t>('a' + (nibble - 10));
         }
         value >>= 4;
     }
@@ -101,13 +101,13 @@ mla_uint32_t mla_random_uint32() {
     if (!initialized) {
         if (sizeof(mla_platform_pointer_t) == 8) {
             // 64-bit pointers: mix high and low bits
-            mla_uint64_t addr1 = (mla_uint64_t) &seed;
-            mla_uint64_t addr2 = (mla_uint64_t) &initialized;
-            seed = (mla_uint32_t) (addr1 ^ (addr1 >> 32) ^ addr2 ^ (addr2 >> 32));
+            mla_uint64_t addr1 = reinterpret_cast<mla_uint64_t>(&seed);
+            mla_uint64_t addr2 = reinterpret_cast<mla_uint64_t>(&initialized);
+            seed = static_cast<mla_uint32_t>(addr1 ^ (addr1 >> 32) ^ addr2 ^ (addr2 >> 32));
         } else if (sizeof(mla_platform_pointer_t) == 4) {
             // 32-bit pointers: direct XOR
-            mla_uint32_t addr1 = (mla_uint32_t)(mla_uint64_t) &seed;
-            mla_uint32_t addr2 = (mla_uint32_t)(mla_uint64_t) &initialized;
+            mla_uint32_t addr1 = static_cast<mla_uint32_t>(reinterpret_cast<mla_uint64_t>(&seed));
+            mla_uint32_t addr2 = static_cast<mla_uint32_t>(reinterpret_cast<mla_uint64_t>(&initialized));
             seed = addr1 ^ addr2;
         } else {
             mla_error(mla_string_const("Unsupported pointer size for random seed initialization."));
