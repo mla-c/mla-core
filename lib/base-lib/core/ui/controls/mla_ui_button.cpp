@@ -8,8 +8,8 @@ static void mla_private_ui_button_calc_text_size(const mla_ui_control_context_t 
         textWidth = size.width;
         textHeight = size.height;
     } else {
-        textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontType.size) * 0.5);
-        textHeight = static_cast<mla_double_t>(fontType.size);
+        textWidth = mla_s_cast<mla_double_t>(mla_string_length(text)) * (mla_s_cast<mla_double_t>(fontType.size) * 0.5);
+        textHeight = mla_s_cast<mla_double_t>(fontType.size);
     }
 }
 
@@ -250,11 +250,11 @@ mla_ui_control_t mla_ui_button() {
 }
 
 mla_ui_button_style_t mla_ui_button_get_style(const mla_ui_control_t &button) {
-    return static_cast<mla_ui_button_style_t>(mla_ui_control_get_value_as_uint8(button, mla_string_const("style"), MLA_UI_BUTTON_STYLE_PRIMARY));
+    return mla_s_cast<mla_ui_button_style_t>(mla_ui_control_get_value_as_uint8(button, mla_string_const("style"), MLA_UI_BUTTON_STYLE_PRIMARY));
 }
 
 mla_bool_t mla_ui_button_set_style(mla_ui_control_t &button, mla_ui_button_style_t style) {
-    return mla_ui_control_set_value_as_uint8(button, mla_string_const("style"), static_cast<mla_uint8_t>(style));
+    return mla_ui_control_set_value_as_uint8(button, mla_string_const("style"), mla_s_cast<mla_uint8_t>(style));
 }
 
 mla_bool_t mla_ui_button_get_disable(const mla_ui_control_t &button) {
@@ -274,9 +274,9 @@ mla_bool_t mla_ui_button_set_text(mla_ui_control_t &button, const mla_string_t& 
 }
 
 mla_ui_button_click_event_t mla_ui_button_get_click_event(const mla_ui_control_t &button) {
-    return reinterpret_cast<mla_ui_button_click_event_t>(mla_ui_control_get_value_as_pointer(button, mla_string_const("click"), nullptr));
+    return mla_r_cast<mla_ui_button_click_event_t>(mla_ui_control_get_value_as_pointer(button, mla_string_const("click"), nullptr));
 }
 
 mla_bool_t mla_ui_button_set_click_event(mla_ui_control_t &button, mla_ui_button_click_event_t processClickEvent) {
-    return mla_ui_control_set_value_as_pointer(button, mla_string_const("click"), reinterpret_cast<mla_platform_pointer_t>(processClickEvent));
+    return mla_ui_control_set_value_as_pointer(button, mla_string_const("click"), mla_r_cast<mla_platform_pointer_t>(processClickEvent));
 }

@@ -1279,10 +1279,10 @@ template <typename UC>
 fastfloat_really_inline constexpr uint8_t ch_to_digit(UC c) {
   // wchar_t and char can be signed, so we need to be careful.
   using UnsignedUC = typename std::make_unsigned<UC>::type;
-  return int_luts<>::chdigit[static_cast<unsigned char>(
-      static_cast<UnsignedUC>(c) &
-      static_cast<UnsignedUC>(
-          -((static_cast<UnsignedUC>(c) & ~0xFFull) == 0)))];
+  return int_luts<>::chdigit[mla_s_cast<unsigned char>(
+      mla_s_cast<UnsignedUC>(c) &
+      mla_s_cast<UnsignedUC>(
+          -((mla_s_cast<UnsignedUC>(c) & ~0xFFull) == 0)))];
 }
 
 fastfloat_really_inline constexpr size_t max_digits_u64(int base) {
@@ -1341,25 +1341,25 @@ static_assert(
 
 constexpr chars_format operator~(chars_format rhs) noexcept {
   using int_type = std::underlying_type<chars_format>::type;
-  return static_cast<chars_format>(~static_cast<int_type>(rhs));
+  return mla_s_cast<chars_format>(~mla_s_cast<int_type>(rhs));
 }
 
 constexpr chars_format operator&(chars_format lhs, chars_format rhs) noexcept {
   using int_type = std::underlying_type<chars_format>::type;
-  return static_cast<chars_format>(static_cast<int_type>(lhs) &
-                                   static_cast<int_type>(rhs));
+  return mla_s_cast<chars_format>(mla_s_cast<int_type>(lhs) &
+                                   mla_s_cast<int_type>(rhs));
 }
 
 constexpr chars_format operator|(chars_format lhs, chars_format rhs) noexcept {
   using int_type = std::underlying_type<chars_format>::type;
-  return static_cast<chars_format>(static_cast<int_type>(lhs) |
-                                   static_cast<int_type>(rhs));
+  return mla_s_cast<chars_format>(mla_s_cast<int_type>(lhs) |
+                                   mla_s_cast<int_type>(rhs));
 }
 
 constexpr chars_format operator^(chars_format lhs, chars_format rhs) noexcept {
   using int_type = std::underlying_type<chars_format>::type;
-  return static_cast<chars_format>(static_cast<int_type>(lhs) ^
-                                   static_cast<int_type>(rhs));
+  return mla_s_cast<chars_format>(mla_s_cast<int_type>(lhs) ^
+                                   mla_s_cast<int_type>(rhs));
 }
 
 fastfloat_really_inline FASTFLOAT_CONSTEXPR14 chars_format &
@@ -1545,7 +1545,7 @@ fastfloat_really_inline uint64_t simd_read8_to_u64(__m128i const data) {
 #else
   uint64_t value;
   // Visual Studio + older versions of GCC don't support _mm_storeu_si64
-  _mm_storel_epi64(reinterpret_cast<__m128i *>(&value), packed);
+  _mm_storel_epi64(mla_r_cast<__m128i *>(&value), packed);
   return value;
 #endif
   FASTFLOAT_SIMD_RESTORE_WARNINGS
@@ -1554,7 +1554,7 @@ fastfloat_really_inline uint64_t simd_read8_to_u64(__m128i const data) {
 fastfloat_really_inline uint64_t simd_read8_to_u64(char16_t const *chars) {
   FASTFLOAT_SIMD_DISABLE_WARNINGS
   return simd_read8_to_u64(
-      _mm_loadu_si128(reinterpret_cast<__m128i const *>(chars)));
+      _mm_loadu_si128(mla_r_cast<__m128i const *>(chars)));
   FASTFLOAT_SIMD_RESTORE_WARNINGS
 }
 
@@ -1570,7 +1570,7 @@ fastfloat_really_inline uint64_t simd_read8_to_u64(uint16x8_t const data) {
 fastfloat_really_inline uint64_t simd_read8_to_u64(char16_t const *chars) {
   FASTFLOAT_SIMD_DISABLE_WARNINGS
   return simd_read8_to_u64(
-      vld1q_u16(reinterpret_cast<uint16_t const *>(chars)));
+      vld1q_u16(mla_r_cast<uint16_t const *>(chars)));
   FASTFLOAT_SIMD_RESTORE_WARNINGS
 }
 
@@ -1630,7 +1630,7 @@ simd_parse_if_eight_digits_unrolled(char16_t const *chars,
 #ifdef FASTFLOAT_SSE2
   FASTFLOAT_SIMD_DISABLE_WARNINGS
   __m128i const data =
-      _mm_loadu_si128(reinterpret_cast<__m128i const *>(chars));
+      _mm_loadu_si128(mla_r_cast<__m128i const *>(chars));
 
   // (x - '0') <= 9
   // http://0x80.pl/articles/simd-parsing-int-sequences.html
@@ -1645,7 +1645,7 @@ simd_parse_if_eight_digits_unrolled(char16_t const *chars,
   FASTFLOAT_SIMD_RESTORE_WARNINGS
 #elif defined(FASTFLOAT_NEON)
   FASTFLOAT_SIMD_DISABLE_WARNINGS
-  uint16x8_t const data = vld1q_u16(reinterpret_cast<uint16_t const *>(chars));
+  uint16x8_t const data = vld1q_u16(mla_r_cast<uint16_t const *>(chars));
 
   // (x - '0') <= 9
   // http://0x80.pl/articles/simd-parsing-int-sequences.html
@@ -2039,7 +2039,7 @@ parse_int_string(UC const *p, UC const *pend, T &value,
     // this weird workaround is required because:
     // - converting unsigned to signed when its value is greater than signed max
     // is UB pre-C++23.
-    // - reinterpret_casting (~i + 1) would work, but it is not constexpr
+    // - mla_r_casting (~i + 1) would work, but it is not constexpr
     // this is always optimized into a neg instruction (note: T is an integer
     // type)
     value = T(-(std::numeric_limits<T>::max)() -
@@ -4429,7 +4429,7 @@ integer_times_pow10(uint64_t mantissa, int decimal_exponent) noexcept {
 FASTFLOAT_CONSTEXPR20 inline double
 integer_times_pow10(int64_t mantissa, int decimal_exponent) noexcept {
   const bool is_negative = mantissa < 0;
-  const uint64_t m = static_cast<uint64_t>(is_negative ? -mantissa : mantissa);
+  const uint64_t m = mla_s_cast<uint64_t>(is_negative ? -mantissa : mantissa);
 
   double value;
   if (clinger_fast_path_impl(m, decimal_exponent, is_negative, value))
@@ -4447,14 +4447,14 @@ template <typename Int>
 FASTFLOAT_CONSTEXPR20 inline typename std::enable_if<
     std::is_integral<Int>::value && !std::is_signed<Int>::value, double>::type
 integer_times_pow10(Int mantissa, int decimal_exponent) noexcept {
-  return integer_times_pow10(static_cast<uint64_t>(mantissa), decimal_exponent);
+  return integer_times_pow10(mla_s_cast<uint64_t>(mantissa), decimal_exponent);
 }
 
 template <typename Int>
 FASTFLOAT_CONSTEXPR20 inline typename std::enable_if<
     std::is_integral<Int>::value && std::is_signed<Int>::value, double>::type
 integer_times_pow10(Int mantissa, int decimal_exponent) noexcept {
-  return integer_times_pow10(static_cast<int64_t>(mantissa), decimal_exponent);
+  return integer_times_pow10(mla_s_cast<int64_t>(mantissa), decimal_exponent);
 }
 
 template <typename T, typename UC>

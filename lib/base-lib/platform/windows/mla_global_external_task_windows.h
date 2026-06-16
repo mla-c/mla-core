@@ -161,7 +161,7 @@ mla_bool_t mla_private_windows_external_task_create_process(mla_pointer_t& p_Out
     mla_size_t suffixLength = mla_strlen(suffix);
     mla_size_t commandLength = prefixLength + cmdlineLength + suffixLength;
 
-    mla_char_t* commandBuffer = static_cast<mla_char_t*>(mla_platform_malloc(commandLength + 1));
+    mla_char_t* commandBuffer = mla_s_cast<mla_char_t*>(mla_platform_malloc(commandLength + 1));
     if (commandBuffer == nullptr) {
         CloseHandle(childStdOutRead);
         CloseHandle(childStdOutWrite);
@@ -288,14 +288,14 @@ mla_size_t mla_private_windows_external_task_read_stdout(const mla_pointer_t& p_
         return 0;
     }
 
-    DWORD toRead = static_cast<DWORD>(bytesAvailable < static_cast<DWORD>(p_Length) ? bytesAvailable : static_cast<DWORD>(p_Length));
+    DWORD toRead = mla_s_cast<DWORD>(bytesAvailable < mla_s_cast<DWORD>(p_Length) ? bytesAvailable : mla_s_cast<DWORD>(p_Length));
 
     DWORD bytesRead = 0;
     if (ReadFile(processData->stdout_read_handle, p_Buffer + p_Offset, toRead, &bytesRead, nullptr) == FALSE) {
         return 0;
     }
 
-    return static_cast<mla_size_t>(bytesRead);
+    return mla_s_cast<mla_size_t>(bytesRead);
 }
 
 mla_size_t mla_private_windows_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
@@ -309,13 +309,13 @@ mla_size_t mla_private_windows_external_task_write_stdin(const mla_pointer_t& p_
     // Non-blocking: the write handle was set to PIPE_NOWAIT so WriteFile returns
     // immediately with ERROR_NO_DATA when the pipe buffer is full instead of blocking.
     DWORD bytesWritten = 0;
-    if (WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset, static_cast<DWORD>(p_Length), &bytesWritten, nullptr) == FALSE) {
+    if (WriteFile(processData->stdin_write_handle, p_Buffer + p_Offset, mla_s_cast<DWORD>(p_Length), &bytesWritten, nullptr) == FALSE) {
         // ERROR_NO_DATA  — pipe buffer full, nothing written yet (non-blocking return)
         // Any other error — connection broken or similar
-        return static_cast<mla_size_t>(bytesWritten);
+        return mla_s_cast<mla_size_t>(bytesWritten);
     }
 
-    return static_cast<mla_size_t>(bytesWritten);
+    return mla_s_cast<mla_size_t>(bytesWritten);
 }
 
 void mla_private_windows_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {

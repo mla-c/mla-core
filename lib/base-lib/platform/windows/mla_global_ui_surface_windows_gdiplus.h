@@ -154,7 +154,7 @@ mla_bool_t __windows_gdiplus_ensure_backbuffer(mla_windows_window_surface_gdiplu
 
 mla_ui_surface_size_t __windows_surface_gdiplus_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
-    mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
+    mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr) {
         return size;
     }
@@ -173,7 +173,7 @@ mla_ui_surface_size_t __windows_surface_gdiplus_get_size(const mla_ui_surface_t 
 }
 
 mla_bool_t __windows_surface_gdiplus_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
-    mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
+    mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
     }
@@ -228,7 +228,7 @@ mla_bool_t __windows_create_windows_gdiplus_surface(mla_windows_window_surface_g
 
 mla_ui_surface_input_states_t __windows_surface_gdiplus_input_states(const mla_ui_surface_t &surface) {
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
-    mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
+    mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
         return inputStates;
     }
@@ -328,7 +328,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                                                                mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                            mla_array_list_t<mla_ui_surface_input_event_t,
                                                                mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame) {
-    mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
+    mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
     }
@@ -547,7 +547,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
 
 mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t &userData) {
     (void)userData;
-    mla_windows_window_surface_gdiplus_t *window_surface = static_cast<mla_windows_window_surface_gdiplus_t *>(data);
+    mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(data);
     if (window_surface != nullptr) {
         if (window_surface->memoryDC != nullptr) {
             if (window_surface->memoryBitmap != nullptr) {
@@ -565,7 +565,7 @@ mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_po
 
 mla_bool_t __windows_create_gdiplus_surface(mla_ui_surface_t &outSurface) {
     mla_windows_window_surface_gdiplus_t *window_surface =
-        static_cast<mla_windows_window_surface_gdiplus_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_gdiplus_t)));
+        mla_s_cast<mla_windows_window_surface_gdiplus_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_gdiplus_t)));
     if (window_surface == nullptr) {
         return false;
     }

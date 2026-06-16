@@ -17,7 +17,7 @@ mla_int32_t mla_log_indexOf_logger(const mla_string_t& loggerName) {
         const mla_logger_t& logger = mla_array_list_get_unsafe(g_logger_manager.loggers, i);
 
         if (mla_string_equals(logger.name, loggerName)) {
-            return static_cast<mla_int32_t>(i);
+            return mla_s_cast<mla_int32_t>(i);
         }
     }
 

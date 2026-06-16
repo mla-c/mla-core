@@ -66,7 +66,7 @@ la_global_ui_surface_windows_direct2d_Cache __mla_global_ui_surface_windows_dire
 void __mla_global_ui_surface_windows_direct2d_font_cache_solidBrush_cleanup(
     const mla_native_resource_t& data) {
 
-    ID2D1SolidColorBrush *solid_brush = static_cast<ID2D1SolidColorBrush *>(data.asPointer);
+    ID2D1SolidColorBrush *solid_brush = mla_s_cast<ID2D1SolidColorBrush *>(data.asPointer);
     if (solid_brush) {
         solid_brush->Release();
     }
@@ -81,7 +81,7 @@ ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_br
     ID2D1SolidColorBrush* solid_brush = nullptr;
 
     if (native_resource_ptr != nullptr) {
-        solid_brush = static_cast<ID2D1SolidColorBrush*>(native_resource_ptr->asPointer);
+        solid_brush = mla_s_cast<ID2D1SolidColorBrush*>(native_resource_ptr->asPointer);
     }
 
 
@@ -115,7 +115,7 @@ ID2D1SolidColorBrush *__mla_global_ui_surface_windows_direct2d_cache_getSolid_br
 void __mla_global_ui_surface_windows_direct2d_font_cache_WriteTextFormat_cleanup(
     const mla_native_resource_t& data) {
 
-    IDWriteTextFormat *textFormat = static_cast<IDWriteTextFormat *>(data.asPointer);
+    IDWriteTextFormat *textFormat = mla_s_cast<IDWriteTextFormat *>(data.asPointer);
     if (textFormat) {
         textFormat->Release();
     }
@@ -141,7 +141,7 @@ IDWriteTextFormat *__mla_global_ui_surface_windows_direct2d_font_cache_getOrCrea
             continue;
 
 
-        return static_cast<IDWriteTextFormat *>(resource->asPointer);
+        return mla_s_cast<IDWriteTextFormat *>(resource->asPointer);
     }
 
     mla_string_utf16_buffer_t fontFamilyWide = mla_string_to_utf16_buffer(fontType.family);
@@ -1229,7 +1229,7 @@ void __windows_d2d_init() {
         DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
             __uuidof(IDWriteFactory),
-            reinterpret_cast<IUnknown **>(&g_pDWriteFactory)
+            mla_r_cast<IUnknown **>(&g_pDWriteFactory)
         );
     }
 }

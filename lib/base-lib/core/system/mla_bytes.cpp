@@ -218,15 +218,15 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
 
         // Fill decode table
         for (mla_size_t i = 0; i < 26; ++i) {
-            decode_table['A' + i] = static_cast<mla_int32_t>(i);
-            decode_table['a' + i] = static_cast<mla_int32_t>(i) + 26;
+            decode_table['A' + i] = mla_s_cast<mla_int32_t>(i);
+            decode_table['a' + i] = mla_s_cast<mla_int32_t>(i) + 26;
         }
         for (mla_size_t i = 0; i < 10; ++i) {
-            decode_table['0' + i] = static_cast<mla_int32_t>(i) + 52;
+            decode_table['0' + i] = mla_s_cast<mla_int32_t>(i) + 52;
         }
-        decode_table[static_cast<mla_uint8_t>('+')] = 62;
-        decode_table[static_cast<mla_uint8_t>('/')] = 63;
-        decode_table[static_cast<mla_uint8_t>('=')] = 0; // Padding
+        decode_table[mla_s_cast<mla_uint8_t>('+')] = 62;
+        decode_table[mla_s_cast<mla_uint8_t>('/')] = 63;
+        decode_table[mla_s_cast<mla_uint8_t>('=')] = 0; // Padding
 
         table_initialized = true;
     }
@@ -266,7 +266,7 @@ mla_bytes_t mla_bytes_from_base64(const mla_string_t& p_Base64String) {
 
         for (mla_size_t j = 0; j < 4 && (i + j) < input_length; ++j) {
             mla_char_t c = base64StringData[i + j];
-            mla_int32_t val = decode_table[static_cast<mla_uint8_t>(c)];
+            mla_int32_t val = decode_table[mla_s_cast<mla_uint8_t>(c)];
 
             if (val >= 0) {
                 quad = (quad << 6) | val;

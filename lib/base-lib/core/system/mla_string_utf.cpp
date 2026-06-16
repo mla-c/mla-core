@@ -23,7 +23,7 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
 
     // Advance to the start byte of the desired UTF-8 character
     while (byteIndex < length && charIndex < p_Index) {
-        mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
+        mla_uint8_t first = mla_s_cast<mla_uint8_t>(data[byteIndex]);
         mla_size_t advance = 1;
 
         if ((first & 0xE0) == 0xC0) {
@@ -45,7 +45,7 @@ mla_multi_byte_char_t mla_string_multi_byte_char_at(const mla_string_t &p_String
     }
 
     // Determine length of current character
-    mla_uint8_t first = static_cast<mla_uint8_t>(data[byteIndex]);
+    mla_uint8_t first = mla_s_cast<mla_uint8_t>(data[byteIndex]);
     mla_size_t byteCount = 1;
 
     if      ((first & 0xE0) == 0xC0) {
@@ -128,7 +128,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
     // Process each UTF-8 character
     while (byteIndex < length) {
         mla_uint32_t codePoint = 0;
-        mla_uint8_t firstByte = static_cast<mla_uint8_t>(data[byteIndex]);
+        mla_uint8_t firstByte = mla_s_cast<mla_uint8_t>(data[byteIndex]);
 
         if ((firstByte & 0x80) == 0) {
             // 1-byte ASCII character
@@ -137,7 +137,7 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
         } else if ((firstByte & 0xE0) == 0xC0) {
             // 2-byte UTF-8 sequence
             if (byteIndex + 1 < length) {
-                codePoint = ((firstByte & 0x1F) << 6) | (static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F);
+                codePoint = ((firstByte & 0x1F) << 6) | (mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F);
                 byteIndex += 2;
             } else {
                 // Incomplete sequence
@@ -148,8 +148,8 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
             // 3-byte UTF-8 sequence
             if (byteIndex + 2 < length) {
                 codePoint = ((firstByte & 0x0F) << 12) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 6) |
-                           (static_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F);
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 6) |
+                           (mla_s_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F);
                 byteIndex += 3;
             } else {
                 // Incomplete sequence
@@ -160,9 +160,9 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
             // 4-byte UTF-8 sequence
             if (byteIndex + 3 < length) {
                 codePoint = ((firstByte & 0x07) << 18) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 12) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F) << 6) |
-                           (static_cast<mla_uint8_t>(data[byteIndex + 3]) & 0x3F);
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 12) |
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F) << 6) |
+                           (mla_s_cast<mla_uint8_t>(data[byteIndex + 3]) & 0x3F);
                 byteIndex += 4;
             } else {
                 // Incomplete sequence
@@ -178,12 +178,12 @@ mla_string_utf16_buffer_t mla_string_to_utf16_buffer(const mla_string_t &p_Strin
         // Convert codePoint to UTF-16
         if (codePoint <= 0xFFFF) {
             // BMP character - single UTF-16 code unit
-            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(codePoint);
+            utf16_data[utf16Index++] = mla_s_cast<mla_utf_16_char_t>(codePoint);
         } else {
             // Supplementary plane - surrogate pair
             codePoint -= 0x10000;
-            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(0xD800 + (codePoint >> 10));
-            utf16_data[utf16Index++] = static_cast<mla_utf_16_char_t>(0xDC00 + (codePoint & 0x3FF));
+            utf16_data[utf16Index++] = mla_s_cast<mla_utf_16_char_t>(0xD800 + (codePoint >> 10));
+            utf16_data[utf16Index++] = mla_s_cast<mla_utf_16_char_t>(0xDC00 + (codePoint & 0x3FF));
         }
     }
 
@@ -239,23 +239,23 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
 
             // Encode to UTF-8
             if (codePoint < 0x80) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(codePoint);
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(codePoint);
             } else if (codePoint < 0x800) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             } else if (codePoint < 0x10000) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             } else {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             }
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(utf8Index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(utf8Index);
         return result;
     }
 
@@ -290,19 +290,19 @@ mla_string_t mla_string_from_utf16_buffer(const mla_string_utf16_buffer_t &p_Utf
         }
 
         if (codePoint < 0x80) {
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(codePoint);
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(codePoint);
         } else if (codePoint < 0x800) {
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else if (codePoint < 0x10000) {
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else {
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            utf8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            utf8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         }
     }
 
@@ -337,7 +337,7 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
     // Process each UTF-8 character
     while (byteIndex < length) {
         mla_uint32_t codePoint = 0;
-        mla_uint8_t firstByte = static_cast<mla_uint8_t>(data[byteIndex]);
+        mla_uint8_t firstByte = mla_s_cast<mla_uint8_t>(data[byteIndex]);
 
         if ((firstByte & 0x80) == 0) {
             // 1-byte ASCII character
@@ -346,7 +346,7 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
         } else if ((firstByte & 0xE0) == 0xC0) {
             // 2-byte UTF-8 sequence
             if (byteIndex + 1 < length) {
-                codePoint = ((firstByte & 0x1F) << 6) | (static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F);
+                codePoint = ((firstByte & 0x1F) << 6) | (mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F);
                 byteIndex += 2;
             } else {
                 // Incomplete sequence
@@ -357,8 +357,8 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
             // 3-byte UTF-8 sequence
             if (byteIndex + 2 < length) {
                 codePoint = ((firstByte & 0x0F) << 12) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 6) |
-                           (static_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F);
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 6) |
+                           (mla_s_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F);
                 byteIndex += 3;
             } else {
                 // Incomplete sequence
@@ -369,9 +369,9 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
             // 4-byte UTF-8 sequence
             if (byteIndex + 3 < length) {
                 codePoint = ((firstByte & 0x07) << 18) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 12) |
-                           ((static_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F) << 6) |
-                           (static_cast<mla_uint8_t>(data[byteIndex + 3]) & 0x3F);
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 1]) & 0x3F) << 12) |
+                           ((mla_s_cast<mla_uint8_t>(data[byteIndex + 2]) & 0x3F) << 6) |
+                           (mla_s_cast<mla_uint8_t>(data[byteIndex + 3]) & 0x3F);
                 byteIndex += 4;
             } else {
                 // Incomplete sequence
@@ -385,7 +385,7 @@ mla_string_utf32_buffer_t mla_string_to_utf32_buffer(const mla_string_t &p_Strin
         }
 
         // For UTF-32, we just store the code point directly
-        utf32_data[utf32Index++] = static_cast<mla_utf_32_char_t>(codePoint);
+        utf32_data[utf32Index++] = mla_s_cast<mla_utf_32_char_t>(codePoint);
     }
 
     // Add null terminator
@@ -430,23 +430,23 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
 
             // Encode to UTF-8
             if (codePoint < 0x80) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(codePoint);
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(codePoint);
             } else if (codePoint < 0x800) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             } else if (codePoint < 0x10000) {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             } else {
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-                result.embedded.data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+                result.embedded.data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
             }
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(utf8Index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(utf8Index);
         return result;
     }
 
@@ -469,19 +469,19 @@ mla_string_t mla_string_from_utf32_buffer(const mla_string_utf32_buffer_t &p_Utf
         }
 
         if (codePoint < 0x80) {
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(codePoint);
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(codePoint);
         } else if (codePoint < 0x800) {
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xC0 | (codePoint >> 6));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xC0 | (codePoint >> 6));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else if (codePoint < 0x10000) {
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xE0 | (codePoint >> 12));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xE0 | (codePoint >> 12));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         } else {
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0xF0 | (codePoint >> 18));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
-            uft8_data[utf8Index++] = static_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0xF0 | (codePoint >> 18));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 12) & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | ((codePoint >> 6) & 0x3F));
+            uft8_data[utf8Index++] = mla_s_cast<mla_char_t>(0x80 | (codePoint & 0x3F));
         }
     }
 

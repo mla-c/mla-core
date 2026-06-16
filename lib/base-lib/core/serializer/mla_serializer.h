@@ -461,7 +461,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     {\
     mla_uint8_t value = 0;\
     if (mla_deserializer_convert_to_uint8((instance).current_token, &value)) {\
-        (setter) = static_cast<enum_type>(value);\
+        (setter) = mla_s_cast<enum_type>(value);\
         return MLA_DESERIALIZER_READ_HANDLED;\
     } else {\
         return MLA_DESERIALIZER_READ_ERROR;\
@@ -627,7 +627,7 @@ mla_bool_t mla_deserializer_convert_to_bytes(const mla_deserializer_token_t& tok
     if (!(instance).write_property_name(instance, name)) {\
         return false;\
     }\
-    if (!(instance).write_uint8(instance, static_cast<mla_uint8_t>(value))) {\
+    if (!(instance).write_uint8(instance, mla_s_cast<mla_uint8_t>(value))) {\
         return false;\
     }
 

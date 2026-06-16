@@ -57,7 +57,7 @@ inline void SimpleNavigationTest() {
     }
 
     mla_string_t buffer = mla_string("SubModule1\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     mla_cli_app_update_and_process_input(app, input, output);
 
     if (mla_array_list_size(app.activeModules) == 2) {
@@ -68,7 +68,7 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("SubSubModule1\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     mla_cli_app_update_and_process_input(app, input, output);
 
     if (mla_array_list_size(app.activeModules) == 3) {
@@ -79,7 +79,7 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     mla_stream_output_t noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -91,7 +91,7 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -103,7 +103,7 @@ inline void SimpleNavigationTest() {
     }
 
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -126,7 +126,7 @@ inline void InvalidNavigationTest() {
 
     // Test invalid module navigation
     mla_string_t buffer = mla_string("InvalidModule\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on invalid navigation");
@@ -140,14 +140,14 @@ inline void InvalidNavigationTest() {
 
     // Test empty input
     buffer = mla_string("\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on empty input");
 
     // Test whitespace only input
     buffer = mla_string("   \n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should remain in root module on whitespace input");
@@ -172,7 +172,7 @@ inline void CommandExecutionTest() {
 
     // Test command execution
     mla_string_t buffer = mla_string("testcmd --param1 value1\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -195,7 +195,7 @@ inline void MultipleModuleNavigationTest() {
 
     // Navigate to Module2
     mla_string_t buffer = mla_string("Module2\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -210,12 +210,12 @@ inline void MultipleModuleNavigationTest() {
 
     // Navigate back to root and then to Module1
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Module1\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -245,22 +245,22 @@ inline void DeepNavigationTest() {
 
     // Navigate deep into the hierarchy
     mla_string_t buffer = mla_string("Level1\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level2\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level3\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
     buffer = mla_string("Level4\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -278,11 +278,11 @@ inline void DeepNavigationTest() {
 
     // Navigate back up multiple levels
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     buffer = mla_string("exit\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -309,7 +309,7 @@ inline void EmptyModuleTest() {
 
     // Navigate to empty module
     mla_string_t buffer = mla_string("EmptyModule\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -322,7 +322,7 @@ inline void EmptyModuleTest() {
 
     // Try to navigate to non-existent submodule
     buffer = mla_string("NonExistent\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -346,7 +346,7 @@ inline void CaseSensitivityTest() {
 
     // Test case sensitivity - should not navigate with wrong case
     mla_string_t buffer = mla_string("testmodule\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -359,7 +359,7 @@ inline void CaseSensitivityTest() {
 
     // Test correct case - should navigate
     buffer = mla_string("TestModule\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
 
@@ -383,21 +383,21 @@ inline void SpecialCharacterInputTest() {
 
     // Test special characters and symbols
     mla_string_t buffer = mla_string("@#$%^&*()\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore special character input");
 
     // Test numbers
     buffer = mla_string("12345\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore numeric input");
 
     // Test mixed alphanumeric with special chars
     buffer = mla_string("Module-123!\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(mla_array_list_size(app.activeModules), (mla_size_t)1, "App should ignore mixed special character input");
@@ -427,21 +427,21 @@ inline void MultipleCommandsTest() {
 
     // Execute different commands
     mla_string_t buffer = mla_string("command1\n");
-    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, true, "First command should execute");
 
     test_command_executed = false;
     buffer = mla_string("help\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, true, "Help command should execute");
 
     test_command_executed = false;
     buffer = mla_string("nonexistent\n");
-    input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
     noopOutput = mla_stream_noop_output();
     mla_cli_app_update_and_process_input(app, input, noopOutput);
     assert_equal(test_command_executed, false, "Non-existent command should not execute");

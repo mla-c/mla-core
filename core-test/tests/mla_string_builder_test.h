@@ -103,10 +103,10 @@ void StringBuilderAppendAllBasicTypesTest() {
     part = mla_string_from_uint64(64);
     StringBuilder_AppendExpected(expected, part);
 
-    part = mla_string_from_float(static_cast<mla_float_t>(1.5F), 1);
+    part = mla_string_from_float(mla_s_cast<mla_float_t>(1.5F), 1);
     StringBuilder_AppendExpected(expected, part);
 
-    part = mla_string_from_double(static_cast<mla_double_t>(2.25), 2);
+    part = mla_string_from_double(mla_s_cast<mla_double_t>(2.25), 2);
     StringBuilder_AppendExpected(expected, part);
 
     part = mla_string_const("Z");

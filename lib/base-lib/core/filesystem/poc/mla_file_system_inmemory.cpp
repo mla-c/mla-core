@@ -65,7 +65,7 @@ mla_bool_t __mla_file_system_inmemory_find_next_buffer_of_type(mla_file_system_i
 
     while (__mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
 
-        mla_file_system_inmemory_buffer_item_header_t *header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
+        mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
 
         if (header->type == type) {
             out_offset = currentOffset;
@@ -84,7 +84,7 @@ mla_bool_t __mla_file_system_inmemory_find_next_free_header(mla_file_system_inme
 
     while (__mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
 
-        mla_file_system_inmemory_buffer_item_header_t *currentHeader = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
+        mla_file_system_inmemory_buffer_item_header_t *currentHeader = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
 
         if (currentHeader->type == MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_FREE) {
             header = currentHeader;
@@ -115,7 +115,7 @@ mla_string_t __mla_file_system_inmemory_read_string_data(mla_file_system_inmemor
             dataSize = mla_file_system_inmemory_buffer_item_size;
         }
 
-        mla_char_t * dataPosition = reinterpret_cast<mla_char_t *>(header) + sizeof(mla_file_system_inmemory_buffer_item_header_t);
+        mla_char_t * dataPosition = mla_r_cast<mla_char_t *>(header) + sizeof(mla_file_system_inmemory_buffer_item_header_t);
 
         if (first) {
             first = false;
@@ -130,7 +130,7 @@ mla_string_t __mla_file_system_inmemory_read_string_data(mla_file_system_inmemor
             break; // No more data
         }
 
-        header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(header->next));
+        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(header->next));
     }
 
     return result;
@@ -147,7 +147,7 @@ mla_bool_t __mla_file_system_inmemory_find_file_header(mla_file_system_inmemory_
         mla_byte_t* position = fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset);
 
         // Read the file header
-        mla_file_system_inmemory_buffer_item_header_t *header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
+        mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
 
         // Read the file name
         mla_string_t fileName = __mla_file_system_inmemory_read_string_data(fs, header);
@@ -165,7 +165,7 @@ mla_bool_t __mla_file_system_inmemory_find_file_header(mla_file_system_inmemory_
 
 mla_bool_t __mla_file_system_inmemory_file_exists(mla_file_system_t &file_system, const mla_string_t &path) {
 
-    mla_file_system_inmemory_t fs = *reinterpret_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
+    mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* ignored = nullptr;
     return __mla_file_system_inmemory_find_file_header(fs, path, ignored);
 
@@ -187,8 +187,8 @@ mla_bool_t __mla_file_system_inmemory_find_file_header_read_meta_data(mla_file_s
         return false; // Invalid size
     }
 
-    mla_byte_t* position = reinterpret_cast<mla_byte_t *>(header) + sizeof(mla_file_system_inmemory_buffer_item_header_t);
-    mla_file_system_inmemory_buffer_file_meta_data_t* metaData = reinterpret_cast<mla_file_system_inmemory_buffer_file_meta_data_t *>(position);
+    mla_byte_t* position = mla_r_cast<mla_byte_t *>(header) + sizeof(mla_file_system_inmemory_buffer_item_header_t);
+    mla_file_system_inmemory_buffer_file_meta_data_t* metaData = mla_r_cast<mla_file_system_inmemory_buffer_file_meta_data_t *>(position);
 
     out_meta_data.size = metaData->size;
     out_meta_data.firstDataOffset = metaData->firstDataOffset;
@@ -211,7 +211,7 @@ void __mla_file_system_inmemory_free_item_chain(mla_file_system_inmemory_t &fs, 
             break; // No more items
         }
 
-        header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(nextOffset));
+        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(nextOffset));
     }
 
 
@@ -219,7 +219,7 @@ void __mla_file_system_inmemory_free_item_chain(mla_file_system_inmemory_t &fs, 
 
 mla_bool_t __mla_file_system_inmemory_delete_file(mla_file_system_t &file_system, const mla_string_t &path) {
 
-    mla_file_system_inmemory_t fs = *reinterpret_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
+    mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* header = nullptr;
 
     if (!__mla_file_system_inmemory_find_file_header(fs, path, header)) {
@@ -232,7 +232,7 @@ mla_bool_t __mla_file_system_inmemory_delete_file(mla_file_system_t &file_system
 
         if (meta_data.firstDataOffset != mla_size_max) {
 
-            mla_file_system_inmemory_buffer_item_header_t* data_header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(
+            mla_file_system_inmemory_buffer_item_header_t* data_header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(
                 fs.buffer + __mla_file_system_inmemory_get_buffer_position(meta_data.firstDataOffset));
 
             __mla_file_system_inmemory_free_item_chain(fs, data_header);
@@ -260,7 +260,7 @@ mla_bool_t __mla_file_system_inmemory_find_directory_header(mla_file_system_inme
         mla_byte_t* position = fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset);
 
         // Read the directory header
-        mla_file_system_inmemory_buffer_item_header_t *header = reinterpret_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
+        mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
 
         // Read the directory name
         mla_string_t dirName = __mla_file_system_inmemory_read_string_data(fs, header);
@@ -286,7 +286,7 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
         return true; // Root directory always exists
     }
 
-    mla_file_system_inmemory_t fs = *reinterpret_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
+    mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
 
     mla_string_t parent_path = mla_fs_get_parent_directory(path);
 
@@ -318,14 +318,14 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
 
 mla_bool_t __mla_file_system_inmemory_directory_exists(mla_file_system_t &file_system, const mla_string_t &path) {
 
-    mla_file_system_inmemory_t fs = *reinterpret_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
+    mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* ignored = nullptr;
     return __mla_file_system_inmemory_find_directory_header(fs, path, ignored);
 }
 
 mla_bool_t __mla_file_system_inmemory_delete_directory(mla_file_system_t &file_system, const mla_string_t &path) {
 
-    mla_file_system_inmemory_t fs = *reinterpret_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
+    mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* header = nullptr;
 
     if (!__mla_file_system_inmemory_find_directory_header(fs, path, header)) {
@@ -351,7 +351,7 @@ mla_bool_t __mla_file_system_inmemory_list_directories(mla_file_system_t &file_s
 
 mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
-    mla_file_system_inmemory_t *fs = static_cast<mla_file_system_inmemory_t *>(data);
+    mla_file_system_inmemory_t *fs = mla_s_cast<mla_file_system_inmemory_t *>(data);
 
     if (fs == nullptr) {
         return CLEAN_UP_SKIP;
@@ -366,7 +366,7 @@ mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_platform_pointer_
 
 mla_file_system_t mla_file_system_inmemory_create_from_buffer(mla_byte_t *buffer, mla_size_t capacity) {
 
-    mla_file_system_inmemory_t *fs = static_cast<mla_file_system_inmemory_t *>(mla_platform_malloc(
+    mla_file_system_inmemory_t *fs = mla_s_cast<mla_file_system_inmemory_t *>(mla_platform_malloc(
         sizeof(mla_file_system_inmemory_t)));
 
     if (fs == nullptr)
@@ -395,7 +395,7 @@ mla_file_system_t mla_file_system_inmemory_create_from_buffer(mla_byte_t *buffer
 
 mla_file_system_t mla_file_system_inmemory_create(mla_size_t capacity) {
 
-    mla_byte_t *buffer = static_cast<mla_byte_t *>(mla_platform_malloc(capacity * sizeof(mla_byte_t)));
+    mla_byte_t *buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(capacity * sizeof(mla_byte_t)));
 
     if (buffer == nullptr) {
         return mla_file_system_empty();

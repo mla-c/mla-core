@@ -42,7 +42,7 @@ struct my_array_list_with_const_test_struct {
     my_array_list_with_const_test_struct &operator=(const my_array_list_with_const_test_struct &other) {
         if (this != &other) {
             // Very hack trick to assign a const member variable
-            mla_int32_t *nonConstTest1 = const_cast<mla_int32_t *>(&test1);
+            mla_int32_t *nonConstTest1 = mla_c_cast<mla_int32_t *>(&test1);
             *nonConstTest1 = other.test1; // test1 is const, so we cannot assign it
             this->test2 = other.test2; // test1 is const, so we cannot assign it
         }
@@ -77,13 +77,13 @@ void ArrayListContainsMlaStringTest() {
 
 void ArrayListContainsTest() {
     mla_array_list_t<mla_test_int16_t> mla_arr = mla_array_list<mla_test_int16_t>();
-    mla_array_list_add(mla_arr, static_cast<mla_test_int16_t>(1));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int16_t>(2));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int16_t>(3));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int16_t>(1));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int16_t>(2));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int16_t>(3));
 
-    mla_bool_t found = mla_array_list_contains(mla_arr, static_cast<mla_test_int16_t>(2));
+    mla_bool_t found = mla_array_list_contains(mla_arr, mla_s_cast<mla_test_int16_t>(2));
     assert_true(found, "List should contain '2'");
-    found = mla_array_list_contains(mla_arr, static_cast<mla_test_int16_t>(4));
+    found = mla_array_list_contains(mla_arr, mla_s_cast<mla_test_int16_t>(4));
     assert_false(found, "List should not contain '4'");
 
     mla_test_int16_t value;
@@ -516,12 +516,12 @@ void ArrayListSortTest() {
     mla_array_list_t<mla_test_int32_t> mla_arr = mla_array_list<mla_test_int32_t>();
 
     // Add unsorted items
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(5));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(2));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(8));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(1));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(9));
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(3));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(5));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(2));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(8));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(1));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(9));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(3));
 
     // Sort ascending
     mla_array_list_sort(mla_arr, compare_int);
@@ -565,7 +565,7 @@ void ArrayListSortEmptyTest() {
 
 void ArrayListSortSingleElementTest() {
     mla_array_list_t<mla_test_int32_t> mla_arr = mla_array_list<mla_test_int32_t>();
-    mla_array_list_add(mla_arr, static_cast<mla_test_int32_t>(42));
+    mla_array_list_add(mla_arr, mla_s_cast<mla_test_int32_t>(42));
 
     // Sort single element list
     mla_array_list_sort(mla_arr, compare_int);

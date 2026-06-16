@@ -13,8 +13,8 @@ void mla_private_ui_label_calc_text_size(const mla_ui_control_context_t &context
         textHeight = size.height;
     } else {
         // Approximate text width calculation based on font size and character count (fallback)
-        textWidth = static_cast<mla_double_t>(mla_string_length(text)) * (static_cast<mla_double_t>(fontType.size) * 0.5);
-        textHeight = static_cast<mla_double_t>(fontType.size);
+        textWidth = mla_s_cast<mla_double_t>(mla_string_length(text)) * (mla_s_cast<mla_double_t>(fontType.size) * 0.5);
+        textHeight = mla_s_cast<mla_double_t>(fontType.size);
     }
 
 }
@@ -88,7 +88,7 @@ mla_bool_t mla_private_ui_label_render_to_drawCommands(const mla_ui_control_cont
 
     mla_ui_surface_font_type_t fontType = mla_ui_surface_font_type_empty();
     fontType.family = mla_string_const(MLA_UI_FONT_FAMILY_DEFAULT);
-    fontType.size = static_cast<mla_double_t>(fontSize);
+    fontType.size = mla_s_cast<mla_double_t>(fontSize);
 
     if (kind == MLA_UI_TEXT_KIND_LINK || kind == MLA_UI_TEXT_KIND_LINK_DISABLED) {
         mla_private_ui_label_calc_text_size(context, fontType, text, textWidth, textHeight);
@@ -155,7 +155,7 @@ mla_bool_t mla_ui_label_set_text(mla_ui_control_t &label, const mla_string_t& te
 }
 
 mla_uint16_t mla_ui_label_get_font_size(const mla_ui_control_t &label) {
-    return static_cast<mla_uint16_t>(mla_ui_control_get_value_as_uint16(label, mla_string_const("font_size"), MLA_UI_FONT_SIZE_DEFAULT));
+    return mla_s_cast<mla_uint16_t>(mla_ui_control_get_value_as_uint16(label, mla_string_const("font_size"), MLA_UI_FONT_SIZE_DEFAULT));
 }
 
 mla_bool_t mla_ui_label_set_font_size(mla_ui_control_t &label, mla_uint16_t fontSize) {
@@ -163,11 +163,11 @@ mla_bool_t mla_ui_label_set_font_size(mla_ui_control_t &label, mla_uint16_t font
 }
 
 mla_ui_text_kind_t mla_ui_label_get_text_kind(const mla_ui_control_t &label) {
-    return static_cast<mla_ui_text_kind_t>(mla_ui_control_get_value_as_uint8(label, mla_string_const("text_kind"), MLA_UI_TEXT_KIND_PRIMARY));
+    return mla_s_cast<mla_ui_text_kind_t>(mla_ui_control_get_value_as_uint8(label, mla_string_const("text_kind"), MLA_UI_TEXT_KIND_PRIMARY));
 }
 
 mla_bool_t mla_ui_label_set_text_kind(mla_ui_control_t &label, mla_ui_text_kind_t kind) {
-    return mla_ui_control_set_value_as_uint8(label, mla_string_const("text_kind"), static_cast<mla_uint8_t>(kind));
+    return mla_ui_control_set_value_as_uint8(label, mla_string_const("text_kind"), mla_s_cast<mla_uint8_t>(kind));
 }
 
 mla_string_t mla_ui_label_get_custom_color(const mla_ui_control_t &label) {

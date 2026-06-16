@@ -5,7 +5,7 @@
 #include "mla_string_builder.h"
 
 static mla_size_t mla_private_string_builder_normalize_capacity(mla_size_t p_Capacity) {
-    return p_Capacity == 0 ? static_cast<mla_size_t>(1) : p_Capacity;
+    return p_Capacity == 0 ? mla_s_cast<mla_size_t>(1) : p_Capacity;
 }
 
 static mla_bool_t mla_private_string_builder_ensure_capacity(mla_string_builder_t& p_Builder, mla_size_t p_RequiredLength) {
@@ -83,7 +83,7 @@ mla_string_builder_t mla_string_builder_empty() {
 }
 
 mla_string_builder_t mla_string_builder_create() {
-    return mla_string_builder_create(static_cast<mla_size_t>(mla_global_config_string_builder_default_buffer_size));
+    return mla_string_builder_create(mla_s_cast<mla_size_t>(mla_global_config_string_builder_default_buffer_size));
 }
 
 mla_string_builder_t mla_string_builder_create(mla_size_t p_InitialBufferSize) {
@@ -219,7 +219,7 @@ mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_char_t
 }
 
 mla_bool_t mla_string_builder_append(mla_string_builder_t& p_Builder, mla_platform_pointer_t p_Value) {
-    mla_uint64_t value = reinterpret_cast<mla_uint64_t>(p_Value);
+    mla_uint64_t value = mla_r_cast<mla_uint64_t>(p_Value);
     mla_string_t converted = mla_string_from_uint64_hex(value);
     mla_bool_t result = mla_string_builder_append(p_Builder, converted);
     return result;

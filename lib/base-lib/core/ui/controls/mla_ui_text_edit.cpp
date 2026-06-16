@@ -89,7 +89,7 @@ mla_bool_t mla_private_ui_text_edit_process_char_input_event(mla_ui_control_t &c
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
                     // If cursor was at start of selection, anchor is at end
-                    if (oldCursorPos == static_cast<mla_size_t>(idx)) {
+                    if (oldCursorPos == mla_s_cast<mla_size_t>(idx)) {
                         anchor = idx + selLen;
                     }
 
@@ -122,7 +122,7 @@ mla_bool_t mla_private_ui_text_edit_process_char_input_event(mla_ui_control_t &c
                 mla_int32_t idx = mla_string_index_of(currentText, activeSel);
                 if (idx > -1) {
                     mla_size_t selLen = mla_string_length(activeSel);
-                    if (oldCursorPos == static_cast<mla_size_t>(idx)) {
+                    if (oldCursorPos == mla_s_cast<mla_size_t>(idx)) {
                         anchor = idx + selLen;
                     }
                     else if (oldCursorPos == idx + selLen) {
@@ -423,12 +423,12 @@ mla_ui_control_t mla_ui_text_edit() {
 }
 
 mla_ui_text_edit_style_t mla_ui_text_edit_get_style(const mla_ui_control_t &textEdit) {
-    return static_cast<mla_ui_text_edit_style_t>(mla_ui_control_get_value_as_uint8(
+    return mla_s_cast<mla_ui_text_edit_style_t>(mla_ui_control_get_value_as_uint8(
         textEdit, mla_string_const("style"), MLA_UI_TEXT_EDIT_STYLE_STANDARD));
 }
 
 mla_bool_t mla_ui_text_edit_set_style(mla_ui_control_t &textEdit, mla_ui_text_edit_style_t style) {
-    return mla_ui_control_set_value_as_uint8(textEdit, mla_string_const("style"), static_cast<mla_uint8_t>(style));
+    return mla_ui_control_set_value_as_uint8(textEdit, mla_string_const("style"), mla_s_cast<mla_uint8_t>(style));
 }
 
 mla_string_t mla_ui_text_edit_get_text(const mla_ui_control_t &textEdit) {
@@ -472,12 +472,12 @@ mla_bool_t mla_ui_text_edit_set_selected_text(mla_ui_control_t &textEdit, const 
 }
 
 mla_ui_text_edit_text_changed_t mla_ui_text_edit_get_text_changed_event(const mla_ui_control_t &textEdit) {
-    return reinterpret_cast<mla_ui_text_edit_text_changed_t>(mla_ui_control_get_value_as_pointer(
+    return mla_r_cast<mla_ui_text_edit_text_changed_t>(mla_ui_control_get_value_as_pointer(
         textEdit, mla_string_const("text_changed_event"), nullptr));
 }
 
 mla_bool_t mla_ui_text_edit_set_text_changed_event(mla_ui_control_t &textEdit,
                                                    mla_ui_text_edit_text_changed_t textChangedEvent) {
     return mla_ui_control_set_value_as_pointer(textEdit, mla_string_const("text_changed_event"),
-                                               reinterpret_cast<void *>(textChangedEvent));
+                                               mla_r_cast<void *>(textChangedEvent));
 }

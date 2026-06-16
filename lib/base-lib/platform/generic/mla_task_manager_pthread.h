@@ -60,7 +60,7 @@ struct mla_task_manager_pthread_data_t {
 
 mla_platform_pointer_t __mla_task_manager_pthread_worker(mla_platform_pointer_t payload) {
 
-    mla_task_manager_pthread_data_t* thread_data = static_cast<mla_task_manager_pthread_data_t*>(payload);
+    mla_task_manager_pthread_data_t* thread_data = mla_s_cast<mla_task_manager_pthread_data_t*>(payload);
 
     if (thread_data) {
 

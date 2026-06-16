@@ -1237,10 +1237,10 @@ struct mla_ui_surface_input_event_char_input_t {
         }
 
         mla_serializer_write_enum  (serializer, mla_string_const("kind"),               self->kind);
-        mla_serializer_write_uint8 (serializer, mla_string_const("character0"),         static_cast<mla_uint8_t>(self->character[0]));
-        mla_serializer_write_uint8 (serializer, mla_string_const("character1"),         static_cast<mla_uint8_t>(self->character[1]));
-        mla_serializer_write_uint8 (serializer, mla_string_const("character2"),         static_cast<mla_uint8_t>(self->character[2]));
-        mla_serializer_write_uint8 (serializer, mla_string_const("character3"),         static_cast<mla_uint8_t>(self->character[3]));
+        mla_serializer_write_uint8 (serializer, mla_string_const("character0"),         mla_s_cast<mla_uint8_t>(self->character[0]));
+        mla_serializer_write_uint8 (serializer, mla_string_const("character1"),         mla_s_cast<mla_uint8_t>(self->character[1]));
+        mla_serializer_write_uint8 (serializer, mla_string_const("character2"),         mla_s_cast<mla_uint8_t>(self->character[2]));
+        mla_serializer_write_uint8 (serializer, mla_string_const("character3"),         mla_s_cast<mla_uint8_t>(self->character[3]));
         mla_serializer_write_enum  (serializer, mla_string_const("pressedControlKeys"), self->pressedControlKeys);
         return true;
     }

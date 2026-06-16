@@ -15,7 +15,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         mla_memcpy(result.embedded.data, data1, length1);
@@ -53,7 +53,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         const mla_char_t* data2 = mla_string_data(p_String2);
@@ -95,7 +95,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         mla_memcpy(result.embedded.data, p_String1, size1);
         const mla_char_t* data2 = mla_string_data(p_String2);
@@ -133,7 +133,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_char_t* p_
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         mla_memcpy(result.embedded.data, p_String1, size1);
         mla_memcpy(result.embedded.data + size1, p_String2, size2);
@@ -170,7 +170,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         const mla_char_t* data2 = mla_string_data(p_String2);
@@ -217,7 +217,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         mla_memcpy(result.embedded.data, p_String1, size1);
         const mla_char_t* data2 = mla_string_data(p_String2);
@@ -258,7 +258,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data3 = mla_string_data(p_String3);
@@ -304,7 +304,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_char_t* 
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         const mla_char_t* data3 = mla_string_data(p_String3);
@@ -350,7 +350,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_char_t* p_
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data4 = mla_string_data(p_String4);
 
@@ -396,7 +396,7 @@ mla_string_t mla_string_concat(const mla_string_t &p_String1, const mla_string_t
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         const mla_char_t* data2 = mla_string_data(p_String2);
@@ -448,7 +448,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
 
@@ -494,7 +494,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);
@@ -543,7 +543,7 @@ mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* 
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data1 = mla_string_data(p_String1);
         const mla_char_t* data3 = mla_string_data(p_String3);
@@ -593,7 +593,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);
@@ -645,7 +645,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data6 = mla_string_data(p_String6);
@@ -700,7 +700,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);
@@ -757,7 +757,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);
@@ -817,7 +817,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);
@@ -881,7 +881,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
 
@@ -941,7 +941,7 @@ mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t& 
     // Use small string optimization if the result fits
     if (newLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(newLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
 
         const mla_char_t* data2 = mla_string_data(p_String2);
         const mla_char_t* data4 = mla_string_data(p_String4);

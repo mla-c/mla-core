@@ -10,7 +10,7 @@
 struct mla_int32_hash_t {
 
     static mla_size_t hash(const mla_int32_t& key) {
-        mla_size_t x = static_cast<mla_size_t>(key);
+        mla_size_t x = mla_s_cast<mla_size_t>(key);
         x = ((x >> 16) ^ x) * 0x45d9f3b;
         x = ((x >> 16) ^ x) * 0x45d9f3b;
         x = (x >> 16) ^ x;
@@ -23,7 +23,7 @@ struct mla_int16_hash_t {
 
     static mla_size_t hash(const mla_int16_t& key) {
 
-        mla_size_t x = static_cast<mla_size_t>(key);
+        mla_size_t x = mla_s_cast<mla_size_t>(key);
         x = ((x >> 8) ^ x) * 0x45d9f3b;
         x = ((x >> 8) ^ x) * 0x45d9f3b;
         x = (x >> 8) ^ x;
@@ -54,7 +54,7 @@ inline mla_size_t mla_string_hash(const char* data, mla_size_t length) {
     }
     
     // Process string byte by byte - compiler will often vectorize this
-    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(data);
+    const unsigned char* bytes = mla_r_cast<const unsigned char*>(data);
     for (mla_size_t i = 0; i < length; ++i) {
         hash ^= bytes[i];
         hash *= prime;

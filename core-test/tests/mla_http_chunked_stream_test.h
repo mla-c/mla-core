@@ -14,7 +14,7 @@ static void HttpChunkedStreamOutputTest() {
     mla_http_chunked_stream_output_t chunked = mla_http_chunked_stream_output(wire.output);
 
     const char* txt = "Hello";
-    chunked.output.write(chunked.output, 0, 5, reinterpret_cast<const mla_byte_t*>(txt));
+    chunked.output.write(chunked.output, 0, 5, mla_r_cast<const mla_byte_t*>(txt));
     mla_http_chunked_stream_output_finished(chunked);
 
     mla_byte_t buffer[1024];
@@ -39,9 +39,9 @@ static void HttpChunkedStreamInputTest() {
     const char* chunk2 = "5\r\nWorld\r\n";
     const char* end = "0\r\n\r\n";
 
-    wire.output.write(wire.output, 0, 10, reinterpret_cast<const mla_byte_t*>(chunk1));
-    wire.output.write(wire.output, 0, 10, reinterpret_cast<const mla_byte_t*>(chunk2));
-    wire.output.write(wire.output, 0, 5, reinterpret_cast<const mla_byte_t*>(end));
+    wire.output.write(wire.output, 0, 10, mla_r_cast<const mla_byte_t*>(chunk1));
+    wire.output.write(wire.output, 0, 10, mla_r_cast<const mla_byte_t*>(chunk2));
+    wire.output.write(wire.output, 0, 5, mla_r_cast<const mla_byte_t*>(end));
 
     mla_memory_stream_set_position(wire, 0);
 
@@ -64,7 +64,7 @@ static void HttpChunkedStreamDeflateTest() {
     const char* data = "Hello Deflate World";
     mla_size_t len = 19;
 
-    chunkedOut.output.write(chunkedOut.output, 0, len, reinterpret_cast<const mla_byte_t*>(data));
+    chunkedOut.output.write(chunkedOut.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
     mla_http_chunked_stream_output_finished(chunkedOut);
 
     mla_memory_stream_set_position(wire, 0);
@@ -94,9 +94,9 @@ static void HttpChunkedStreamRoundtripTest() {
     mla_size_t len = 21;
 
     // Write data in parts to ensure multiple chunks
-    chunkedOut.output.write(chunkedOut.output, 0, 5, reinterpret_cast<const mla_byte_t*>(data)); // "Hello"
-    chunkedOut.output.write(chunkedOut.output, 0, 11, reinterpret_cast<const mla_byte_t*>(data + 5)); // " Roundtrip "
-    chunkedOut.output.write(chunkedOut.output, 0, 5, reinterpret_cast<const mla_byte_t*>(data + 16)); // "World"
+    chunkedOut.output.write(chunkedOut.output, 0, 5, mla_r_cast<const mla_byte_t*>(data)); // "Hello"
+    chunkedOut.output.write(chunkedOut.output, 0, 11, mla_r_cast<const mla_byte_t*>(data + 5)); // " Roundtrip "
+    chunkedOut.output.write(chunkedOut.output, 0, 5, mla_r_cast<const mla_byte_t*>(data + 16)); // "World"
 
     mla_http_chunked_stream_output_finished(chunkedOut);
 

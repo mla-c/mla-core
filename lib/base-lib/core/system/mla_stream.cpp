@@ -68,7 +68,7 @@ mla_size_t mla_private_stream_input_read_from_buffer(mla_stream_input_t& input, 
         return 0;
     }
 
-    mla_memcpy(buffer + offset, static_cast<mla_byte_t*>(manager->buffer) + manager->position, length);
+    mla_memcpy(buffer + offset, mla_s_cast<mla_byte_t*>(manager->buffer) + manager->position, length);
     manager->position += length;
     return length;
 }
@@ -124,7 +124,7 @@ mla_size_t mla_private_stream_output_write_to_buffer(mla_stream_output_t& output
         return 0;
     }
 
-    mla_memcpy(static_cast<mla_byte_t*>(manager->buffer) + manager->position, buffer + offset, length);
+    mla_memcpy(mla_s_cast<mla_byte_t*>(manager->buffer) + manager->position, buffer + offset, length);
     manager->position += length;
     return length;
 }
@@ -173,7 +173,7 @@ mla_stream_input_t mla_stream_input_from_buffer(mla_size_t size) {
         return mla_stream_noop_input(); // Return noop stream on allocation failure
     }
 
-    bufferManager->buffer = reinterpret_cast<mla_byte_t*>(bufferManager) + size;
+    bufferManager->buffer = mla_r_cast<mla_byte_t*>(bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;
 
@@ -197,7 +197,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size) {
         return mla_stream_noop_output(); // Return noop stream on allocation failure
     }
 
-    bufferManager->buffer = reinterpret_cast<mla_byte_t*>(bufferManager) + size;
+    bufferManager->buffer = mla_r_cast<mla_byte_t*>(bufferManager) + size;
     bufferManager->size = size;
     bufferManager->position = 0;
 
@@ -244,7 +244,7 @@ mla_size_t mla_private_stream_std_output_write(mla_stream_output_t& output, mla_
 
     (void)output;
 
-    const mla_char_t* tempBuffer = reinterpret_cast<const mla_char_t*>(buffer);
+    const mla_char_t* tempBuffer = mla_r_cast<const mla_char_t*>(buffer);
     return mla_print(tempBuffer + offset, length);
 }
 

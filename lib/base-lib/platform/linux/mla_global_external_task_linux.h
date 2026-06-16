@@ -256,7 +256,7 @@ mla_size_t __linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource
         return 0;
     }
 
-    return static_cast<mla_size_t>(bytesRead);
+    return mla_s_cast<mla_size_t>(bytesRead);
 }
 
 mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
@@ -274,7 +274,7 @@ mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource
         return 0;
     }
 
-    return static_cast<mla_size_t>(bytesWritten);
+    return mla_s_cast<mla_size_t>(bytesWritten);
 }
 
 void __linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {

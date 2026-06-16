@@ -25,7 +25,7 @@ void StdStringConcatBenchmark() {
     std::string str3(" This is a test of concatenation.");
     std::string result = str1 + str2 + str3;
     // Just to ensure the operation is performed
-    mla_test_int32_t length = static_cast<mla_test_int32_t>(result.length());
+    mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(result.length());
     (void)length; // Prevent unused variable warning
 
     // NOLINTEND(bugprone-unused-local-non-trivial-variable)
@@ -75,7 +75,7 @@ void CStringConcatBenchmark() {
     strcat_s(result, size + 1, str3);
     result[size] = '\0'; // Null-terminate the string
     // Just to ensure the operation is performed
-    mla_test_int32_t length = static_cast<mla_test_int32_t>(strlen(result));
+    mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(strlen(result));
     (void)length; // Prevent unused variable warning
     delete[] result; // Clean up allocated memory
 }

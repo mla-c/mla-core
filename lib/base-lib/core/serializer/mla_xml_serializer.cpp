@@ -76,7 +76,7 @@ mla_bool_t mla_private_xml_write_escaped(mla_stream_output_t &out, const mla_str
                 }
                 break;
             default:
-                if (out.write(out, 0, 1, reinterpret_cast<const mla_byte_t *>(&c)) != 1) {
+                if (out.write(out, 0, 1, mla_r_cast<const mla_byte_t *>(&c)) != 1) {
                     return false;
                 }
                 break;
@@ -776,7 +776,7 @@ static mla_bool_t mla_private_xml_read_char(mla_deserializer_t &inst, mla_char_t
         return true;
     }
 
-    return inst.input.read(inst.input, 0, 1, reinterpret_cast<mla_byte_t *>(&c)) == 1;
+    return inst.input.read(inst.input, 0, 1, mla_r_cast<mla_byte_t *>(&c)) == 1;
 }
 
 static void mla_private_xml_unread_char(mla_deserializer_t &inst, mla_char_t c) {
@@ -872,13 +872,13 @@ static void mla_private_xml_parse_val(mla_deserializer_t &inst, const mla_string
         if (mla_parse_int64(val_str, int_val)) {
             if (int_val >= mla_int8_min && int_val <= mla_int8_max) {
                 inst.current_token.type = MLA_DESERIALIZER_VALUE_INT8;
-                inst.current_token.simple.int8_value = static_cast<mla_int8_t>(int_val);
+                inst.current_token.simple.int8_value = mla_s_cast<mla_int8_t>(int_val);
             } else if (int_val >= mla_int16_min && int_val <= mla_int16_max) {
                 inst.current_token.type = MLA_DESERIALIZER_VALUE_INT16;
-                inst.current_token.simple.int16_value = static_cast<mla_int16_t>(int_val);
+                inst.current_token.simple.int16_value = mla_s_cast<mla_int16_t>(int_val);
             } else if (int_val >= mla_int32_min && int_val <= mla_int32_max) {
                 inst.current_token.type = MLA_DESERIALIZER_VALUE_INT32;
-                inst.current_token.simple.int32_value = static_cast<mla_int32_t>(int_val);
+                inst.current_token.simple.int32_value = mla_s_cast<mla_int32_t>(int_val);
             } else {
                 inst.current_token.type = MLA_DESERIALIZER_VALUE_INT64;
                 inst.current_token.simple.int64_value = int_val;

@@ -76,14 +76,14 @@ mla_bool_t mla_private_rpc_http_server_handler_content_writer(const mla_http_res
         return false;
     }
 
-    mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(buffer);
+    mla_rpc_http_server_handler_content_writer_header_t* header = mla_r_cast<mla_rpc_http_server_handler_content_writer_header_t*>(buffer);
 
     if (header->write_function == nullptr) {
         return false;
     }
 
     // Store content type and write function at the beginning of output buffer
-    mla_pointer_t outputData = mla_platform_pointer_to_managed_pointer( reinterpret_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
+    mla_pointer_t outputData = mla_platform_pointer_to_managed_pointer( mla_r_cast<mla_uint8_t*>(buffer) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
 
     mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output_invalid();
 
@@ -209,7 +209,7 @@ mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, c
     mla_pointer_t output_content = mla_pointer_null();
 
     if (output_ptr != nullptr) {
-        output_content = mla_platform_pointer_to_managed_pointer(reinterpret_cast<mla_uint8_t*>(output_ptr) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
+        output_content = mla_platform_pointer_to_managed_pointer(mla_r_cast<mla_uint8_t*>(output_ptr) + sizeof(mla_rpc_http_server_handler_content_writer_header_t));
     }
 
     if (procedure.execute(mla_pointer_get_platform_pointer(input), mla_pointer_get_platform_pointer(output_content))) {
@@ -240,7 +240,7 @@ mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, c
                 mla_size_t content_size = mla_memory_stream_get_size(temp_stream);
 
                 mla_memory_stream_set_position(temp_stream, 0);
-                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
+                mla_rpc_http_server_handler_content_writer_header_t* header = mla_r_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
                 if (mla_private_rpc_http_server_support_deflate_compression(*header) && content_size > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
@@ -265,7 +265,7 @@ mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, c
 
             } else {
 
-                mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
+                mla_rpc_http_server_handler_content_writer_header_t* header = mla_r_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
                 if (mla_private_rpc_http_server_support_deflate_compression(*header)) {
                     mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));

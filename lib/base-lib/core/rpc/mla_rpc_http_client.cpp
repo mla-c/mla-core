@@ -128,7 +128,7 @@ mla_bool_t mla_private_rpc_http_execute(const mla_user_data_t &userdata, const m
 
         if (mla_private_http_rpc_request_content_write(config->content_type, temp_stream.output, input_data, input_definition.write_function)) {
             // If serialization was successful we can use the memory stream as content
-            mla_http_headers_add(request.headers, mla_string_const("Content-Length"), mla_string_from_int32(static_cast<mla_int32_t>(mla_memory_stream_get_size(temp_stream))));
+            mla_http_headers_add(request.headers, mla_string_const("Content-Length"), mla_string_from_int32(mla_s_cast<mla_int32_t>(mla_memory_stream_get_size(temp_stream))));
             mla_memory_stream_set_position(temp_stream, 0);
             request.content = temp_stream.input;
 

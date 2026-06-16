@@ -51,7 +51,7 @@ mla_bool_t mla_private_ui_indicator_render_to_drawCommands(const mla_ui_control_
     mla_double_t periodMs = 1000.0;
 
     // Calculate phase (0.0 to 1.0)
-    mla_double_t phase = static_cast<mla_double_t>(timeMs % static_cast<mla_uint64_t>(periodMs)) / periodMs;
+    mla_double_t phase = mla_s_cast<mla_double_t>(timeMs % mla_s_cast<mla_uint64_t>(periodMs)) / periodMs;
     mla_double_t currentRotation = phase * 2.0 * mla_math_pi;
 
     // Original Arc: Starts at top (-PI/2) and goes to right (0)

@@ -30,7 +30,7 @@ mla_platform_pointer_t mla_private_generic_memmove(mla_platform_pointer_t dest, 
 }
 
 mla_size_t mla_private_generic_strlen(const mla_char_t* str) {
-    return static_cast<mla_size_t>(strlen(str));
+    return mla_s_cast<mla_size_t>(strlen(str));
 }
 
 const mla_char_t* mla_private_generic_strstr(const mla_char_t* str, const mla_char_t* substr) {
@@ -46,7 +46,7 @@ void mla_private_generic_free(mla_platform_pointer_t ptr) {
 }
 
 mla_size_t mla_private_generic_print(const mla_char_t* format, mla_size_t length) {
-    return static_cast<mla_size_t>(fwrite(format, 1, length, stdout));
+    return mla_s_cast<mla_size_t>(fwrite(format, 1, length, stdout));
 }
 
 void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
@@ -73,10 +73,10 @@ void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* fi
         // Convert number to string manually
         int pos = sizeof(size_buffer) - 2; // Leave room for null terminator
         while (temp_size > 0 && pos >= 0) {
-            size_buffer[pos--] = static_cast<char>('0' + (temp_size % 10));
+            size_buffer[pos--] = mla_s_cast<char>('0' + (temp_size % 10));
             temp_size /= 10;
         }
-        size_len = static_cast<int>(sizeof(size_buffer) - pos - 2);
+        size_len = mla_s_cast<int>(sizeof(size_buffer) - pos - 2);
         // Move to beginning of buffer
         memmove(size_buffer, &size_buffer[pos + 1], size_len);
     }
@@ -93,12 +93,12 @@ void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* fi
 }
 
 mla_size_t mla_private_generic_std_read(mla_char_t* buffer, mla_size_t size) {
-    mla_char_t* lastChar = fgets(buffer, static_cast<int>(size), stdin);
+    mla_char_t* lastChar = fgets(buffer, mla_s_cast<int>(size), stdin);
     if (lastChar == nullptr) {
         return 0; // No data read
     }
-    char *nul = static_cast<mla_char_t *>(memchr(buffer, '\0', size));
-    return nul != nullptr ? static_cast<mla_size_t>(nul - buffer) : size;
+    char *nul = mla_s_cast<mla_char_t *>(memchr(buffer, '\0', size));
+    return nul != nullptr ? mla_s_cast<mla_size_t>(nul - buffer) : size;
 }
 
 mla_bool_t mla_private_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
@@ -112,7 +112,7 @@ mla_bool_t mla_private_generic_strtod(const mla_char_t* str, mla_size_t length, 
     }
 
     // Check if we consumed all the expected characters
-    if (static_cast<mla_size_t>(endptr - str) != length) {
+    if (mla_s_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 
@@ -130,7 +130,7 @@ mla_bool_t mla_private_generic_strtoll(const mla_char_t* str, mla_size_t length,
     }
 
     // Check if we consumed all the expected characters
-    if (static_cast<mla_size_t>(endptr - str) != length) {
+    if (mla_s_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 
@@ -148,7 +148,7 @@ mla_bool_t mla_private_generic_strtoull(const mla_char_t* str, mla_size_t length
     }
 
     // Check if we consumed all the expected characters
-    if (static_cast<mla_size_t>(endptr - str) != length) {
+    if (mla_s_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 

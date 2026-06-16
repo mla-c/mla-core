@@ -196,7 +196,7 @@ mla_bool_t mla_private_file_system_native_list_directory(mla_file_system_t& file
 
 void mla_private_file_system_native_close_file(const mla_native_resource_t& userData) {
 
-    int* fdPtr = reinterpret_cast<int*>(userData.asPointer);
+    int* fdPtr = mla_r_cast<int*>(userData.asPointer);
 
     if (fdPtr == nullptr)
         return;
@@ -212,7 +212,7 @@ int __mla_file_system_native_get_fd_from_stream(const mla_file_system_stream_t& 
     if (native_resource == nullptr)
         return -1;
 
-    return *reinterpret_cast<int*>(native_resource->asPointer);
+    return *mla_r_cast<int*>(native_resource->asPointer);
 }
 
 mla_bool_t mla_private_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
@@ -233,7 +233,7 @@ mla_size_t mla_private_file_system_native_open_file_position(const mla_file_syst
         return 0;
 
     off_t pos = lseek(fd, 0, SEEK_CUR);
-    return pos != -1 ? static_cast<mla_size_t>(pos) : 0;
+    return pos != -1 ? mla_s_cast<mla_size_t>(pos) : 0;
 }
 
 mla_size_t mla_private_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
@@ -253,7 +253,7 @@ mla_size_t mla_private_file_system_native_open_file_length(const mla_file_system
     // Restore original position
     lseek(fd, currentPos, SEEK_SET);
 
-    return size != -1 ? static_cast<mla_size_t>(size) : 0;
+    return size != -1 ? mla_s_cast<mla_size_t>(size) : 0;
 }
 
 mla_bool_t mla_private_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
@@ -274,7 +274,7 @@ mla_size_t mla_private_file_system_native_open_file_read(const mla_file_system_s
         return 0;
 
     ssize_t bytesRead = read(fd, buffer + offset, length);
-    return bytesRead > 0 ? static_cast<mla_size_t>(bytesRead) : 0;
+    return bytesRead > 0 ? mla_s_cast<mla_size_t>(bytesRead) : 0;
 }
 
 mla_size_t mla_private_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
@@ -285,7 +285,7 @@ mla_size_t mla_private_file_system_native_open_file_write(const mla_file_system_
         return 0;
 
     ssize_t bytesWritten = write(fd, buffer + offset, length);
-    return bytesWritten > 0 ? static_cast<mla_size_t>(bytesWritten) : 0;
+    return bytesWritten > 0 ? mla_s_cast<mla_size_t>(bytesWritten) : 0;
 }
 
 mla_bool_t mla_private_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
@@ -325,7 +325,7 @@ mla_bool_t mla_private_file_system_native_open_file(mla_file_system_t& file_syst
         return false;
 
     // Allocate memory to store the file descriptor (freed in cleanup hook)
-    int* fdPtr = static_cast<int*>(mla_platform_malloc(sizeof(int)));
+    int* fdPtr = mla_s_cast<int*>(mla_platform_malloc(sizeof(int)));
     if (fdPtr == nullptr) {
         close(fd);
         return false;

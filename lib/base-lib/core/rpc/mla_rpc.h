@@ -114,7 +114,7 @@ mla_rpc_procedure_unsafe_t mla_rpc_procedure_safe_to_unsafe(const mla_rpc_proced
         safe_procedure.procedureName,
         safe_procedure.inputDefinition,
         safe_procedure.outputDefinition,
-        reinterpret_cast<mla_rpc_procedure_handler_unsafe_t>(safe_procedure.execute)
+        mla_r_cast<mla_rpc_procedure_handler_unsafe_t>(safe_procedure.execute)
     };
 }
 
@@ -201,7 +201,7 @@ mla_bool_t mla_rpc_find_procedure(const mla_string_t &procedure_name, mla_rpc_pr
 
     if (mla_rpc_find_procedure(procedure_name, unsafe_procedure)) {
         out_procedure.procedureName = unsafe_procedure.procedureName;
-        out_procedure.execute = reinterpret_cast<mla_bool_t (*)(const TInput *, TOutput *)>(unsafe_procedure.execute);
+        out_procedure.execute = mla_r_cast<mla_bool_t (*)(const TInput *, TOutput *)>(unsafe_procedure.execute);
         return true;
     } else {
         return false;

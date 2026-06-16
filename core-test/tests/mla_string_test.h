@@ -1729,7 +1729,7 @@ void StringFromUtf32BufferBenchmark() {
 
 void StringContains_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = static_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
+    mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
 
     mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
     mla_string_t subString = mla_string("for");
@@ -1751,7 +1751,7 @@ void StringContains_C_LayoutBenchmark() {
 
 void StringIndexOf_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = static_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
+    mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
 
     mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
     mla_string_t subString = mla_string("for");
@@ -1764,7 +1764,7 @@ void StringIndexOf_Buffer_LayoutBenchmark() {
 
 void StringIndexOfShort_Buffer_LayoutBenchmark() {
     const mla_test_char_t *data = "Hello, World! This is a test string for benchmarking.";
-    mla_test_int32_t length = static_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
+    mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(mla_test_strlen(data)); // Length of the string
 
     mla_string_t str = mla_string(mla_platform_pointer_to_managed_pointer(data), length);
     mla_string_t subString = mla_string("is");

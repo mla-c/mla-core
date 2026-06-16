@@ -27,7 +27,7 @@ void MemoryStreamWriteAndReadTest() {
     mla_size_t test_string_length = mla_string_length(test_string);
     const mla_char_t* test_string_data = mla_string_data(test_string);
 
-    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_equal(written, test_string_length, "Should write the full string");
     assert_equal(mla_memory_stream_get_size(stream), test_string_length, "Stream size should match written length");
@@ -50,7 +50,7 @@ void MemoryStreamSetPositionAndSeekTest() {
     const mla_char_t* test_string_data = mla_string_data(test_string);
 
 
-    stream.output.write(stream.output, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    stream.output.write(stream.output, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_true(mla_memory_stream_set_position(stream, 6), "Should be able to set position");
     assert_equal(mla_memory_stream_get_position(stream), (mla_size_t)6, "Position should be updated");
@@ -69,7 +69,7 @@ void MemoryStreamResetTest() {
     mla_size_t test_string_length = mla_string_length(test_string);
     const mla_char_t* test_string_data = mla_string_data(test_string);
 
-    stream.output.write(stream.output, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    stream.output.write(stream.output, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_equal(mla_memory_stream_get_size(stream), (mla_size_t)4, "Size should be 4 before reset");
     assert_equal(mla_memory_stream_get_position(stream), (mla_size_t)4, "Position should be 4 before reset");
@@ -86,13 +86,13 @@ void MemoryStreamOverwriteTest() {
     mla_size_t initial_string_length = mla_string_length(initial_string);
     const mla_char_t* initial_string_data = mla_string_data(initial_string);
 
-    stream.output.write(stream.output, 0, initial_string_length, reinterpret_cast<const mla_byte_t*>(initial_string_data));
+    stream.output.write(stream.output, 0, initial_string_length, mla_r_cast<const mla_byte_t*>(initial_string_data));
 
     mla_string_t overwrite_string = mla_string_const("new");
     mla_size_t overwrite_string_length = mla_string_length(overwrite_string);
     const mla_char_t* overwrite_string_data = mla_string_data(overwrite_string);
     mla_memory_stream_set_position(stream, 8); // Move position to overwrite part of the data
-    mla_size_t written = stream.output.write(stream.output, 0, overwrite_string_length, reinterpret_cast<const mla_byte_t*>(overwrite_string_data));
+    mla_size_t written = stream.output.write(stream.output, 0, overwrite_string_length, mla_r_cast<const mla_byte_t*>(overwrite_string_data));
 
     assert_equal(written, overwrite_string_length, "Should write overwrite string");
     assert_equal(mla_memory_stream_get_size(stream), initial_string_length, "Size should not change on overwrite within bounds");
@@ -110,14 +110,14 @@ void MemoryStreamAutoGrowTest() {
     mla_size_t test_string_length = mla_string_length(test_string);
     const mla_char_t* test_string_data = mla_string_data(test_string);
 
-    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_equal(written, test_string_length, "Should write the full string");
     assert_equal(mla_memory_stream_get_size(stream), test_string_length, "Stream size should grow to accommodate data");
 
     mla_memory_stream_set_position(stream, 0); // Reset position to read from start
 
-    mla_byte_t* read_buffer = static_cast<mla_byte_t*>(mla_platform_malloc(test_string_length));
+    mla_byte_t* read_buffer = mla_s_cast<mla_byte_t*>(mla_platform_malloc(test_string_length));
 
     if (read_buffer != nullptr) {
         mla_size_t read_bytes = stream.input.read(stream.input, 0, test_string_length, read_buffer);
@@ -137,7 +137,7 @@ void MemoryStreamNoGrowTest() {
     mla_string_t test_string = mla_string_const("0123456789AB");
     mla_size_t test_string_length = mla_string_length(test_string);
     const mla_char_t* test_string_data = mla_string_data(test_string);
-    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    mla_size_t written = stream.output.write(stream.output, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_equal(written, (mla_size_t)8, "Non-grow stream should stop at capacity");
     assert_equal(mla_memory_stream_get_size(stream), (mla_size_t)8, "Size should equal capacity");
@@ -158,7 +158,7 @@ void StreamInputBufferedWrapperTest() {
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_data = mla_string_data(test_data);
 
-    source.output.write(source.output, 0, test_data_length, reinterpret_cast<const mla_byte_t*>(test_data_data));
+    source.output.write(source.output, 0, test_data_length, mla_r_cast<const mla_byte_t*>(test_data_data));
     mla_memory_stream_set_position(source, 0);
 
     // Create buffered wrapper with small buffer to test multiple reads
@@ -192,7 +192,7 @@ void StreamOutputBufferedWrapperTest() {
     mla_string_t data1 = mla_string_const("hello");
     mla_size_t data1_length = mla_string_length(data1);
     const mla_char_t* data1_data = mla_string_data(data1);
-    mla_size_t written1 = buffered.write(buffered, 0, data1_length, reinterpret_cast<const mla_byte_t*>(data1_data));
+    mla_size_t written1 = buffered.write(buffered, 0, data1_length, mla_r_cast<const mla_byte_t*>(data1_data));
     assert_equal(written1, data1_length, "Should write first chunk");
     assert_equal(mla_memory_stream_get_size(dest), (mla_size_t)0, "Data should still be in buffer");
 
@@ -200,7 +200,7 @@ void StreamOutputBufferedWrapperTest() {
     mla_string_t data2 = mla_string_const(" world test");
     mla_size_t data2_length = mla_string_length(data2);
     const mla_char_t* data2_data = mla_string_data(data2);
-    mla_size_t written2 = buffered.write(buffered, 0, data2_length, reinterpret_cast<const mla_byte_t*>(data2_data));
+    mla_size_t written2 = buffered.write(buffered, 0, data2_length, mla_r_cast<const mla_byte_t*>(data2_data));
     assert_equal(written2, data2_length, "Should write second chunk");
     assert_true(mla_memory_stream_get_size(dest) > 0, "Buffer should have flushed");
 
@@ -223,7 +223,7 @@ void StreamOutputBufferedFlushTest() {
     mla_string_t test_data = mla_string_const("partial data");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_data = mla_string_data(test_data);
-    buffered.write(buffered, 0, test_data_length, reinterpret_cast<const mla_byte_t*>(test_data_data));
+    buffered.write(buffered, 0, test_data_length, mla_r_cast<const mla_byte_t*>(test_data_data));
 
     assert_equal(mla_memory_stream_get_size(dest), (mla_size_t)0, "Data should be buffered before flush");
 
@@ -248,7 +248,7 @@ void StreamBufferedLargeDataTest() {
     mla_size_t large_data_length = mla_string_length(large_data);
     const mla_char_t* large_data_data = mla_string_data(large_data);
 
-    mla_size_t written = buffered_out.write(buffered_out, 0, large_data_length, reinterpret_cast<const mla_byte_t*>(large_data_data));
+    mla_size_t written = buffered_out.write(buffered_out, 0, large_data_length, mla_r_cast<const mla_byte_t*>(large_data_data));
     assert_equal(written, large_data_length, "Should write all data");
 
     mla_stream_output_flush_buffered_wrapper(buffered_out);
@@ -257,7 +257,7 @@ void StreamBufferedLargeDataTest() {
     mla_memory_stream_set_position(stream, 0);
     mla_stream_input_t buffered_in = mla_stream_input_buffered_wrapper(stream.input, 32);
 
-    mla_byte_t* read_buffer = static_cast<mla_byte_t *>(mla_platform_malloc(large_data_length));
+    mla_byte_t* read_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(large_data_length));
 
     if (read_buffer != nullptr) {
         mla_size_t read_bytes = buffered_in.read(buffered_in, 0, large_data_length, read_buffer);
@@ -284,7 +284,7 @@ void StreamOutputSizeCalculationSingleWriteTest() {
     mla_size_t test_string_length = mla_string_length(test_string);
     const mla_char_t* test_string_data = mla_string_data(test_string);
 
-    mla_size_t written = sizeStream.write(sizeStream, 0, test_string_length, reinterpret_cast<const mla_byte_t*>(test_string_data));
+    mla_size_t written = sizeStream.write(sizeStream, 0, test_string_length, mla_r_cast<const mla_byte_t*>(test_string_data));
 
     assert_equal(written, test_string_length, "Should return the written length");
     assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), test_string_length, "Size should match written length");
@@ -298,8 +298,8 @@ void StreamOutputSizeCalculationMultipleWritesTest() {
     mla_size_t data1_length = mla_string_length(data1);
     mla_size_t data2_length = mla_string_length(data2);
 
-    sizeStream.write(sizeStream, 0, data1_length, reinterpret_cast<const mla_byte_t*>(mla_string_data(data1)));
-    sizeStream.write(sizeStream, 0, data2_length, reinterpret_cast<const mla_byte_t*>(mla_string_data(data2)));
+    sizeStream.write(sizeStream, 0, data1_length, mla_r_cast<const mla_byte_t*>(mla_string_data(data1)));
+    sizeStream.write(sizeStream, 0, data2_length, mla_r_cast<const mla_byte_t*>(mla_string_data(data2)));
 
     assert_equal(mla_stream_output_size_calculation_get_size(sizeStream), data1_length + data2_length, "Size should be cumulative of all writes");
 }
@@ -349,7 +349,7 @@ void StreamInputInterceptorWrapperReadCallbackTest() {
     mla_string_t test_data = mla_string_const("intercept input");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
-    source.output.write(source.output, 0, test_data_length, reinterpret_cast<const mla_byte_t *>(test_data_ptr));
+    source.output.write(source.output, 0, test_data_length, mla_r_cast<const mla_byte_t *>(test_data_ptr));
     mla_memory_stream_set_position(source, 0);
 
     // Reset state
@@ -371,7 +371,7 @@ void StreamInputInterceptorWrapperRemainingBytesCallbackTest() {
     mla_string_t test_data = mla_string_const("hello");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
-    source.output.write(source.output, 0, test_data_length, reinterpret_cast<const mla_byte_t *>(test_data_ptr));
+    source.output.write(source.output, 0, test_data_length, mla_r_cast<const mla_byte_t *>(test_data_ptr));
     mla_memory_stream_set_position(source, 0);
 
     // Reset state
@@ -396,7 +396,7 @@ void StreamInputInterceptorWrapperNullCallbacksPassthroughTest() {
     mla_string_t test_data = mla_string_const("passthrough data");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
-    source.output.write(source.output, 0, test_data_length, reinterpret_cast<const mla_byte_t*>(test_data_ptr));
+    source.output.write(source.output, 0, test_data_length, mla_r_cast<const mla_byte_t*>(test_data_ptr));
     mla_memory_stream_set_position(source, 0);
 
     mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, nullptr, nullptr);
@@ -420,7 +420,7 @@ void StreamInputInterceptorWrapperBlockReadTest() {
     mla_string_t test_data = mla_string_const("blocked data");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
-    source.output.write(source.output, 0, test_data_length, reinterpret_cast<const mla_byte_t*>(test_data_ptr));
+    source.output.write(source.output, 0, test_data_length, mla_r_cast<const mla_byte_t*>(test_data_ptr));
     mla_memory_stream_set_position(source, 0);
 
     mla_stream_input_t intercepted = mla_stream_input_interceptor_wrapper(source.input, test_input_intercept_blocking, nullptr);
@@ -445,7 +445,7 @@ void StreamOutputInterceptorWrapperWriteCallbackTest() {
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
 
-    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, reinterpret_cast<const mla_byte_t*>(test_data_ptr));
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, mla_r_cast<const mla_byte_t*>(test_data_ptr));
 
     assert_equal(written, test_data_length, "Intercepted write should return correct byte count");
     assert_true(g_output_interceptor_write_called, "Write interceptor callback should have been called");
@@ -484,7 +484,7 @@ void StreamOutputInterceptorWrapperNullCallbacksPassthroughTest() {
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
 
-    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, reinterpret_cast<const mla_byte_t *>(test_data_ptr));
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, mla_r_cast<const mla_byte_t *>(test_data_ptr));
 
     assert_equal(written, test_data_length, "Passthrough interceptor should write correct byte count");
 
@@ -508,7 +508,7 @@ void StreamOutputInterceptorWrapperBlockWriteTest() {
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
 
-    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, reinterpret_cast<const mla_byte_t *>(test_data_ptr));
+    mla_size_t written = intercepted.write(intercepted, 0, test_data_length, mla_r_cast<const mla_byte_t *>(test_data_ptr));
 
     assert_equal(written, (mla_size_t)0, "Blocking interceptor should return 0 bytes written");
     assert_equal(mla_memory_stream_get_size(dest), (mla_size_t)0, "Blocked write should not reach destination");
@@ -523,7 +523,7 @@ void StreamInterceptorWrapperChainedTest() {
     mla_string_t test_data = mla_string_const("chained interceptor data");
     mla_size_t test_data_length = mla_string_length(test_data);
     const mla_char_t* test_data_ptr = mla_string_data(test_data);
-    out_intercepted.write(out_intercepted, 0, test_data_length, reinterpret_cast<const mla_byte_t *>(test_data_ptr));
+    out_intercepted.write(out_intercepted, 0, test_data_length, mla_r_cast<const mla_byte_t *>(test_data_ptr));
 
     // Read back via input interceptor
     mla_memory_stream_set_position(storage, 0);

@@ -100,10 +100,10 @@ mla_bool_t mla_http_utils_read_line(mla_stream_input_t & inputStream, mla_string
     mla_char_t* finalResultBuffer = nullptr;
     mla_size_t finalResultBufferSize = 0;
 
-    mla_int32_t remaining_timeout = static_cast<mla_int32_t>(timeout_ms);
+    mla_int32_t remaining_timeout = mla_s_cast<mla_int32_t>(timeout_ms);
 
     while (true) {
-        mla_size_t result = inputStream.read(inputStream, bytesRead, 1, reinterpret_cast<mla_byte_t*>(&buffer[0]));
+        mla_size_t result = inputStream.read(inputStream, bytesRead, 1, mla_r_cast<mla_byte_t*>(&buffer[0]));
 
         if (result == 0) {
 

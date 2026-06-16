@@ -26,7 +26,7 @@ struct mla_area_pointer_header_t {
  * multiple of 8.
  */
 static inline mla_size_t mla_private_area_align_up(mla_size_t size) {
-    return (size + 7) & ~static_cast<mla_size_t>(7);
+    return (size + 7) & ~mla_s_cast<mla_size_t>(7);
 }
 
 static void mla_private_area_lock(mla_atomic_int32_t& lock) {
@@ -46,11 +46,11 @@ static mla_area_page_header_t* mla_private_area_allocate_page(mla_size_t size) {
         return nullptr;
     }
     mla_memset(rawPtr, 0, size);
-    mla_area_page_header_t* page = reinterpret_cast<mla_area_page_header_t*>(rawPtr);
+    mla_area_page_header_t* page = mla_r_cast<mla_area_page_header_t*>(rawPtr);
     page->page_size = size;
     page->refCount = 0;
     page->OtherTaskRefCount.value = 0;
-    page->CurrentPosition.value = static_cast<mla_int32_t>(mla_private_area_align_up(sizeof(mla_area_page_header_t)));
+    page->CurrentPosition.value = mla_s_cast<mla_int32_t>(mla_private_area_align_up(sizeof(mla_area_page_header_t)));
     page->NextPage = nullptr;
     page->creatorTaskId = mla_current_task_id;
     return page;
@@ -59,7 +59,7 @@ static mla_area_page_header_t* mla_private_area_allocate_page(mla_size_t size) {
 mla_pointer_t mla_private_area_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
     (void)filename;
     (void)function_name;
-    mla_area_pointer_memory_manager_t& area_manager = reinterpret_cast<mla_area_pointer_memory_manager_t&>(memory_manager);
+    mla_area_pointer_memory_manager_t& area_manager = mla_r_cast<mla_area_pointer_memory_manager_t&>(memory_manager);
 
     mla_size_t headerSize = mla_private_area_align_up(sizeof(mla_area_pointer_header_t));
     mla_size_t totalNeeded = headerSize + mla_private_area_align_up(size);
@@ -70,13 +70,13 @@ mla_pointer_t mla_private_area_pointer_memory_manager_malloc(mla_pointer_memory_
         if (page != nullptr) {
             // Try lock-free reservation of space in the current page
             mla_int32_t currentPos = page->CurrentPosition.value;
-            while (static_cast<mla_size_t>(currentPos) + totalNeeded <= page->page_size) {
+            while (mla_s_cast<mla_size_t>(currentPos) + totalNeeded <= page->page_size) {
 
-                if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + static_cast<mla_int32_t>(totalNeeded))) {
+                if (mla_atomic_compare_exchange(page->CurrentPosition, currentPos, currentPos + mla_s_cast<mla_int32_t>(totalNeeded))) {
                     // Success! Reserved space.
-                    mla_platform_pointer_t itemPtr = reinterpret_cast<mla_byte_t*>(page) + currentPos;
+                    mla_platform_pointer_t itemPtr = mla_r_cast<mla_byte_t*>(page) + currentPos;
 
-                    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(itemPtr);
+                    mla_area_pointer_header_t* header = mla_r_cast<mla_area_pointer_header_t*>(itemPtr);
                     header->page = page;
                     header->itemSize = totalNeeded;
                     header->cleanupHook = cleanup_hook;
@@ -119,12 +119,12 @@ mla_platform_pointer_t mla_private_area_pointer_memory_manager_get_platform_poin
         return nullptr;
     }
     mla_size_t headerSize = mla_private_area_align_up(sizeof(mla_area_pointer_header_t));
-    return static_cast<mla_byte_t*>(payload.asPointer) + headerSize;
+    return mla_s_cast<mla_byte_t*>(payload.asPointer) + headerSize;
 }
 
 void mla_private_area_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
-    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
+    mla_area_pointer_header_t* header = mla_r_cast<mla_area_pointer_header_t*>(payload.asPointer);
 
     if (header == nullptr) {
         return;
@@ -145,10 +145,10 @@ static void mla_private_area_free_page(mla_area_pointer_memory_manager_t& area_m
     mla_size_t headerSize = mla_private_area_align_up(sizeof(mla_area_pointer_header_t));
 
     mla_int32_t finalPos = page->CurrentPosition.value;
-    while (currentPos < static_cast<mla_size_t>(finalPos)) {
-        mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(reinterpret_cast<mla_byte_t*>(page) + currentPos);
+    while (currentPos < mla_s_cast<mla_size_t>(finalPos)) {
+        mla_area_pointer_header_t* header = mla_r_cast<mla_area_pointer_header_t*>(mla_r_cast<mla_byte_t*>(page) + currentPos);
         if (header->cleanupHook != nullptr) {
-            mla_platform_pointer_t data = reinterpret_cast<mla_byte_t*>(header) + headerSize;
+            mla_platform_pointer_t data = mla_r_cast<mla_byte_t*>(header) + headerSize;
             header->cleanupHook(data, header->cleanupHookUserData);
         }
         currentPos += header->itemSize;
@@ -175,8 +175,8 @@ static void mla_private_area_free_page(mla_area_pointer_memory_manager_t& area_m
 }
 
 void mla_private_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
-    mla_area_pointer_memory_manager_t& area_manager = reinterpret_cast<mla_area_pointer_memory_manager_t&>(memory_manager);
-    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
+    mla_area_pointer_memory_manager_t& area_manager = mla_r_cast<mla_area_pointer_memory_manager_t&>(memory_manager);
+    mla_area_pointer_header_t* header = mla_r_cast<mla_area_pointer_header_t*>(payload.asPointer);
 
     if (header == nullptr) {
         return;
@@ -202,7 +202,7 @@ void mla_private_pointer_memory_manager_decReferences(mla_pointer_memory_manager
 
 mla_int32_t mla_private_area_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
-    mla_area_pointer_header_t* header = reinterpret_cast<mla_area_pointer_header_t*>(payload.asPointer);
+    mla_area_pointer_header_t* header = mla_r_cast<mla_area_pointer_header_t*>(payload.asPointer);
 
     if (header == nullptr) {
         return -1;

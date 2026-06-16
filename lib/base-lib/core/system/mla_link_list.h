@@ -41,7 +41,7 @@ void mla_private_link_list_node_cleanup_hook(mla_platform_pointer_t data, const 
     (void)userData; // Silences the unused parameter warning
 
     // Custom cleanup hook for the linked list node
-    mla_link_list_node_t<T, TInit>* node = static_cast<mla_link_list_node_t<T, TInit>*>(data);
+    mla_link_list_node_t<T, TInit>* node = mla_s_cast<mla_link_list_node_t<T, TInit>*>(data);
     if (node) {
         node->data = TInit::init(); // Assign default value to trigger destructor if T is a class
     }
@@ -53,7 +53,7 @@ void mla_private_link_list_data_cleanup_hook(mla_platform_pointer_t p_Data, cons
     (void)userData; // Silences the unused parameter warning
 
     // Custom cleanup hook for the linked list node
-    mla_link_list_data_t<T, TInit>* data = static_cast<mla_link_list_data_t<T, TInit>*>(p_Data);
+    mla_link_list_data_t<T, TInit>* data = mla_s_cast<mla_link_list_data_t<T, TInit>*>(p_Data);
 
     if (!data || !data->head) {
         return;

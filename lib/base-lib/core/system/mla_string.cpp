@@ -44,7 +44,7 @@ mla_string_t mla_string_copy(const mla_char_t *p_Data, mla_size_t p_Length) {
     if (p_Length <= mla_global_config_string_sso_max_length) {
         // Use embedded storage for small strings
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(p_Length);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, p_Data, p_Length);
         return result;
     }
@@ -109,7 +109,7 @@ mla_string_t mla_string(const mla_pointer_t& data, const mla_char_t *p_End) {
     }
 
     mla_string_t result =  {data, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
-    result.heap.length = static_cast<mla_size_t>(p_End - str_data);
+    result.heap.length = mla_s_cast<mla_size_t>(p_End - str_data);
     return result;
 }
 
@@ -124,7 +124,7 @@ mla_string_t mla_string(const mla_char_t *p_Data) {
     if (length <= mla_global_config_string_sso_max_length) {
         // Use embedded storage for small strings
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(mla_strlen(p_Data));
+        result.embedded.length = mla_s_cast<mla_uint8_t>(mla_strlen(p_Data));
         mla_memcpy(result.embedded.data, p_Data, result.embedded.length);
         return result;
     }
@@ -511,7 +511,7 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
     if (resultLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(resultLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(resultLength);
         mla_size_t sourcePos = 0;
         mla_size_t destPos = 0;
         while (sourcePos < length) {
@@ -659,7 +659,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     }
 
     if (lengthSub == 0) {
-        return static_cast<mla_int32_t>(p_Start); // Empty substring matches at the start index
+        return mla_s_cast<mla_int32_t>(p_Start); // Empty substring matches at the start index
     }
 
     if (lengthSub > length || p_Start > length - lengthSub) {
@@ -673,7 +673,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
         const mla_char_t *found = mla_strstr(data + p_Start, dataSub);
 
         if (found != nullptr) {
-            return static_cast<mla_int32_t>(found - data);
+            return mla_s_cast<mla_int32_t>(found - data);
         } else {
             return -1; // Substring not found
         }
@@ -685,7 +685,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
         for (mla_size_t i = p_Start; i < length; ++i) {
 
             if (data[i] == dataSub[0]) {
-                return static_cast<mla_int32_t>(i);
+                return mla_s_cast<mla_int32_t>(i);
             }
 
         }
@@ -696,7 +696,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     if (lengthSub == 2) {
         for (mla_size_t i = p_Start; i <= length - lengthSub; ++i) {
             if (data[i] == dataSub[0] && data[i + 1] == dataSub[1]) {
-                return static_cast<mla_int32_t>(i);
+                return mla_s_cast<mla_int32_t>(i);
             }
         }
 
@@ -707,7 +707,7 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
     for (mla_size_t i = p_Start; i <= length - lengthSub; ++i) {
 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
-            return static_cast<mla_int32_t>(i);
+            return mla_s_cast<mla_int32_t>(i);
         }
 
     }
@@ -727,7 +727,7 @@ mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_str
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataSub = mla_string_data(p_Substring);
 
-    for (mla_int32_t i = static_cast<mla_int32_t>(length - lengthSub); i != -1; --i) {
+    for (mla_int32_t i = mla_s_cast<mla_int32_t>(length - lengthSub); i != -1; --i) {
 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
             return i; // Found the substring
@@ -762,16 +762,16 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         return mla_string_empty(); // Invalid range
     }
 
-    mla_uint64_t l_maxLength = static_cast<mla_uint64_t>(p_Start) + static_cast<mla_uint64_t>(p_Length);
+    mla_uint64_t l_maxLength = mla_s_cast<mla_uint64_t>(p_Start) + mla_s_cast<mla_uint64_t>(p_Length);
 
-    if (l_maxLength > static_cast<mla_uint64_t>(length)) {
+    if (l_maxLength > mla_s_cast<mla_uint64_t>(length)) {
         p_Length = length - p_Start; // Adjust length to the maximum possible
     }
 
     if (mla_string_is_embedded(p_String)) {
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(p_Length);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
@@ -782,7 +782,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start,
         // Maybe its faster just to create a substring view
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(p_Length);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(p_Length);
         mla_memcpy(result.embedded.data, mla_string_data(p_String) + p_Start, p_Length);
         return result;
     }
@@ -807,7 +807,7 @@ mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times)
     if (resultLength <= mla_global_config_string_sso_max_length) {
 
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(resultLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(resultLength);
 
         for (mla_size_t i = 0; i < p_Times; ++i) {
             const mla_size_t offset = i * length;
@@ -911,7 +911,7 @@ mla_string_t mla_string_trim(const mla_string_t &p_String) {
     if (mla_string_is_embedded(p_String)) {
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(end - start);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(end - start);
         mla_memcpy(result.embedded.data, p_String.embedded.data + start, end - start);
         return result;
     }
@@ -1004,7 +1004,7 @@ mla_bool_t mla_string_change_memory_layout(mla_string_t &p_String, mla_string_me
         }
 
         mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(length);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(length);
         mla_memcpy(result.embedded.data, data, length);
         p_String = result;
         return true;

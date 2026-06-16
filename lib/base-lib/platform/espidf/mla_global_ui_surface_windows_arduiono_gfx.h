@@ -223,7 +223,7 @@ const GFXfont* __mla_arduino_gfx_cache_getOrCreateFont(
 mla_ui_surface_size_t __arduino_gfx_surface_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
 
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(surface.resource);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr) {
         return size;
@@ -240,7 +240,7 @@ mla_ui_surface_size_t __arduino_gfx_surface_get_size(const mla_ui_surface_t &sur
 }
 
 mla_bool_t __arduino_gfx_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(surface.resource);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr) {
         return false;
@@ -254,7 +254,7 @@ mla_bool_t __arduino_gfx_surface_set_size(const mla_ui_surface_t &surface, mla_u
 mla_ui_surface_input_states_t __arduino_gfx_surface_input_states(const mla_ui_surface_t &surface) {
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
 
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(surface.resource);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr || !gfx_surface->is_initialized) {
         return inputStates;
@@ -280,7 +280,7 @@ mla_ui_surface_draw_size_t __arduino_gfx_surface_calc_text_size(const mla_ui_sur
         return size;
     }
 
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(surface.resource);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr) {
         return size;
@@ -339,7 +339,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                                                            mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                        mla_array_list_t<mla_ui_surface_input_event_t,
                                                            mla_ui_surface_input_event_initializer_t> &eventsSinceLastFrame) {
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(surface.resource);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr) {
         return false;
@@ -665,7 +665,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
 mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
 
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(data);
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(data);
 
     if (gfx_surface != nullptr) {
         gfx_surface->renderCache = __mla_arduino_gfx_cache_empty();
@@ -675,7 +675,7 @@ mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_platform_pointe
 }
 
 mla_bool_t __arduino_gfx_create_surface(mla_ui_surface_t &outSurface) {
-    mla_arduino_gfx_surface_t *gfx_surface = static_cast<mla_arduino_gfx_surface_t *>(
+    mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(
         mla_platform_malloc(sizeof(mla_arduino_gfx_surface_t)));
 
     if (gfx_surface == nullptr) {

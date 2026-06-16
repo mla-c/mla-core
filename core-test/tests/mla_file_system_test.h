@@ -410,7 +410,7 @@ void FileSystemReadWriteDataTest() {
     // Write test data
     if (writeStream.write != nullptr) {
         mla_size_t bytesWritten = writeStream.write(writeStream, 0, dataLength,
-                                               reinterpret_cast<const mla_byte_t*>(testData));
+                                               mla_r_cast<const mla_byte_t*>(testData));
         assert_equal(bytesWritten, dataLength,
                     "Should write all test data bytes");
     } else {
@@ -443,7 +443,7 @@ void FileSystemReadWriteDataTest() {
 
 
     // Read data back
-    mla_byte_t* readBuffer = static_cast<mla_byte_t*>(mla_platform_malloc(fileLength + 1));
+    mla_byte_t* readBuffer = mla_s_cast<mla_byte_t*>(mla_platform_malloc(fileLength + 1));
 
     if (readBuffer != nullptr && readStream.read != nullptr) {
         mla_size_t bytesRead = readStream.read(readStream, 0, fileLength, readBuffer);

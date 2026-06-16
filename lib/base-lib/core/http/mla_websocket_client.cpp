@@ -41,7 +41,7 @@ mla_string_t mla_private_websocket_client_websocket_key() {
     mla_bytes_t random_bytes = mla_bytes(16);
     mla_byte_t *key_data = mla_bytes_get_data_for_writing(random_bytes);
     for (mla_size_t i = 0; i < 16; i++) {
-        key_data[i] = static_cast<mla_byte_t>(mla_random_uint32() & 0xFF);
+        key_data[i] = mla_s_cast<mla_byte_t>(mla_random_uint32() & 0xFF);
     }
     return mla_bytes_to_base64(random_bytes);
 

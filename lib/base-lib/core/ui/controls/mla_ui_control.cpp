@@ -62,7 +62,7 @@ mla_uint8_t mla_ui_control_get_value_as_uint8(const mla_ui_control_t &control, c
                                               mla_uint8_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint8_t>(value->uint64Value);
+        return mla_s_cast<mla_uint8_t>(value->uint64Value);
     }
     return defaultValue;
 }
@@ -71,7 +71,7 @@ mla_int8_t mla_ui_control_get_value_as_int8(const mla_ui_control_t &control, con
                                             mla_int8_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int8_t>(value->int64Value);
+        return mla_s_cast<mla_int8_t>(value->int64Value);
     }
     return defaultValue;
 }
@@ -80,7 +80,7 @@ mla_uint16_t mla_ui_control_get_value_as_uint16(const mla_ui_control_t &control,
                                                 mla_uint16_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint16_t>(value->uint64Value);
+        return mla_s_cast<mla_uint16_t>(value->uint64Value);
     }
     return defaultValue;
 }
@@ -89,7 +89,7 @@ mla_int16_t mla_ui_control_get_value_as_int16(const mla_ui_control_t &control, c
                                               mla_int16_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int16_t>(value->int64Value);
+        return mla_s_cast<mla_int16_t>(value->int64Value);
     }
     return defaultValue;
 }
@@ -98,7 +98,7 @@ mla_uint32_t mla_ui_control_get_value_as_uint32(const mla_ui_control_t &control,
                                                 mla_uint32_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_uint32_t>(value->uint64Value);
+        return mla_s_cast<mla_uint32_t>(value->uint64Value);
     }
     return defaultValue;
 }
@@ -107,7 +107,7 @@ mla_int32_t mla_ui_control_get_value_as_int32(const mla_ui_control_t &control, c
                                               mla_int32_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_int32_t>(value->int64Value);
+        return mla_s_cast<mla_int32_t>(value->int64Value);
     }
     return defaultValue;
 }
@@ -134,7 +134,7 @@ mla_float_t mla_ui_control_get_value_as_float(const mla_ui_control_t &control, c
                                               mla_float_t defaultValue) {
     mla_ui_control_value_t* value = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, value)) {
-        return static_cast<mla_float_t>(value->doubleValue);
+        return mla_s_cast<mla_float_t>(value->doubleValue);
     }
     return defaultValue;
 }
@@ -177,84 +177,84 @@ mla_platform_pointer_t mla_ui_control_get_value_as_pointer(const mla_ui_control_
 mla_bool_t mla_ui_control_set_value_as_uint8(mla_ui_control_t &control, const mla_string_t &name, mla_uint8_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = mla_s_cast<mla_uint64_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.uint64Value = static_cast<mla_uint64_t>(value);
+    newValue.uint64Value = mla_s_cast<mla_uint64_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 
 mla_bool_t mla_ui_control_set_value_as_int8(mla_ui_control_t &control, const mla_string_t &name, mla_int8_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->int64Value = static_cast<mla_int64_t>(static_cast<mla_int32_t>(value));
+        internalValue->int64Value = mla_s_cast<mla_int64_t>(mla_s_cast<mla_int32_t>(value));
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.int64Value = static_cast<mla_int64_t>(static_cast<mla_int32_t>(value));
+    newValue.int64Value = mla_s_cast<mla_int64_t>(mla_s_cast<mla_int32_t>(value));
     return mla_array_list_add(control.values, newValue);
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint16(mla_ui_control_t &control, const mla_string_t &name, mla_uint16_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = mla_s_cast<mla_uint64_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.uint64Value = static_cast<mla_uint64_t>(value);
+    newValue.uint64Value = mla_s_cast<mla_uint64_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 
 mla_bool_t mla_ui_control_set_value_as_int16(mla_ui_control_t &control, const mla_string_t &name, mla_int16_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->int64Value = static_cast<mla_int64_t>(value);
+        internalValue->int64Value = mla_s_cast<mla_int64_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.int64Value = static_cast<mla_int64_t>(value);
+    newValue.int64Value = mla_s_cast<mla_int64_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 
 mla_bool_t mla_ui_control_set_value_as_uint32(mla_ui_control_t &control, const mla_string_t &name, mla_uint32_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->uint64Value = static_cast<mla_uint64_t>(value);
+        internalValue->uint64Value = mla_s_cast<mla_uint64_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.uint64Value = static_cast<mla_uint64_t>(value);
+    newValue.uint64Value = mla_s_cast<mla_uint64_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 
 mla_bool_t mla_ui_control_set_value_as_int32(mla_ui_control_t &control, const mla_string_t &name, mla_int32_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->int64Value = static_cast<mla_int64_t>(value);
+        internalValue->int64Value = mla_s_cast<mla_int64_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.int64Value = static_cast<mla_int64_t>(value);
+    newValue.int64Value = mla_s_cast<mla_int64_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 
@@ -289,14 +289,14 @@ mla_bool_t mla_ui_control_set_value_as_int64(mla_ui_control_t &control, const ml
 mla_bool_t mla_ui_control_set_value_as_float(mla_ui_control_t &control, const mla_string_t &name, mla_float_t value) {
     mla_ui_control_value_t* internalValue = nullptr;
     if (mla_private_ui_control_find_value_by_name(control, name, internalValue)) {
-        internalValue->doubleValue = static_cast<mla_double_t>(value);
+        internalValue->doubleValue = mla_s_cast<mla_double_t>(value);
         return true;
     }
 
     // Not found, create new
     mla_ui_control_value_t newValue = mla_ui_control_value_empty();
     newValue.name = name;
-    newValue.doubleValue = static_cast<mla_double_t>(value);
+    newValue.doubleValue = mla_s_cast<mla_double_t>(value);
     return mla_array_list_add(control.values, newValue);
 }
 

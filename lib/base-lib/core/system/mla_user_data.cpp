@@ -332,7 +332,7 @@ mla_bool_t mla_user_data_inc_int8(mla_user_data_t& target, mla_user_data_id id, 
     }
 
     if (user_data->id == id) {
-        user_data->data.asInt8 = static_cast<mla_int8_t>(user_data->data.asInt8 + step);
+        user_data->data.asInt8 = mla_s_cast<mla_int8_t>(user_data->data.asInt8 + step);
     } else {
         user_data->id = id;
         user_data->external_data = mla_pointer_null();
@@ -371,7 +371,7 @@ mla_bool_t mla_user_data_inc_int16(mla_user_data_t& target, mla_user_data_id id,
     }
 
     if (user_data->id == id) {
-        user_data->data.asInt16 = static_cast<mla_int16_t>(user_data->data.asInt16 + step);
+        user_data->data.asInt16 = mla_s_cast<mla_int16_t>(user_data->data.asInt16 + step);
     } else {
         user_data->id = id;
         user_data->external_data = mla_pointer_null();
@@ -531,11 +531,11 @@ mla_bool_t mla_user_data_dec_int8(mla_user_data_t& target, mla_user_data_id id, 
     }
 
     if (user_data->id == id) {
-        user_data->data.asInt8 = static_cast<mla_int8_t>(user_data->data.asInt8 - step);
+        user_data->data.asInt8 = mla_s_cast<mla_int8_t>(user_data->data.asInt8 - step);
     } else {
         user_data->id = id;
         user_data->external_data = mla_pointer_null();
-        user_data->data.asInt8 = static_cast<mla_int8_t>(-step);
+        user_data->data.asInt8 = mla_s_cast<mla_int8_t>(-step);
     }
 
     return true;
@@ -571,11 +571,11 @@ mla_bool_t mla_user_data_dec_int16(mla_user_data_t& target, mla_user_data_id id,
     }
 
     if (user_data->id == id) {
-        user_data->data.asInt16 = static_cast<mla_int16_t>(user_data->data.asInt16 - step);
+        user_data->data.asInt16 = mla_s_cast<mla_int16_t>(user_data->data.asInt16 - step);
     } else {
         user_data->id = id;
         user_data->external_data = mla_pointer_null();
-        user_data->data.asInt16 = static_cast<mla_int16_t>(-step);
+        user_data->data.asInt16 = mla_s_cast<mla_int16_t>(-step);
     }
 
     return true;
@@ -807,7 +807,7 @@ mla_bool_t mla_user_data_equal(const mla_user_data_t& a, const mla_user_data_t& 
 
 mla_pointer_t mla_user_data_get_pointer(const mla_user_data_t& userData, mla_user_data_id id) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
 
     if (found == nullptr) {
         return mla_pointer_null();
@@ -818,7 +818,7 @@ mla_pointer_t mla_user_data_get_pointer(const mla_user_data_t& userData, mla_use
 
 mla_int8_t mla_user_data_get_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -827,7 +827,7 @@ mla_int8_t mla_user_data_get_int8(const mla_user_data_t& userData, mla_user_data
 
 mla_uint8_t mla_user_data_get_uint8(const mla_user_data_t& userData, mla_user_data_id id, mla_uint8_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -836,7 +836,7 @@ mla_uint8_t mla_user_data_get_uint8(const mla_user_data_t& userData, mla_user_da
 
 mla_int16_t mla_user_data_get_int16(const mla_user_data_t& userData, mla_user_data_id id, mla_int16_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -845,7 +845,7 @@ mla_int16_t mla_user_data_get_int16(const mla_user_data_t& userData, mla_user_da
 
 mla_uint16_t mla_user_data_get_uint16(const mla_user_data_t& userData, mla_user_data_id id, mla_uint16_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -854,7 +854,7 @@ mla_uint16_t mla_user_data_get_uint16(const mla_user_data_t& userData, mla_user_
 
 mla_int32_t mla_user_data_get_int32(const mla_user_data_t& userData, mla_user_data_id id, mla_int32_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -863,7 +863,7 @@ mla_int32_t mla_user_data_get_int32(const mla_user_data_t& userData, mla_user_da
 
 mla_uint32_t mla_user_data_get_uint32(const mla_user_data_t& userData, mla_user_data_id id, mla_uint32_t defaultValue) {;
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -872,7 +872,7 @@ mla_uint32_t mla_user_data_get_uint32(const mla_user_data_t& userData, mla_user_
 
 mla_int64_t mla_user_data_get_int64(const mla_user_data_t& userData, mla_user_data_id id, mla_int64_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -881,7 +881,7 @@ mla_int64_t mla_user_data_get_int64(const mla_user_data_t& userData, mla_user_da
 
 mla_uint64_t mla_user_data_get_uint64(const mla_user_data_t& userData, mla_user_data_id id, mla_uint64_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -890,7 +890,7 @@ mla_uint64_t mla_user_data_get_uint64(const mla_user_data_t& userData, mla_user_
 
 mla_float_t mla_user_data_get_float(const mla_user_data_t& userData, mla_user_data_id id, mla_float_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -899,7 +899,7 @@ mla_float_t mla_user_data_get_float(const mla_user_data_t& userData, mla_user_da
 
 mla_double_t mla_user_data_get_double(const mla_user_data_t& userData, mla_user_data_id id, mla_double_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -908,7 +908,7 @@ mla_double_t mla_user_data_get_double(const mla_user_data_t& userData, mla_user_
 
 mla_bool_t mla_user_data_get_bool(const mla_user_data_t& userData, mla_user_data_id id, mla_bool_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -917,7 +917,7 @@ mla_bool_t mla_user_data_get_bool(const mla_user_data_t& userData, mla_user_data
 
 mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, mla_user_data_id id, mla_string_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
 
     if (found == nullptr) {
         return defaultValue;
@@ -934,7 +934,7 @@ mla_string_t mla_user_data_get_string(const mla_user_data_t& userData, mla_user_
 
 mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, mla_user_data_id id, mla_char_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }
@@ -943,7 +943,7 @@ mla_char_t mla_user_data_get_char(const mla_user_data_t& userData, mla_user_data
 
 mla_int8_t mla_user_data_get_and_replace_int8(const mla_user_data_t& userData, mla_user_data_id id, mla_int8_t newValue, mla_int8_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -965,7 +965,7 @@ mla_int8_t mla_user_data_get_and_replace_int8(const mla_user_data_t& userData, m
 
 mla_uint8_t mla_user_data_get_and_replace_uint8(const mla_user_data_t& userData, mla_user_data_id id, mla_uint8_t newValue, mla_uint8_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -987,7 +987,7 @@ mla_uint8_t mla_user_data_get_and_replace_uint8(const mla_user_data_t& userData,
 
 mla_int16_t mla_user_data_get_and_replace_int16(const mla_user_data_t& userData, mla_user_data_id id, mla_int16_t newValue, mla_int16_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1009,7 +1009,7 @@ mla_int16_t mla_user_data_get_and_replace_int16(const mla_user_data_t& userData,
 
 mla_uint16_t mla_user_data_get_and_replace_uint16(const mla_user_data_t& userData, mla_user_data_id id, mla_uint16_t newValue, mla_uint16_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1031,7 +1031,7 @@ mla_uint16_t mla_user_data_get_and_replace_uint16(const mla_user_data_t& userDat
 
 mla_int32_t mla_user_data_get_and_replace_int32(const mla_user_data_t& userData, mla_user_data_id id, mla_int32_t newValue, mla_int32_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1053,7 +1053,7 @@ mla_int32_t mla_user_data_get_and_replace_int32(const mla_user_data_t& userData,
 
 mla_uint32_t mla_user_data_get_and_replace_uint32(const mla_user_data_t& userData, mla_user_data_id id, mla_uint32_t newValue, mla_uint32_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1075,7 +1075,7 @@ mla_uint32_t mla_user_data_get_and_replace_uint32(const mla_user_data_t& userDat
 
 mla_int64_t mla_user_data_get_and_replace_int64(const mla_user_data_t& userData, mla_user_data_id id, mla_int64_t newValue, mla_int64_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1097,7 +1097,7 @@ mla_int64_t mla_user_data_get_and_replace_int64(const mla_user_data_t& userData,
 
 mla_uint64_t mla_user_data_get_and_replace_uint64(const mla_user_data_t& userData, mla_user_data_id id, mla_uint64_t newValue, mla_uint64_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1118,7 +1118,7 @@ mla_uint64_t mla_user_data_get_and_replace_uint64(const mla_user_data_t& userDat
 }
 mla_float_t mla_user_data_get_and_replace_float(const mla_user_data_t& userData, mla_user_data_id id, mla_float_t newValue, mla_float_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1140,7 +1140,7 @@ mla_float_t mla_user_data_get_and_replace_float(const mla_user_data_t& userData,
 
 mla_double_t mla_user_data_get_and_replace_double(const mla_user_data_t& userData, mla_user_data_id id, mla_double_t newValue, mla_double_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1162,7 +1162,7 @@ mla_double_t mla_user_data_get_and_replace_double(const mla_user_data_t& userDat
 
 mla_bool_t mla_user_data_get_and_replace_bool(const mla_user_data_t& userData, mla_user_data_id id, mla_bool_t newValue, mla_bool_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1184,7 +1184,7 @@ mla_bool_t mla_user_data_get_and_replace_bool(const mla_user_data_t& userData, m
 
 mla_char_t mla_user_data_get_and_replace_char(const mla_user_data_t& userData, mla_user_data_id id, mla_char_t newValue, mla_char_t defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1206,7 +1206,7 @@ mla_char_t mla_user_data_get_and_replace_char(const mla_user_data_t& userData, m
 
 mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userData, mla_user_data_id id, const mla_string_t& newValue, const mla_string_t& defaultValue) {
 
-    mla_user_data_item_t* found = mla_private_user_data_get_for_update(const_cast<mla_user_data_t &>(userData), id);
+    mla_user_data_item_t* found = mla_private_user_data_get_for_update(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         // Update failed, return default value
         return defaultValue;
@@ -1238,7 +1238,7 @@ mla_string_t mla_user_data_get_and_replace_string(const mla_user_data_t& userDat
 
 mla_native_resource_t mla_user_data_get_native_resource(const mla_user_data_t& userData, mla_user_data_id id, mla_native_resource_t defaultValue) {
 
-    const mla_user_data_item_t* found = mla_user_data_get(const_cast<mla_user_data_t &>(userData), id);
+    const mla_user_data_item_t* found = mla_user_data_get(mla_c_cast<mla_user_data_t &>(userData), id);
     if (found == nullptr) {
         return defaultValue;
     }

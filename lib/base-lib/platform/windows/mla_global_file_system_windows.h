@@ -125,7 +125,7 @@ mla_bool_t mla_private_file_system_native_create_directory_recursive_wide(LPCWST
 
         if (lastBackslash != nullptr && lastBackslash != wide_path) {
             // Calculate parent path length
-            mla_size_t parentLen = static_cast<mla_size_t>(lastBackslash - wide_path);
+            mla_size_t parentLen = mla_s_cast<mla_size_t>(lastBackslash - wide_path);
 
             // Use stack buffer for parent path (Windows supports up to 32767 character paths)
             WCHAR parentPath[MLA_WINDOWS_MAX_PATH];
@@ -262,7 +262,7 @@ mla_bool_t mla_private_file_system_native_list_files(mla_file_system_t& file_sys
     do {
         // Skip directories and special entries (. and ..)
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0U) {
-            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), static_cast<mla_size_t>(wcslen(findData.cFileName))};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), mla_s_cast<mla_size_t>(wcslen(findData.cFileName))};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }
@@ -309,7 +309,7 @@ mla_bool_t mla_private_file_system_native_list_directory(mla_file_system_t& file
 
         // Only include directories
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0U) {
-            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), static_cast<mla_size_t>(wcslen(findData.cFileName))};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), mla_s_cast<mla_size_t>(wcslen(findData.cFileName))};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }
@@ -322,7 +322,7 @@ mla_bool_t mla_private_file_system_native_list_directory(mla_file_system_t& file
 void mla_private_file_system_native_close_file(const mla_native_resource_t& userData) {
 
     (void)userData;
-    HANDLE hFile = reinterpret_cast<HANDLE>(userData.asPointer);
+    HANDLE hFile = mla_r_cast<HANDLE>(userData.asPointer);
 
     CloseHandle(hFile);
 
@@ -368,7 +368,7 @@ mla_size_t mla_private_file_system_native_open_file_position(const mla_file_syst
     LARGE_INTEGER pos;
 
     if (SetFilePointerEx(hFile, li, &pos, FILE_CURRENT) == TRUE) {
-        return static_cast<mla_size_t>(pos.QuadPart);
+        return mla_s_cast<mla_size_t>(pos.QuadPart);
     }
 
     return 0;
@@ -385,7 +385,7 @@ mla_size_t mla_private_file_system_native_open_file_length(const mla_file_system
 
     LARGE_INTEGER fileSize;
     if (GetFileSizeEx(hFile, &fileSize) == TRUE) {
-        return static_cast<mla_size_t>(fileSize.QuadPart);
+        return mla_s_cast<mla_size_t>(fileSize.QuadPart);
     }
 
     return 0;
@@ -420,8 +420,8 @@ mla_size_t mla_private_file_system_native_open_file_read(const mla_file_system_s
 
 
     DWORD bytesRead = 0;
-    if (ReadFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesRead, nullptr) == TRUE) {
-        return static_cast<mla_size_t>(bytesRead);
+    if (ReadFile(hFile, buffer + offset, mla_s_cast<DWORD>(length), &bytesRead, nullptr) == TRUE) {
+        return mla_s_cast<mla_size_t>(bytesRead);
     }
 
     return 0;
@@ -437,8 +437,8 @@ mla_size_t mla_private_file_system_native_open_file_write(const mla_file_system_
 
 
     DWORD bytesWritten = 0;
-    if (WriteFile(hFile, buffer + offset, static_cast<DWORD>(length), &bytesWritten, nullptr) == TRUE) {
-        return static_cast<mla_size_t>(bytesWritten);
+    if (WriteFile(hFile, buffer + offset, mla_s_cast<DWORD>(length), &bytesWritten, nullptr) == TRUE) {
+        return mla_s_cast<mla_size_t>(bytesWritten);
     }
 
     return 0;
@@ -594,7 +594,7 @@ mla_file_system_t mla_file_system_native_create_data_restricted(const mla_string
     // Create UTF-16 buffer from TCHAR path
     mla_string_utf16_buffer_t moduleBuffer = {
         mla_platform_pointer_to_managed_pointer(moduleFileName),
-        static_cast<mla_size_t>(wcslen(moduleFileName))
+        mla_s_cast<mla_size_t>(wcslen(moduleFileName))
     };
 
     // Convert to mla_string_t

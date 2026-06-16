@@ -35,5 +35,5 @@ mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla
 
     const mla_char_t* data = mla_string_data(string);
 
-    return output.write(output, 0, length, reinterpret_cast<const mla_byte_t*>(data)) == length;
+    return output.write(output, 0, length, mla_r_cast<const mla_byte_t*>(data)) == length;
 }

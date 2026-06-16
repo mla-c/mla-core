@@ -25,7 +25,7 @@ mla_stream_input_t mla_stream_input_from_string(const mla_string_t &string) {
         return mla_stream_noop_input();
     }
 
-    return mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(mla_string_data(string))), mla_string_length(string));
+    return mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(string))), mla_string_length(string));
 }
 
 mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_length) {
@@ -96,7 +96,7 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
 
 mla_size_t mla_stream_input_read_with_timeout(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer, mla_size_t timeout_ms) {
 
-    mla_int32_t remaining_timeout = static_cast<mla_int32_t>(timeout_ms);
+    mla_int32_t remaining_timeout = mla_s_cast<mla_int32_t>(timeout_ms);
     mla_size_t result = 0;
 
     while (true) {
@@ -124,7 +124,7 @@ mla_size_t mla_stream_output_write_with_timeout(mla_stream_output_t &output, mla
         return 0;
     }
 
-    mla_int32_t remaining_timeout = static_cast<mla_int32_t>(timeout_ms);
+    mla_int32_t remaining_timeout = mla_s_cast<mla_int32_t>(timeout_ms);
     mla_size_t result = 0;
 
     while (true) {

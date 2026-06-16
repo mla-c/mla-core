@@ -125,7 +125,7 @@ mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr
 
 template <typename T>
 T* mla_pointer_get_data(const mla_pointer_t& ptr) {
-    return static_cast<T*>(mla_pointer_get_platform_pointer(ptr));
+    return mla_s_cast<T*>(mla_pointer_get_platform_pointer(ptr));
 }
 
 mla_pointer_t mla_pointer_null();
@@ -194,6 +194,75 @@ typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla
 #define mla_volatile volatile
 
 #define mla_thread_local thread_local
+
+// NOLINTBEGIN(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
+
+// -------------------------------------------------------------
+// Framework Reference Forwarding (Replacement for std::forward)
+// -------------------------------------------------------------
+
+// Used to deduce the raw type by stripping references
+template<class T> struct mla_remove_reference { typedef T type; };
+template<class T> struct mla_remove_reference<T&> { typedef T type; };
+template<class T> struct mla_remove_reference<T&&> { typedef T type; };
+
+// Equivalent to std::forward for lvalues
+template<class T>
+inline T&& mla_forward(typename mla_remove_reference<T>::type& t) {
+    return static_cast<T&&>(t);
+}
+
+// Equivalent to std::forward for rvalues
+template<class T>
+inline T&& mla_forward(typename mla_remove_reference<T>::type&& t) {
+    return static_cast<T&&>(t);
+}
+
+// -------------------------------------------------------------
+// Cast Templates
+// -------------------------------------------------------------
+// These templates abstract away the choice between C-style casts and C++ casts based on the global configuration.
+// `mla_r_cast` is for reinterpret casts, `mla_s_cast` for static casts, `mla_d_cast` for dynamic casts, and `mla_c_cast` for const casts.
+// Depending on the value of `mla_global_config_data_type_use_c_style_casts`,
+// these will either use C-style casts or the appropriate C++ cast operator.
+
+template<typename T, typename U>
+inline T mla_r_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return reinterpret_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_s_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return static_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_d_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return dynamic_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_c_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return const_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+// NOLINTEND(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
 
 // Atomic types
 struct mla_atomic_int32_t {
@@ -485,7 +554,7 @@ template <typename T>
 void mla_pointer_default_struct_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
 
-    T* l_Data = reinterpret_cast<T*>(data);
+    T* l_Data = mla_r_cast<T*>(data);
 
     if (l_Data == nullptr) {
         return;
@@ -533,7 +602,7 @@ template <typename T>
 void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
 
-    T* data_ptr = reinterpret_cast<T*>(data);
+    T* data_ptr = mla_r_cast<T*>(data);
 
     if (data_ptr == nullptr) {
         return;
@@ -542,7 +611,7 @@ void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t da
     T data_resolved = *data_ptr;
 
     if (userData.asPointer != nullptr) {
-        mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook = reinterpret_cast<mla_malloc_struct_ex_clean_up_hook_t<T>>(userData.asPointer);
+        mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook = mla_r_cast<mla_malloc_struct_ex_clean_up_hook_t<T>>(userData.asPointer);
         clean_up_hook(data_resolved);
     }
 
@@ -551,7 +620,7 @@ void mla_pointer_default_struct_with_extension_cleanup(mla_platform_pointer_t da
 
 template <typename T>
 mla_dynamic_data_t mla_private_dynamic_data_from_pointer_cleanup_hook(mla_malloc_struct_ex_clean_up_hook_t<T> clean_up_hook) {
-    return mla_dynamic_data_from_pointer(reinterpret_cast<mla_platform_pointer_t>(clean_up_hook));
+    return mla_dynamic_data_from_pointer(mla_r_cast<mla_platform_pointer_t>(clean_up_hook));
 }
 
 

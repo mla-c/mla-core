@@ -179,12 +179,12 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
         mla_test_executor_destroy(l_TestExecutor);
         mla_benchmark_executor_destroy(l_BenchmarkExecutor);
-        return static_cast<int>(l_FailedTest);
+        return mla_s_cast<int>(l_FailedTest);
     }
 
     if (p_AllocationFailureSeedCount > 0) {
         // Seed count mode: run regular tests first, then seed-based tests only for passing ones
-        l_SuccessMap = static_cast<mla_test_bool_t *>(mla_test_malloc(sizeof(mla_test_bool_t) * l_TestExecutor.count));
+        l_SuccessMap = mla_s_cast<mla_test_bool_t *>(mla_test_malloc(sizeof(mla_test_bool_t) * l_TestExecutor.count));
         for (mla_test_uint32_t i = 0; i < l_TestExecutor.count; i++) {
             l_SuccessMap[i] = false;
         }
@@ -194,7 +194,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
         mla_test_print("Tests completed with ", 21);
         mla_test_char_t buffer[12];
-        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), static_cast<mla_test_uint32_t>(l_FailedTest));
+        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), mla_s_cast<mla_test_uint32_t>(l_FailedTest));
         mla_test_print(buffer, strLength);
         mla_test_print(" failed tests\n", 14);
 
@@ -214,7 +214,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
 
             mla_test_print("Tests completed with ", 21);
             mla_test_char_t buffer[12];
-            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), static_cast<mla_test_uint32_t>(l_FailedTest));
+            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), mla_s_cast<mla_test_uint32_t>(l_FailedTest));
             mla_test_print(buffer, strLength);
             mla_test_print(" failed tests\n", 14);
         }
@@ -245,7 +245,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     mla_test_executor_destroy(l_TestExecutor);
     mla_benchmark_executor_destroy(l_BenchmarkExecutor);
 
-    return static_cast<int>(l_FailedTest);
+    return mla_s_cast<int>(l_FailedTest);
 }
 
 #endif //MAIN_TEST_H

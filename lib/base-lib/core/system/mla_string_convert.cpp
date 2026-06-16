@@ -15,7 +15,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint8_t value = isNegative ? static_cast<mla_uint8_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint8_t>(p_Value);
+        mla_uint8_t value = isNegative ? mla_s_cast<mla_uint8_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint8_t>(p_Value);
 
         if (isNegative) {
             result.embedded.data[index++] = '-';
@@ -23,7 +23,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -37,7 +37,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         // Fall back to heap allocation for longer strings
@@ -51,7 +51,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint8_t value = isNegative ? static_cast<mla_uint8_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint8_t>(p_Value);
+        mla_uint8_t value = isNegative ? mla_s_cast<mla_uint8_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint8_t>(p_Value);
 
         if (isNegative) {
             str_data[index++] = '-';
@@ -59,7 +59,7 @@ mla_string_t mla_string_from_int8(mla_int8_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -92,7 +92,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         mla_uint8_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -107,7 +107,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -123,7 +123,7 @@ mla_string_t mla_string_from_uint8(mla_uint8_t p_Value) {
         mla_uint8_t value = p_Value;
 
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -155,7 +155,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint16_t value = isNegative ? static_cast<mla_uint16_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint16_t>(p_Value);
+        mla_uint16_t value = isNegative ? mla_s_cast<mla_uint16_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint16_t>(p_Value);
 
         if (isNegative) {
             result.embedded.data[index++] = '-';
@@ -163,7 +163,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -177,7 +177,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -191,7 +191,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint16_t value = isNegative ? static_cast<mla_uint16_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint16_t>(p_Value);
+        mla_uint16_t value = isNegative ? mla_s_cast<mla_uint16_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint16_t>(p_Value);
 
         if (isNegative) {
             str_data[index++] = '-';
@@ -199,7 +199,7 @@ mla_string_t mla_string_from_int16(mla_int16_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -232,7 +232,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         mla_uint16_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -247,7 +247,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -263,7 +263,7 @@ mla_string_t mla_string_from_uint16(mla_uint16_t p_Value) {
         mla_uint16_t value = p_Value;
 
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -295,7 +295,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint32_t value = isNegative ? static_cast<mla_uint32_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint32_t>(p_Value);
+        mla_uint32_t value = isNegative ? mla_s_cast<mla_uint32_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint32_t>(p_Value);
 
         if (isNegative) {
             result.embedded.data[index++] = '-';
@@ -303,7 +303,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -317,7 +317,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -331,7 +331,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint32_t value = isNegative ? static_cast<mla_uint32_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint32_t>(p_Value);
+        mla_uint32_t value = isNegative ? mla_s_cast<mla_uint32_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint32_t>(p_Value);
 
         if (isNegative) {
             str_data[index++] = '-';
@@ -339,7 +339,7 @@ mla_string_t mla_string_from_int32(mla_int32_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -372,7 +372,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         mla_uint32_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -387,7 +387,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -403,7 +403,7 @@ mla_string_t mla_string_from_uint32(mla_uint32_t p_Value) {
         mla_uint32_t value = p_Value;
 
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -436,7 +436,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint64_t value = isNegative ? static_cast<mla_uint64_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint64_t>(p_Value);
+        mla_uint64_t value = isNegative ? mla_s_cast<mla_uint64_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint64_t>(p_Value);
 
         if (isNegative) {
             result.embedded.data[index++] = '-';
@@ -444,7 +444,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -458,7 +458,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -472,7 +472,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t index = 0;
         mla_bool_t isNegative = p_Value < 0;
-        mla_uint64_t value = isNegative ? static_cast<mla_uint64_t>(-(p_Value + 1)) + 1 : static_cast<mla_uint64_t>(p_Value);
+        mla_uint64_t value = isNegative ? mla_s_cast<mla_uint64_t>(-(p_Value + 1)) + 1 : mla_s_cast<mla_uint64_t>(p_Value);
 
         if (isNegative) {
             str_data[index++] = '-';
@@ -480,7 +480,7 @@ mla_string_t mla_string_from_int64(mla_int64_t p_Value) {
 
         mla_size_t startDigits = index;
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -513,7 +513,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         mla_uint64_t value = p_Value;
 
         do {
-            result.embedded.data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            result.embedded.data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -528,7 +528,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
             end--;
         }
 
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
         return result;
     } else {
         const mla_size_t bufferSize = maxLength + 1;
@@ -544,7 +544,7 @@ mla_string_t mla_string_from_uint64(mla_uint64_t p_Value) {
         mla_uint64_t value = p_Value;
 
         do {
-            str_data[index++] = static_cast<mla_char_t>('0' + (value % 10));
+            str_data[index++] = mla_s_cast<mla_char_t>('0' + (value % 10));
             value /= 10;
         } while (value > 0);
 
@@ -615,8 +615,8 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     p_Value += roundingFactor;
 
     // Split parts
-    mla_uint64_t integerPart = static_cast<mla_uint64_t>(p_Value);
-    mla_float_t fractionalPart = p_Value - static_cast<mla_float_t>(integerPart);
+    mla_uint64_t integerPart = mla_s_cast<mla_uint64_t>(p_Value);
+    mla_float_t fractionalPart = p_Value - mla_s_cast<mla_float_t>(integerPart);
 
     // Count integer digits
     mla_size_t intDigits = 0;
@@ -647,7 +647,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
     if (totalLength <= mla_global_config_string_sso_max_length) {
         // Initialize for SSO
         result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(totalLength);
         dest = result.embedded.data;
     } else {
         // Initialize for Heap
@@ -682,7 +682,7 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
         dest[writerPos] = '0';
     } else {
         while (integerPart > 0) {
-            dest[writerPos--] = static_cast<mla_char_t>('0' + (integerPart % 10));
+            dest[writerPos--] = mla_s_cast<mla_char_t>('0' + (integerPart % 10));
             integerPart /= 10;
         }
     }
@@ -694,9 +694,9 @@ mla_string_t mla_string_from_float(mla_float_t p_Value, mla_size_t p_DecimalPlac
 
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0F;
-            mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            dest[index++] = static_cast<mla_char_t>('0' + digit);
-            fractionalPart -= static_cast<mla_float_t>(digit);
+            mla_uint8_t digit = mla_s_cast<mla_uint8_t>(fractionalPart);
+            dest[index++] = mla_s_cast<mla_char_t>('0' + digit);
+            fractionalPart -= mla_s_cast<mla_float_t>(digit);
         }
     }
 
@@ -747,8 +747,8 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     p_Value += roundingFactor;
 
     // Split parts
-    mla_uint64_t integerPart = static_cast<mla_uint64_t>(p_Value);
-    mla_double_t fractionalPart = p_Value - static_cast<mla_double_t>(integerPart);
+    mla_uint64_t integerPart = mla_s_cast<mla_uint64_t>(p_Value);
+    mla_double_t fractionalPart = p_Value - mla_s_cast<mla_double_t>(integerPart);
 
     // Count integer digits
     mla_size_t intDigits = 0;
@@ -778,7 +778,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
     if (totalLength <= mla_global_config_string_sso_max_length) {
         // Initialize for SSO
         result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(totalLength);
         dest = result.embedded.data;
     } else {
         // Initialize for Heap
@@ -813,7 +813,7 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
         dest[writerPos] = '0';
     } else {
         while (integerPart > 0) {
-            dest[writerPos--] = static_cast<mla_char_t>('0' + (integerPart % 10));
+            dest[writerPos--] = mla_s_cast<mla_char_t>('0' + (integerPart % 10));
             integerPart /= 10;
         }
     }
@@ -825,9 +825,9 @@ mla_string_t mla_string_from_double(mla_double_t p_Value, mla_size_t p_DecimalPl
 
         for (mla_size_t i = 0; i < p_DecimalPlaces; i++) {
             fractionalPart *= 10.0;
-            mla_uint8_t digit = static_cast<mla_uint8_t>(fractionalPart);
-            dest[index++] = static_cast<mla_char_t>('0' + digit);
-            fractionalPart -= static_cast<mla_double_t>(digit);
+            mla_uint8_t digit = mla_s_cast<mla_uint8_t>(fractionalPart);
+            dest[index++] = mla_s_cast<mla_char_t>('0' + digit);
+            fractionalPart -= mla_s_cast<mla_double_t>(digit);
         }
     }
 
@@ -1052,7 +1052,7 @@ mla_string_t mla_string_from_uint8_hex_short(mla_uint8_t p_Value) {
             result.embedded.data[index++] = hexDigits[value & 0xF];
             value >>= 4;
         }
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
 
         // Reverse in place
         for (mla_size_t i = 0; i < index / 2; ++i) {
@@ -1123,7 +1123,7 @@ mla_string_t mla_string_from_uint16_hex_short(mla_uint16_t p_Value) {
             result.embedded.data[index++] = hexDigits[value & 0xF];
             value >>= 4;
         }
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
 
         for (mla_size_t i = 0; i < index / 2; ++i) {
             mla_char_t temp = result.embedded.data[i];
@@ -1192,7 +1192,7 @@ mla_string_t mla_string_from_uint32_hex_short(mla_uint32_t p_Value) {
             result.embedded.data[index++] = hexDigits[value & 0xF];
             value >>= 4;
         }
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
 
         for (mla_size_t i = 0; i < index / 2; ++i) {
             mla_char_t temp = result.embedded.data[i];
@@ -1262,7 +1262,7 @@ mla_string_t mla_string_from_uint64_hex_short(mla_uint64_t p_Value) {
             result.embedded.data[index++] = hexDigits[value & 0xF];
             value >>= 4;
         }
-        result.embedded.length = static_cast<mla_uint8_t>(index);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(index);
 
         for (mla_size_t i = 0; i < index / 2; ++i) {
             mla_char_t temp = result.embedded.data[i];

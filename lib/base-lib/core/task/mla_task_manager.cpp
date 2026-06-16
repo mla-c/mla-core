@@ -17,7 +17,7 @@ mla_int32_t mla_private_task_manager_find_task_by_name_no_lock(const mla_string_
     for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
         const mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
         if (mla_string_equals(task.name, name)) {
-            return static_cast<mla_int32_t>(i); // Return the index of the task
+            return mla_s_cast<mla_int32_t>(i); // Return the index of the task
         }
     }
     return -1;
@@ -26,7 +26,7 @@ mla_int32_t mla_private_task_manager_find_task_by_name_no_lock(const mla_string_
 void mla_private_task_manager_cleanup_tasks_no_lock() {
 
     // Cleanup tasks which are completed
-    for (mla_int32_t i = static_cast<mla_int32_t>(mla_array_list_size(g_TaskManager.tasks)) - 1; i >= 0; --i) {
+    for (mla_int32_t i = mla_s_cast<mla_int32_t>(mla_array_list_size(g_TaskManager.tasks)) - 1; i >= 0; --i) {
 
         mla_task_t task = mla_array_list_get_unsafe(g_TaskManager.tasks, i);
 
@@ -194,7 +194,7 @@ mla_array_list_t<mla_task_info_t, mla_task_info_initializer> mla_task_manager_ge
         mla_task_state state = TASK_STATE_UNKNOWN;
 
         if (sharedStates != nullptr) {
-            state = static_cast<mla_task_state>(sharedStates->processingState.value);
+            state = mla_s_cast<mla_task_state>(sharedStates->processingState.value);
         }
 
         mla_task_info_t info = {
@@ -240,7 +240,7 @@ mla_task_info_t mla_task_manager_get_task_info(const mla_string_t& name) {
             mla_task_state state = TASK_STATE_UNKNOWN;
 
             if (sharedStates != nullptr) {
-                state = static_cast<mla_task_state>(sharedStates->processingState.value);
+                state = mla_s_cast<mla_task_state>(sharedStates->processingState.value);
             }
 
             result.priority = task.priority;

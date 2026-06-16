@@ -12,7 +12,7 @@ mla_user_data_id_init(mla_cli_app_user_data_name)
 mla_user_data_id_init(mla_cli_submodule_user_data_name)
 
 void mla_private_cli_write_string(mla_stream_output_t &outputStream, const mla_string_t& str) {
-    outputStream.write(outputStream, 0, mla_string_length(str), reinterpret_cast<const mla_byte_t*>(mla_string_data(str)));
+    outputStream.write(outputStream, 0, mla_string_length(str), mla_r_cast<const mla_byte_t*>(mla_string_data(str)));
 }
 
 void mla_private_cli_command_execute_outstream_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
@@ -32,7 +32,7 @@ void mla_private_cli_command_execute_outstream_c_string_to_stream_bridge(const m
         return;
     }
 
-    output->write(*output, 0, mla_strlen(data), reinterpret_cast<const mla_byte_t*>(data));
+    output->write(*output, 0, mla_strlen(data), mla_r_cast<const mla_byte_t*>(data));
 }
 
 void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
@@ -42,7 +42,7 @@ void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t
         // Dont print the root module
         for (mla_size_t i = 1; i < size; ++i) {
             if (i != 1) {
-                outputStream.write(outputStream, 0, 1, reinterpret_cast<const mla_byte_t*>(">"));
+                outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>(">"));
             }
 
             mla_string_t currentModuleName = mla_array_list_get_ref(app.activeModules, i)->moduleName;
@@ -50,7 +50,7 @@ void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t
         }
     }
 
-    outputStream.write(outputStream, 0, 1, reinterpret_cast<const mla_byte_t*>(">"));
+    outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>(">"));
 }
 
 void mla_private_cli_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
@@ -300,18 +300,18 @@ void mla_private_cli_process_parser_result(const mla_string_t& inputCommand, con
         mla_private_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
         mla_private_cli_write_string(outputStream, mla_string("  "));
         mla_private_cli_write_string(outputStream, inputCommand);
-        outputStream.write(outputStream, 0, 1,  reinterpret_cast<const mla_byte_t*>("\n"));
+        outputStream.write(outputStream, 0, 1,  mla_r_cast<const mla_byte_t*>("\n"));
 
         // There is something missing show the possible auto completions
         if (mla_array_list_size(parser_result.possibleAutoCompletions) > 0) {
-            outputStream.write(outputStream, 0, 1,  reinterpret_cast<const mla_byte_t*>("\n"));
+            outputStream.write(outputStream, 0, 1,  mla_r_cast<const mla_byte_t*>("\n"));
             mla_private_cli_write_string(outputStream, mla_string("Do you mean:\n"));
             for (mla_size_t i = 0; i < mla_array_list_size(parser_result.possibleAutoCompletions); ++i) {
                 mla_string_t *completion = mla_array_list_get_ref(parser_result.possibleAutoCompletions, i);
                 mla_private_cli_write_string(outputStream, mla_string("  "));
                 mla_private_cli_write_string(outputStream, inputCommand);
                 mla_private_cli_write_string(outputStream, *completion);
-                outputStream.write(outputStream, 0, 1,  reinterpret_cast<const mla_byte_t*>("\n"));
+                outputStream.write(outputStream, 0, 1,  mla_r_cast<const mla_byte_t*>("\n"));
             }
         } else {
 
@@ -391,7 +391,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
     }
 
     if (commandProcessed) {
-        outputStream.write(outputStream, 0, 1, reinterpret_cast<const mla_byte_t*>("\n"));
+        outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>("\n"));
         mla_private_cli_write_module_prompt(app, outputStream);
     }
 }

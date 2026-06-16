@@ -208,7 +208,7 @@ mla_size_t mla_private_http_server_parse_multipart_read(mla_stream_input_t &inpu
 
         mla_byte_t b = state->buffer[state->buffer_pos];
 
-        if (b == static_cast<mla_byte_t>(mla_string_data(target)[0])) {
+        if (b == mla_s_cast<mla_byte_t>(mla_string_data(target)[0])) {
             mla_size_t lookahead = 0;
             mla_bool_t matched = true;
 
@@ -237,7 +237,7 @@ mla_size_t mla_private_http_server_parse_multipart_read(mla_stream_input_t &inpu
                     state->buffer_len += r;
                 }
 
-                if (state->buffer[state->buffer_pos + lookahead] != static_cast<mla_byte_t>(mla_string_data(target)[lookahead])) {
+                if (state->buffer[state->buffer_pos + lookahead] != mla_s_cast<mla_byte_t>(mla_string_data(target)[lookahead])) {
                     matched = false;
                     break;
                 }
@@ -291,7 +291,7 @@ mla_bool_t mla_private_http_server_parse_multipart_read_line(mla_multipart_strea
         if (b == '\n') {
             return true;
         } else if (b != '\r') {
-            mla_string_builder_append(sb, static_cast<mla_char_t>(b));
+            mla_string_builder_append(sb, mla_s_cast<mla_char_t>(b));
         }
     }
 }

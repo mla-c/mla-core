@@ -14,23 +14,23 @@ static_assert(sizeof(mla_int32_t) == sizeof(LONG),
               "mla_int32_t must be 32-bit for Interlocked APIs");
 
 inline mla_int32_t mla_task_manager_windows_atomic_int32_increment(mla_atomic_int32_t& value) {
-    return InterlockedIncrement(reinterpret_cast<volatile LONG*>(&value.value));
+    return InterlockedIncrement(mla_r_cast<volatile LONG*>(&value.value));
 }
 
 inline mla_int32_t mla_task_manager_windows_atomic_int32_decrement(mla_atomic_int32_t& value) {
-    return InterlockedDecrement(reinterpret_cast<volatile LONG*>(&value.value));
+    return InterlockedDecrement(mla_r_cast<volatile LONG*>(&value.value));
 }
 
 inline mla_int32_t mla_task_manager_windows_atomic_int32_add(mla_atomic_int32_t& value, mla_int32_t addend) {
-    return InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(addend));
+    return InterlockedAdd(mla_r_cast<volatile LONG*>(&value.value), mla_s_cast<LONG>(addend));
 }
 
 inline mla_int32_t mla_task_manager_windows_atomic_int32_subtract(mla_atomic_int32_t& value, mla_int32_t subtrahend) {
-    return InterlockedAdd(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(-subtrahend));
+    return InterlockedAdd(mla_r_cast<volatile LONG*>(&value.value), mla_s_cast<LONG>(-subtrahend));
 }
 
 inline mla_int32_t mla_task_manager_windows_atomic_int32_exchange(mla_atomic_int32_t& value, mla_int32_t newValue) {
-    return InterlockedExchange(reinterpret_cast<volatile LONG*>(&value.value), static_cast<LONG>(newValue));
+    return InterlockedExchange(mla_r_cast<volatile LONG*>(&value.value), mla_s_cast<LONG>(newValue));
 }
 
 
@@ -70,16 +70,16 @@ struct mla_task_manager_windows_native_data_t {
 inline mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_atomic_int32_t& value, mla_int32_t expectedValue, mla_int32_t newValue) {
 
     LONG prev = InterlockedCompareExchange(
-        reinterpret_cast<volatile LONG*>(&value.value),
-        static_cast<LONG>(newValue),
-        static_cast<LONG>(expectedValue));
-    return prev == static_cast<LONG>(expectedValue);
+        mla_r_cast<volatile LONG*>(&value.value),
+        mla_s_cast<LONG>(newValue),
+        mla_s_cast<LONG>(expectedValue));
+    return prev == mla_s_cast<LONG>(expectedValue);
 
 }
 
 DWORD WINAPI mla_private_task_manager_windows_native_worker(LPVOID lpParam) {
 
-    mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(lpParam);
+    mla_task_manager_windows_native_data_t* thread_data = mla_s_cast<mla_task_manager_windows_native_data_t*>(lpParam);
 
     if (thread_data != nullptr) {
 
@@ -126,17 +126,17 @@ SIZE_T mla_task_manager_windows_native_get_stack_size(const mla_task_stack_size 
 
     switch (stackSize) {
         case TASK_STACK_SIZE_TINY:
-            return static_cast<SIZE_T>(1024 * 254); // 254 KB
+            return mla_s_cast<SIZE_T>(1024 * 254); // 254 KB
         case TASK_STACK_SIZE_SMALL:
-            return static_cast<SIZE_T>(1024 * 512); // 512 KB
+            return mla_s_cast<SIZE_T>(1024 * 512); // 512 KB
         case TASK_STACK_SIZE_MEDIUM:
-            return static_cast<SIZE_T>(1024 * 1024); // 1 MB
+            return mla_s_cast<SIZE_T>(1024 * 1024); // 1 MB
         case TASK_STACK_SIZE_LARGE:
-            return static_cast<SIZE_T>(1024 * 1024 * 2); // 2 MB
+            return mla_s_cast<SIZE_T>(1024 * 1024 * 2); // 2 MB
         case TASK_STACK_SIZE_XLARGE:
-            return static_cast<SIZE_T>(1024 * 1024 * 3); // 3 MB
+            return mla_s_cast<SIZE_T>(1024 * 1024 * 3); // 3 MB
         case TASK_STACK_SIZE_XXLARGE:
-            return static_cast<SIZE_T>(1024 * 1024 * 4); // 4 MB
+            return mla_s_cast<SIZE_T>(1024 * 1024 * 4); // 4 MB
         default:
             return 0;
     }
@@ -153,7 +153,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
 
     mla_pointer_t thread_data_ptr = mla_malloc_struct_cleanup_extension(mla_task_manager_windows_native_data_t);
 
-    mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_data_t)));
+    mla_task_manager_windows_native_data_t* thread_data = mla_s_cast<mla_task_manager_windows_native_data_t*>(mla_platform_malloc(sizeof(mla_task_manager_windows_native_data_t)));
 
     if (thread_data == nullptr) {
         return false;

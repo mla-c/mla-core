@@ -102,7 +102,7 @@ mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(
     mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
-    mla_opengl_font_resources* resources = static_cast<mla_opengl_font_resources*>(data);
+    mla_opengl_font_resources* resources = mla_s_cast<mla_opengl_font_resources*>(data);
     if (resources) {
         if (resources->displayListBase != 0) {
             glDeleteLists(resources->displayListBase, 256);
@@ -548,7 +548,7 @@ void __gl_draw_rounded_rect_outline(GLfloat x, GLfloat y, GLfloat width, GLfloat
 mla_ui_surface_size_t __windows_surface_opengl_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     
     if (window_surface == nullptr) {
         return size;
@@ -583,7 +583,7 @@ mla_ui_surface_size_t __windows_surface_opengl_get_size(const mla_ui_surface_t &
 }
 
 mla_bool_t __windows_surface_opengl_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     
     if (window_surface == nullptr) {
         return false;
@@ -648,7 +648,7 @@ mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui
     
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     
     // Validate surface state
     if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
@@ -784,7 +784,7 @@ mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_
         return size;
     }
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     
     if (window_surface == nullptr || !window_surface->is_initialized) {
         return size;
@@ -818,7 +818,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                                                              mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                          mla_array_list_t<mla_ui_surface_input_event_t,
                                                              mla_ui_surface_input_event_initializer_t> &eventsSinceLastFame) {
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
     }
@@ -1607,7 +1607,7 @@ mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
     mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(data);
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(data);
     
     if (window_surface != nullptr) {
         
@@ -1635,7 +1635,7 @@ mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
 
 mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
     
-    mla_windows_window_surface_opengl_t *window_surface = static_cast<mla_windows_window_surface_opengl_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_opengl_t)));
+    mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_opengl_t)));
     
     if (window_surface == nullptr) {
         return false;

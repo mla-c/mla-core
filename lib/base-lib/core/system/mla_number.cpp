@@ -48,7 +48,7 @@ mla_bool_t mla_parse_float(const mla_string_t &str, mla_float_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_float_t>(double_value);
+    out_value = mla_s_cast<mla_float_t>(double_value);
     return true;
 }
 
@@ -143,7 +143,7 @@ mla_bool_t mla_parse_int32(const mla_string_t &str, mla_int32_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_int32_t>(value);
+    out_value = mla_s_cast<mla_int32_t>(value);
     return true;
 }
 
@@ -158,7 +158,7 @@ mla_bool_t mla_parse_uint32(const mla_string_t &str, mla_uint32_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_uint32_t>(value);
+    out_value = mla_s_cast<mla_uint32_t>(value);
     return true;
 }
 
@@ -173,7 +173,7 @@ mla_bool_t mla_parse_int16(const mla_string_t &str, mla_int16_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_int16_t>(value);
+    out_value = mla_s_cast<mla_int16_t>(value);
     return true;
 }
 
@@ -188,7 +188,7 @@ mla_bool_t mla_parse_uint16(const mla_string_t &str, mla_uint16_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_uint16_t>(value);
+    out_value = mla_s_cast<mla_uint16_t>(value);
     return true;
 }
 
@@ -203,7 +203,7 @@ mla_bool_t mla_parse_int8(const mla_string_t &str, mla_int8_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_int8_t>(value);
+    out_value = mla_s_cast<mla_int8_t>(value);
     return true;
 }
 
@@ -218,7 +218,7 @@ mla_bool_t mla_parse_uint8(const mla_string_t &str, mla_uint8_t& out_value) {
         return false;
     }
 
-    out_value = static_cast<mla_uint8_t>(value);
+    out_value = mla_s_cast<mla_uint8_t>(value);
     return true;
 }
 
@@ -257,7 +257,7 @@ mla_bool_t mla_parse_uint8_hex(const mla_string_t& str, mla_uint8_t& out_value) 
         return false;
     }
 
-    out_value = static_cast<mla_uint8_t>(value);
+    out_value = mla_s_cast<mla_uint8_t>(value);
     return true;
 }
 
@@ -271,7 +271,7 @@ mla_bool_t mla_parse_uint16_hex(const mla_string_t& str, mla_uint16_t& out_value
         return false;
     }
 
-    out_value = static_cast<mla_uint16_t>(value);
+    out_value = mla_s_cast<mla_uint16_t>(value);
     return true;
 }
 
@@ -285,7 +285,7 @@ mla_bool_t mla_parse_uint32_hex(const mla_string_t& str, mla_uint32_t& out_value
         return false;
     }
 
-    out_value = static_cast<mla_uint32_t>(value);
+    out_value = mla_s_cast<mla_uint32_t>(value);
     return true;
 }
 

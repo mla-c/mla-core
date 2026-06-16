@@ -63,7 +63,7 @@ mla_bool_t mla_user_data_set_native_resource(mla_user_data_t& target, mla_user_d
 
 template <typename T>
 mla_bool_t mla_user_data_set_callback(mla_user_data_t& target, mla_user_data_id id, T data) {
-    mla_pointer_t callback_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<mla_platform_pointer_t>(data));
+    mla_pointer_t callback_ptr = mla_platform_pointer_to_managed_pointer(mla_r_cast<mla_platform_pointer_t>(data));
     return mla_user_data_set_pointer(target, id, callback_ptr);
 }
 
@@ -120,7 +120,7 @@ T mla_user_data_get_callback(const mla_user_data_t& userData, mla_user_data_id i
         return nullptr;
     }
 
-    return reinterpret_cast<T>(callback_ptr);
+    return mla_r_cast<T>(callback_ptr);
 
 }
 

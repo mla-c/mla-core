@@ -60,7 +60,7 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     mla_int32_t portPos = -1;
     for (mla_size_t p = hostStart; p < pathStart; p++) {
         if (data[p] == ':') {
-            portPos = static_cast<mla_int32_t>(p);
+            portPos = mla_s_cast<mla_int32_t>(p);
             break;
         }
     }
@@ -195,7 +195,7 @@ mla_string_t mla_url_to_string(const mla_url_t &url) {
     // Use small string optimization if possible
     if (totalLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(totalLength);
 
         mla_size_t offset = 0;
 
@@ -350,7 +350,7 @@ mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url) {
     // Use small string optimization if possible
     if (totalLength <= mla_global_config_string_sso_max_length) {
         mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
-        result.embedded.length = static_cast<mla_uint8_t>(totalLength);
+        result.embedded.length = mla_s_cast<mla_uint8_t>(totalLength);
 
         mla_size_t offset = 0;
 

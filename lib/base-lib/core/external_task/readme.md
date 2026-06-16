@@ -32,7 +32,7 @@ mla_size_t read = task.std_out.read(task.std_out, 0, 5, buffer);
 
 mla_external_task_t task = mla_external_task_create(mla_string_const("cat"));
 
-const mla_byte_t* data = reinterpret_cast<const mla_byte_t*>("ping\n");
+const mla_byte_t* data = mla_r_cast<const mla_byte_t*>("ping\n");
 mla_size_t written = task.std_in.write(task.std_in, 0, 5, data);
 ```
 

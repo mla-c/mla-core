@@ -48,7 +48,7 @@ void ExternalTaskWriteStdInAndReadStdOutTest() {
     assert_false(mla_pointer_is_null(task.native_resource), "Task should be created");
 
     const mla_char_t* msg = "echo\n";
-    mla_size_t written = mla_stream_output_write_with_timeout(task.std_in, 0, 5, reinterpret_cast<const mla_byte_t*>(msg), mla_private_external_task_test_default_timeout_ms);
+    mla_size_t written = mla_stream_output_write_with_timeout(task.std_in, 0, 5, mla_r_cast<const mla_byte_t*>(msg), mla_private_external_task_test_default_timeout_ms);
     assert_equal(written, (mla_size_t)5, "Should write all bytes to stdin");
 
     // Close stdin to send EOF to the child process.

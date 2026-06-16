@@ -20,7 +20,7 @@ mla_pointer_header_t* mla_private_pointer_get_header(mla_dynamic_data_t& payload
         return nullptr;
     }
 
-    return reinterpret_cast<mla_pointer_header_t*>(payload.asPointer);
+    return mla_r_cast<mla_pointer_header_t*>(payload.asPointer);
 }
 
 mla_pointer_t mla_private_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
@@ -34,7 +34,7 @@ mla_pointer_t mla_private_pointer_memory_manager_malloc(mla_pointer_memory_manag
     mla_memset(rawPtr, 0, totalSize);
 
     // Initialize header
-    mla_pointer_header_t* header = reinterpret_cast<mla_pointer_header_t*>(rawPtr);
+    mla_pointer_header_t* header = mla_r_cast<mla_pointer_header_t*>(rawPtr);
     header->creatorTaskId = mla_current_task_id;
     header->cleanupHook = cleanup_hook;
     header->cleanupHookUserData = cleanup_data;
@@ -52,7 +52,7 @@ mla_platform_pointer_t mla_private_default_pointer_memory_manager_get_platform_p
         return nullptr;
     }
 
-    return static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
+    return mla_s_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 }
 
 void mla_private_default_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
@@ -92,7 +92,7 @@ void mla_private_default_pointer_memory_manager_decReferences(mla_pointer_memory
 
     if (remaining_ref_count == 0) {
 
-        mla_platform_pointer_t l_Data = static_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
+        mla_platform_pointer_t l_Data = mla_s_cast<mla_byte_t*>(payload.asPointer) + sizeof(mla_pointer_header_t);
 
         // Call the cleanup hook if it is set
         if (header->cleanupHook != nullptr) {

@@ -28,7 +28,7 @@ inline T* mla_private_array_list_items_data_from_header(mla_array_list_buffer_he
         return nullptr;
     }
 
-    return reinterpret_cast<T*>(reinterpret_cast<mla_byte_t*>(header) + sizeof(mla_array_list_buffer_header_t<T, TInit>));
+    return mla_r_cast<T*>(mla_r_cast<mla_byte_t*>(header) + sizeof(mla_array_list_buffer_header_t<T, TInit>));
 }
 
 template <mla_array_list_template>
@@ -60,7 +60,7 @@ void mla_private_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dyn
 
     (void)p_UserData;
 
-    mla_array_list_buffer_header_t<T, TInit>* header = static_cast<mla_array_list_buffer_header_t<T, TInit>*>(p_Data);
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_s_cast<mla_array_list_buffer_header_t<T, TInit>*>(p_Data);
     mla_private_array_list_cleanup_header<T, TInit>(header);
 }
 
@@ -324,7 +324,7 @@ mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, cons
 
     for (mla_size_t i = 0; i < list.size; ++i) {
         if (items[i] == item) {
-            return static_cast<mla_int32_t>(i); // Return the index of the item
+            return mla_s_cast<mla_int32_t>(i); // Return the index of the item
         }
     }
     return -1;
@@ -375,7 +375,7 @@ void mla_array_list_sort(mla_array_list_t<T, TInit>& list, mla_int32_t (*compare
 
     T* items = mla_private_array_list_items_data(list);
 
-    mla_private_array_list_quicksort_partition<T, TInit>(items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
+    mla_private_array_list_quicksort_partition<T, TInit>(items, 0, mla_s_cast<mla_int32_t>(list.size - 1), compare);
 }
 
 template <mla_array_list_template>

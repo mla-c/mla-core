@@ -20,7 +20,7 @@ struct mla_global_network_wifi_esp32_t {
 
 
     static mla_bool_t serialize(mla_serializer_t &serializer, mla_platform_const_pointer_t obj) {
-        const mla_global_network_wifi_esp32_t *self = static_cast<const mla_global_network_wifi_esp32_t *>(obj);
+        const mla_global_network_wifi_esp32_t *self = mla_s_cast<const mla_global_network_wifi_esp32_t *>(obj);
         mla_serializer_write_string(serializer, mla_string_const("ssid"), self->ssid);
         mla_serializer_write_string(serializer, mla_string_const("password"), self->password);
         return true;
@@ -30,7 +30,7 @@ struct mla_global_network_wifi_esp32_t {
         mla_deserializer_t &deserializer,
         mla_platform_pointer_t obj,
         const mla_string_t &property_name) {
-        mla_global_network_wifi_esp32_t *self = static_cast<mla_global_network_wifi_esp32_t *>(obj);
+        mla_global_network_wifi_esp32_t *self = mla_s_cast<mla_global_network_wifi_esp32_t *>(obj);
 
         if (mla_string_equals_const(property_name, "ssid")) {
             mla_deserializer_read_string(deserializer, self->ssid);

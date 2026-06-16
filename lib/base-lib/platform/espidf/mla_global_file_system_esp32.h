@@ -55,7 +55,7 @@ static inline mla_string_t mla_private_file_system_native_file_path_to_full_path
 }
 
 static inline mla_bool_t mla_private_file_system_native_file_exists(mla_file_system_t& file_system, const mla_string_t& path) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     struct stat statbuf;
@@ -67,7 +67,7 @@ static inline mla_bool_t mla_private_file_system_native_file_exists(mla_file_sys
 }
 
 static inline mla_bool_t mla_private_file_system_native_delete_file(mla_file_system_t& file_system, const mla_string_t& path) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     int result = unlink(fullPath.data);
@@ -77,7 +77,7 @@ static inline mla_bool_t mla_private_file_system_native_delete_file(mla_file_sys
 }
 
 static inline mla_bool_t mla_private_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     int result = mkdir(fullPath.data, 0755); // rwxr-xr-x permissions
@@ -87,7 +87,7 @@ static inline mla_bool_t mla_private_file_system_native_create_directory(mla_fil
 }
 
 static inline mla_bool_t mla_private_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     struct stat statbuf;
@@ -99,7 +99,7 @@ static inline mla_bool_t mla_private_file_system_native_directory_exists(mla_fil
 }
 
 static inline mla_bool_t mla_private_file_system_native_delete_directory(mla_file_system_t& file_system, const mla_string_t& path) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     int result = rmdir(fullPath.data);
@@ -109,7 +109,7 @@ static inline mla_bool_t mla_private_file_system_native_delete_directory(mla_fil
 }
 
 static inline mla_bool_t mla_private_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     DIR* dir = opendir(fullPath.data);
@@ -135,7 +135,7 @@ static inline mla_bool_t mla_private_file_system_native_list_files(mla_file_syst
 }
 
 static inline mla_bool_t mla_private_file_system_native_list_directory(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     DIR* dir = opendir(fullPath.data);
@@ -165,7 +165,7 @@ static inline mla_bool_t mla_private_file_system_native_list_directory(mla_file_
 
 static inline mla_buffer_cleanup_mode mla_private_file_system_native_close_file(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
-    int fd = *reinterpret_cast<int*>(data);
+    int fd = *mla_r_cast<int*>(data);
 
     close(fd);
     mla_platform_free(data);
@@ -174,20 +174,20 @@ static inline mla_buffer_cleanup_mode mla_private_file_system_native_close_file(
 }
 
 static inline mla_bool_t mla_private_file_system_native_open_file_seek(const mla_file_system_stream_t& stream, mla_size_t offset) {
-    int* fd = reinterpret_cast<int*>(stream.user_data);
+    int* fd = mla_r_cast<int*>(stream.user_data);
 
     return lseek(*fd, offset, SEEK_SET) != -1;
 }
 
 static inline mla_size_t mla_private_file_system_native_open_file_position(const mla_file_system_stream_t& stream) {
-    int* fd = reinterpret_cast<int*>(stream.user_data);
+    int* fd = mla_r_cast<int*>(stream.user_data);
 
     off_t pos = lseek(*fd, 0, SEEK_CUR);
-    return pos != -1 ? static_cast<mla_size_t>(pos) : 0;
+    return pos != -1 ? mla_s_cast<mla_size_t>(pos) : 0;
 }
 
 static inline mla_size_t mla_private_file_system_native_open_file_length(const mla_file_system_stream_t& stream) {
-    int* fd = reinterpret_cast<int*>(stream.user_data);
+    int* fd = mla_r_cast<int*>(stream.user_data);
 
     // Save current position
     off_t currentPos = lseek(*fd, 0, SEEK_CUR);
@@ -199,31 +199,31 @@ static inline mla_size_t mla_private_file_system_native_open_file_length(const m
     // Restore original position
     lseek(*fd, currentPos, SEEK_SET);
 
-    return size != -1 ? static_cast<mla_size_t>(size) : 0;
+    return size != -1 ? mla_s_cast<mla_size_t>(size) : 0;
 }
 
 static inline mla_bool_t mla_private_file_system_native_open_file_set_length(const mla_file_system_stream_t& stream, mla_size_t length) {
-    int* fd = reinterpret_cast<int*>(stream.user_data);
+    int* fd = mla_r_cast<int*>(stream.user_data);
 
     return ftruncate(*fd, length) == 0;
 }
 
 static inline mla_size_t mla_private_file_system_native_open_file_read(const mla_file_system_stream_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
-    int* fd = reinterpret_cast<int*>(input.user_data);
+    int* fd = mla_r_cast<int*>(input.user_data);
 
     ssize_t bytesRead = read(*fd, buffer + offset, length);
-    return bytesRead > 0 ? static_cast<mla_size_t>(bytesRead) : 0;
+    return bytesRead > 0 ? mla_s_cast<mla_size_t>(bytesRead) : 0;
 }
 
 static inline mla_size_t mla_private_file_system_native_open_file_write(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
-    int* fd = reinterpret_cast<int*>(output.user_data);
+    int* fd = mla_r_cast<int*>(output.user_data);
 
     ssize_t bytesWritten = write(*fd, buffer + offset, length);
-    return bytesWritten > 0 ? static_cast<mla_size_t>(bytesWritten) : 0;
+    return bytesWritten > 0 ? mla_s_cast<mla_size_t>(bytesWritten) : 0;
 }
 
 static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
-    mla_file_system_native_t* fs = reinterpret_cast<mla_file_system_native_t*>(file_system.user_data);
+    mla_file_system_native_t* fs = mla_r_cast<mla_file_system_native_t*>(file_system.user_data);
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     int flags = 0;
@@ -257,7 +257,7 @@ static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_syste
     }
 
     // Allocate memory to store the file descriptor (needs to be freed in cleanup)
-    int* fdPtr = static_cast<int*>(mla_platform_malloc(sizeof(int)));
+    int* fdPtr = mla_s_cast<int*>(mla_platform_malloc(sizeof(int)));
     if (fdPtr == nullptr) {
         close(fd);
         mla_string_destroy(fullPath);
@@ -278,7 +278,7 @@ static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_syste
             mla_private_file_system_native_open_file_set_length,
             mla_private_file_system_native_open_file_read,
             mla_private_file_system_native_open_file_write,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
+            mla_r_cast<mla_callback_userdata>(fdPtr),
             mla_buffer_reference(fdPtr, true, mla_private_file_system_native_close_file)
         };
     } else if (canRead) {
@@ -290,7 +290,7 @@ static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_syste
             nullptr,
             mla_private_file_system_native_open_file_read,
             nullptr,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
+            mla_r_cast<mla_callback_userdata>(fdPtr),
             mla_buffer_reference(fdPtr, true, mla_private_file_system_native_close_file)
         };
     } else if (canWrite) {
@@ -302,7 +302,7 @@ static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_syste
             mla_private_file_system_native_open_file_set_length,
             nullptr,
             mla_private_file_system_native_open_file_write,
-            reinterpret_cast<mla_callback_userdata>(fdPtr),
+            mla_r_cast<mla_callback_userdata>(fdPtr),
             mla_buffer_reference(fdPtr, true, mla_private_file_system_native_close_file)
         };
     } else {
@@ -320,7 +320,7 @@ static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platf
 
     (void)userData;
 
-    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(data);
+    mla_file_system_native_t* fs = mla_s_cast<mla_file_system_native_t *>(data);
 
     if (fs == nullptr)
         return CLEAN_UP_SKIP;
@@ -331,7 +331,7 @@ static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platf
 
 static inline mla_file_system_t mla_private_file_system_native_create_with_base(const mla_string_t& basePath) {
 
-    mla_file_system_native_t* fs = static_cast<mla_file_system_native_t *>(mla_platform_malloc(sizeof(mla_file_system_native_t)));
+    mla_file_system_native_t* fs = mla_s_cast<mla_file_system_native_t *>(mla_platform_malloc(sizeof(mla_file_system_native_t)));
 
     if (fs == nullptr)
         return mla_file_system_empty();
@@ -348,7 +348,7 @@ static inline mla_file_system_t mla_private_file_system_native_create_with_base(
         mla_private_file_system_native_directory_exists,
         mla_private_file_system_native_delete_directory,
         mla_private_file_system_native_list_directory,
-        reinterpret_cast<mla_callback_userdata>(fs),
+        mla_r_cast<mla_callback_userdata>(fs),
         mla_buffer_reference(fs, true, __mla_file_system_native_cleanup)
     };
 }

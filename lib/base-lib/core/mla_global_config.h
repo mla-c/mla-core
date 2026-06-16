@@ -23,6 +23,10 @@
 #define mla_global_config_data_type_use_typedefs 1
 #endif
 
+#ifndef mla_global_config_data_type_use_c_style_casts
+#define mla_global_config_data_type_use_c_style_casts 0
+#endif
+
 /////////////////////////////////////////////////
 // Logger Configuration
 /////////////////////////////////////////////////

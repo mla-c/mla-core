@@ -115,7 +115,7 @@ inline mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int3
 
 void __mla_task_manager_esp32_native_worker(void * param) {
 
-    mla_task_manager_esp32_native_data_t* thread_data = static_cast<mla_task_manager_esp32_native_data_t*>(param);
+    mla_task_manager_esp32_native_data_t* thread_data = mla_s_cast<mla_task_manager_esp32_native_data_t*>(param);
 
     if (thread_data) {
 
