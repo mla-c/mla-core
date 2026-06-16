@@ -125,7 +125,7 @@ mla_bool_t mla_logger_rpc_set_loglevel_handler(const mla_logger_rpc_log_level_t*
 }
 
 
-mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_rpc_procedure_void_t input, mla_logger_rpc_log_level_t* output) {
+mla_bool_t mla_logger_rpc_get_loglevel_handler(mla_rpc_procedure_const_void_t input, mla_logger_rpc_log_level_t* output) {
 
     (void)input;
     output->level = mla_log_get_logger_level(RPC_CACHE_LOGGER_NAME);
@@ -133,7 +133,7 @@ mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_rpc_procedure_void_t in
 }
 
 
-mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_rpc_procedure_void_t input, mla_logger_rpc_log_messages_t* output) {
+mla_bool_t mla_logger_rpc_log_get_messages_handler(mla_rpc_procedure_const_void_t input, mla_logger_rpc_log_messages_t* output) {
 
     (void)input;
 

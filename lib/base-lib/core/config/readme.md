@@ -43,7 +43,7 @@ struct test_config_struct {
         return MLA_DESERIALIZER_READ_HANDLED;
     }
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t config) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t config) {
         const test_config_struct* obj = static_cast<const test_config_struct*>(config);
         mla_serializer_write_int32(serializer, mla_string_const("intValue"), obj->intValue);
         mla_serializer_write_bool(serializer, mla_string_const("boolValue"), obj->boolValue);

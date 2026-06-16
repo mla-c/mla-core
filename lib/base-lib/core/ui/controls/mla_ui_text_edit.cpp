@@ -439,12 +439,12 @@ mla_bool_t mla_ui_text_edit_set_text(mla_ui_control_t &textEdit, const mla_strin
     return mla_ui_control_set_value_as_string(textEdit, mla_string_const("text"), text);
 }
 
-mla_bool_t mla_ui_text_edit_get_disable(const mla_ui_control_t &button) {
-    return mla_ui_control_get_value_as_bool(button, mla_string_const("disabled"), false);
+mla_bool_t mla_ui_text_edit_get_disable(const mla_ui_control_t &textEdit) {
+    return mla_ui_control_get_value_as_bool(textEdit, mla_string_const("disabled"), false);
 }
 
-mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &button, mla_bool_t disable) {
-    return mla_ui_control_set_value_as_bool(button, mla_string_const("disabled"), disable);
+mla_bool_t mla_ui_text_edit_set_disable(mla_ui_control_t &textEdit, mla_bool_t disable) {
+    return mla_ui_control_set_value_as_bool(textEdit, mla_string_const("disabled"), disable);
 }
 
 mla_size_t mla_ui_text_edit_get_cursor_position(const mla_ui_control_t &textEdit) {

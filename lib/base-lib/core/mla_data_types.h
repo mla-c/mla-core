@@ -21,6 +21,37 @@
     #define mla_internal_int32 int
 #endif
 
+#if mla_global_config_data_type_use_typedefs == 1
+
+    // Use typedefs for basic types
+    typedef bool mla_bool_t;
+
+    typedef signed char mla_int8_t;
+    typedef unsigned char mla_uint8_t;
+    typedef signed short mla_int16_t;
+    typedef unsigned short mla_uint16_t;
+    typedef signed mla_internal_int32 mla_int32_t;
+    typedef unsigned mla_internal_int32 mla_uint32_t;
+    typedef signed long long mla_int64_t;
+    typedef unsigned long long mla_uint64_t;
+
+    typedef float mla_float_t;
+    typedef double mla_double_t;
+
+    typedef char mla_char_t;
+    typedef unsigned short mla_utf_16_char_t;
+    typedef unsigned mla_internal_int32 mla_utf_32_char_t;
+
+    typedef void mla_void_t;
+    typedef void* mla_platform_pointer_t;
+    typedef const void* mla_platform_const_pointer_t;
+
+    typedef mla_uint32_t mla_size_t;
+    typedef mla_size_t mla_hash_t;
+
+    typedef mla_uint8_t mla_byte_t;
+#else
+
 #define mla_bool_t bool
 
 #define mla_int8_t signed char
@@ -41,6 +72,15 @@
 
 #define mla_void_t void
 #define mla_platform_pointer_t void*
+#define mla_platform_const_pointer_t const void*
+
+#define mla_size_t mla_uint32_t
+#define mla_hash_t mla_size_t
+
+#define mla_byte_t mla_uint8_t
+
+#endif
+
 
 // Shortcut for common types
 struct mla_dynamic_data_t {
@@ -124,6 +164,12 @@ mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr);
 #define mla_double_min (-1.79769313486231570e+308)
 #define mla_double_max (1.79769313486231570e+308)
 
+#define mla_size_min mla_uint32_min
+#define mla_size_max mla_uint32_max
+
+#define mla_byte_min mla_uint8_min
+#define mla_byte_max mla_uint8_max
+
 mla_dynamic_data_t mla_dynamic_data_empty();
 mla_dynamic_data_t mla_dynamic_data_from_bool(mla_bool_t value);
 mla_dynamic_data_t mla_dynamic_data_from_int8(mla_int8_t value);
@@ -140,16 +186,6 @@ mla_dynamic_data_t mla_dynamic_data_from_pointer(mla_platform_pointer_t value);
 mla_dynamic_data_t mla_dynamic_data_from_char(mla_char_t value);
 
 typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla_dynamic_data_t& userData);
-
-#define mla_size_t mla_uint32_t
-#define mla_size_min mla_uint32_min
-#define mla_size_max mla_uint32_max
-
-#define mla_hash_t mla_size_t
-
-#define mla_byte_t mla_uint8_t
-#define mla_byte_min mla_uint8_min
-#define mla_byte_max mla_uint8_max
 
 // Methode Visibility
 #define mla_global extern
@@ -227,10 +263,10 @@ mla_global mla_thread_local mla_task_id_t g_current_task_id;
 
 typedef struct mla_low_level_operations_t {
     // Function pointers for memory operations
-    mla_platform_pointer_t (*memcpy)(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
+    mla_platform_pointer_t (*memcpy)(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size);
     mla_platform_pointer_t (*memset)(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size);
-    mla_int32_t (*memcmp)(const mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
-    mla_platform_pointer_t (*memmove)(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size);
+    mla_int32_t (*memcmp)(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size);
+    mla_platform_pointer_t (*memmove)(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size);
 
     // Function pointers for string operations
     mla_size_t (*strlen)(const mla_char_t* str);
@@ -593,7 +629,7 @@ mla_dynamic_data_t mla_internal_dynamic_data_from_pointer_cleanup_hook(mla_mallo
  * @param resource The externally-managed raw pointer to wrap.
  * @return         A non-owning `mla_pointer_t` that holds `resource`.
  */
-mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource);
+mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_const_pointer_t resource);
 
 
 #endif

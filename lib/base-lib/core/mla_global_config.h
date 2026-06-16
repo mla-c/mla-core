@@ -11,6 +11,19 @@
  */
 
 /////////////////////////////////////////////////
+/// Data Type Configuration
+/////////////////////////////////////////////////
+
+/**
+ * @brief Flag to determine whether to use typedefs for basic data types.
+ * If set to 1, the framework will define typedefs like `mla_int32_t` and `mla_bool_t`.
+ * If set to 0, it will use preprocessor macros instead (e.g., `#define mla_int32_t int`).
+ */
+#ifndef mla_global_config_data_type_use_typedefs
+#define mla_global_config_data_type_use_typedefs 1
+#endif
+
+/////////////////////////////////////////////////
 // Logger Configuration
 /////////////////////////////////////////////////
 

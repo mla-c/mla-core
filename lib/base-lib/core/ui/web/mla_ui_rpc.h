@@ -12,7 +12,7 @@
 
 #define mla_rpc_procedure_ui_surfaces_name "ui/surfaces"
 #define mla_rpc_procedure_ui_surfaces_signature void, mla_ui_rpc_surface_infos_t
-mla_bool_t mla_ui_rpc_get_surfaces_handler(const mla_rpc_procedure_void_t input, mla_ui_rpc_surface_infos_t* output);
+mla_bool_t mla_ui_rpc_get_surfaces_handler(mla_rpc_procedure_const_void_t input, mla_ui_rpc_surface_infos_t* output);
 
 
 

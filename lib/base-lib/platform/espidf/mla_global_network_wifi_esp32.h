@@ -19,7 +19,7 @@ struct mla_global_network_wifi_esp32_t {
     mla_string_t password;
 
 
-    static mla_bool_t serialize(mla_serializer_t &serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t &serializer, mla_platform_const_pointer_t obj) {
         const mla_global_network_wifi_esp32_t *self = static_cast<const mla_global_network_wifi_esp32_t *>(obj);
         mla_serializer_write_string(serializer, mla_string_const("ssid"), self->ssid);
         mla_serializer_write_string(serializer, mla_string_const("password"), self->password);

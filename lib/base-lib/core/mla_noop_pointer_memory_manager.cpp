@@ -4,7 +4,7 @@
 
 #include "mla_data_types.h"
 
-mla_pointer_t mla_platform_pointer_to_managed_pointer(const mla_platform_pointer_t resource) {
+mla_pointer_t mla_platform_pointer_to_managed_pointer(mla_platform_const_pointer_t resource) {
 
     if (resource == nullptr) {
         return mla_pointer_null();

@@ -165,12 +165,12 @@ mla_bool_t mla_logger_rpc_set_loglevel_handler(const mla_logger_rpc_log_level_t 
 
 #define mla_rpc_procedure_get_loglevel_name "log/getLoglevel"
 #define mla_rpc_procedure_get_loglevel_signature void, mla_logger_rpc_log_level_t
-mla_bool_t mla_logger_rpc_get_loglevel_handler(const mla_rpc_procedure_void_t input,
+mla_bool_t mla_logger_rpc_get_loglevel_handler(mla_rpc_procedure_const_void_t input,
                                                mla_logger_rpc_log_level_t *output);
 
 #define mla_rpc_procedure_log_message_name "log/getMessages"
 #define mla_rpc_procedure_log_message_signature void, mla_logger_rpc_log_messages_t
-mla_bool_t mla_logger_rpc_log_get_messages_handler(const mla_rpc_procedure_void_t input,
+mla_bool_t mla_logger_rpc_log_get_messages_handler(mla_rpc_procedure_const_void_t input,
                                                    mla_logger_rpc_log_messages_t *output);
 
 

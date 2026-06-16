@@ -68,7 +68,7 @@ extern "C" int __cxa_atexit(void (*func)(void*), void* arg, void* dso_handle) {
 }
 
 // WASM standalone implementations using JavaScript functions
-mla_platform_pointer_t __wasm_standalone_memcpy(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t __wasm_standalone_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memcpy(dest, src, size);
 }
 
@@ -76,11 +76,11 @@ mla_platform_pointer_t __wasm_standalone_memset(mla_platform_pointer_t dest, mla
     return external_memset(dest, value, size);
 }
 
-mla_int32_t __wasm_standalone_memcmp(const mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_int32_t __wasm_standalone_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memcmp(dest, src, size);
 }
 
-mla_platform_pointer_t __wasm_standalone_memmove(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t __wasm_standalone_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memmove(dest, src, size);
 }
 

@@ -13,7 +13,7 @@
 
 #include "../../core/mla_data_types.h"
 
-mla_platform_pointer_t mla_internal_generic_memcpy(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_internal_generic_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memcpy(dest, src, size);
 }
 
@@ -21,11 +21,11 @@ mla_platform_pointer_t mla_internal_generic_memset(mla_platform_pointer_t dest, 
     return memset(dest, value, size);
 }
 
-mla_int32_t mla_internal_generic_memcmp(const mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_int32_t mla_internal_generic_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memcmp(dest, src, size);
 }
 
-mla_platform_pointer_t mla_internal_generic_memmove(mla_platform_pointer_t dest, const mla_platform_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_internal_generic_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memmove(dest, src, size);
 }
 

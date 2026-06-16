@@ -49,7 +49,7 @@ To make a struct serializable, you need to define `serialize` and `deserialize` 
 struct my_data_t {
     mla_int32_t value;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t obj) {
         const my_data_t* data = (const my_data_t*)obj;
         serializer.write_start_struct(serializer);
         mla_serializer_write_int32(serializer, mla_string_const("value"), data->value);

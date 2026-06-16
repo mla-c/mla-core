@@ -22,7 +22,7 @@ struct mla_sensor_reading_t {
     mla_bool_t   isValid;
 
     // --- Serialize: write all fields to the serializer ---
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t obj) {
         const mla_sensor_reading_t* self = static_cast<const mla_sensor_reading_t*>(obj);
         mla_serializer_write_string(serializer, mla_string_const("sensorId"),    self->sensorId);
         mla_serializer_write_float (serializer, mla_string_const("temperature"), self->temperature);
@@ -53,7 +53,7 @@ struct mla_sensor_reading_t {
 ### Serialize Function Signature
 
 ```cpp
-static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj);
+static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t obj);
 ```
 
 - Cast `obj` to `const MyStruct*` at the top of the function.
@@ -123,7 +123,7 @@ struct mla_gps_position_t {
     mla_double_t latitude;
     mla_double_t longitude;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t obj) {
         const mla_gps_position_t* self = static_cast<const mla_gps_position_t*>(obj);
         mla_serializer_write_double(serializer, mla_string_const("latitude"),  self->latitude);
         mla_serializer_write_double(serializer, mla_string_const("longitude"), self->longitude);
@@ -148,7 +148,7 @@ struct mla_device_report_t {
     mla_gps_position_t position;
     mla_array_list_t<mla_sensor_reading_t, mla_sensor_reading_initializer> readings;
 
-    static mla_bool_t serialize(mla_serializer_t& serializer, const mla_platform_pointer_t obj) {
+    static mla_bool_t serialize(mla_serializer_t& serializer, mla_platform_const_pointer_t obj) {
         const mla_device_report_t* self = static_cast<const mla_device_report_t*>(obj);
         mla_serializer_write_string     (serializer, mla_string_const("deviceId"), self->deviceId);
         mla_serializer_write_struct     (serializer, mla_string_const("position"), self->position, mla_gps_position_t);

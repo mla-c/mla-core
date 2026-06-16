@@ -35,12 +35,12 @@ const mla_char_t* mla_find_filename_from_path(const mla_char_t* path) {
 
 }
 
-mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* path, const mla_char_t* function_name) {
+mla_platform_pointer_t mla_platform_malloc_with_check(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
 
     mla_platform_pointer_t ptr = g_low_level_access.malloc(size);
     if (ptr == nullptr) {
 
-        const mla_char_t* fileName =  mla_find_filename_from_path(path);
+        const mla_char_t* fileName =  mla_find_filename_from_path(filename);
         g_low_level_access.on_malloc_failure(size, fileName, function_name);
     }
     return ptr;
