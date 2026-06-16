@@ -30,7 +30,7 @@ mla_platform_pointer_t mla_internal_generic_memmove(mla_platform_pointer_t dest,
 }
 
 mla_size_t mla_internal_generic_strlen(const mla_char_t* str) {
-    return (mla_size_t)strlen(str);
+    return static_cast<mla_size_t>(strlen(str));
 }
 
 const mla_char_t* mla_internal_generic_strstr(const mla_char_t* str, const mla_char_t* substr) {
@@ -46,7 +46,7 @@ void mla_internal_generic_free(mla_platform_pointer_t ptr) {
 }
 
 mla_size_t mla_internal_generic_print(const mla_char_t* format, mla_size_t length) {
-    return (mla_size_t)fwrite(format, 1, length, stdout);
+    return static_cast<mla_size_t>(fwrite(format, 1, length, stdout));
 }
 
 void mla_internal_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
@@ -97,8 +97,8 @@ mla_size_t mla_internal_generic_std_read(mla_char_t* buffer, mla_size_t size) {
     if (lastChar == nullptr) {
         return 0; // No data read
     }
-    char *nul = (mla_char_t*)memchr(buffer, '\0', size);
-    return nul != nullptr ? (mla_size_t)(nul - buffer) : size;
+    char *nul = static_cast<mla_char_t *>(memchr(buffer, '\0', size));
+    return nul != nullptr ? static_cast<mla_size_t>(nul - buffer) : size;
 }
 
 mla_bool_t mla_internal_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
@@ -112,7 +112,7 @@ mla_bool_t mla_internal_generic_strtod(const mla_char_t* str, mla_size_t length,
     }
 
     // Check if we consumed all the expected characters
-    if ((size_t)(endptr - str) != length) {
+    if (static_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 
@@ -130,7 +130,7 @@ mla_bool_t mla_internal_generic_strtoll(const mla_char_t* str, mla_size_t length
     }
 
     // Check if we consumed all the expected characters
-    if ((mla_size_t)(endptr - str) != length) {
+    if (static_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 
@@ -148,7 +148,7 @@ mla_bool_t mla_internal_generic_strtoull(const mla_char_t* str, mla_size_t lengt
     }
 
     // Check if we consumed all the expected characters
-    if ((mla_size_t)(endptr - str) != length) {
+    if (static_cast<mla_size_t>(endptr - str) != length) {
         return false; // Didn't parse the entire string
     }
 

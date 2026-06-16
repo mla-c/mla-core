@@ -54,7 +54,7 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
         return nullptr;
     }
 
-    mla_test_uint8_t* base = (mla_test_uint8_t*)g_mla_benchmark_memory_arena;
+    mla_test_uint8_t* base = static_cast<mla_test_uint8_t *>(g_mla_benchmark_memory_arena);
     mla_test_uint8_t* ptr  = base + aligned_offset;
 
     // Advance offset
@@ -62,7 +62,7 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
 
     g_test_mutex.unlock_mutex(g_mla_benchmark_arena_mutex);
 
-    return (mla_test_pointer_t)ptr;
+    return ptr;
 
 }
 
@@ -223,7 +223,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     mla_test_uint64_t maxTime = 0;
     
     // Allocate array for timing measurements to calculate median
-    mla_test_uint64_t* times = (mla_test_uint64_t*)mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations);
+    mla_test_uint64_t* times = static_cast<mla_test_uint64_t *>(mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations));
     
     mla_test_uint32_t actualIterations = 0;
 
@@ -264,7 +264,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         if (actualIterations == 0) {
             allocated_memory_per_interation = 0;
         } else {
-            allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / actualIterations);
+            allocated_memory_per_interation = static_cast<long long int>(mla_benchmark_allocated_memory / actualIterations);
         }
     }
 
@@ -301,7 +301,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     if (benchmarkIterations == 0) {
         allocated_memory_per_interation = 0;
     } else {
-        allocated_memory_per_interation = (long long int)(mla_benchmark_allocated_memory / benchmarkIterations);
+        allocated_memory_per_interation = static_cast<long long int>(mla_benchmark_allocated_memory / benchmarkIterations);
     }
 
     if (g_mla_benchmark_memory_arena_out_of_memory_triggered) {
@@ -335,7 +335,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
     // Convert number to string
     mla_test_char_t num_buffer[16];
-    mla_test_uint32_t num_len = mla_uint32_to_string(num_buffer, 16, (mla_test_uint32_t)(arena_size / 1024));
+    mla_test_uint32_t num_len = mla_uint32_to_string(num_buffer, 16, static_cast<mla_test_uint32_t>(arena_size / 1024));
 
     // Copy number
     for (mla_test_uint32_t i = 0; i < num_len; i++) {
@@ -358,7 +358,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         // Copy the beginning to the end
         mla_test_memmove(&name_with_arena_sufix[charToCopy - 1], &name_with_arena_sufix[0], charCount);
         // Copy the begining of the name
-        mla_size_t name_size = (mla_size_t)mla_test_strlen(benchmark.name);
+        mla_test_uint32_t name_size = mla_test_strlen(benchmark.name);
         if (name_size > charToCopy) {
             name_size = charToCopy;
         }
@@ -375,7 +375,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
     // Category column (24 chars)
     mla_test_char_t category_padded[25];
-    mla_test_uint32_t cat_len = (mla_test_uint32_t)mla_test_strlen(benchmark.category);
+    mla_test_uint32_t cat_len = mla_test_strlen(benchmark.category);
     mla_test_memcpy(category_padded, benchmark.category, cat_len);
     if (cat_len < 24) {
         mla_test_memset(&category_padded[cat_len], ' ', 24 - cat_len);
@@ -423,7 +423,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     // AllocatedMemory column (12 chars, right-aligned)
     mla_test_print("|", 1);
     mla_test_char_t buffer_mem[20];
-    mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
+    mla_test_uint32_t len_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), allocated_memory_per_interation);
     if (len_mem < 12) {
         for (mla_test_uint32_t i = 0; i < 12 - len_mem; i++) {
             mla_test_print(" ", 1);
@@ -434,7 +434,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     // Iterations column (12 chars, right-aligned)
     mla_test_print("|", 1);
     mla_test_char_t buffer_iter[20];
-    mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+    mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), benchmarkIterations);
     if (len_iter < 12) {
         for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) {
             mla_test_print(" ", 1);
@@ -536,11 +536,11 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
 
         mla_print("  \"AllocatedMemoryPerIterationBytes\": ", 38);
         mla_test_char_t buffer_mem[20];
-        mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), (mla_test_uint64_t)allocated_memory_per_interation);
+        mla_test_uint32_t strLength_mem = mla_uint64_to_string(buffer_mem, sizeof(buffer_mem), allocated_memory_per_interation);
         mla_test_print(buffer_mem, strLength_mem);
         mla_test_print(",\n  \"Iterations\": ", 18);
         mla_test_char_t buffer_iter[20];
-        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), benchmarkIterations);
         mla_test_print(buffer_iter, strLength_iter);
         mla_test_print("\n}", 2);
 
@@ -564,16 +564,16 @@ void mla_benchmark_run_in_arena(mla_benchmark_t &benchmark, mla_test_uint32_t ar
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
     mla_test_uint64_t arena_size = static_cast<mla_test_uint64_t>(mla_align_up(arena_size_per_run, mla_test_global_config_benchmark_arena_alignment)) * benchmarkIterations;
 
-    while (arena_size > (mla_test_uint64_t)mla_test_global_config_benchmark_max_arena_size) {
+    while (arena_size > static_cast<mla_test_uint64_t>(mla_test_global_config_benchmark_max_arena_size)) {
         benchmarkIterations = benchmarkIterations / 2;
-        arena_size = (mla_test_uint64_t)((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
+        arena_size = static_cast<mla_test_uint64_t>((arena_size_per_run * benchmarkIterations) * 1.1); // Add some extra space to the arena to avoid edge cases
     }
 
-    arena_size = mla_align_up((mla_test_uint32_t)arena_size, mla_test_global_config_benchmark_arena_alignment);
+    arena_size = mla_align_up(static_cast<mla_test_uint32_t>(arena_size), mla_test_global_config_benchmark_arena_alignment);
 
     // Add some extra space to the arena to avoid edge cases
     if (arena_size > 0) {
-        mla_benchmark_run_in_arena_fixed_size(benchmark, (mla_test_uint32_t)arena_size, benchmarkIterations, output_format);
+        mla_benchmark_run_in_arena_fixed_size(benchmark, static_cast<mla_test_uint32_t>(arena_size), benchmarkIterations, output_format);
     }
 
 #else
@@ -605,7 +605,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     mla_test_uint64_t maxTime = 0;
     
     // Allocate array for timing measurements to calculate median
-    mla_test_uint64_t* times = (mla_test_uint64_t*)mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations);
+    mla_test_uint64_t* times = static_cast<mla_test_uint64_t*>(mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations));
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
         auto start = g_benchmark_timer.current_nanoseconds();
@@ -747,7 +747,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         // Iterations column (12 chars, right-aligned)
         mla_test_print("|", 1);
         mla_test_char_t buffer_iter[20];
-        mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_uint32_t len_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), benchmarkIterations);
         if (len_iter < 12) {
             for (mla_test_uint32_t i = 0; i < 12 - len_iter; i++) {
                 mla_test_print(" ", 1);
@@ -866,14 +866,14 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         mla_test_print(buffer_mem, strLength_mem);
         mla_test_print(",\n  \"Iterations\": ", 18);
         mla_test_char_t buffer_iter[20];
-        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), (mla_test_uint64_t)benchmarkIterations);
+        mla_test_uint32_t strLength_iter = mla_uint64_to_string(buffer_iter, sizeof(buffer_iter), benchmarkIterations);
         mla_test_print(buffer_iter, strLength_iter);
         mla_test_print("\n}", 2);
     }
 
     // Start the benchmark one more time but inside an memory arena
     if (benchmarkIterations > 0) {
-        mla_benchmark_run_in_arena(benchmark, (mla_test_uint32_t)(mla_benchmark_allocated_memory / benchmarkIterations), output_format);
+        mla_benchmark_run_in_arena(benchmark, static_cast<mla_test_uint32_t>(mla_benchmark_allocated_memory / benchmarkIterations), output_format);
     }
 
 #else

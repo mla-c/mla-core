@@ -291,7 +291,7 @@ mla_bool_t mla_internal_http_server_parse_multipart_read_line(mla_multipart_stre
         if (b == '\n') {
             return true;
         } else if (b != '\r') {
-            mla_string_builder_append(sb, (mla_char_t) b);
+            mla_string_builder_append(sb, static_cast<mla_char_t>(b));
         }
     }
 }

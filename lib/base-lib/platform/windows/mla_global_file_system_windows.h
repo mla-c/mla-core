@@ -309,7 +309,7 @@ mla_bool_t mla_internal_file_system_native_list_directory(mla_file_system_t& fil
 
         // Only include directories
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0U) {
-            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), (mla_size_t)wcslen(findData.cFileName)};
+            mla_string_utf16_buffer_t entryBuffer = {mla_platform_pointer_to_managed_pointer(findData.cFileName), static_cast<mla_size_t>(wcslen(findData.cFileName))};
             mla_string_t entryName = mla_string_from_utf16_buffer(entryBuffer);
             mla_array_list_add(out_entries, entryName);
         }
@@ -594,7 +594,7 @@ mla_file_system_t mla_file_system_native_create_data_restricted(const mla_string
     // Create UTF-16 buffer from TCHAR path
     mla_string_utf16_buffer_t moduleBuffer = {
         mla_platform_pointer_to_managed_pointer(moduleFileName),
-        (mla_size_t)wcslen(moduleFileName)
+        static_cast<mla_size_t>(wcslen(moduleFileName))
     };
 
     // Convert to mla_string_t

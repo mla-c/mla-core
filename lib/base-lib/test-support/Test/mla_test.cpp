@@ -1207,7 +1207,7 @@ void mla_check_assert_not_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Ex
     }
 }
 
-void mla_check_assert_equal(void *p_Actual, void *p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1239,7 +1239,7 @@ void mla_check_assert_equal(void *p_Actual, void *p_Expected, const mla_test_cha
     }
 }
 
-void mla_check_assert_not_equal(void *p_Actual, void *p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_not_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1272,7 +1272,7 @@ void mla_check_assert_not_equal(void *p_Actual, void *p_Expected, const mla_test
 }
 
 
-void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_equal(const mla_test_pointer_t p_Actual, const mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1290,7 +1290,7 @@ void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const 
         // Add ": Expected equal pointer, but got different pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected equal pointer, but got different pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, (void *) p_Expected);
+        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1303,7 +1303,7 @@ void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const 
     }
 }
 
-void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_not_equal(const mla_test_pointer_t p_Actual, const mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1311,7 +1311,7 @@ void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, co
 
     if (p_Actual == p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1321,7 +1321,7 @@ void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, co
         // Add ": Expected not equal pointer, but got same pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal pointer, but got same pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, (void *) p_Expected);
+        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1331,11 +1331,11 @@ void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, co
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *) l_Result;
+        current_test_result.message = l_Result;
     }
 }
 
-void mla_check_assert_null(void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_null(mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1343,7 +1343,7 @@ void mla_check_assert_null(void *p_Pointer, const mla_test_char_t *p_Message, ml
 
     if (p_Pointer != nullptr) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1367,7 +1367,7 @@ void mla_check_assert_null(void *p_Pointer, const mla_test_char_t *p_Message, ml
     }
 }
 
-void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_not_null(mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1375,7 +1375,7 @@ void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message
 
     if (p_Pointer == nullptr) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1397,7 +1397,7 @@ void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message
     }
 }
 
-void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1405,7 +1405,7 @@ void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Messa
 
     if (p_Pointer != nullptr) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "
@@ -1415,7 +1415,7 @@ void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Messa
         // Add ": Expected null pointer, but got: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected null pointer, but got: ");
         // Add pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, (void *) p_Pointer);
+        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Pointer));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1429,7 +1429,7 @@ void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Messa
     }
 }
 
-void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
+void mla_check_assert_not_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message, mla_test_int16_t p_Line) {
 
     if (!current_test_result.success) {
         return;
@@ -1437,7 +1437,7 @@ void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_M
 
     if (p_Pointer == nullptr) {
         current_test_result.success = false;
-        mla_test_char_t *l_Result = (mla_test_char_t *) mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_uint32_t offset = 0;
 
         // Build: "Assertion failed at line "

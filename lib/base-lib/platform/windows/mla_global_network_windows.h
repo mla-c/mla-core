@@ -45,7 +45,7 @@ mla_bool_t mla_internal_windows_resolve_host(mla_network_host_t &host, const mla
 
     // Extract IP address from first result
     if (result->ai_family == AF_INET) {
-        sockaddr_in *addr = (sockaddr_in *) result->ai_addr;
+        sockaddr_in *addr = reinterpret_cast<sockaddr_in *>(result->ai_addr);
         char ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
 
@@ -53,7 +53,7 @@ mla_bool_t mla_internal_windows_resolve_host(mla_network_host_t &host, const mla
         host.address.is_ipv6 = false;
         host.port = port;
     } else if (result->ai_family == AF_INET6) {
-        sockaddr_in6 *addr = (sockaddr_in6 *) result->ai_addr;
+        sockaddr_in6 *addr = reinterpret_cast<sockaddr_in6 *>(result->ai_addr);
         char ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
 
@@ -67,7 +67,7 @@ mla_bool_t mla_internal_windows_resolve_host(mla_network_host_t &host, const mla
 }
 
 void mla_internal_windows_socket_cleanup(const mla_dynamic_data_t& userData) {
-    SOCKET sock = (SOCKET)userData.asUint64;
+    SOCKET sock = static_cast<SOCKET>(userData.asUint64);
     if (sock != INVALID_SOCKET) {
 
         // Flush before closing
@@ -81,24 +81,24 @@ mla_size_t mla_internal_windows_socket_read(mla_stream_input_t& input, mla_size_
 
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
-    SOCKET sock = (SOCKET)socket_data.asUint64;
+    SOCKET sock =static_cast<SOCKET>(socket_data.asUint64);
     if (sock == INVALID_SOCKET) {
         return 0;
     }
 
-    int bytesRead = recv(sock, (char*)buffer + offset, (int)length, 0);
+    int bytesRead = recv(sock, reinterpret_cast<char *>(buffer) + offset, static_cast<int>(length), 0);
     if (bytesRead == SOCKET_ERROR || bytesRead == 0) {
         return 0;
     }
 
-    return (mla_size_t)bytesRead;
+    return static_cast<mla_size_t>(bytesRead);
 }
 
 mla_size_t mla_internal_windows_socket_remaining_bytes(mla_stream_input_t& input) {
 
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
 
-    SOCKET sock = (SOCKET)socket_data.asUint64;
+    SOCKET sock = static_cast<SOCKET>(socket_data.asUint64);
     if (sock == INVALID_SOCKET) {
         return 0;
     }
@@ -118,21 +118,21 @@ mla_size_t mla_internal_windows_socket_write(mla_stream_output_t& output, mla_si
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
 
-    SOCKET sock = (SOCKET)socket_data.asUint64;
+    SOCKET sock = static_cast<SOCKET>(socket_data.asUint64);
     if (sock == INVALID_SOCKET) {
         return 0;
     }
 
     mla_size_t total_sent = 0;
     mla_size_t bytes_remaining = length;
-    const char* ptr = (const char*)buffer + offset;
+    const char* ptr = reinterpret_cast<const char *>(buffer) + offset;
 
     while (bytes_remaining > 0) {
-        int bytesSent = send(sock, ptr + total_sent, (int)bytes_remaining, 0);
+        int bytesSent = send(sock, ptr + total_sent, static_cast<int>(bytes_remaining), 0);
 
         if (bytesSent != SOCKET_ERROR && bytesSent > 0) {
-            total_sent += (mla_size_t)bytesSent;
-            bytes_remaining -= (mla_size_t)bytesSent;
+            total_sent += static_cast<mla_size_t>(bytesSent);
+            bytes_remaining -= static_cast<mla_size_t>(bytesSent);
         } else {
             if (bytesSent == SOCKET_ERROR) {
                 int error = WSAGetLastError();
@@ -208,13 +208,13 @@ mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, co
     }
 
     if (host.address.is_ipv6) {
-        sockaddr_in6 *addr6 = (sockaddr_in6*)&addr;
+        sockaddr_in6 *addr6 = reinterpret_cast<sockaddr_in6*>(&addr);
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = htons(host.port);
         inet_pton(AF_INET6, cAddressPtr, &addr6->sin6_addr);
         addrLen = sizeof(sockaddr_in6);
     } else {
-        sockaddr_in *addr4 = (sockaddr_in*)&addr;
+        sockaddr_in *addr4 = reinterpret_cast<sockaddr_in*>(&addr);
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
         inet_pton(AF_INET, cAddressPtr, &addr4->sin_addr);
@@ -222,7 +222,7 @@ mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, co
     }
 
     // Attempt connection
-    int result = connect(sock, (sockaddr*)&addr, addrLen);
+    int result = connect(sock, reinterpret_cast<sockaddr*>(&addr), addrLen);
 
     if (result == SOCKET_ERROR) {
         int error = WSAGetLastError();
@@ -233,8 +233,8 @@ mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, co
             FD_SET(sock, &writeSet);
 
             timeval timeout = {0, 0};
-            timeout.tv_sec = (long)timeout_ms / 1000;
-            timeout.tv_usec = (long)(timeout_ms % 1000) * 1000;
+            timeout.tv_sec = static_cast<long>(timeout_ms) / 1000;
+            timeout.tv_usec = static_cast<long>(timeout_ms % 1000) * 1000;
 
             result = select(0, nullptr, &writeSet, nullptr, &timeout);
             if (result <= 0) {
@@ -250,7 +250,7 @@ mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, co
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     if (type == mla_connection_type_tcp) {
         BOOL nodelay = TRUE;
-        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay));
+        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nodelay), sizeof(nodelay));
     }
 
     mla_user_data_t userData = mla_user_data_empty();
@@ -275,22 +275,22 @@ mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& 
 
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
 
-    SOCKET listenSock = (SOCKET)socket_data.asUint64;
+    SOCKET listenSock = static_cast<SOCKET>(socket_data.asUint64);
 
     if (listenSock == INVALID_SOCKET) {
         return false;
     }
 
     int sockType = 0;
-    int optLen = (int)sizeof(sockType);
-    if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, (char*)&sockType, &optLen) != 0 || sockType != SOCK_STREAM) {
+    int optLen = static_cast<int>(sizeof(sockType));
+    if (getsockopt(listenSock, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&sockType), &optLen) != 0 || sockType != SOCK_STREAM) {
         return false;
     }
 
     sockaddr_storage clientAddr{};
-    int clientLen = (int)sizeof(clientAddr);
+    int clientLen = static_cast<int>(sizeof(clientAddr));
 
-    SOCKET clientSock = accept(listenSock, (sockaddr*)&clientAddr, &clientLen);
+    SOCKET clientSock = accept(listenSock, reinterpret_cast<sockaddr *>(&clientAddr), &clientLen);
     if (clientSock == INVALID_SOCKET) {
         int err = WSAGetLastError();
         if (err == WSAEWOULDBLOCK) {
@@ -307,7 +307,7 @@ mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& 
     // Disable Nagle's algorithm (TCP_NODELAY) by default for better responsiveness
     {
         BOOL nodelay = TRUE;
-        setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, (const char*)&nodelay, sizeof(nodelay));
+        setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nodelay), sizeof(nodelay));
     }
 
     // Fill connection.host from peer address
@@ -316,13 +316,13 @@ mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& 
     char ip6[INET6_ADDRSTRLEN] = {0};
 
     if (clientAddr.ss_family == AF_INET) {
-        sockaddr_in* a4 = (sockaddr_in*)&clientAddr;
+        sockaddr_in* a4 = reinterpret_cast<sockaddr_in*>(&clientAddr);
         inet_ntop(AF_INET, &a4->sin_addr, ip4, sizeof(ip4));
         peer.address.address = mla_string_copy(ip4, mla_strlen(ip4));
         peer.address.is_ipv6 = false;
         peer.port = ntohs(a4->sin_port);
     } else if (clientAddr.ss_family == AF_INET6) {
-        sockaddr_in6* a6 = (sockaddr_in6*)&clientAddr;
+        sockaddr_in6* a6 = reinterpret_cast<sockaddr_in6*>(&clientAddr);
         inet_ntop(AF_INET6, &a6->sin6_addr, ip6, sizeof(ip6));
         peer.address.address = mla_string_copy(ip6, mla_strlen(ip6));
         peer.address.is_ipv6 = true;
@@ -371,13 +371,13 @@ mla_bool_t mla_internal_windows_bind_and_listen(mla_network_listener_t &listener
     // Exclusive address use
     {
         BOOL exclusive = TRUE;
-        setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char*)&exclusive, sizeof(exclusive));
+        setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusive), sizeof(exclusive));
     }
 
     // Allow dual-stack for IPv6
     if (family == AF_INET6) {
         DWORD v6only = 0;
-        setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&v6only, sizeof(v6only));
+        setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char*>(&v6only), sizeof(v6only));
     }
 
     sockaddr_storage ss{};
@@ -449,7 +449,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
 
     // Retry with increasing buffer size (Microsoft recommended pattern)
     for (mla_int32_t attempt = 0; attempt < 3 && result == ERROR_BUFFER_OVERFLOW; ++attempt) {
-        adapterAddresses = (IP_ADAPTER_ADDRESSES*)mla_platform_malloc(bufferSize);
+        adapterAddresses = static_cast<IP_ADAPTER_ADDRESSES *>(mla_platform_malloc(bufferSize));
         if (adapterAddresses == nullptr) {
             return ipAddresses;
         }
@@ -488,7 +488,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
             mla_network_ip_address_t ipAddress = mla_network_ip_address_invalid();
 
             if (unicast->Address.lpSockaddr->sa_family == AF_INET) {
-                sockaddr_in* addr4 = (sockaddr_in*)unicast->Address.lpSockaddr;
+                sockaddr_in* addr4 = reinterpret_cast<sockaddr_in *>(unicast->Address.lpSockaddr);
                 char ip[INET_ADDRSTRLEN] = {0};
                 inet_ntop(AF_INET, &addr4->sin_addr, ip, INET_ADDRSTRLEN);
                 ipAddress.address = mla_string_copy(ip, mla_strlen(ip));
@@ -496,7 +496,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
                 mla_array_list_add(ipAddresses, ipAddress);
 
             } else if (unicast->Address.lpSockaddr->sa_family == AF_INET6) {
-                sockaddr_in6* addr6 = (sockaddr_in6*)unicast->Address.lpSockaddr;
+                sockaddr_in6* addr6 = reinterpret_cast<sockaddr_in6 *>(unicast->Address.lpSockaddr);
                 char ip[INET6_ADDRSTRLEN] = {0};
                 inet_ntop(AF_INET6, &addr6->sin6_addr, ip, INET6_ADDRSTRLEN);
                 ipAddress.address = mla_string_copy(ip, mla_strlen(ip));

@@ -190,7 +190,7 @@ mla_bool_t mla_internal_ui_web_remote_surface_render_draw_commands(const mla_ui_
 
     (void)eventsSinceLastFame;
 
-    if (timeSinceLastFrameMs < (mla_uint64_t)(1000 * 0.75 / mla_ui_web_remote_surface_client_fps_target)) {
+    if (timeSinceLastFrameMs < static_cast<mla_uint64_t>(1000 * 0.75 / mla_ui_web_remote_surface_client_fps_target)) {
         return false; // Skip rendering to maintain target FPS
     }
 
@@ -216,7 +216,7 @@ mla_bool_t mla_internal_ui_web_remote_surface_render_draw_commands(const mla_ui_
     mla_user_data_set_uint64(messageData, mla_ui_web_remote_surface_timestamp_user_data_name, mla_system_time_ms());
 
     // Serialize the commands to JSON
-    mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, mla_internal_ui_web_remote_surface_render_draw_commands_text_message_generator, (mla_int32_t)(1000 / mla_ui_web_remote_surface_client_fps_target));
+    mla_bool_t sended = mla_http_server_try_send_websocket_text_message(connection, messageData, mla_internal_ui_web_remote_surface_render_draw_commands_text_message_generator, static_cast<mla_int32_t>(1000 / mla_ui_web_remote_surface_client_fps_target));
     return sended;
 
 }

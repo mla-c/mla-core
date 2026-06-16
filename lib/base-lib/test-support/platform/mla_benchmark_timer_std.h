@@ -34,15 +34,15 @@ static double mla_internal_tsc_ns_per_tick() {
     unsigned long long end_tsc = __rdtsc();
     QueryPerformanceCounter(&end_qpc);
 
-    double qpc_ns = (double)(end_qpc.QuadPart - start_qpc.QuadPart) * 1e9
-                    / (double)freq.QuadPart;
-    ns_per_tick = qpc_ns / (double)(end_tsc - start_tsc);
+    double qpc_ns = static_cast<double>(end_qpc.QuadPart - start_qpc.QuadPart) * 1e9
+                    / static_cast<double>(freq.QuadPart);
+    ns_per_tick = qpc_ns / static_cast<double>(end_tsc - start_tsc);
     return ns_per_tick;
 }
 
 static mla_test_uint64_t mla_internal_current_nanoseconds_std() {
     static double ns_per_tick = mla_internal_tsc_ns_per_tick();
-    return static_cast<mla_test_uint64_t>((double)__rdtsc() * ns_per_tick);
+    return static_cast<mla_test_uint64_t>(static_cast<double>(__rdtsc()) * ns_per_tick);
 }
 
 #else

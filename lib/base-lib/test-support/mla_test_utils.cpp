@@ -5,8 +5,8 @@
 #include "mla_test_utils.h"
 
 mla_test_pointer_t mla_test_memcpy(mla_test_pointer_t dest, const mla_test_pointer_t src, mla_test_uint32_t n) {
-    mla_test_uint8_t* d = (mla_test_uint8_t*)dest;
-    const mla_test_uint8_t* s = (const mla_test_uint8_t*)src;
+    mla_test_uint8_t* d = static_cast<mla_test_uint8_t*>(dest);
+    const mla_test_uint8_t* s = static_cast<const mla_test_uint8_t*>(src);
     for (mla_test_uint32_t i = 0; i < n; i++) {
         d[i] = s[i];
     }
@@ -15,8 +15,8 @@ mla_test_pointer_t mla_test_memcpy(mla_test_pointer_t dest, const mla_test_point
 
 // Helper to copy memory (handles overlapping)
 mla_test_pointer_t mla_test_memmove(mla_test_pointer_t dest, const mla_test_pointer_t src, mla_test_uint32_t n) {
-    mla_test_uint8_t* d = (mla_test_uint8_t*)dest;
-    const mla_test_uint8_t* s = (const mla_test_uint8_t*)src;
+    mla_test_uint8_t* d = static_cast<mla_test_uint8_t*>(dest);
+    const mla_test_uint8_t* s = static_cast<const mla_test_uint8_t*>(src);
 
     if (d < s) {
         // Copy forward
@@ -34,9 +34,9 @@ mla_test_pointer_t mla_test_memmove(mla_test_pointer_t dest, const mla_test_poin
 
 // Helper to set memory to a value
 mla_test_pointer_t mla_test_memset(mla_test_pointer_t ptr, mla_test_int32_t value, mla_test_uint32_t n) {
-    mla_test_uint8_t* p = (mla_test_uint8_t*)ptr;
+    mla_test_uint8_t* p = static_cast<mla_test_uint8_t*>(ptr);
     for (mla_test_uint32_t i = 0; i < n; i++) {
-        p[i] = (mla_test_uint8_t)value;
+        p[i] = static_cast<mla_test_uint8_t>(value);
     }
     return ptr;
 }
@@ -47,7 +47,7 @@ mla_test_int32_t mla_test_strcmp(const mla_test_char_t* str1, const mla_test_cha
         str1++;
         str2++;
     }
-    return (mla_test_int32_t)((mla_test_uint8_t)*str1 - (mla_test_uint8_t)*str2);
+    return static_cast<mla_test_int32_t>((static_cast<mla_test_uint8_t>(*str1)) - (static_cast<mla_test_uint8_t>(*str2)));
 }
 
 mla_test_uint32_t mla_test_strlen(const mla_test_char_t* str) {
@@ -55,7 +55,7 @@ mla_test_uint32_t mla_test_strlen(const mla_test_char_t* str) {
     while (*s != '\0') {
         s++;
     }
-    return (mla_test_uint32_t)(s - str);
+    return static_cast<mla_test_uint32_t>(s - str);
 }
 
 // Helper function to convert uint32 to string and return length
@@ -119,13 +119,13 @@ mla_test_uint32_t mla_int16_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint32 function
-    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, (mla_test_uint32_t)value);
+    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
     return offset + len;
 }
 
 // Helper function to convert uint16 to string and return length
 mla_test_uint32_t mla_uint16_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint16_t value) {
-    return mla_uint32_to_string(buffer, buffer_size, (mla_test_uint32_t)value);
+    return mla_uint32_to_string(buffer, buffer_size, static_cast<mla_test_uint32_t>(value));
 }
 
 // Helper function to convert a bool to string and return length
@@ -152,7 +152,7 @@ mla_test_uint32_t mla_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     // Handle negative numbers
     if (value < 0) {
         buffer[offset++] = '-';
-        if (value == (mla_test_int32_t)(-2147483647 - 1)) {
+        if (value == static_cast<mla_test_int32_t>(-2147483647 - 1)) {
             // Special case for minimum int32_t
             const mla_test_char_t* min_str = "2147483648";
             mla_test_uint32_t len = 0;
@@ -165,7 +165,7 @@ mla_test_uint32_t mla_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint32 function
-    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, (mla_test_uint32_t)value);
+    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
     return offset + len;
 }
 
@@ -230,7 +230,7 @@ mla_test_uint32_t mla_int64_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint64 function
-    mla_test_uint32_t len = mla_uint64_to_string(buffer + offset, buffer_size - offset, (mla_test_uint64_t)value);
+    mla_test_uint32_t len = mla_uint64_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint64_t>(value));
     return offset + len;
 }
 
@@ -249,7 +249,7 @@ mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Get integer part
-    mla_test_int32_t int_part = (mla_test_int32_t)value;
+    mla_test_int32_t int_part = static_cast<mla_test_int32_t>(value);
     offset += mla_int32_to_string(buffer + offset, buffer_size - offset, int_part);
 
     // Add decimal point
@@ -284,7 +284,7 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
     }
 
     // Get integer part
-    mla_test_int64_t int_part = (mla_test_int64_t)value;
+    mla_test_int64_t int_part = static_cast<mla_test_int64_t>(value);
     offset += mla_int64_to_string(buffer + offset, buffer_size - offset, int_part);
 
     // Add decimal point
@@ -296,9 +296,9 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
     mla_test_double_t frac_part = value - static_cast<mla_test_double_t>(int_part);
     for (mla_test_uint32_t i = 0; i < precision && offset < buffer_size - 1; i++) {
         frac_part *= 10;
-        mla_test_int32_t digit = (mla_test_int32_t)frac_part;
-        buffer[offset++] = (mla_test_char_t)('0' + digit);
-        frac_part -= digit;
+        mla_test_int32_t digit = static_cast<mla_test_int32_t>(frac_part);
+        buffer[offset++] = static_cast<mla_test_char_t>('0' + digit);
+        frac_part -= static_cast<mla_test_double_t>(digit);
     }
 
     return offset;
@@ -317,7 +317,7 @@ mla_test_uint32_t mla_pointer_to_string(mla_test_char_t* buffer, mla_test_uint32
     buffer[offset++] = 'x';
 
     // Convert pointer to unsigned integer
-    mla_test_uint64_t addr = (mla_test_uint64_t)ptr;
+    mla_test_uint64_t addr = reinterpret_cast<mla_test_uint64_t>(ptr);
 
     if (addr == 0) {
         buffer[offset++] = '0';

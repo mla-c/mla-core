@@ -246,7 +246,7 @@ static mla_bool_t mla_internal_deflate_bit_reader_ensure(mla_internal_deflate_bi
         if (!mla_internal_deflate_bit_reader_read_byte(reader, input, byte_val)) {
             return false;
         }
-        reader.bit_buffer |= ((mla_uint32_t)byte_val) << reader.bit_count;
+        reader.bit_buffer |= static_cast<mla_uint32_t>(byte_val) << reader.bit_count;
         reader.bit_count += 8;
     }
     return true;

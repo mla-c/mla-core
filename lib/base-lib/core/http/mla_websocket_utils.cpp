@@ -747,7 +747,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
             mla_byte_t buffer[2] = {0};
             final_payload_stream.read(final_payload_stream, 0, mla_websocket_status_code_size, buffer);
 
-            mla_uint16_t status_be = ((mla_uint16_t) buffer[0] << 8) | buffer[1];
+            mla_uint16_t status_be = (static_cast<mla_uint16_t>(buffer[0]) << 8) | buffer[1];
             status_code = mla_be_to_host_uint16(status_be);
         }
 
@@ -759,7 +759,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
         // send pong frame
         mla_stream_output_t &output = connection.outputStream;
-        mla_uint8_t content_length = (mla_uint8_t) mla_min(payload_size, (mla_size_t)mla_websocket_length_short_max);
+        mla_uint8_t content_length = static_cast<mla_uint8_t>(mla_min(payload_size, (mla_size_t)mla_websocket_length_short_max));
         mla_uint8_t pong_length_byte = content_length;
         if (mask_message) {
             pong_length_byte |= mla_websocket_mask_bit;
@@ -797,7 +797,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
                 }
             } else {
                 // Echo unmasked payload if present
-                if (output.write(output, 0, (mla_size_t)content_length, buffer) != (mla_size_t)content_length) {
+                if (output.write(output, 0, static_cast<mla_size_t>(content_length), buffer) != static_cast<mla_size_t>(content_length)) {
                     return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
                 }
 

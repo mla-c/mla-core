@@ -62,14 +62,14 @@ void mla_check_assert_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expe
 void mla_check_assert_not_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_equal(void *p_Actual, void *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_not_equal(void *p_Actual, void *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_equal(const void *p_Actual, const void *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_not_equal(const void *p_Actual, const void *p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_null(void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_not_null(void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_null(const void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
-void mla_check_assert_not_null(const void *p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_equal(const mla_test_pointer_t p_Actual, const mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_equal(const mla_test_pointer_t p_Actual, const mla_test_pointer_t p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_null(mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_null(mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
+void mla_check_assert_not_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 
 template <typename T>
 void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {
@@ -80,7 +80,7 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
 
     if (p_Actual != p_Expected) {
         current_test_result.success = false;
-        mla_test_char_t* l_Result = (mla_test_char_t*)mla_test_malloc(sizeof(mla_test_char_t) * 4096);
+        mla_test_char_t* l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
         mla_test_int32_t offset = 0;
 
         // Copy "Assertion failed at line "
@@ -127,7 +127,7 @@ void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const
         }
 
         l_Result[offset] = '\0';
-        current_test_result.message = (mla_test_char_t *)l_Result;
+        current_test_result.message = l_Result;
     }
 }
 
