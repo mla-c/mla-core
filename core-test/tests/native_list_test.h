@@ -13,7 +13,7 @@
 #include "../../lib/base-lib/test-support/mla_benchmark_executor.h"
 
 void CArrayContainsBenchmark() {
-    int* l_Array = (int*)mla_test_malloc(sizeof(int) * 100);
+    int* l_Array = static_cast<int *>(mla_test_malloc(sizeof(int) * 100));
 
     for (int i = 0; i < 100; ++i) {
         l_Array[i] = i;
@@ -39,7 +39,7 @@ void CArrayContainsBenchmark() {
 }
 
 void CArrayAddMuchItemsBenchmark() {
-    int* l_Array = (int*)mla_test_malloc(sizeof(int) * 1000);
+    int* l_Array = static_cast<int *>(mla_test_malloc(sizeof(int) * 1000));
     for (int i = 0; i < 1000; ++i) {
         l_Array[i] = i;
     }

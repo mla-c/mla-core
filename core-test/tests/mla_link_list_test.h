@@ -73,13 +73,13 @@ void LinkListContainsMlaStringTest() {
 void LinkListContainsTest() {
 
     mla_link_list_t<mla_test_int16_t> mla_list = mla_link_list<mla_test_int16_t>();
-    mla_link_list_add(mla_list, (mla_test_int16_t)1);
-    mla_link_list_add(mla_list, (mla_test_int16_t)2);
-    mla_link_list_add(mla_list, (mla_test_int16_t)3);
+    mla_link_list_add(mla_list, static_cast<mla_test_int16_t>(1));
+    mla_link_list_add(mla_list, static_cast<mla_test_int16_t>(2));
+    mla_link_list_add(mla_list, static_cast<mla_test_int16_t>(3));
 
-    mla_bool_t found = mla_link_list_contains(mla_list, (mla_test_int16_t)2);
+    mla_bool_t found = mla_link_list_contains(mla_list, static_cast<mla_test_int16_t>(2));
     assert_true(found, "List should contain '2'");
-    found = mla_link_list_contains(mla_list, (mla_test_int16_t)4);
+    found = mla_link_list_contains(mla_list, static_cast<mla_test_int16_t>(4));
     assert_false(found, "List should not contain '4'");
 
     mla_test_int16_t value;

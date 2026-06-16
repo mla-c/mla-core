@@ -21,7 +21,7 @@ inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_
     mla_uint32_t sum2 = 0U;
 
     for (mla_size_t i = 0; i < p_Length; i++) {
-        sum1 += (mla_uint32_t)p_Data[i];
+        sum1 += static_cast<mla_uint32_t>(p_Data[i]);
         if (sum1 >= mod_adler) {
             sum1 -= mod_adler;
         }
@@ -36,11 +36,11 @@ inline mla_uint32_t StreamDeflateTestAdler32(const mla_byte_t* p_Data, mla_size_
 inline void StreamDeflateExpectedZlibHeader(mla_byte_t& p_Cmf, mla_byte_t& p_Flg) {
     mla_memory_stream_t temp = mla_memory_stream_empty();
     mla_size_t window_bits = mla_stream_output_deflate_window_bits(temp.output);
-    p_Cmf = (mla_byte_t)(((window_bits - 8U) << 4U) | 8U);
+    p_Cmf = static_cast<mla_byte_t>(((window_bits - 8U) << 4U) | 8U);
     p_Flg = 0;
 
-    mla_uint16_t header = (mla_uint16_t)(((mla_uint16_t)p_Cmf << 8) | p_Flg);
-    p_Flg = (mla_byte_t)((31U - (header % 31U)) % 31U);
+    mla_uint16_t header = static_cast<mla_uint16_t>((static_cast<mla_uint16_t>(p_Cmf) << 8) | p_Flg);
+    p_Flg = static_cast<mla_byte_t>((31U - (header % 31U)) % 31U);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ inline void StreamDeflateCompressAndDecompressSmallTest() {
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
 
-    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     assert_equal(written, test_len, "Should write all bytes to compressor");
 
     mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
@@ -94,7 +94,7 @@ inline void StreamDeflateCompressAndDecompressRepeatingDataTest() {
     const mla_size_t data_size = 512;
     mla_byte_t test_data[512];
     for (mla_size_t i = 0; i < data_size; i++) {
-        test_data[i] = (mla_byte_t)(i % 10);
+        test_data[i] = static_cast<mla_byte_t>(i % 10);
     }
 
     // Compress
@@ -140,7 +140,7 @@ inline void StreamDeflateCompressAndDecompressLargeDataTest() {
     if (test_data != nullptr) {
         // Fill with pattern
         for (mla_size_t i = 0; i < data_size; i++) {
-            test_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
+            test_data[i] = static_cast<mla_byte_t>(((i * 7) + 13) % 256);
         }
     }
 
@@ -202,7 +202,7 @@ inline void StreamDeflateCompressMultipleWritesTest() {
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
 
     for (mla_size_t i = 0; i < 3; i++) {
-        mla_size_t written = compress_out.write(compress_out, 0, part_lens[i], (const mla_byte_t *)parts[i]);
+        mla_size_t written = compress_out.write(compress_out, 0, part_lens[i], reinterpret_cast<const mla_byte_t *>(parts[i]));
         assert_equal(written, part_lens[i], "Should write all bytes of each part");
     }
 
@@ -237,7 +237,7 @@ inline void StreamDeflateDecompressSmallReadsTest() {
     // Compress
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
-    compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     mla_stream_output_deflate_finish(compress_out);
 
     // Decompress in small reads
@@ -289,7 +289,7 @@ inline void StreamDeflateCompressAllByteValuesTest() {
     // Test that all possible byte values round-trip correctly
     mla_byte_t test_data[256];
     for (mla_size_t i = 0; i < 256; i++) {
-        test_data[i] = (mla_byte_t)i;
+        test_data[i] = static_cast<mla_byte_t>(i);
     }
 
     // Compress
@@ -354,7 +354,7 @@ inline void StreamDeflateDecompressRemainingBytesTest() {
     // Compress
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
-    compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     mla_stream_output_deflate_finish(compress_out);
 
     // Decompress and check remaining bytes
@@ -520,7 +520,7 @@ inline void StreamDeflateZlibRoundTripTest() {
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_zlib);
 
-    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t*)test_data);
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t*>(test_data));
     assert_equal(written, test_len, "Zlib mode: should write all bytes to compressor");
 
     mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
@@ -583,10 +583,10 @@ inline void StreamDeflateZlibAdler32MultiWriteTest() {
 
     if (wire_size > 4) {
         mla_uint32_t actual_adler =
-            ((mla_uint32_t)wire_bytes[wire_size - 4] << 24) |
-            ((mla_uint32_t)wire_bytes[wire_size - 3] << 16) |
-            ((mla_uint32_t)wire_bytes[wire_size - 2] << 8) |
-            (mla_uint32_t)wire_bytes[wire_size - 1];
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 4]) << 24) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 3]) << 16) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 2]) << 8) |
+            static_cast<mla_uint32_t>(wire_bytes[wire_size - 1]);
 
         assert_equal((mla_test_uint32_t)actual_adler, (mla_test_uint32_t)expected_adler, "Zlib mode: Adler-32 trailer should match the concatenated original payload");
     } else {
@@ -622,7 +622,7 @@ inline void StreamDeflateWebSocketModeTest() {
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
         compressed.output, mla_deflate_mode_raw_websocket);
 
-    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
 
     mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
@@ -662,7 +662,7 @@ inline void StreamDeflateWebSocketModeLargerDataTest() {
     const mla_size_t data_size = 512;
     mla_byte_t test_data[512];
     for (mla_size_t i = 0; i < data_size; i++) {
-        test_data[i] = (mla_byte_t)(i % 10);
+        test_data[i] = static_cast<mla_byte_t>(i % 10);
     }
 
     mla_memory_stream_t compressed = mla_memory_stream_empty();
@@ -710,7 +710,7 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(
         compressed_websocket.output, mla_deflate_mode_raw_websocket);
 
-    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     assert_equal(written, test_len, "WebSocket mode: should write all bytes to compressor");
 
     mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
@@ -722,7 +722,7 @@ inline void StreamDeflateWebSocketCompareToNormalTest() {
     mla_memory_stream_t normal_websocket = mla_memory_stream_empty();
     mla_stream_output_t normal_compress_out = mla_stream_output_deflate_compress_wrapper(normal_websocket.output, mla_deflate_mode_raw);
 
-    written = compress_out.write(normal_compress_out, 0, test_len, (const mla_byte_t *)test_data);
+    written = compress_out.write(normal_compress_out, 0, test_len, reinterpret_cast<const mla_byte_t *>(test_data));
     assert_equal(written, test_len, "Normal mode: should write all bytes to compressor");
 
     finish_result = mla_stream_output_deflate_finish(normal_compress_out);
@@ -849,15 +849,15 @@ inline void StreamDeflateGzipEmptyStreamBytesTest() {
         // Verify trailer: CRC32 (LE) + ISIZE (LE)
         // For empty data, CRC32 = 0x00000000 and ISIZE = 0x00000000
         mla_uint32_t trailer_crc =
-            (mla_uint32_t)wire_bytes[wire_size - 8] |
-            ((mla_uint32_t)wire_bytes[wire_size - 7] << 8) |
-            ((mla_uint32_t)wire_bytes[wire_size - 6] << 16) |
-            ((mla_uint32_t)wire_bytes[wire_size - 5] << 24);
+            static_cast<mla_uint32_t>(wire_bytes[wire_size - 8]) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 7]) << 8) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 6]) << 16) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 5]) << 24);
         mla_uint32_t trailer_isize =
-            (mla_uint32_t)wire_bytes[wire_size - 4] |
-            ((mla_uint32_t)wire_bytes[wire_size - 3] << 8) |
-            ((mla_uint32_t)wire_bytes[wire_size - 2] << 16) |
-            ((mla_uint32_t)wire_bytes[wire_size - 1] << 24);
+            static_cast<mla_uint32_t>(wire_bytes[wire_size - 4]) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 3]) << 8) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 2]) << 16) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 1]) << 24);
 
         assert_equal((mla_test_uint32_t)trailer_crc, (mla_test_uint32_t)0U, "Gzip mode: CRC32 should be 0 for empty stream");
         assert_equal((mla_test_uint32_t)trailer_isize, (mla_test_uint32_t)0U, "Gzip mode: ISIZE should be 0 for empty stream");
@@ -871,7 +871,7 @@ inline void StreamDeflateGzipRoundTripTest() {
     mla_memory_stream_t compressed = mla_memory_stream_empty();
     mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output, mla_deflate_mode_gzip);
 
-    mla_size_t written = compress_out.write(compress_out, 0, test_len, (const mla_byte_t*)test_data);
+    mla_size_t written = compress_out.write(compress_out, 0, test_len, reinterpret_cast<const mla_byte_t*>(test_data));
     assert_equal(written, test_len, "Gzip mode: should write all bytes to compressor");
 
     mla_bool_t finish_result = mla_stream_output_deflate_finish(compress_out);
@@ -934,18 +934,18 @@ inline void StreamDeflateGzipCrc32MultiWriteTest() {
 
     if (wire_size > 8) {
         mla_uint32_t actual_crc =
-            (mla_uint32_t)wire_bytes[wire_size - 8] |
-            ((mla_uint32_t)wire_bytes[wire_size - 7] << 8) |
-            ((mla_uint32_t)wire_bytes[wire_size - 6] << 16) |
-            ((mla_uint32_t)wire_bytes[wire_size - 5] << 24);
+            static_cast<mla_uint32_t>(wire_bytes[wire_size - 8]) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 7]) << 8) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 6]) << 16) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 5]) << 24);
 
         assert_equal((mla_test_uint32_t)actual_crc, (mla_test_uint32_t)expected_crc, "Gzip mode: CRC32 trailer should match the concatenated original payload");
 
         mla_uint32_t actual_isize =
-            (mla_uint32_t)wire_bytes[wire_size - 4] |
-            ((mla_uint32_t)wire_bytes[wire_size - 3] << 8) |
-            ((mla_uint32_t)wire_bytes[wire_size - 2] << 16) |
-            ((mla_uint32_t)wire_bytes[wire_size - 1] << 24);
+            static_cast<mla_uint32_t>(wire_bytes[wire_size - 4]) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 3]) << 8) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 2]) << 16) |
+            (static_cast<mla_uint32_t>(wire_bytes[wire_size - 1]) << 24);
 
         assert_equal((mla_test_uint32_t)actual_isize, (mla_test_uint32_t)sizeof(expected_plain), "Gzip mode: ISIZE trailer should match the original payload size");
     } else {
@@ -961,7 +961,7 @@ inline void StreamDeflateGzipLargeRoundTripTest() {
 
     if (test_data != nullptr) {
         for (mla_size_t i = 0; i < data_size; i++) {
-            test_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
+            test_data[i] = static_cast<mla_byte_t>(((i * 7) + 13) % 256);
         }
     }
 
@@ -1008,11 +1008,11 @@ inline void StreamDeflateGzipCompressedSizeCalculationTest() {
     const mla_char_t* test_data = "Hello, gzip size!";
     mla_size_t test_len = 17;
 
-    mla_stream_input_t input = mla_stream_input_from_buffer((mla_byte_t*)test_data, test_len);
+    mla_stream_input_t input = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(test_data)), test_len);
     mla_size_t compressed_size = mla_stream_input_deflate_compressed_size_calculation(input, mla_deflate_mode_gzip);
 
     // Gzip compressed size should be larger than raw (header + trailer overhead)
-    mla_stream_input_t input2 = mla_stream_input_from_buffer((mla_byte_t*)test_data, test_len);
+    mla_stream_input_t input2 = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t*>(const_cast<mla_char_t*>(test_data)), test_len);
     mla_size_t raw_compressed_size = mla_stream_input_deflate_compressed_size_calculation(input2, mla_deflate_mode_raw);
 
     assert_true(compressed_size > raw_compressed_size, "Gzip compressed size should include header + trailer overhead");
@@ -1141,13 +1141,13 @@ static mla_memory_stream_t bench_deflate_pre_large = mla_memory_stream_empty();
 
 static void bench_deflate_fill_medium_data() {
     for (mla_size_t i = 0; i < 512; i++) {
-        bench_deflate_medium_data[i] = (mla_byte_t)(i % 10);
+        bench_deflate_medium_data[i] = static_cast<mla_byte_t>(i % 10);
     }
 }
 
 static void bench_deflate_fill_large_data() {
     for (mla_size_t i = 0; i < 4096; i++) {
-        bench_deflate_large_data[i] = (mla_byte_t)(((i * 7) + 13) % 256);
+        bench_deflate_large_data[i] = static_cast<mla_byte_t>(((i * 7) + 13) % 256);
     }
 }
 
@@ -1160,7 +1160,7 @@ static void bench_deflate_fill_large_data() {
 inline void DeflateCompressSmallBenchmark() {
     mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, sizeof(bench_deflate_compress_out_buf));
     mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
-    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    comp.write(comp, 0, bench_deflate_small_len, reinterpret_cast<const mla_byte_t *>(bench_deflate_small_data));
     mla_stream_output_deflate_finish(comp);
 }
 
@@ -1198,7 +1198,7 @@ inline void DeflateCompressLargeBenchmark() {
 inline void SetupDeflateDecompressSmallBenchmark() {
     bench_deflate_pre_small = mla_memory_stream_empty();
     mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(bench_deflate_pre_small.output);
-    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    comp.write(comp, 0, bench_deflate_small_len, reinterpret_cast<const mla_byte_t *>(bench_deflate_small_data));
     mla_stream_output_deflate_finish(comp);
 }
 
@@ -1287,13 +1287,13 @@ inline void DeflateRoundTripSmallBenchmark() {
     // Compress
     mla_stream_output_t out  = mla_stream_output_to_buffer(bench_deflate_compress_out_buf, 8192);
     mla_stream_output_t comp = mla_stream_output_deflate_compress_wrapper(out);
-    comp.write(comp, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    comp.write(comp, 0, bench_deflate_small_len, reinterpret_cast<const mla_byte_t *>(bench_deflate_small_data));
     mla_stream_output_deflate_finish(comp);
 
     // Decompress from the static buffer using memory stream
     mla_memory_stream_t tmp = mla_memory_stream_empty();
     mla_stream_output_t comp2 = mla_stream_output_deflate_compress_wrapper(tmp.output);
-    comp2.write(comp2, 0, bench_deflate_small_len, (const mla_byte_t *)bench_deflate_small_data);
+    comp2.write(comp2, 0, bench_deflate_small_len, reinterpret_cast<const mla_byte_t *>(bench_deflate_small_data));
     mla_stream_output_deflate_finish(comp2);
 
     mla_memory_stream_set_position(tmp, 0);

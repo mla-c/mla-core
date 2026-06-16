@@ -135,7 +135,7 @@ void TwoMemoryHookBenchmark() {
 
 void NativeMemoryBenchmark() {
 
-    mla_byte_t* data = (mla_byte_t*)mla_test_malloc(24);
+    mla_byte_t* data = static_cast<mla_byte_t*>(mla_test_malloc(24));
     mla_test_bench_sink(data);
     mla_test_free(data);
 

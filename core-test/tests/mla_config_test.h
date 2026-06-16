@@ -212,9 +212,9 @@ inline void MultiConfigDifferentOrderTest() {
     test_config_struct config1 = {200, false, mla_string("Alpha")};
     simple_config config2 = {10, 2.718F};
     complex_config config3 = {9876543210, mla_string("Gamma"), mla_array_list<mla_int32_t>()};
-    mla_array_list_add(config3.values, (mla_int32_t)1);
-    mla_array_list_add(config3.values, (mla_int32_t)2);
-    mla_array_list_add(config3.values, (mla_int32_t)3);
+    mla_array_list_add(config3.values, static_cast<mla_int32_t>(1));
+    mla_array_list_add(config3.values, static_cast<mla_int32_t>(2));
+    mla_array_list_add(config3.values, static_cast<mla_int32_t>(3));
 
 
     // Create definitions

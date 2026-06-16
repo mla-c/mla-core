@@ -205,9 +205,9 @@ inline void AllTypesTest(mla_serializer_t &serializer, mla_deserializer_t &deser
         assert_fail("Failed to get bytes data for writing");
     }
 
-    mla_array_list_add(original.intList, (mla_int32_t) 1);
-    mla_array_list_add(original.intList, (mla_int32_t) 2);
-    mla_array_list_add(original.intList, (mla_int32_t) 3);
+    mla_array_list_add(original.intList, static_cast<mla_int32_t>(1));
+    mla_array_list_add(original.intList, static_cast<mla_int32_t>(2));
+    mla_array_list_add(original.intList, static_cast<mla_int32_t>(3));
 
     mla_array_list_add(original.innerStructList, {1, false});
     mla_array_list_add(original.innerStructList, {2, true});
@@ -404,9 +404,9 @@ inline void SetupSerializerBenchmark() {
     bufferInner[3] = 4;
     bufferInner[4] = 5;
 
-    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t) 1);
-    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t) 2);
-    mla_array_list_add(g_benchmarkAllTypes.intList, (mla_int32_t) 3);
+    mla_array_list_add(g_benchmarkAllTypes.intList, static_cast<mla_int32_t>(1));
+    mla_array_list_add(g_benchmarkAllTypes.intList, static_cast<mla_int32_t>(2));
+    mla_array_list_add(g_benchmarkAllTypes.intList, static_cast<mla_int32_t>(3));
 
     mla_array_list_add(g_benchmarkAllTypes.innerStructList, {1, false});
     mla_array_list_add(g_benchmarkAllTypes.innerStructList, {2, true});
@@ -465,9 +465,9 @@ inline void SetupDeserializerBenchmark(mla_serializer_t serializer) {
     bufferInner[3] = 4;
     bufferInner[4] = 5;
 
-    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t) 1);
-    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t) 2);
-    mla_array_list_add(prepare_benchmarkAllTypes.intList, (mla_int32_t) 3);
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, static_cast<mla_int32_t>(1));
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, static_cast<mla_int32_t>(2));
+    mla_array_list_add(prepare_benchmarkAllTypes.intList, static_cast<mla_int32_t>(3));
 
     mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, {1, false});
     mla_array_list_add(prepare_benchmarkAllTypes.innerStructList, {2, true});

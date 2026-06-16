@@ -51,11 +51,11 @@ struct my_hash_map_with_const_test_struct {
 void HashMapContainsTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, (mla_int32_t)1, (mla_int32_t)100);
-    mla_hash_map_push(map, (mla_int32_t)2, (mla_int32_t)200);
-    mla_hash_map_push(map, (mla_int32_t)3, (mla_int32_t)300);
-    mla_hash_map_push(map, (mla_int32_t)4, (mla_int32_t)400);
-    mla_hash_map_push(map, (mla_int32_t)5, (mla_int32_t)500);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), static_cast<mla_int32_t>(100));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), static_cast<mla_int32_t>(200));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), static_cast<mla_int32_t>(300));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(4), static_cast<mla_int32_t>(400));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(5), static_cast<mla_int32_t>(500));
 
     assert_true(mla_hash_map_contains(map, (mla_int32_t)1), "HashMap should contain key 1");
     assert_true(mla_hash_map_contains(map, (mla_int32_t)2), "HashMap should contain key 2");
@@ -69,9 +69,9 @@ void HashMapContainsTest() {
 void HashMapGetTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, (mla_int32_t)1, (mla_int32_t)100);
-    mla_hash_map_push(map, (mla_int32_t)2, (mla_int32_t)200);
-    mla_hash_map_push(map, (mla_int32_t)3, (mla_int32_t)300);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), static_cast<mla_int32_t>(100));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), static_cast<mla_int32_t>(200));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), static_cast<mla_int32_t>(300));
 
     // Try Get
     mla_int32_t value;
@@ -101,9 +101,9 @@ void HashMapAddMuchItemsTest() {
 void HashMapRemoveTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, (mla_int32_t)1, (mla_int32_t)100);
-    mla_hash_map_push(map, (mla_int32_t)2, (mla_int32_t)200);
-    mla_hash_map_push(map, (mla_int32_t)3, (mla_int32_t)300);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), static_cast<mla_int32_t>(100));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), static_cast<mla_int32_t>(200));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), static_cast<mla_int32_t>(300));
 
     assert_true(mla_hash_map_remove(map, (mla_int32_t)2), "HashMap should successfully remove key 2");
     assert_false(mla_hash_map_contains(map, (mla_int32_t)2), "HashMap should not contain key 2 after removal");
@@ -115,9 +115,9 @@ void HashMapRemoveTest() {
 void HashMapClearTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, (mla_int32_t)1, (mla_int32_t)100);
-    mla_hash_map_push(map, (mla_int32_t)2, (mla_int32_t)200);
-    mla_hash_map_push(map, (mla_int32_t)3, (mla_int32_t)300);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), static_cast<mla_int32_t>(100));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), static_cast<mla_int32_t>(200));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), static_cast<mla_int32_t>(300));
 
     mla_hash_map_clear(map);
 
@@ -128,9 +128,9 @@ void HashMapClearTest() {
 void HashMapGetKeysTest() {
 
     mla_hash_map_t<mla_int32_t, mla_int32_t, mla_int32_hash_t> map = mla_hash_map<mla_int32_t, mla_int32_t, mla_int32_hash_t>(10);
-    mla_hash_map_push(map, (mla_int32_t)1, (mla_int32_t)100);
-    mla_hash_map_push(map, (mla_int32_t)2, (mla_int32_t)200);
-    mla_hash_map_push(map, (mla_int32_t)3, (mla_int32_t)300);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), static_cast<mla_int32_t>(100));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), static_cast<mla_int32_t>(200));
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), static_cast<mla_int32_t>(300));
 
     mla_array_list_t<mla_int32_t> keys = mla_hash_map_keys(map);
 
@@ -166,9 +166,9 @@ void HashMapWithValueStructTest() {
     my_hash_map_test_struct item2 = {2, 200};
     my_hash_map_test_struct item3 = {3, 300};
 
-    mla_hash_map_push(map, (mla_int32_t)1, item1);
-    mla_hash_map_push(map, (mla_int32_t)2, item2);
-    mla_hash_map_push(map, (mla_int32_t)3, item3);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), item1);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), item2);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), item3);
 
     assert_true(mla_hash_map_contains(map, (mla_int32_t)1), "HashMap should contain key 1");
     assert_true(mla_hash_map_contains(map, (mla_int32_t)2), "HashMap should contain key 2");
@@ -179,7 +179,7 @@ void HashMapWithValueStructTest() {
     assert_equal(value.test1, 2L, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200L, "Value test2 should be equal to 200");
 
-    my_hash_map_test_struct* valueRef = mla_hash_map_get_ref(map, (mla_int32_t)2);
+    my_hash_map_test_struct* valueRef = mla_hash_map_get_ref(map, static_cast<mla_int32_t>(2));
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check
@@ -203,9 +203,9 @@ void HashMapWithValueConstStructTest() {
     my_hash_map_with_const_test_struct item2 = {2, 200};
     my_hash_map_with_const_test_struct item3 = {3, 300};
 
-    mla_hash_map_push(map, (mla_int32_t)1, item1);
-    mla_hash_map_push(map, (mla_int32_t)2, item2);
-    mla_hash_map_push(map, (mla_int32_t)3, item3);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(1), item1);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(2), item2);
+    mla_hash_map_push(map, static_cast<mla_int32_t>(3), item3);
 
     assert_true(mla_hash_map_contains(map, (mla_int32_t)1), "HashMap should contain key 1");
     assert_true(mla_hash_map_contains(map, (mla_int32_t)2), "HashMap should contain key 2");
@@ -216,7 +216,7 @@ void HashMapWithValueConstStructTest() {
     assert_equal(value.test1, 2L, "Value test1 should be equal to 2");
     assert_equal(value.test2, 200L, "Value test2 should be equal to 200");
 
-    my_hash_map_with_const_test_struct* valueRef = mla_hash_map_get_ref(map, (mla_int32_t)2);
+    my_hash_map_with_const_test_struct* valueRef = mla_hash_map_get_ref(map, static_cast<mla_int32_t>(2));
 
     if (valueRef != nullptr) {
         valueRef->test2 = 0; // Reset value for next check

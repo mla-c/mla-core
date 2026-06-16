@@ -43,7 +43,7 @@ inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_s
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     const mla_char_t *body = "test";
-    response.content = mla_stream_input_from_buffer((mla_byte_t *) body, sizeof(mla_char_t) * 4);
+    response.content = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t *>(const_cast<mla_char_t*>(body)), sizeof(mla_char_t) * 4);
 
     return true;
 }
@@ -151,7 +151,7 @@ inline void HttpServerMultiHandlerTest() {
                      "Should receive 200 OK from multi handler server");
 
         mla_char_t body_buffer[5] = {0};
-        response1.response.content.read(response1.response.content, 0, 4, (mla_byte_t *) body_buffer);
+        response1.response.content.read(response1.response.content, 0, 4, reinterpret_cast<mla_byte_t *>(body_buffer));
         mla_string_t body_string = mla_string(mla_platform_pointer_to_managed_pointer (body_buffer), 4);
         assert_struct_equal(mla_string_t, mla_string_const("test"), body_string,
                             "Should receive 'test' body from multi handler server");
@@ -159,7 +159,7 @@ inline void HttpServerMultiHandlerTest() {
         // Test POST request
         mla_string_t echo_url = mla_string_concat(test_server_url, mla_string_const("/echo"));
         mla_http_request_t request2 = mla_http_post_request(echo_url);
-        request2.content = mla_stream_input_from_buffer((mla_byte_t *) "hello world", 12);
+        request2.content = mla_stream_input_from_buffer(reinterpret_cast<mla_byte_t *>(const_cast<mla_char_t*>("hello world")), 12);
         mla_http_client_response_t response2 = mla_http_client_send_request(client, request2);
         assert_equal(response2.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                      "HTTP POST request to multi handler server should succeed");
@@ -167,7 +167,7 @@ inline void HttpServerMultiHandlerTest() {
                      "Should receive 200 OK from multi handler server");
 
         mla_char_t body_2_buffer[12] = {0};
-        response2.response.content.read(response2.response.content, 0, 12, (mla_byte_t *) body_2_buffer);
+        response2.response.content.read(response2.response.content, 0, 12, reinterpret_cast<mla_byte_t *>(body_2_buffer));
         mla_string_t body_2_string = mla_string(mla_platform_pointer_to_managed_pointer(body_2_buffer), 11);
 
         assert_struct_equal(mla_string_t, mla_string_const("hello world"), body_2_string,
@@ -457,7 +457,7 @@ void SimpleHttpServerBenchmark() {
 
     if (response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK) {
         mla_string_t message = mla_string_concat("HTTP request to simple server failed with status: ",
-            mla_string_from_uint32((mla_uint32_t)response.status), mla_string_const("\n"));
+            mla_string_from_uint32(response.status), mla_string_const("\n"));
 
         const mla_char_t* error_data = mla_string_data(message);
 
