@@ -37,7 +37,7 @@ void get_config_filename(TCHAR* buffer, DWORD bufferSize) {
 // On Windows the configuration is just an file in the application directory
 // The file can be read and written using standard file operations
 
-mla_bytes_t mla_internal_windows_read_config_input() {
+mla_bytes_t mla_private_windows_read_config_input() {
 
     TCHAR configFilename[mla_commit_buffer_size];
     get_config_filename(configFilename, mla_commit_buffer_size);
@@ -99,12 +99,12 @@ mla_bytes_t mla_internal_windows_read_config_input() {
 
 }
 
-mla_bytes_t mla_internal_windows_create_config_output_buffer() {
+mla_bytes_t mla_private_windows_create_config_output_buffer() {
 
     return mla_bytes(mla_max_config_size);
 }
 
-mla_bool_t mla_internal_windows_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
+mla_bool_t mla_private_windows_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
     // Use TCHAR for all paths
     TCHAR tempPath[mla_commit_buffer_size];
@@ -215,7 +215,7 @@ mla_bool_t mla_internal_windows_commit_config_output(mla_bytes_t& output, mla_si
     return true;
 }
 
-mla_bool_t mla_internal_windows_reset() {
+mla_bool_t mla_private_windows_reset() {
     TCHAR configFilename[mla_commit_buffer_size];
     get_config_filename(configFilename, mla_commit_buffer_size);
 
@@ -229,10 +229,10 @@ mla_bool_t mla_internal_windows_reset() {
 
 
 mla_config_low_level_operations_t g_config_low_level_operations = {
-    mla_internal_windows_read_config_input,
-    mla_internal_windows_create_config_output_buffer,
-    mla_internal_windows_commit_config_output,
-    mla_internal_windows_reset
+    mla_private_windows_read_config_input,
+    mla_private_windows_create_config_output_buffer,
+    mla_private_windows_commit_config_output,
+    mla_private_windows_reset
 };
 
 #endif

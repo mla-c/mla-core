@@ -12,7 +12,7 @@
 #include <intrin.h>
 
 // Calibrate TSC frequency once against QPC (busy-waits ~10 ms at startup)
-static double mla_internal_tsc_ns_per_tick() {
+static double mla_private_tsc_ns_per_tick() {
     static double ns_per_tick = 0.0;
     if (ns_per_tick != 0.0) {
         return ns_per_tick;
@@ -40,15 +40,15 @@ static double mla_internal_tsc_ns_per_tick() {
     return ns_per_tick;
 }
 
-static mla_test_uint64_t mla_internal_current_nanoseconds_std() {
-    static double ns_per_tick = mla_internal_tsc_ns_per_tick();
+static mla_test_uint64_t mla_private_current_nanoseconds_std() {
+    static double ns_per_tick = mla_private_tsc_ns_per_tick();
     return static_cast<mla_test_uint64_t>(static_cast<double>(__rdtsc()) * ns_per_tick);
 }
 
 #else
 #include <time.h>
 
-static mla_test_uint64_t mla_internal_current_nanoseconds_std() {
+static mla_test_uint64_t mla_private_current_nanoseconds_std() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return static_cast<mla_test_uint64_t>(ts.tv_sec) * 1000000000ULL
@@ -58,7 +58,7 @@ static mla_test_uint64_t mla_internal_current_nanoseconds_std() {
 #endif
 
 mla_benchmark_timer_t g_benchmark_timer = {
-    mla_internal_current_nanoseconds_std
+    mla_private_current_nanoseconds_std
 };
 
 #endif

@@ -26,7 +26,7 @@ struct mla_http_chunked_stream_input_userdata_t {
 mla_user_data_id_init(mla_http_chunked_stream_input_user_data_name)
 
 
-mla_size_t mla_internal_http_chunked_stream_input_available_bytes(mla_stream_input_t& input) {
+mla_size_t mla_private_http_chunked_stream_input_available_bytes(mla_stream_input_t& input) {
 
     mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
@@ -37,7 +37,7 @@ mla_size_t mla_internal_http_chunked_stream_input_available_bytes(mla_stream_inp
     return mla_size_max; // Unknown size
 }
 
-mla_bool_t mla_internal_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stream_input_userdata_t* userdata) {
+mla_bool_t mla_private_http_chunked_stream_input_read_chunk_size(mla_http_chunked_stream_input_userdata_t* userdata) {
 
     // Read the chunk size line
     mla_string_t chunkSizeLine = mla_string_empty();
@@ -71,7 +71,7 @@ mla_bool_t mla_internal_http_chunked_stream_input_read_chunk_size(mla_http_chunk
     return true;
 }
 
-mla_size_t mla_internal_http_chunked_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t mla_private_http_chunked_stream_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     mla_http_chunked_stream_input_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_input_userdata_t>(input.userdata, mla_http_chunked_stream_input_user_data_name);
 
@@ -86,7 +86,7 @@ mla_size_t mla_internal_http_chunked_stream_input_read(mla_stream_input_t& input
 
         if (userdata->chunkSizeRemaining == 0) {
 
-            if (!mla_internal_http_chunked_stream_input_read_chunk_size(userdata)) {
+            if (!mla_private_http_chunked_stream_input_read_chunk_size(userdata)) {
                 return length - bytesRead;
             }
         }
@@ -127,8 +127,8 @@ mla_stream_input_t mla_http_chunked_stream_input(const mla_stream_input_t &baseS
 
     return {
         user_data,
-        mla_internal_http_chunked_stream_input_read,
-        mla_internal_http_chunked_stream_input_available_bytes,
+        mla_private_http_chunked_stream_input_read,
+        mla_private_http_chunked_stream_input_available_bytes,
     };
 
 }
@@ -165,7 +165,7 @@ struct mla_http_chunked_stream_output_userdata_t {
 
 mla_user_data_id_init(mla_http_chunked_stream_output_user_data_name)
 
-mla_bool_t mla_internal_http_chunked_stream_output_flush(mla_http_chunked_stream_output_userdata_t* userdata) {
+mla_bool_t mla_private_http_chunked_stream_output_flush(mla_http_chunked_stream_output_userdata_t* userdata) {
     if (userdata->currentSize == 0) {
         return true;
     }
@@ -200,7 +200,7 @@ mla_bool_t mla_internal_http_chunked_stream_output_flush(mla_http_chunked_stream
     return true;
 }
 
-mla_size_t mla_internal_http_chunked_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_http_chunked_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     // Get the base stream
     mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_output_userdata_t>(output.userdata, mla_http_chunked_stream_output_user_data_name);
@@ -225,7 +225,7 @@ mla_size_t mla_internal_http_chunked_stream_output_write(mla_stream_output_t& ou
         }
 
         if (userdata->currentSize == bufferSize) {
-            if (!mla_internal_http_chunked_stream_output_flush(userdata)) {
+            if (!mla_private_http_chunked_stream_output_flush(userdata)) {
                 return bytesWritten; // Return what we managed to process
             }
         }
@@ -242,7 +242,7 @@ mla_bool_t mla_http_chunked_stream_output_finished(mla_http_chunked_stream_outpu
     // Flush the chunked stream buffer
     mla_http_chunked_stream_output_userdata_t* userdata = mla_user_data_get_pointer_data<mla_http_chunked_stream_output_userdata_t>(chunkedOutput.chunkedStream.userdata, mla_http_chunked_stream_output_user_data_name);
     if (userdata != nullptr) {
-        if (!mla_internal_http_chunked_stream_output_flush(userdata)) {
+        if (!mla_private_http_chunked_stream_output_flush(userdata)) {
             return false;
         }
     }
@@ -258,7 +258,7 @@ mla_bool_t mla_http_chunked_stream_output_finished(mla_http_chunked_stream_outpu
 
 #define mla_http_chunked_stream_output_chunk_size 1024
 
-mla_stream_output_t mla_internal_create_chunked_stream_output(const mla_stream_output_t &baseStream, mla_size_t bufferSize) {
+mla_stream_output_t mla_private_create_chunked_stream_output(const mla_stream_output_t &baseStream, mla_size_t bufferSize) {
 
     mla_pointer_t user_data_ptr = mla_malloc_struct(mla_http_chunked_stream_output_userdata_t);
 
@@ -283,13 +283,13 @@ mla_stream_output_t mla_internal_create_chunked_stream_output(const mla_stream_o
 
     return {
         user_data,
-        mla_internal_http_chunked_stream_output_write,
+        mla_private_http_chunked_stream_output_write,
         baseStream.available_bytes,
     };
 }
 
 mla_http_chunked_stream_output_t mla_http_chunked_stream_output(const mla_stream_output_t &baseStream) {
-    mla_stream_output_t chunkedStream = mla_internal_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_chunk_size);
+    mla_stream_output_t chunkedStream = mla_private_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_chunk_size);
 
     return {
         chunkedStream,
@@ -301,7 +301,7 @@ mla_http_chunked_stream_output_t mla_http_chunked_stream_output(const mla_stream
 #define mla_http_chunked_stream_output_deflate_chunk_size (mla_global_config_stream_output_deflate_min_compression_data_size * 2)
 
 mla_http_chunked_stream_output_t mla_http_chunked_stream_output_deflate(const mla_stream_output_t &baseStream) {
-    mla_stream_output_t chunkedStream = mla_internal_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_deflate_chunk_size);
+    mla_stream_output_t chunkedStream = mla_private_create_chunked_stream_output(baseStream, mla_http_chunked_stream_output_deflate_chunk_size);
     // ContentType: deflate is for the Browser zlib deflate
     mla_stream_output_t deflateStream = mla_stream_output_deflate_compress_wrapper(chunkedStream, mla_deflate_mode_zlib);
 

@@ -14,12 +14,12 @@ struct mla_lifecycle_event_manager_t {
     mla_bool_t boot_events_fired;
 };
 
-mla_lifecycle_event_manager_t mla_internal_lifecycle_event_manager_init_once();
+mla_lifecycle_event_manager_t mla_private_lifecycle_event_manager_init_once();
 
 static mla_bool_t g_lifecycle_event_manager_initialized = false;
-static mla_lifecycle_event_manager_t g_lifecycle_event_manager = mla_internal_lifecycle_event_manager_init_once();
+static mla_lifecycle_event_manager_t g_lifecycle_event_manager = mla_private_lifecycle_event_manager_init_once();
 
-mla_lifecycle_event_manager_t mla_internal_lifecycle_event_manager_init_once() {
+mla_lifecycle_event_manager_t mla_private_lifecycle_event_manager_init_once() {
 
     if (g_lifecycle_event_manager_initialized) {
         return g_lifecycle_event_manager;
@@ -35,7 +35,7 @@ mla_lifecycle_event_manager_t mla_internal_lifecycle_event_manager_init_once() {
 void mla_lifecycle_boot_event_register(mla_int32_t priority, mla_lifecycle_event_callback_t callback) {
 
     if (!g_lifecycle_event_manager_initialized) {
-        g_lifecycle_event_manager  = mla_internal_lifecycle_event_manager_init_once();
+        g_lifecycle_event_manager  = mla_private_lifecycle_event_manager_init_once();
     }
 
     if (g_lifecycle_event_manager.boot_events_fired) {
@@ -51,7 +51,7 @@ void mla_lifecycle_boot_event_register(mla_int32_t priority, mla_lifecycle_event
 }
 
 
-mla_int32_t mla_internal_lifecycle_event_sort(const mla_lifecycle_event_t& a, const mla_lifecycle_event_t& b) {
+mla_int32_t mla_private_lifecycle_event_sort(const mla_lifecycle_event_t& a, const mla_lifecycle_event_t& b) {
     // Lower number is higher priority
     if (a.priority < b.priority) {
         return -1;
@@ -72,7 +72,7 @@ void mla_lifecycle_fire_boot_events() {
     g_lifecycle_event_manager.boot_events_fired = true;
 
     // Sort events by priority
-    mla_array_list_sort(g_lifecycle_event_manager.boot_events, mla_internal_lifecycle_event_sort);
+    mla_array_list_sort(g_lifecycle_event_manager.boot_events, mla_private_lifecycle_event_sort);
 
     // Fire events in order
     for (mla_size_t i = 0; i < mla_array_list_size(g_lifecycle_event_manager.boot_events); ++i) {

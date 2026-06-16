@@ -8,7 +8,7 @@ mla_global mla_external_task_management_t g_external_task_management;
 
 mla_user_data_id_init(mla_external_task_native_resource_user_data_name)
 
-mla_size_t mla_internal_external_task_read_stdout(mla_stream_input_t& p_Input, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
+mla_size_t mla_private_external_task_read_stdout(mla_stream_input_t& p_Input, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
 
     if (g_external_task_management.read_stdout == nullptr || p_Buffer == nullptr) {
         return 0;
@@ -22,7 +22,7 @@ mla_size_t mla_internal_external_task_read_stdout(mla_stream_input_t& p_Input, m
     return g_external_task_management.read_stdout(taskResource, p_Offset, p_Length, p_Buffer);
 }
 
-mla_size_t mla_internal_external_task_write_stdin(mla_stream_output_t& p_Output, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
+mla_size_t mla_private_external_task_write_stdin(mla_stream_output_t& p_Output, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
 
     if (g_external_task_management.write_stdin == nullptr || p_Buffer == nullptr) {
         return 0;
@@ -67,13 +67,13 @@ mla_external_task_t mla_external_task_create(const mla_string_t& p_CmdLine) {
 
     result.std_out = {
         userData,
-        mla_internal_external_task_read_stdout,
+        mla_private_external_task_read_stdout,
         nullptr
     };
 
     result.std_in = {
         userData,
-        mla_internal_external_task_write_stdin,
+        mla_private_external_task_write_stdin,
         nullptr
     };
 

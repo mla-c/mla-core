@@ -46,7 +46,7 @@ struct mla_http_server_path_checker_userdata_t {
 
 mla_user_data_id_init(mla_http_server_handler_path_data_user_data_name)
 
-mla_bool_t mla_internal_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
+mla_bool_t mla_private_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
                                                          const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
@@ -69,7 +69,7 @@ mla_bool_t mla_internal_http_server_handler_starts_with_checker(const mla_user_d
 
 }
 
-mla_bool_t mla_internal_http_server_handler_equals_checker(const mla_user_data_t &userdata,
+mla_bool_t mla_private_http_server_handler_equals_checker(const mla_user_data_t &userdata,
                                                     const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
@@ -111,12 +111,12 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
     return {
         userData,
         mla_string_to_upper(http_method),
-        mla_internal_http_server_handler_starts_with_checker,
+        mla_private_http_server_handler_starts_with_checker,
         executor
     };
 }
 
-mla_bool_t mla_internal_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+mla_bool_t mla_private_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
     (void) userdata;
     (void) url;
     (void) compare_mode;
@@ -128,7 +128,7 @@ mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &h
     return {
         mla_user_data_empty(),
         mla_string_to_upper(http_method),
-        mla_internal_http_server_handler_all_checker,
+        mla_private_http_server_handler_all_checker,
         executor
     };
 }
@@ -158,7 +158,7 @@ mla_http_server_websocket_connection_t mla_http_server_websocket_connection_inva
     };
 }
 
-mla_http_server_websocket_connection_t mla_internal_http_server_websocket_connection(mla_http_server_t& http_server, mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem, const mla_string_t& endpoint, mla_bool_t supports_deflate_compression) {
+mla_http_server_websocket_connection_t mla_private_http_server_websocket_connection(mla_http_server_t& http_server, mla_network_connection_t& connection, const mla_http_server_websocket_handler_item_t& handlerItem, const mla_string_t& endpoint, mla_bool_t supports_deflate_compression) {
 
     const mla_string_t id = mla_generate_runtime_id();
 
@@ -219,7 +219,7 @@ mla_http_server_websocket_handler_item_t mla_http_server_websocket_handler_path_
 
     return {
         userData,
-        mla_internal_http_server_handler_equals_checker,
+        mla_private_http_server_handler_equals_checker,
         nullptr,
         text_message_handler,
         binary_message_handler,
@@ -317,7 +317,7 @@ mla_bool_t mla_http_server_register_websocket_handler(mla_http_server_t &server,
     return result;
 }
 
-mla_bool_t mla_internal_http_server_request_read(mla_network_connection_t &connection, mla_http_request_t &request,
+mla_bool_t mla_private_http_server_request_read(mla_network_connection_t &connection, mla_http_request_t &request,
                                           mla_int32_t timeout_ms) {
 
     // Read request line
@@ -384,7 +384,7 @@ mla_bool_t mla_internal_http_server_request_read(mla_network_connection_t &conne
     return true;
 }
 
-mla_bool_t mla_internal_http_server_response_send(mla_network_connection_t &connection,
+mla_bool_t mla_private_http_server_response_send(mla_network_connection_t &connection,
                                            mla_http_response_t &response) {
 
 
@@ -458,7 +458,7 @@ mla_bool_t mla_internal_http_server_response_send(mla_network_connection_t &conn
     return true;
 }
 
-mla_string_t mla_internal_http_server_compute_websocket_accept(const mla_string_t& secWebSocketKey) {
+mla_string_t mla_private_http_server_compute_websocket_accept(const mla_string_t& secWebSocketKey) {
     const mla_string_t guid = mla_string_const("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
     mla_string_t input = mla_string_concat(secWebSocketKey, guid);
 
@@ -469,7 +469,7 @@ mla_string_t mla_internal_http_server_compute_websocket_accept(const mla_string_
 }
 
 
-mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_user_data_t& userData) {
+mla_task_process_result_state mla_private_http_server_handler_new_request(mla_user_data_t& userData) {
 
     mla_pointer_t http_server = mla_user_data_get_pointer(userData, mla_http_task_user_data_server_name);
 
@@ -515,7 +515,7 @@ mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_u
 
     mla_http_request_t request = mla_http_request_empty();
 
-    if (!mla_internal_http_server_request_read(clientConnection, request, server.timeout_ms)) {
+    if (!mla_private_http_server_request_read(clientConnection, request, server.timeout_ms)) {
         mla_warning(
             mla_string_concat("Invalid http request from client ", clientConnection.host.address.address, ":",
                 mla_string_from_uint16(clientConnection.host.port)));
@@ -600,7 +600,7 @@ mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_u
                 break;
             }
 
-            mla_string_t accept = mla_internal_http_server_compute_websocket_accept(wsKey);
+            mla_string_t accept = mla_private_http_server_compute_websocket_accept(wsKey);
 
             mla_bool_t supports_deflate_compression = mla_http_headers_has_header_value(request.headers, mla_string_const("Sec-WebSocket-Extensions"), mla_string_const("permessage-deflate"), mla_string_const(","));
 
@@ -625,7 +625,7 @@ mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_u
             response.content = mla_stream_noop_input(); // ensure no body
 
             // 3) Register the WebSocket connection and keep it open
-            mla_http_server_websocket_connection_t ws_connection = mla_internal_http_server_websocket_connection(server, clientConnection, handlerItem, request.url, supports_deflate_compression);
+            mla_http_server_websocket_connection_t ws_connection = mla_private_http_server_websocket_connection(server, clientConnection, handlerItem, request.url, supports_deflate_compression);
 
 
             if (ws_connection.open_executor != nullptr) {
@@ -652,7 +652,7 @@ mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_u
     }
 
     // Regular Http response
-    if (!mla_internal_http_server_response_send(clientConnection, response)) {
+    if (!mla_private_http_server_response_send(clientConnection, response)) {
 
         mla_warning(
             mla_string_concat("Failed to send HTTP response to client ", clientConnection.host.address.address, ":",
@@ -664,7 +664,7 @@ mla_task_process_result_state mla_internal_http_server_handler_new_request(mla_u
 
 }
 
-mla_bool_t mla_internal_http_server_remove_websocket_connection(mla_http_server_t &server,
+mla_bool_t mla_private_http_server_remove_websocket_connection(mla_http_server_t &server,
                                                      const mla_http_server_websocket_connection_t &connection) {
 
     if (!mla_rw_lock_read(server.websocketConnectionsLock)) {
@@ -743,7 +743,7 @@ mla_bool_t mla_internal_http_server_remove_websocket_connection(mla_http_server_
     return false;
 }
 
-mla_task_process_result_state mla_internal_http_server_handler_websocket_messages(mla_user_data_t& userData) {
+mla_task_process_result_state mla_private_http_server_handler_websocket_messages(mla_user_data_t& userData) {
 
     mla_pointer_t http_server = mla_user_data_get_pointer(userData, mla_http_task_user_data_server_name);
 
@@ -857,7 +857,7 @@ mla_task_process_result_state mla_internal_http_server_handler_websocket_message
         if (action == MLA_WEBSOCKET_CONNECTION_CLOSE) {
             mla_http_server_close_websocket_connection(connection, mla_websocket_close_abnormal, mla_string_const("Closing connection"));
         } else if (action == MLA_WEBSOCKET_CONNECTION_REMOVE) {
-            mla_internal_http_server_remove_websocket_connection(server, connection);
+            mla_private_http_server_remove_websocket_connection(server, connection);
         }
 
     }
@@ -867,20 +867,20 @@ mla_task_process_result_state mla_internal_http_server_handler_websocket_message
 
 }
 
-mla_task_process_result_state mla_internal_http_server_handler_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_private_http_server_handler_task(mla_user_data_t& userData) {
 
     // Process new http request
-    mla_task_process_result_state state = mla_internal_http_server_handler_new_request(userData);
+    mla_task_process_result_state state = mla_private_http_server_handler_new_request(userData);
 
     if (state == TASK_PROCESS_RESULT_DONE) {
         return TASK_PROCESS_RESULT_DONE;
     }
 
     // Process websocket messages
-    return mla_internal_http_server_handler_websocket_messages(userData);
+    return mla_private_http_server_handler_websocket_messages(userData);
 }
 
-void mla_internal_http_server_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata& cleanup_userdata) {
+void mla_private_http_server_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata& cleanup_userdata) {
 
     for (mla_size_t i = 0; i < mla_array_list_size(cleanup_userdata.active_tasks); ++i) {
         mla_string_t &task_name = mla_array_list_get_unsafe(cleanup_userdata.active_tasks, i);
@@ -929,7 +929,7 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 
     server.status = MLA_HTTP_SERVER_STATUS_RUNNING;
 
-    server.serverOwner = mla_malloc_struct_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata, mla_internal_http_server_cleanup_hook);
+    server.serverOwner = mla_malloc_struct_cleanup_hook(mla_http_server_internal_resource_cleanup_userdata, mla_private_http_server_cleanup_hook);
 
     mla_http_server_internal_resource_cleanup_userdata *cleanup_userdata = mla_pointer_get_data<mla_http_server_internal_resource_cleanup_userdata>(server.serverOwner);
 
@@ -957,7 +957,7 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 
         mla_task_t http_task = mla_task_repeating(
             task_name,
-            mla_internal_http_server_handler_task,
+            mla_private_http_server_handler_task,
             taskUserData
         );
 
@@ -1152,7 +1152,7 @@ mla_bool_t mla_http_server_close_websocket_connection(mla_http_server_websocket_
         return true;
     }
 
-    mla_internal_http_server_remove_websocket_connection(*connection.server, connection);
+    mla_private_http_server_remove_websocket_connection(*connection.server, connection);
     connection = mla_http_server_websocket_connection_invalid();
 
     return true;

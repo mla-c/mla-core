@@ -195,7 +195,7 @@ mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_invalid() {
     };
 }
 
-mla_bool_t mla_internal_rpc_remote_endpoint_all_checker(const mla_user_data_t &userdata, const mla_string_t &procedure_name) {
+mla_bool_t mla_private_rpc_remote_endpoint_all_checker(const mla_user_data_t &userdata, const mla_string_t &procedure_name) {
     (void)userdata;
     (void)procedure_name;
     return true;
@@ -206,7 +206,7 @@ mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_all(mla_rpc_remote_endpoint_ex
     return {
         user_data,
         mla_generate_runtime_id(),
-        mla_internal_rpc_remote_endpoint_all_checker,
+        mla_private_rpc_remote_endpoint_all_checker,
         execute_procedure_handler
     };
 }
@@ -221,7 +221,7 @@ struct mla_rpc_remote_endpoint_start_with_user_data_t {
 
 mla_user_data_id_init(mla_rpc_endpoint_start_with_user_data_name)
 
-mla_bool_t mla_internal_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& user_data,
+mla_bool_t mla_private_rpc_remote_endpoint_start_with_checker(const mla_user_data_t& user_data,
                                                     const mla_string_t &procedure_name) {
 
     mla_rpc_remote_endpoint_start_with_user_data_t *pathPrefix = mla_user_data_get_pointer_data<mla_rpc_remote_endpoint_start_with_user_data_t>(user_data, mla_rpc_endpoint_start_with_user_data_name);
@@ -252,7 +252,7 @@ mla_rpc_remote_endpoint_t mla_rpc_remote_endpoint_start_with(const mla_string_t&
     return {
         user_data,
         mla_generate_runtime_id(),
-        mla_internal_rpc_remote_endpoint_start_with_checker,
+        mla_private_rpc_remote_endpoint_start_with_checker,
         execute_procedure_handler
     };
 }
@@ -330,8 +330,8 @@ mla_bool_t mla_rpc_remote_endpoint_valid(const mla_rpc_remote_endpoint_t &endpoi
     return endpoint.execute_procedure != nullptr;
 }
 
-void mla_internal_rpc_container_lock() {
+void mla_private_rpc_container_lock() {
     g_rpc_container.isLocked = true;
 }
 
-mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_setup, mla_internal_rpc_container_lock);
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_rpc_setup, mla_private_rpc_container_lock);

@@ -21,7 +21,7 @@ static mla_rpc_cache_logger g_rpc_log_cache =  {
     mla_mutex_create("RpcCache")
 };
 
-void mla_internal_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
+void mla_private_log_rpc_writer(const mla_log_level level, mla_string_t &message, mla_string_t &context1,
                               mla_user_data_t& userData) {
 
     (void)userData;
@@ -81,7 +81,7 @@ mla_bool_t mla_logger_rpc_activate() {
         RPC_CACHE_LOGGER_NAME,
         mla_rpc_logger_level, // Default log level
         true, // Need full managed strings
-        mla_internal_log_rpc_writer, // Function to write log messages
+        mla_private_log_rpc_writer, // Function to write log messages
         mla_user_data_empty()
     };
 
@@ -169,7 +169,7 @@ mla_rpc_auto_register_procedure_void_output(mla_rpc_procedure_set_loglevel_name,
 mla_rpc_auto_register_procedure_void_input(mla_rpc_procedure_get_loglevel_name, mla_logger_rpc_log_level_t, mla_logger_rpc_get_loglevel_handler)
 mla_rpc_auto_register_procedure_void_input(mla_rpc_procedure_log_message_name, mla_logger_rpc_log_messages_t, mla_logger_rpc_log_get_messages_handler)
 
-void mla_internal_logger_rpc_init() {
+void mla_private_logger_rpc_init() {
 
     if (!mla_logger_rpc_activate()) {
         mla_error("Failed to activate RPC logger");
@@ -177,4 +177,4 @@ void mla_internal_logger_rpc_init() {
 
 }
 
-mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_low_level_postSetup, mla_internal_logger_rpc_init)
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_low_level_postSetup, mla_private_logger_rpc_init)

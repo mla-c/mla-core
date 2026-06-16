@@ -77,7 +77,7 @@ inline mla_bool_t mla_task_manager_windows_atomic_int32_compare_exchange(mla_ato
 
 }
 
-DWORD WINAPI mla_internal_task_manager_windows_native_worker(LPVOID lpParam) {
+DWORD WINAPI mla_private_task_manager_windows_native_worker(LPVOID lpParam) {
 
     mla_task_manager_windows_native_data_t* thread_data = static_cast<mla_task_manager_windows_native_data_t*>(lpParam);
 
@@ -165,7 +165,7 @@ mla_bool_t mla_task_manager_windows_native_create_task(
     thread_data->sharedStates = shared_states;
 
     SIZE_T stackSizeInBytes = mla_task_manager_windows_native_get_stack_size(stackSize);
-    thread_data->hThread = CreateThread(nullptr, stackSizeInBytes, mla_internal_task_manager_windows_native_worker, thread_data, 0, nullptr);
+    thread_data->hThread = CreateThread(nullptr, stackSizeInBytes, mla_private_task_manager_windows_native_worker, thread_data, 0, nullptr);
 
     if (thread_data->hThread == nullptr) {
         mla_platform_free(thread_data);
@@ -331,7 +331,7 @@ mla_multi_task_mode mla_task_manager_windows_multi_task_mode() {
     return MULTI_TASK_MODE_NATIVE;
 }
 
-void mla_internal_task_manager_windows_native_destroy_task_local(const mla_native_resource_t& userData) {
+void mla_private_task_manager_windows_native_destroy_task_local(const mla_native_resource_t& userData) {
 
     mla_bool_t success = FlsFree(userData.asUint32) != 0;
 
@@ -349,7 +349,7 @@ mla_bool_t mla_task_manager_windows_native_create_task_local(mla_pointer_t& outT
 
     mla_native_resource_t resource = mla_dynamic_data_from_uint32(flsIndex);
 
-    outTaskLocal = mla_native_resource_to_managed_pointer(resource, mla_internal_task_manager_windows_native_destroy_task_local);
+    outTaskLocal = mla_native_resource_to_managed_pointer(resource, mla_private_task_manager_windows_native_destroy_task_local);
 
     if (mla_pointer_is_null(outTaskLocal)) {
         FlsFree(flsIndex);

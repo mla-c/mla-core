@@ -2,7 +2,7 @@
 #include "mla_ui_style.h"
 
 
-static void mla_internal_ui_button_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
+static void mla_private_ui_button_calc_text_size(const mla_ui_control_context_t &context, const mla_ui_surface_font_type_t& fontType, const mla_string_t& text, mla_double_t& textWidth, mla_double_t& textHeight) {
     if (context.calcTextSize != nullptr) {
         mla_ui_surface_draw_size_t size = context.calcTextSize(context, fontType,text);
         textWidth = size.width;
@@ -13,7 +13,7 @@ static void mla_internal_ui_button_calc_text_size(const mla_ui_control_context_t
     }
 }
 
-mla_bool_t mla_internal_ui_button_process_click_event(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData) {
+mla_bool_t mla_private_ui_button_process_click_event(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData) {
 
     if (clickEvent.button != MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT) {
         return false;
@@ -36,7 +36,7 @@ mla_bool_t mla_internal_ui_button_process_click_event(mla_ui_control_t &control,
     return true;
 }
 
-mla_bool_t mla_internal_ui_button_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+mla_bool_t mla_private_ui_button_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
 
     mla_double_t x = element.layout.x;
     mla_double_t y = element.layout.y;
@@ -194,7 +194,7 @@ mla_bool_t mla_internal_ui_button_render_to_drawCommands(const mla_ui_control_co
     if (!mla_string_is_empty(text)) {
         mla_double_t textWidth = 0.0;
         mla_double_t textHeight = 0.0;
-        mla_internal_ui_button_calc_text_size(context, fontType, text, textWidth, textHeight);
+        mla_private_ui_button_calc_text_size(context, fontType, text, textWidth, textHeight);
 
         if (textWidth != 0.0 && textHeight != 0.0) {
             // Only draw text if it has measurable size (prevents issues with empty strings or zero-size fonts)
@@ -244,8 +244,8 @@ mla_bool_t mla_internal_ui_button_render_to_drawCommands(const mla_ui_control_co
 mla_ui_control_t mla_ui_button() {
 
     mla_ui_control_t button = mla_ui_control();
-    button.renderToDrawCommands = mla_internal_ui_button_render_to_drawCommands;
-    button.processClickEvent = mla_internal_ui_button_process_click_event;
+    button.renderToDrawCommands = mla_private_ui_button_render_to_drawCommands;
+    button.processClickEvent = mla_private_ui_button_process_click_event;
     return button;
 }
 

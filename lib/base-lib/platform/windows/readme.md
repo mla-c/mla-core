@@ -33,7 +33,7 @@ The Windows platform supports the fast-float library for optimized floating-poin
 The Windows platform provides sleep functionality using the Windows `Sleep` API:
 
 ```cpp
-void mla_internal_windows_sleep(mla_uint32_t milliseconds);
+void mla_private_windows_sleep(mla_uint32_t milliseconds);
 ```
 
 ### Network Implementation

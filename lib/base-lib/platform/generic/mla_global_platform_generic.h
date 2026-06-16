@@ -13,43 +13,43 @@
 
 #include "../../core/mla_data_types.h"
 
-mla_platform_pointer_t mla_internal_generic_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_private_generic_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memcpy(dest, src, size);
 }
 
-mla_platform_pointer_t mla_internal_generic_memset(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size) {
+mla_platform_pointer_t mla_private_generic_memset(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size) {
     return memset(dest, value, size);
 }
 
-mla_int32_t mla_internal_generic_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_int32_t mla_private_generic_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memcmp(dest, src, size);
 }
 
-mla_platform_pointer_t mla_internal_generic_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_private_generic_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return memmove(dest, src, size);
 }
 
-mla_size_t mla_internal_generic_strlen(const mla_char_t* str) {
+mla_size_t mla_private_generic_strlen(const mla_char_t* str) {
     return static_cast<mla_size_t>(strlen(str));
 }
 
-const mla_char_t* mla_internal_generic_strstr(const mla_char_t* str, const mla_char_t* substr) {
+const mla_char_t* mla_private_generic_strstr(const mla_char_t* str, const mla_char_t* substr) {
     return strstr(str, substr);
 }
 
-mla_platform_pointer_t mla_internal_generic_malloc(mla_size_t size) {
+mla_platform_pointer_t mla_private_generic_malloc(mla_size_t size) {
     return malloc(size);
 }
 
-void mla_internal_generic_free(mla_platform_pointer_t ptr) {
+void mla_private_generic_free(mla_platform_pointer_t ptr) {
     free(ptr);
 }
 
-mla_size_t mla_internal_generic_print(const mla_char_t* format, mla_size_t length) {
+mla_size_t mla_private_generic_print(const mla_char_t* format, mla_size_t length) {
     return static_cast<mla_size_t>(fwrite(format, 1, length, stdout));
 }
 
-void mla_internal_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
 
     // Use direct writes to stderr without formatting that might allocate
     const char* prefix = "Memory allocation failed: ";
@@ -92,7 +92,7 @@ void mla_internal_generic_on_malloc_failure(mla_size_t size, const mla_char_t* f
     fflush(stdout);
 }
 
-mla_size_t mla_internal_generic_std_read(mla_char_t* buffer, mla_size_t size) {
+mla_size_t mla_private_generic_std_read(mla_char_t* buffer, mla_size_t size) {
     mla_char_t* lastChar = fgets(buffer, static_cast<int>(size), stdin);
     if (lastChar == nullptr) {
         return 0; // No data read
@@ -101,7 +101,7 @@ mla_size_t mla_internal_generic_std_read(mla_char_t* buffer, mla_size_t size) {
     return nul != nullptr ? static_cast<mla_size_t>(nul - buffer) : size;
 }
 
-mla_bool_t mla_internal_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
+mla_bool_t mla_private_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
 
     mla_char_t* endptr;
     *out_value = strtod(str, &endptr);
@@ -119,7 +119,7 @@ mla_bool_t mla_internal_generic_strtod(const mla_char_t* str, mla_size_t length,
     return true;
 }
 
-mla_bool_t mla_internal_generic_strtoll(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value) {
+mla_bool_t mla_private_generic_strtoll(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value) {
 
     mla_char_t* endptr;
     *out_value = strtoll(str, &endptr, 10);
@@ -137,7 +137,7 @@ mla_bool_t mla_internal_generic_strtoll(const mla_char_t* str, mla_size_t length
     return true;
 }
 
-mla_bool_t mla_internal_generic_strtoull(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value) {
+mla_bool_t mla_private_generic_strtoull(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value) {
 
     mla_char_t* endptr;
     *out_value = strtoull(str, &endptr, 10);

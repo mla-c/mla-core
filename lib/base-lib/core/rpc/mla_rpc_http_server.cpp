@@ -17,7 +17,7 @@
 
 mla_user_data_id_init(mla_rpc_http_server_writer_output_buffer_user_data)
 
-mla_http_rpc_content_type mla_internal_rpc_http_server_get_content_type(const mla_http_request_t& request) {
+mla_http_rpc_content_type mla_private_rpc_http_server_get_content_type(const mla_http_request_t& request) {
 
     mla_string_t content_type = mla_http_headers_get_value(request.headers, mla_string_const("Content-Type"));
 
@@ -36,7 +36,7 @@ struct mla_rpc_http_server_handler_content_writer_header_t {
     mla_bool_t support_deflate_compression;
 };
 
-mla_bool_t mla_internal_rpc_http_server_support_deflate_compression(const mla_rpc_http_server_handler_content_writer_header_t& header) {
+mla_bool_t mla_private_rpc_http_server_support_deflate_compression(const mla_rpc_http_server_handler_content_writer_header_t& header) {
 
 #if (mla_rpc_http_server_use_deflate_compression == 1)
     return header.support_deflate_compression;
@@ -46,7 +46,7 @@ mla_bool_t mla_internal_rpc_http_server_support_deflate_compression(const mla_rp
 #endif
 }
 
-mla_bool_t mla_internal_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t& outputData, const mla_serialize_definition_write_function_t &write_function) {
+mla_bool_t mla_private_rpc_http_server_handler_content_write(mla_http_rpc_content_type contentType, const mla_stream_output_t &outputStream, const mla_pointer_t& outputData, const mla_serialize_definition_write_function_t &write_function) {
 
     mla_serializer_t serializer = mla_serializer_invalid();
 
@@ -67,7 +67,7 @@ mla_bool_t mla_internal_rpc_http_server_handler_content_write(mla_http_rpc_conte
     return true;
 }
 
-mla_bool_t mla_internal_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
+mla_bool_t mla_private_rpc_http_server_handler_content_writer(const mla_http_response_content_writer_t& writer, const mla_stream_output_t &outputStream) {
 
     mla_pointer_t buffer_ptr = mla_user_data_get_pointer(writer.userData, mla_rpc_http_server_writer_output_buffer_user_data);
     mla_platform_pointer_t buffer = mla_pointer_get_platform_pointer(buffer_ptr);
@@ -87,13 +87,13 @@ mla_bool_t mla_internal_rpc_http_server_handler_content_writer(const mla_http_re
 
     mla_http_chunked_stream_output_t chunked_output = mla_http_chunked_stream_output_invalid();
 
-    if (mla_internal_rpc_http_server_support_deflate_compression(*header)) {
+    if (mla_private_rpc_http_server_support_deflate_compression(*header)) {
         chunked_output = mla_http_chunked_stream_output_deflate(outputStream);
     } else {
         chunked_output = mla_http_chunked_stream_output(outputStream);
     }
 
-    mla_bool_t result = mla_internal_rpc_http_server_handler_content_write(header->contentType, chunked_output.output, outputData, header->write_function);
+    mla_bool_t result = mla_private_rpc_http_server_handler_content_write(header->contentType, chunked_output.output, outputData, header->write_function);
 
     // Finalize chunked output
     if (!mla_http_chunked_stream_output_finished(chunked_output)) {
@@ -103,7 +103,7 @@ mla_bool_t mla_internal_rpc_http_server_handler_content_writer(const mla_http_re
     return result;
 }
 
-mla_bool_t mla_internal_rpc_http_server_handler_options(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_rpc_http_server_handler_options(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
 
     (void)request;
     (void)http_server;
@@ -121,7 +121,7 @@ mla_bool_t mla_internal_rpc_http_server_handler_options(mla_http_server_t& http_
 
 }
 
-mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
 
     (void)http_server;
 
@@ -143,7 +143,7 @@ mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, 
 
     mla_deserializer_t deserializer = mla_deserializer_invalid();
 
-    mla_http_rpc_content_type contentType = mla_internal_rpc_http_server_get_content_type(request);
+    mla_http_rpc_content_type contentType = mla_private_rpc_http_server_get_content_type(request);
 
     if (contentType == mla_http_rpc_content_type_unknown) {
 
@@ -235,14 +235,14 @@ mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, 
             // If its an short input we can optimize by writing it directly
             mla_memory_stream_t temp_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, false);
 
-            if (mla_internal_rpc_http_server_handler_content_write(contentType, temp_stream.output, output_content, procedure.outputDefinition.write_function)) {
+            if (mla_private_rpc_http_server_handler_content_write(contentType, temp_stream.output, output_content, procedure.outputDefinition.write_function)) {
 
                 mla_size_t content_size = mla_memory_stream_get_size(temp_stream);
 
                 mla_memory_stream_set_position(temp_stream, 0);
                 mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
-                if (mla_internal_rpc_http_server_support_deflate_compression(*header) && content_size > mla_global_config_stream_output_deflate_min_compression_data_size) {
+                if (mla_private_rpc_http_server_support_deflate_compression(*header) && content_size > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
                     mla_memory_stream_t temp_compressed_stream = mla_memory_stream(mla_global_config_rpc_stream_small_buffer_size, true);
                     mla_stream_output_t mla_deflate_stream = mla_stream_output_deflate_compress_wrapper(temp_compressed_stream.output, mla_deflate_mode_zlib);
@@ -267,7 +267,7 @@ mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, 
 
                 mla_rpc_http_server_handler_content_writer_header_t* header = reinterpret_cast<mla_rpc_http_server_handler_content_writer_header_t*>(output_ptr);
 
-                if (mla_internal_rpc_http_server_support_deflate_compression(*header)) {
+                if (mla_private_rpc_http_server_support_deflate_compression(*header)) {
                     mla_http_headers_add(response.headers, mla_string_const("Content-Encoding"), mla_string_const("deflate"));
                 }
 
@@ -276,7 +276,7 @@ mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, 
                 mla_user_data_t writer_user_data = mla_user_data_empty();
                 mla_user_data_set_pointer(writer_user_data, mla_rpc_http_server_writer_output_buffer_user_data, output);
 
-                response.contentWriter = mla_http_response_content_writer(writer_user_data, mla_internal_rpc_http_server_handler_content_writer);
+                response.contentWriter = mla_http_response_content_writer(writer_user_data, mla_private_rpc_http_server_handler_content_writer);
             }
         }
 
@@ -289,8 +289,8 @@ mla_bool_t mla_internal_rpc_http_server_handler(mla_http_server_t& http_server, 
 
 mla_bool_t mla_rpc_http_server_initialize(mla_http_server_t &server) {
 
-    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, mla_string_const("/rpc/"), mla_internal_rpc_http_server_handler);
+    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler);
     mla_bool_t result1 = mla_http_server_register_handler(server, handler);
-    mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, mla_string_const("/rpc/"), mla_internal_rpc_http_server_handler_options);
+    mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler_options);
     return result1 && mla_http_server_register_handler(server, handlerOptions);
 }

@@ -9,7 +9,7 @@
 #include "mla_http_utils.h"
 #include "../http/mla_http_chunked_stream.h"
 
-mla_bool_t mla_internal_http_client_default_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
+mla_bool_t mla_private_http_client_default_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
 
     (void)client;
 
@@ -22,7 +22,7 @@ mla_bool_t mla_internal_http_client_default_resolve_host(const mla_http_client_t
     return true;
 }
 
-mla_bool_t mla_internal_http_client_default_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
+mla_bool_t mla_private_http_client_default_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
 
     if (!mla_network_connection_connect(connection, host, mla_connection_type_tcp, client.timeout_ms)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED;
@@ -48,8 +48,8 @@ mla_http_client_t mla_http_client() {
 #endif
 
         mla_global_config_default_http_timeout_ms, // Default timeout 30 seconds
-        mla_internal_http_client_default_resolve_host,
-        mla_internal_http_client_default_connect
+        mla_private_http_client_default_resolve_host,
+        mla_private_http_client_default_connect
     };
 }
 
@@ -78,7 +78,7 @@ void mla_http_client_set_timeout(mla_http_client_t &client, mla_int32_t timeout_
 }
 
 
-mla_bool_t mla_internal_http_client_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
+mla_bool_t mla_private_http_client_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
 
     if (client.resolve_host == nullptr) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
@@ -89,7 +89,7 @@ mla_bool_t mla_internal_http_client_resolve_host(const mla_http_client_t &client
     return client.resolve_host(client, response, url, host);
 }
 
-mla_bool_t mla_internal_http_client_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
+mla_bool_t mla_private_http_client_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
 
     if (client.connect == nullptr) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
@@ -100,7 +100,7 @@ mla_bool_t mla_internal_http_client_connect(const mla_http_client_t &client, mla
     return client.connect(client, response, host, connection);
 }
 
-mla_bool_t mla_internal_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, mla_http_request_t & request, mla_stream_output_t & connection) {
+mla_bool_t mla_private_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, mla_http_request_t & request, mla_stream_output_t & connection) {
 
     if (mla_string_is_empty(request.method)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
@@ -173,7 +173,7 @@ mla_bool_t mla_internal_http_client_send_header(mla_http_client_response_t& resp
 
 }
 
-mla_bool_t mla_internal_http_client_send_body(mla_http_client_response_t& response, mla_http_request_t & request, mla_stream_output_t & connection) {
+mla_bool_t mla_private_http_client_send_body(mla_http_client_response_t& response, mla_http_request_t & request, mla_stream_output_t & connection) {
 
     if (mla_http_request_content_writer_is_valid(request.contentWriter)) {
 
@@ -192,7 +192,7 @@ mla_bool_t mla_internal_http_client_send_body(mla_http_client_response_t& respon
     return true;
 }
 
-mla_bool_t mla_internal_http_client_parse_response_header(mla_stream_input_t & inputStream, mla_http_response_t & response, mla_int32_t timeout_ms) {
+mla_bool_t mla_private_http_client_parse_response_header(mla_stream_input_t & inputStream, mla_http_response_t & response, mla_int32_t timeout_ms) {
 
     mla_string_t statusLine = mla_string_empty();
 
@@ -238,7 +238,7 @@ mla_bool_t mla_internal_http_client_parse_response_header(mla_stream_input_t & i
 
 }
 
-mla_bool_t mla_internal_http_client_handle_response_body(mla_http_response_t& response, mla_network_connection_t & connection, mla_int32_t timeout_ms) {
+mla_bool_t mla_private_http_client_handle_response_body(mla_http_response_t& response, mla_network_connection_t & connection, mla_int32_t timeout_ms) {
 
     // Check for Content-Length header
     mla_string_t contentLengthStr = mla_http_headers_get_value(response.headers, mla_string_const("Content-Length"));
@@ -286,7 +286,7 @@ mla_bool_t mla_internal_http_client_handle_response_body(mla_http_response_t& re
     return true;
 }
 
-mla_bool_t mla_internal_http_client_parse_url(mla_http_client_response_t& response, const mla_string_t & urlString, mla_url_t & url) {
+mla_bool_t mla_private_http_client_parse_url(mla_http_client_response_t& response, const mla_string_t & urlString, mla_url_t & url) {
 
     if (!mla_url_parse(urlString, url)) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL;
@@ -296,7 +296,7 @@ mla_bool_t mla_internal_http_client_parse_url(mla_http_client_response_t& respon
     return true;
 }
 
-void mla_internal_http_client_close_connection(mla_network_connection_t & connection) {
+void mla_private_http_client_close_connection(mla_network_connection_t & connection) {
     mla_network_connection_disconnect(connection);
 }
 
@@ -313,18 +313,18 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
 
     mla_url_t url = mla_url_empty();
 
-    if (!mla_internal_http_client_parse_url(response, p_Request.url, url)) {
+    if (!mla_private_http_client_parse_url(response, p_Request.url, url)) {
         return response;
     }
 
-    if (!mla_internal_http_client_resolve_host(client, response, url, host)) {
+    if (!mla_private_http_client_resolve_host(client, response, url, host)) {
         return response;
     }
 
     // Open Connection
     mla_network_connection_t connection = mla_network_connection_disconnected();
 
-    if (!mla_internal_http_client_connect(client, response, host, connection)) {
+    if (!mla_private_http_client_connect(client, response, host, connection)) {
         return response;
     }
 
@@ -358,22 +358,22 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
 
 
     // Send Header
-    if (!mla_internal_http_client_send_header(response, url, p_Request, bufferedOutputStream)) {
+    if (!mla_private_http_client_send_header(response, url, p_Request, bufferedOutputStream)) {
         mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
-        mla_internal_http_client_close_connection(connection);
+        mla_private_http_client_close_connection(connection);
         return response;
     }
 
     // Send Body
-    if (!mla_internal_http_client_send_body(response, p_Request, bufferedOutputStream)) {
+    if (!mla_private_http_client_send_body(response, p_Request, bufferedOutputStream)) {
         mla_stream_output_flush_buffered_wrapper(bufferedOutputStream);
-        mla_internal_http_client_close_connection(connection);
+        mla_private_http_client_close_connection(connection);
         return response;
     }
 
     // Close and Flush
     if (!mla_stream_output_flush_buffered_wrapper(bufferedOutputStream)) {
-        mla_internal_http_client_close_connection(connection);
+        mla_private_http_client_close_connection(connection);
         return response;
     }
     bufferedOutputStream = mla_stream_noop_output();
@@ -383,14 +383,14 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     ////////////
 
     // Parse Response Header
-    if (!mla_internal_http_client_parse_response_header(connection.inputStream, response.response, client.timeout_ms)) {
-        mla_internal_http_client_close_connection(connection);
+    if (!mla_private_http_client_parse_response_header(connection.inputStream, response.response, client.timeout_ms)) {
+        mla_private_http_client_close_connection(connection);
         return response;
     }
 
     // Handle Response Body
-    if (!mla_internal_http_client_handle_response_body(response.response, connection, client.timeout_ms)) {
-        mla_internal_http_client_close_connection(connection);
+    if (!mla_private_http_client_handle_response_body(response.response, connection, client.timeout_ms)) {
+        mla_private_http_client_close_connection(connection);
         return response;
     }
 

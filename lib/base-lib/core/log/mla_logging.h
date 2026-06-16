@@ -8,12 +8,12 @@
 
 #include "../mla_data_types.h"
 
-void mla_internal_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function);
+void mla_private_logging_concat(mla_char_t* targetBuffer, const mla_char_t* filename, const mla_char_t* function);
 
 // Macro to get the filename and the method
 #define mla_filename_and_method()\
 mla_char_t temp[64]; \
-mla_internal_logging_concat(temp, mla_filename_only, __func__); \
+mla_private_logging_concat(temp, mla_filename_only, __func__); \
 
 #if (mla_global_feature_flag_logging_use_native == 0)
 

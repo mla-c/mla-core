@@ -86,7 +86,7 @@ struct mla_ui_http_server_web_surface_data_t {
 
 };
 
-mla_bool_t mla_internal_ui_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_ui_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
 
     // Remove "/ui/" prefix
     mla_string_t resource_name = mla_string_substr(request.url, 4, mla_string_length(request.url) - 4);
@@ -162,7 +162,7 @@ mla_bool_t mla_internal_ui_http_server_handler(mla_http_server_t& http_server, c
 
 mla_bool_t mla_ui_http_server_initialize(mla_http_server_t &server) {
 
-    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_get, mla_string_const("/ui/"), mla_internal_ui_http_server_handler);
+    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_get, mla_string_const("/ui/"), mla_private_ui_http_server_handler);
     return mla_http_server_register_handler(server, handler);
 
 }
@@ -184,7 +184,7 @@ mla_user_data_id_init(mla_ui_http_server_web_surface_data_client_list_user_data_
 
 #define mla_web_surface_max_buffer_items 25
 
-mla_bool_t mla_internal_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message) {
+mla_bool_t mla_private_ui_http_server_web_surface_text_handler(mla_http_server_websocket_connection_t& connection, const mla_string_t& message) {
 
     mla_ui_http_server_web_surface_data_client_t* data_client = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_client_t>(connection.userdata, mla_ui_http_server_web_surface_data_client_list_user_data_name);
 
@@ -224,11 +224,11 @@ mla_bool_t mla_internal_ui_http_server_web_surface_text_handler(mla_http_server_
     return true;
 }
 
-mla_string_t mla_internal_ui_http_server_web_surface_path_from_surface_name(const mla_string_t& surface_name) {
+mla_string_t mla_private_ui_http_server_web_surface_path_from_surface_name(const mla_string_t& surface_name) {
     return mla_string_concat(mla_ui_web_socket_surface_path_prefix, surface_name);
 }
 
-mla_bool_t mla_internal_ui_http_server_web_surface_path_checker(const mla_user_data_t &userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+mla_bool_t mla_private_ui_http_server_web_surface_path_checker(const mla_user_data_t &userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_t>(userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
@@ -236,7 +236,7 @@ mla_bool_t mla_internal_ui_http_server_web_surface_path_checker(const mla_user_d
         return false;
     }
 
-    mla_string_t final_url = mla_internal_ui_http_server_web_surface_path_from_surface_name(task_data->surfaceName);
+    mla_string_t final_url = mla_private_ui_http_server_web_surface_path_from_surface_name(task_data->surfaceName);
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
         return mla_string_equals(url, final_url);
@@ -252,7 +252,7 @@ mla_bool_t mla_internal_ui_http_server_web_surface_path_checker(const mla_user_d
 
 #define mla_web_surface_max_connected_clients 5
 
-mla_bool_t mla_internal_ui_http_server_web_surface_open(mla_http_server_websocket_connection_t& connection) {
+mla_bool_t mla_private_ui_http_server_web_surface_open(mla_http_server_websocket_connection_t& connection) {
 
     mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_t>(connection.userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
@@ -299,7 +299,7 @@ mla_bool_t mla_internal_ui_http_server_web_surface_open(mla_http_server_websocke
     return true;
 }
 
-mla_task_process_result_state mla_internal_ui_http_server_web_surface_render_and_draw_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_private_ui_http_server_web_surface_render_and_draw_task(mla_user_data_t& userData) {
 
     mla_ui_http_server_web_surface_data_t* taskData = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_t>(userData, mla_ui_http_server_web_surface_data_user_data_name);
 
@@ -317,7 +317,7 @@ mla_task_process_result_state mla_internal_ui_http_server_web_surface_render_and
         return TASK_PROCESS_RESULT_CONTINUE;
     }
 
-    mla_string_t final_url = mla_internal_ui_http_server_web_surface_path_from_surface_name(taskData->surfaceName);
+    mla_string_t final_url = mla_private_ui_http_server_web_surface_path_from_surface_name(taskData->surfaceName);
     mla_array_list_t<mla_http_server_websocket_connection_t, mla_http_server_websocket_connection_initializer> connections = mla_http_server_find_websocket_connections(http_server, final_url);
 
     // Process each connected client
@@ -342,13 +342,13 @@ mla_task_process_result_state mla_internal_ui_http_server_web_surface_render_and
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
-void mla_internal_ui_http_server_web_surface_cleanup(mla_ui_http_server_web_surface_data_t& data) {
+void mla_private_ui_http_server_web_surface_cleanup(mla_ui_http_server_web_surface_data_t& data) {
     mla_task_manager_abort_task(data.surfaceName);
 }
 
 mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, const mla_string_t& display_name, const mla_string_t& surface_name, mla_ui_control_surface_process_task_t processTask) {
 
-    mla_pointer_t task_data_ptr = mla_malloc_struct_cleanup_hook(mla_ui_http_server_web_surface_data_t, mla_internal_ui_http_server_web_surface_cleanup);
+    mla_pointer_t task_data_ptr = mla_malloc_struct_cleanup_hook(mla_ui_http_server_web_surface_data_t, mla_private_ui_http_server_web_surface_cleanup);
 
     mla_ui_http_server_web_surface_data_t* taskData = mla_pointer_get_data<mla_ui_http_server_web_surface_data_t>(task_data_ptr);
 
@@ -365,16 +365,16 @@ mla_bool_t mla_ui_http_server_add_web_surface(mla_http_server_t& http_server, co
     mla_user_data_set_pointer(ui_http_user_data, mla_ui_http_server_web_surface_data_user_data_name, task_data_ptr);
 
     mla_http_server_websocket_handler_item_t handler = mla_http_server_websocket_handler(ui_http_user_data,
-            mla_internal_ui_http_server_web_surface_path_checker,
-            mla_internal_ui_http_server_web_surface_text_handler,
+            mla_private_ui_http_server_web_surface_path_checker,
+            mla_private_ui_http_server_web_surface_text_handler,
             nullptr);
 
-    handler.open_executor = mla_internal_ui_http_server_web_surface_open;
+    handler.open_executor = mla_private_ui_http_server_web_surface_open;
 
     // Create rendering task
     mla_task_t render_draw_task = mla_task_repeating(
             mla_string_concat(mla_string_const("web_ui_sf_"), taskData->surfaceName),
-            mla_internal_ui_http_server_web_surface_render_and_draw_task,
+            mla_private_ui_http_server_web_surface_render_and_draw_task,
             ui_http_user_data
         );
 

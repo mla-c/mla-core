@@ -48,7 +48,7 @@
 #define mla_websocket_pong_frame_header 0x8A
 
 
-mla_bool_t mla_internal_websocket_transport_write_frame_header(mla_stream_output_t &output, mla_bool_t is_text_message, mla_bool_t is_final_frame, mla_bool_t use_deflate_compression) {
+mla_bool_t mla_private_websocket_transport_write_frame_header(mla_stream_output_t &output, mla_bool_t is_text_message, mla_bool_t is_final_frame, mla_bool_t use_deflate_compression) {
 
     mla_uint8_t fin_and_opcode;
 
@@ -72,7 +72,7 @@ mla_bool_t mla_internal_websocket_transport_write_frame_header(mla_stream_output
 
 }
 
-void mla_internal_websocket_client_init_masking_key(mla_uint8_t (&masking_key)[mla_websocket_masking_key_size]) {
+void mla_private_websocket_client_init_masking_key(mla_uint8_t (&masking_key)[mla_websocket_masking_key_size]) {
 
     for (int i = 0; i < mla_websocket_masking_key_size; i++) {
         masking_key[i] = mla_random_uint32() & 0xFF;
@@ -80,12 +80,12 @@ void mla_internal_websocket_client_init_masking_key(mla_uint8_t (&masking_key)[m
 
 }
 
-mla_bool_t mla_internal_websocket_client_send_masking_key(mla_stream_output_t &output, const mla_uint8_t (&masking_key)[mla_websocket_masking_key_size]) {
+mla_bool_t mla_private_websocket_client_send_masking_key(mla_stream_output_t &output, const mla_uint8_t (&masking_key)[mla_websocket_masking_key_size]) {
     return output.write(output, 0, mla_websocket_masking_key_size, masking_key) == mla_websocket_masking_key_size;
 
 }
 
-mla_bool_t mla_internal_websocket_client_write_message_length(mla_stream_output_t &output, mla_size_t payload_length, mla_bool_t mask_message) {
+mla_bool_t mla_private_websocket_client_write_message_length(mla_stream_output_t &output, mla_size_t payload_length, mla_bool_t mask_message) {
 
     if (payload_length < mla_websocket_length_16bit) {
         mla_uint8_t mask_and_length;
@@ -150,7 +150,7 @@ struct mla_websocket_masking_state_t {
 
 mla_user_data_id_init(mla_websocket_transport_mask_user_data_name)
 
-mla_size_t mla_internal_websocket_transport_masked_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_websocket_transport_masked_write(mla_stream_output_t& wrapper, mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     mla_websocket_masking_state_t* state = mla_user_data_get_pointer_data<mla_websocket_masking_state_t>(wrapper.userdata, mla_websocket_transport_mask_user_data_name);
 
@@ -196,7 +196,7 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
         return false;
     }
 
-    if (!mla_internal_websocket_client_write_message_length(output, response_length, mask_message)) {
+    if (!mla_private_websocket_client_write_message_length(output, response_length, mask_message)) {
         return false;
     }
 
@@ -204,12 +204,12 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
     mla_stream_output_t final_out = output;
 
     if (mask_message) {
-        mla_internal_websocket_client_init_masking_key(masking_state.masking_key);
-        if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+        mla_private_websocket_client_init_masking_key(masking_state.masking_key);
+        if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
             return false;
         }
 
-        final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+        final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
         mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
         mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
     }
@@ -222,14 +222,14 @@ mla_bool_t mla_websocket_transport_send_close_frame(mla_stream_output_t &output,
 
 }
 
-mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_output_t &output, mla_bool_t is_text_message, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
+mla_bool_t mla_private_websocket_transport_send_with_generator(mla_stream_output_t &output, mla_bool_t is_text_message, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
 
     // If its an short input we can optimize by writing it directly
     mla_memory_stream_t temp_stream = mla_memory_stream(mla_websocket_stream_small_buffer_size, false);
 
     mla_websocket_masking_state_t masking_state = {};
     if (mask_message) {
-        mla_internal_websocket_client_init_masking_key(masking_state.masking_key);
+        mla_private_websocket_client_init_masking_key(masking_state.masking_key);
     }
 
     if (message_generator(temp_stream.output, userData)) {
@@ -241,7 +241,7 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
 
         if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
-            if (!mla_internal_websocket_transport_write_frame_header(output, is_text_message, true, true)) {
+            if (!mla_private_websocket_transport_write_frame_header(output, is_text_message, true, true)) {
                 return false;
             }
 
@@ -260,17 +260,17 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
             size_calc_stream = mla_stream_noop_output();
 
             // Write the real output
-            if (!mla_internal_websocket_client_write_message_length(output, compressed_size, mask_message)) {
+            if (!mla_private_websocket_client_write_message_length(output, compressed_size, mask_message)) {
                 return false;
             }
 
             if (mask_message) {
-                if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+                if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                     return false;
                 }
 
                 // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
-                final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+                final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
                 mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
                 mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
             }
@@ -289,23 +289,23 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
 
         } else {
 
-            if (!mla_internal_websocket_transport_write_frame_header(output, is_text_message, true, false)) {
+            if (!mla_private_websocket_transport_write_frame_header(output, is_text_message, true, false)) {
                 return false;
             }
 
             mla_stream_output_t final_out = output;
 
-            if (!mla_internal_websocket_client_write_message_length(output, payload_length, mask_message)) {
+            if (!mla_private_websocket_client_write_message_length(output, payload_length, mask_message)) {
                 return false;
             }
 
             if (mask_message) {
-                if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+                if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                     return false;
                 }
 
                 // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
-                final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+                final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
                 mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
                 mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
             }
@@ -318,7 +318,7 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
 
     } else {
 
-        if (!mla_internal_websocket_transport_write_frame_header(output, is_text_message, true, use_deflate_compression)) {
+        if (!mla_private_websocket_transport_write_frame_header(output, is_text_message, true, use_deflate_compression)) {
             return false;
         }
 
@@ -349,17 +349,17 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
         size_calculation_stream = mla_stream_noop_output();
 
         // Write the real output
-        if (!mla_internal_websocket_client_write_message_length(output, compressed_size, mask_message)) {
+        if (!mla_private_websocket_client_write_message_length(output, compressed_size, mask_message)) {
             return false;
         }
 
         if (mask_message) {
-            if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+            if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                 return false;
             }
 
             // We need to generate the message again and mask it on the fly since we don't want to buffer the entire message in memory
-            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
             mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
             mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
@@ -386,7 +386,7 @@ mla_bool_t mla_internal_websocket_transport_send_with_generator(mla_stream_outpu
 }
 
 mla_bool_t mla_websocket_transport_send_text_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
-    return mla_internal_websocket_transport_send_with_generator(output, true, userData, message_generator, mask_message, use_deflate_compression);
+    return mla_private_websocket_transport_send_with_generator(output, true, userData, message_generator, mask_message, use_deflate_compression);
 }
 
 mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, const mla_string_t &message, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
@@ -396,13 +396,13 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
 
     mla_websocket_masking_state_t masking_state = {};
     if (mask_message) {
-        mla_internal_websocket_client_init_masking_key(masking_state.masking_key);
+        mla_private_websocket_client_init_masking_key(masking_state.masking_key);
     }
 
     // Check if it make sense to use compression
     if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
-        if (!mla_internal_websocket_transport_write_frame_header(output, true, true, true)) {
+        if (!mla_private_websocket_transport_write_frame_header(output, true, true, true)) {
             return false;
         }
 
@@ -422,16 +422,16 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
         size_calc_stream = mla_stream_noop_output();
 
         // Write the real output
-        if (!mla_internal_websocket_client_write_message_length(output, compressed_size, mask_message)) {
+        if (!mla_private_websocket_client_write_message_length(output, compressed_size, mask_message)) {
             return false;
         }
 
         if (mask_message) {
-            if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+            if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                 return false;
             }
 
-            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
             mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
             mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
@@ -449,22 +449,22 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
 
     } else {
 
-        if (!mla_internal_websocket_transport_write_frame_header(output, true, true, false)) {
+        if (!mla_private_websocket_transport_write_frame_header(output, true, true, false)) {
             return false;
         }
 
         mla_stream_output_t final_out = output;
 
-        if (!mla_internal_websocket_client_write_message_length(output, payload_length, mask_message)) {
+        if (!mla_private_websocket_client_write_message_length(output, payload_length, mask_message)) {
             return false;
         }
 
         if (mask_message) {
-            if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+            if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                 return false;
             }
 
-            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
             mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
             mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
@@ -479,7 +479,7 @@ mla_bool_t mla_websocket_transport_send_text_frame(mla_stream_output_t &output, 
 }
 
 mla_bool_t mla_websocket_transport_send_binary_with_generator(mla_stream_output_t &output, mla_user_data_t &userData, mla_websocket_transport_message_generator_t message_generator, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
-    return mla_internal_websocket_transport_send_with_generator(output, false, userData, message_generator, mask_message, use_deflate_compression);
+    return mla_private_websocket_transport_send_with_generator(output, false, userData, message_generator, mask_message, use_deflate_compression);
 }
 
 mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output, const mla_bytes_t &message, mla_bool_t mask_message, mla_bool_t use_deflate_compression) {
@@ -490,13 +490,13 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
 
     mla_websocket_masking_state_t masking_state = {};
     if (mask_message) {
-        mla_internal_websocket_client_init_masking_key(masking_state.masking_key);
+        mla_private_websocket_client_init_masking_key(masking_state.masking_key);
     }
 
     // Check if it make sense to use compression
     if (use_deflate_compression && payload_length > mla_global_config_stream_output_deflate_min_compression_data_size) {
 
-        if (!mla_internal_websocket_transport_write_frame_header(output, false, true, true)) {
+        if (!mla_private_websocket_transport_write_frame_header(output, false, true, true)) {
             return false;
         }
 
@@ -516,16 +516,16 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
         size_calc_stream = mla_stream_noop_output();
 
         // Write the real output
-        if (!mla_internal_websocket_client_write_message_length(output, compressed_size, mask_message)) {
+        if (!mla_private_websocket_client_write_message_length(output, compressed_size, mask_message)) {
             return false;
         }
 
         if (mask_message) {
-            if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+            if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                 return false;
             }
 
-            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
             mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
             mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
@@ -543,22 +543,22 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
 
     } else {
 
-        if (!mla_internal_websocket_transport_write_frame_header(output, false, true, false)) {
+        if (!mla_private_websocket_transport_write_frame_header(output, false, true, false)) {
             return false;
         }
 
         mla_stream_output_t final_out = output;
 
-        if (!mla_internal_websocket_client_write_message_length(output, payload_length, mask_message)) {
+        if (!mla_private_websocket_client_write_message_length(output, payload_length, mask_message)) {
             return false;
         }
 
         if (mask_message) {
-            if (!mla_internal_websocket_client_send_masking_key(output, masking_state.masking_key)) {
+            if (!mla_private_websocket_client_send_masking_key(output, masking_state.masking_key)) {
                 return false;
             }
 
-            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_internal_websocket_transport_masked_write, nullptr);
+            final_out = mla_stream_output_interceptor_wrapper(final_out, mla_private_websocket_transport_masked_write, nullptr);
             mla_pointer_t masking_state_ptr = mla_platform_pointer_to_managed_pointer(reinterpret_cast<const mla_websocket_masking_state_t*>(&masking_state));
             mla_user_data_set_pointer(final_out.userdata, mla_websocket_transport_mask_user_data_name, masking_state_ptr);
         }
@@ -572,7 +572,7 @@ mla_bool_t mla_websocket_transport_send_binary_frame(mla_stream_output_t &output
     return true;
 }
 
-mla_bool_t mla_internal_mla_websocket_client_read(mla_stream_input_t &input, mla_size_t size, mla_byte_t *buffer,
+mla_bool_t mla_private_mla_websocket_client_read(mla_stream_input_t &input, mla_size_t size, mla_byte_t *buffer,
                                            mla_size_t timeout_ms) {
     mla_size_t total_read = 0;
     mla_size_t elapsed_time = 0;
@@ -609,7 +609,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
     do {
 
         // At the first call we dont wait for any timeouts we just look if there is something
-        if (!mla_internal_mla_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, 0)) {
+        if (!mla_private_mla_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, 0)) {
             return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE;
         }
 
@@ -619,7 +619,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
         // read second byte (mask + payload length)
         mla_uint8_t mask_and_length;
-        if (!mla_internal_mla_websocket_client_read(input, sizeof(mla_uint8_t), &mask_and_length, timeout_ms)) {
+        if (!mla_private_mla_websocket_client_read(input, sizeof(mla_uint8_t), &mask_and_length, timeout_ms)) {
             return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
@@ -630,7 +630,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
         if (payload_length == mla_websocket_length_16bit) {
 
             mla_uint16_t extended_length;
-            if (!mla_internal_mla_websocket_client_read(input, sizeof(mla_uint16_t), reinterpret_cast<mla_byte_t *>(&extended_length),
+            if (!mla_private_mla_websocket_client_read(input, sizeof(mla_uint16_t), reinterpret_cast<mla_byte_t *>(&extended_length),
                                                  timeout_ms)) {
                 return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             }
@@ -640,7 +640,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
         } else if (payload_length == mla_websocket_length_64bit) {
 
             mla_uint64_t extended_length;
-            if (!mla_internal_mla_websocket_client_read(input, sizeof(mla_uint64_t), reinterpret_cast<mla_byte_t *>(&extended_length),
+            if (!mla_private_mla_websocket_client_read(input, sizeof(mla_uint64_t), reinterpret_cast<mla_byte_t *>(&extended_length),
                                                  timeout_ms)) {
                 return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             }
@@ -651,7 +651,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
         // read masking key if present
         mla_uint8_t masking_key[mla_websocket_masking_key_size] = {0};
         if (is_masked) {
-            if (!mla_internal_mla_websocket_client_read(input, sizeof(masking_key), masking_key, timeout_ms)) {
+            if (!mla_private_mla_websocket_client_read(input, sizeof(masking_key), masking_key, timeout_ms)) {
                 return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
             }
         }
@@ -684,7 +684,7 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
 
                 mla_size_t chunk_size = (payload_length > sizeof(buffer)) ? sizeof(buffer) : static_cast<mla_size_t>(payload_length);
 
-                if (!mla_internal_mla_websocket_client_read(input, chunk_size, buffer, timeout_ms)) {
+                if (!mla_private_mla_websocket_client_read(input, chunk_size, buffer, timeout_ms)) {
                     return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
                 }
 
@@ -782,9 +782,9 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
             if (mask_message) {
 
                 mla_uint8_t masking_key[mla_websocket_masking_key_size] = {0};
-                mla_internal_websocket_client_init_masking_key(masking_key);
+                mla_private_websocket_client_init_masking_key(masking_key);
 
-                if (!mla_internal_websocket_client_send_masking_key(output, masking_key)) {
+                if (!mla_private_websocket_client_send_masking_key(output, masking_key)) {
                     return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
                 }
 

@@ -13,7 +13,7 @@
 
 mla_user_data_id_init(mla_network_connection_user_data_name)
 
-mla_bool_t mla_internal_windows_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
+mla_bool_t mla_private_windows_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     WSADATA wsaData;
     mla_memset(&wsaData, 0, sizeof(WSADATA));
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -66,7 +66,7 @@ mla_bool_t mla_internal_windows_resolve_host(mla_network_host_t &host, const mla
     return true;
 }
 
-void mla_internal_windows_socket_cleanup(const mla_dynamic_data_t& userData) {
+void mla_private_windows_socket_cleanup(const mla_dynamic_data_t& userData) {
     SOCKET sock = static_cast<SOCKET>(userData.asUint64);
     if (sock != INVALID_SOCKET) {
 
@@ -77,7 +77,7 @@ void mla_internal_windows_socket_cleanup(const mla_dynamic_data_t& userData) {
 }
 
 
-mla_size_t mla_internal_windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t mla_private_windows_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
 
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
@@ -94,7 +94,7 @@ mla_size_t mla_internal_windows_socket_read(mla_stream_input_t& input, mla_size_
     return static_cast<mla_size_t>(bytesRead);
 }
 
-mla_size_t mla_internal_windows_socket_remaining_bytes(mla_stream_input_t& input) {
+mla_size_t mla_private_windows_socket_remaining_bytes(mla_stream_input_t& input) {
 
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
 
@@ -114,7 +114,7 @@ mla_size_t mla_internal_windows_socket_remaining_bytes(mla_stream_input_t& input
     return 0;
 }
 
-mla_size_t mla_internal_windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_windows_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
 
@@ -165,7 +165,7 @@ mla_size_t mla_internal_windows_socket_write(mla_stream_output_t& output, mla_si
 }
 
 
-mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
+mla_bool_t mla_private_windows_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
                              mla_connection_type_t type, mla_size_t timeout_ms) {
     connection.host = host;
 
@@ -254,24 +254,24 @@ mla_bool_t mla_internal_windows_connect(mla_network_connection_t &connection, co
     }
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), mla_internal_windows_socket_cleanup);
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), mla_private_windows_socket_cleanup);
 
     connection.inputStream = {
         userData,
-        mla_internal_windows_socket_read,
-        mla_internal_windows_socket_remaining_bytes
+        mla_private_windows_socket_read,
+        mla_private_windows_socket_remaining_bytes
     };
 
     connection.outputStream = {
         userData,
-        mla_internal_windows_socket_write,
+        mla_private_windows_socket_write,
         nullptr
     };
 
     return true;
 }
 
-mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
+mla_bool_t mla_private_windows_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
 
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
 
@@ -335,18 +335,18 @@ mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& 
     connection.host = peer;
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(clientSock), mla_internal_windows_socket_cleanup);
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(clientSock), mla_private_windows_socket_cleanup);
 
 
     connection.inputStream = {
         userData,
-        mla_internal_windows_socket_read,
-        mla_internal_windows_socket_remaining_bytes
+        mla_private_windows_socket_read,
+        mla_private_windows_socket_remaining_bytes
     };
 
     connection.outputStream = {
         userData,
-        mla_internal_windows_socket_write,
+        mla_private_windows_socket_write,
         nullptr
     };
 
@@ -354,7 +354,7 @@ mla_bool_t mla_internal_windows_accept_connection(const mla_network_listener_t& 
 }
 
 
-mla_bool_t mla_internal_windows_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
+mla_bool_t mla_private_windows_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
 
     listener.host = host;
 
@@ -432,15 +432,15 @@ mla_bool_t mla_internal_windows_bind_and_listen(mla_network_listener_t &listener
     }
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), mla_internal_windows_socket_cleanup);
-    listener.accept_connection = mla_internal_windows_accept_connection;
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_uint64(sock), mla_private_windows_socket_cleanup);
+    listener.accept_connection = mla_private_windows_accept_connection;
     listener.userdata = userData;
 
     return true;
 }
 
 
-mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_internal_windows_get_local_ip_addresses() {
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_private_windows_get_local_ip_addresses() {
     mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> ipAddresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
 
     ULONG bufferSize = 15000;
@@ -511,20 +511,20 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
 }
 
 mla_network_low_level_operations_t g_network_low_level_operations = {
-    mla_internal_windows_resolve_host,
-    mla_internal_windows_connect,
-    mla_internal_windows_bind_and_listen,
-    mla_internal_windows_get_local_ip_addresses
+    mla_private_windows_resolve_host,
+    mla_private_windows_connect,
+    mla_private_windows_bind_and_listen,
+    mla_private_windows_get_local_ip_addresses
 };
 
 
 
 
-void mla_internal_network_teardown_platform_windows() {
+void mla_private_network_teardown_platform_windows() {
     WSACleanup();
 }
 
-void mla_internal_network_setup_platform_windows() {
+void mla_private_network_setup_platform_windows() {
 
     WSADATA wsaData;
     memset(&wsaData, 0, sizeof(WSADATA));
@@ -539,8 +539,8 @@ void mla_internal_network_setup_platform_windows() {
 
 // RAII auto init
 struct MlaWinsockAutoInit {
-    MlaWinsockAutoInit()  { mla_internal_network_setup_platform_windows(); }
-    ~MlaWinsockAutoInit() { mla_internal_network_teardown_platform_windows(); }
+    MlaWinsockAutoInit()  { mla_private_network_setup_platform_windows(); }
+    ~MlaWinsockAutoInit() { mla_private_network_teardown_platform_windows(); }
 };
 
 // Single global instance

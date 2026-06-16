@@ -36,7 +36,7 @@ struct mla_link_list_t {
 };
 
 template < mla_list_list_template >
-void mla_internal_link_list_node_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+void mla_private_link_list_node_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -48,7 +48,7 @@ void mla_internal_link_list_node_cleanup_hook(mla_platform_pointer_t data, const
 }
 
 template < mla_list_list_template >
-void mla_internal_link_list_data_cleanup_hook(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& userData) {
+void mla_private_link_list_data_cleanup_hook(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& userData) {
 
     (void)userData; // Silences the unused parameter warning
 
@@ -85,7 +85,7 @@ inline mla_link_list_t<T, TInit>  mla_link_list_empty() {
 template < mla_list_list_template >
 inline mla_link_list_t<T, TInit> mla_link_list() {
 
-    mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_link_list_data_cleanup_hook<T, TInit>;
+    mla_pointer_cleanup_hook_t cleanup_hook = mla_private_link_list_data_cleanup_hook<T, TInit>;
     mla_pointer_t dataOwner = mla_malloc_buffer_cleanup_hook(sizeof(mla_link_list_data_t<T, TInit>), cleanup_hook);
     mla_link_list_data_t<T, TInit>* data = mla_pointer_get_data<mla_link_list_data_t<T, TInit>>(dataOwner);
 
@@ -114,7 +114,7 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
 
     if (list.data == nullptr) {
         // If the list is empty, initialize it
-        mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_link_list_data_cleanup_hook<T, TInit>;
+        mla_pointer_cleanup_hook_t cleanup_hook = mla_private_link_list_data_cleanup_hook<T, TInit>;
         list.dataOwner = mla_malloc_buffer_cleanup_hook(sizeof(mla_link_list_data_t<T, TInit>), cleanup_hook);
         list.data = mla_pointer_get_data<mla_link_list_data_t<T, TInit>>(list.dataOwner);
 
@@ -125,7 +125,7 @@ mla_bool_t mla_link_list_add(mla_link_list_t<T, TInit>& list, const T& item) {
     }
 
     // Create a new node
-    mla_pointer_cleanup_hook_t node_cleanup_hook = mla_internal_link_list_node_cleanup_hook<T, TInit>;
+    mla_pointer_cleanup_hook_t node_cleanup_hook = mla_private_link_list_node_cleanup_hook<T, TInit>;
     mla_pointer_t newNodeOwner = mla_malloc_buffer_cleanup_hook(sizeof(mla_link_list_node_t<T, TInit>), node_cleanup_hook);
     mla_link_list_node_t<T, TInit>* newNode = mla_pointer_get_data<mla_link_list_node_t<T, TInit>>(newNodeOwner);
 
@@ -163,7 +163,7 @@ mla_bool_t mla_link_list_remove(mla_link_list_t<T, TInit>& list, mla_int32_t ind
 
     if (list.data == nullptr) {
         // If the list is empty, initialize it
-        mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_link_list_data_cleanup_hook<T, TInit>;
+        mla_pointer_cleanup_hook_t cleanup_hook = mla_private_link_list_data_cleanup_hook<T, TInit>;
         list.dataOwner = mla_malloc_buffer_cleanup_hook(sizeof(mla_link_list_data_t<T, TInit>), cleanup_hook);
         list.data = mla_pointer_get_data<mla_link_list_data_t<T, TInit>>(list.dataOwner);
 
@@ -303,7 +303,7 @@ inline void mla_link_list_clear(mla_link_list_t<T, TInit>& list) {
 
     if (list.data == nullptr) {
         // If the list is empty, initialize it
-        mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_link_list_data_cleanup_hook<T, TInit>;
+        mla_pointer_cleanup_hook_t cleanup_hook = mla_private_link_list_data_cleanup_hook<T, TInit>;
         list.dataOwner = mla_malloc_buffer_cleanup_hook(sizeof(mla_link_list_data_t<T, TInit>), cleanup_hook);
         list.data = mla_pointer_get_data<mla_link_list_data_t<T, TInit>>(list.dataOwner);
 

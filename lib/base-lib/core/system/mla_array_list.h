@@ -22,7 +22,7 @@ struct mla_array_list_t {
 };
 
 template <mla_array_list_template>
-inline T* mla_internal_array_list_items_data_from_header(mla_array_list_buffer_header_t<T, TInit>* header) {
+inline T* mla_private_array_list_items_data_from_header(mla_array_list_buffer_header_t<T, TInit>* header) {
 
     if (header == nullptr) {
         return nullptr;
@@ -32,22 +32,22 @@ inline T* mla_internal_array_list_items_data_from_header(mla_array_list_buffer_h
 }
 
 template <mla_array_list_template>
-inline T* mla_internal_array_list_items_data_from_pointer(const mla_pointer_t& items_ptr) {
+inline T* mla_private_array_list_items_data_from_pointer(const mla_pointer_t& items_ptr) {
 
     mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(items_ptr);
-    return mla_internal_array_list_items_data_from_header(header);
+    return mla_private_array_list_items_data_from_header(header);
 }
 
 template <mla_array_list_template>
-inline T* mla_internal_array_list_items_data(const mla_array_list_t<T, TInit>& list) {
+inline T* mla_private_array_list_items_data(const mla_array_list_t<T, TInit>& list) {
 
-    return mla_internal_array_list_items_data_from_pointer<T, TInit>(list.items);
+    return mla_private_array_list_items_data_from_pointer<T, TInit>(list.items);
 }
 
 template <mla_array_list_template>
-void mla_internal_array_list_cleanup_header(mla_array_list_buffer_header_t<T, TInit>* header) {
+void mla_private_array_list_cleanup_header(mla_array_list_buffer_header_t<T, TInit>* header) {
 
-    T* l_Item = mla_internal_array_list_items_data_from_header(header);
+    T* l_Item = mla_private_array_list_items_data_from_header(header);
 
     for (mla_size_t i = 0; i < header->capacity; ++i) {
         l_Item[i] = TInit::init(); // Assign default value to trigger destructor if T is a class
@@ -56,12 +56,12 @@ void mla_internal_array_list_cleanup_header(mla_array_list_buffer_header_t<T, TI
 }
 
 template <mla_array_list_template>
-void mla_internal_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
+void mla_private_array_list_cleanup(mla_platform_pointer_t p_Data, const mla_dynamic_data_t& p_UserData) {
 
     (void)p_UserData;
 
     mla_array_list_buffer_header_t<T, TInit>* header = static_cast<mla_array_list_buffer_header_t<T, TInit>*>(p_Data);
-    mla_internal_array_list_cleanup_header<T, TInit>(header);
+    mla_private_array_list_cleanup_header<T, TInit>(header);
 }
 
 template <mla_array_list_template>
@@ -78,7 +78,7 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_globa
     }
 
     mla_size_t size = sizeof(mla_array_list_buffer_header_t<T, TInit>) + (initialCapacity * sizeof(T));
-    mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_array_list_cleanup<T, TInit>;
+    mla_pointer_cleanup_hook_t cleanup_hook = mla_private_array_list_cleanup<T, TInit>;
     mla_pointer_t items = mla_malloc_buffer_cleanup_hook(size, cleanup_hook);
 
     mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(items);
@@ -97,7 +97,7 @@ void mla_array_list_destroy(mla_array_list_t<T, TInit>& list) {
     mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
 
     if (header != nullptr) {
-        mla_internal_array_list_cleanup_header<T, TInit>(header);
+        mla_private_array_list_cleanup_header<T, TInit>(header);
         list.items = mla_pointer_null();
     }
 
@@ -111,7 +111,7 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
 
         // Resize the array if the new size exceeds the current capacity
         mla_size_t newSizeInBytes = sizeof(mla_array_list_buffer_header_t<T, TInit>) + (newSize * sizeof(T));
-        mla_pointer_cleanup_hook_t cleanup_hook = mla_internal_array_list_cleanup<T, TInit>;
+        mla_pointer_cleanup_hook_t cleanup_hook = mla_private_array_list_cleanup<T, TInit>;
         mla_pointer_t newItems_ptr = mla_malloc_buffer_cleanup_hook(newSizeInBytes, cleanup_hook);
 
         mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(newItems_ptr);
@@ -120,8 +120,8 @@ mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t ne
             return false; // Memory allocation failed
         }
         header->capacity = newSize;
-        T* oldItems = mla_internal_array_list_items_data<T, TInit>(list);
-        T* newItems = mla_internal_array_list_items_data_from_header<T, TInit>(header);
+        T* oldItems = mla_private_array_list_items_data<T, TInit>(list);
+        T* newItems = mla_private_array_list_items_data_from_header<T, TInit>(header);
 
         if (newItems == nullptr) {
             return false; // Memory allocation failed
@@ -179,7 +179,7 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 
     }
 
-    T* items = mla_internal_array_list_items_data_from_header(header);
+    T* items = mla_private_array_list_items_data_from_header(header);
 
     items[list.size++] = item; // Add the new item and increment the size
     return true;
@@ -188,7 +188,7 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 template <mla_array_list_template>
 mla_bool_t mla_array_list_add_all(mla_array_list_t<T, TInit>& list, const mla_array_list_t<T, TInit>& newItems) {
 
-    T* items_to_copy = mla_internal_array_list_items_data(newItems);
+    T* items_to_copy = mla_private_array_list_items_data(newItems);
 
     for (mla_size_t i = 0; i < newItems.size; ++i) {
 
@@ -208,7 +208,7 @@ void mla_array_list_reverse(mla_array_list_t<T, TInit>& list) {
         return; // No need to reverse if the list has less than 2 items
     }
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
 
     mla_size_t start = 0;
     mla_size_t end = list.size - 1;
@@ -232,7 +232,7 @@ mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t
         return false; // Return false if index is out of bounds
     }
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
 
     outItem = items[index]; // Return the item at the specified index
     return true;
@@ -241,7 +241,7 @@ mla_bool_t mla_array_list_get(const mla_array_list_t<T, TInit>& list, mla_size_t
 template <mla_array_list_template>
 T* mla_array_list_get_ref_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
     return &items[index]; // Return the item at the specified index
 }
 
@@ -252,14 +252,14 @@ T* mla_array_list_get_ref(const mla_array_list_t<T, TInit>& list, mla_size_t ind
         return nullptr;
     }
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
     return &items[index]; // Return the item at the specified index
 }
 
 template <mla_array_list_template>
 inline T& mla_array_list_get_unsafe(const mla_array_list_t<T, TInit>& list, mla_size_t index) {
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
     return items[index]; // Return the item at the specified index
 }
 
@@ -267,7 +267,7 @@ template <mla_array_list_template>
 inline mla_bool_t mla_array_list_remove(mla_array_list_t<T, TInit>& list, mla_size_t index) {
 
     if (index < list.size) {
-        T* items = mla_internal_array_list_items_data(list);
+        T* items = mla_private_array_list_items_data(list);
 
         // Assign default value trigger destructor if T is a class
         items[index] = TInit::init();
@@ -291,7 +291,7 @@ template <mla_array_list_template>
 inline void mla_array_list_clear(mla_array_list_t<T, TInit>& list) {
 
     // assign default value to trigger destructor if T is a class
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
     for (mla_size_t i = 0; i < list.size; ++i) {
         items[i] = TInit::init();
     }
@@ -307,7 +307,7 @@ inline void mla_array_list_shrink_to_fit(mla_array_list_t<T, TInit>& list) {
 template <mla_array_list_template>
 mla_bool_t mla_array_list_contains(const mla_array_list_t<T, TInit>& list, const T& item) {
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
 
     for (mla_size_t i = 0; i < list.size; ++i) {
         if (items[i] == item) {
@@ -320,7 +320,7 @@ mla_bool_t mla_array_list_contains(const mla_array_list_t<T, TInit>& list, const
 template <mla_array_list_template>
 mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, const T& item) {
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
 
     for (mla_size_t i = 0; i < list.size; ++i) {
         if (items[i] == item) {
@@ -331,7 +331,7 @@ mla_int32_t mla_array_list_index_of(const mla_array_list_t<T, TInit>& list, cons
 }
 
 template <mla_array_list_template>
-void mla_internal_array_list_quicksort_partition(T* items, mla_int32_t low, mla_int32_t high, mla_int32_t (*compare)(const T&, const T&)) {
+void mla_private_array_list_quicksort_partition(T* items, mla_int32_t low, mla_int32_t high, mla_int32_t (*compare)(const T&, const T&)) {
     if (low < high) {
         // Choose pivot (middle element for better average performance)
         mla_int32_t mid = low + ((high - low) / 2);
@@ -362,8 +362,8 @@ void mla_internal_array_list_quicksort_partition(T* items, mla_int32_t low, mla_
         mla_int32_t partitionIndex = i + 1;
 
         // Recursively sort partitions
-        mla_internal_array_list_quicksort_partition(items, low, partitionIndex - 1, compare);
-        mla_internal_array_list_quicksort_partition(items, partitionIndex + 1, high, compare);
+        mla_private_array_list_quicksort_partition(items, low, partitionIndex - 1, compare);
+        mla_private_array_list_quicksort_partition(items, partitionIndex + 1, high, compare);
     }
 }
 
@@ -373,9 +373,9 @@ void mla_array_list_sort(mla_array_list_t<T, TInit>& list, mla_int32_t (*compare
         return;
     }
 
-    T* items = mla_internal_array_list_items_data(list);
+    T* items = mla_private_array_list_items_data(list);
 
-    mla_internal_array_list_quicksort_partition<T, TInit>(items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
+    mla_private_array_list_quicksort_partition<T, TInit>(items, 0, static_cast<mla_int32_t>(list.size - 1), compare);
 }
 
 template <mla_array_list_template>

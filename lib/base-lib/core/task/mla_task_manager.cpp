@@ -11,7 +11,7 @@ mla_task_manager_t g_TaskManager = {
     mla_rw_lock_create("TaskManager")
 };
 
-mla_int32_t mla_internal_task_manager_find_task_by_name_no_lock(const mla_string_t& name) {
+mla_int32_t mla_private_task_manager_find_task_by_name_no_lock(const mla_string_t& name) {
 
 
     for (mla_size_t i = 0; i < mla_array_list_size(g_TaskManager.tasks); ++i) {
@@ -23,7 +23,7 @@ mla_int32_t mla_internal_task_manager_find_task_by_name_no_lock(const mla_string
     return -1;
 }
 
-void mla_internal_task_manager_cleanup_tasks_no_lock() {
+void mla_private_task_manager_cleanup_tasks_no_lock() {
 
     // Cleanup tasks which are completed
     for (mla_int32_t i = static_cast<mla_int32_t>(mla_array_list_size(g_TaskManager.tasks)) - 1; i >= 0; --i) {
@@ -47,7 +47,7 @@ void mla_task_manager_cleanup() {
     }
 
 
-    mla_internal_task_manager_cleanup_tasks_no_lock();
+    mla_private_task_manager_cleanup_tasks_no_lock();
 
     mla_rw_unlock_write(g_TaskManager.taskLock);
 
@@ -59,14 +59,14 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
         return false;
     }
 
-    if (mla_internal_task_manager_find_task_by_name_no_lock(task.name) >= 0) {
+    if (mla_private_task_manager_find_task_by_name_no_lock(task.name) >= 0) {
         mla_rw_unlock_write(g_TaskManager.taskLock);
         mla_error(mla_string_concat("Task with name ", task.name , " already exists."));
         return false; // Task with the same name already exists
     }
 
     // Cleanup tasks which are completed or aborted before adding a new task
-    mla_internal_task_manager_cleanup_tasks_no_lock();
+    mla_private_task_manager_cleanup_tasks_no_lock();
 
     mla_pointer_t shared_states_ptr = mla_malloc_struct(mla_task_shared_states);
 
@@ -100,7 +100,7 @@ mla_bool_t mla_task_manager_register_task(mla_task_t task) {
     }
 
     // Remove the task from the task manager if it could not be created
-    mla_int32_t taskIndex = mla_internal_task_manager_find_task_by_name_no_lock(task.name);
+    mla_int32_t taskIndex = mla_private_task_manager_find_task_by_name_no_lock(task.name);
 
     if (taskIndex < 0) {
         mla_rw_unlock_write(g_TaskManager.taskLock);

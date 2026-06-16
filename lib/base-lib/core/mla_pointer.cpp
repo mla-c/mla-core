@@ -11,13 +11,13 @@ mla_pointer_t mla_pointer_null() {
     };
 }
 
-inline mla_bool_t mla_internal_pointer_is_platform_pointer(const mla_pointer_t& ptr) {
+inline mla_bool_t mla_private_pointer_is_platform_pointer(const mla_pointer_t& ptr) {
     return ptr.memoryManager == nullptr;
 }
 
 mla_bool_t mla_pointer_is_null(const mla_pointer_t& ptr) {
 
-    if (mla_internal_pointer_is_platform_pointer(ptr)) {
+    if (mla_private_pointer_is_platform_pointer(ptr)) {
         return ptr.payload.asPointer == nullptr;
     }
 
@@ -27,7 +27,7 @@ mla_bool_t mla_pointer_is_null(const mla_pointer_t& ptr) {
 
 mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr) {
 
-    if (mla_internal_pointer_is_platform_pointer(ptr)) {
+    if (mla_private_pointer_is_platform_pointer(ptr)) {
         return -1;
     }
 
@@ -42,7 +42,7 @@ mla_int32_t mla_pointer_ref_count(const mla_pointer_t& ptr) {
 
 mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr) {
 
-    if (mla_internal_pointer_is_platform_pointer(ptr)) {
+    if (mla_private_pointer_is_platform_pointer(ptr)) {
         return ptr.payload.asPointer;
     }
 
@@ -52,7 +52,7 @@ mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr
 
 mla_pointer_t::mla_pointer_t(const mla_pointer_t& p_Other) : payload(p_Other.payload), memoryManager(p_Other.memoryManager) {
 
-    if (!mla_internal_pointer_is_platform_pointer(*this)) {
+    if (!mla_private_pointer_is_platform_pointer(*this)) {
 
         if (this->memoryManager->incReferences != nullptr) {
             this->memoryManager->incReferences(*this->memoryManager, this->payload);
@@ -63,7 +63,7 @@ mla_pointer_t::mla_pointer_t(const mla_pointer_t& p_Other) : payload(p_Other.pay
 
 mla_pointer_t::mla_pointer_t(mla_dynamic_data_t payload, mla_pointer_memory_manager_t* memoryManager) : payload(payload), memoryManager(memoryManager) {
 
-    if (!mla_internal_pointer_is_platform_pointer(*this)) {
+    if (!mla_private_pointer_is_platform_pointer(*this)) {
 
         if (this->memoryManager->incReferences != nullptr) {
             this->memoryManager->incReferences(*this->memoryManager, this->payload);
@@ -72,7 +72,7 @@ mla_pointer_t::mla_pointer_t(mla_dynamic_data_t payload, mla_pointer_memory_mana
     }
 }
 
-inline void mla_internal_pointer_destroy(mla_pointer_memory_manager_t* memoryManager, mla_dynamic_data_t payload) {
+inline void mla_private_pointer_destroy(mla_pointer_memory_manager_t* memoryManager, mla_dynamic_data_t payload) {
 
     if (memoryManager == nullptr || memoryManager->decReferences == nullptr) {
         return;
@@ -83,7 +83,7 @@ inline void mla_internal_pointer_destroy(mla_pointer_memory_manager_t* memoryMan
 
 
 mla_pointer_t::~mla_pointer_t() {
-    mla_internal_pointer_destroy(memoryManager, payload);
+    mla_private_pointer_destroy(memoryManager, payload);
     payload.asPointer = nullptr;
     memoryManager = nullptr;
 
@@ -103,7 +103,7 @@ mla_pointer_t& mla_pointer_t::operator=(const mla_pointer_t& p_Other) {
         mla_dynamic_data_t backupBuffer = p_Other.payload;
         mla_pointer_memory_manager_t* backupMemoryManager = p_Other.memoryManager;
 
-        mla_internal_pointer_destroy(memoryManager, payload); // Destroy current buffer
+        mla_private_pointer_destroy(memoryManager, payload); // Destroy current buffer
 
         // Assign new buffer
         memoryManager = backupMemoryManager;

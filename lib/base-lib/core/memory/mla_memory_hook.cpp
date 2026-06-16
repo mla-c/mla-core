@@ -12,7 +12,7 @@ mla_global_memory_hook_list_t g_memory_hook = {
     {}
 };
 
-static mla_platform_pointer_t mla_internal_memory_malloc_hook(mla_size_t size) {
+static mla_platform_pointer_t mla_private_memory_malloc_hook(mla_size_t size) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {
         if (g_memory_hook.hooks[i].malloc_hook != nullptr) {
@@ -28,7 +28,7 @@ static mla_platform_pointer_t mla_internal_memory_malloc_hook(mla_size_t size) {
     return g_memory_hook.original_malloc(size);
 }
 
-static void mla_internal_memory_free_hook(mla_platform_pointer_t ptr) {
+static void mla_private_memory_free_hook(mla_platform_pointer_t ptr) {
 
     for (mla_int8_t i = 0; i < g_memory_hook.hook_count; ++i) {
         if (g_memory_hook.hooks[i].malloc_hook != nullptr) {
@@ -69,8 +69,8 @@ mla_memory_hook_t mla_memory_hook_install(mla_memory_malloc_hook_t malloc_hook, 
 
 
         // If this is the first hook, we need to initialize the global memory hook manager
-        g_low_level_access.malloc = mla_internal_memory_malloc_hook; // Override the malloc function
-        g_low_level_access.free = mla_internal_memory_free_hook; // Override the free function
+        g_low_level_access.malloc = mla_private_memory_malloc_hook; // Override the malloc function
+        g_low_level_access.free = mla_private_memory_free_hook; // Override the free function
     }
 
     return hook;

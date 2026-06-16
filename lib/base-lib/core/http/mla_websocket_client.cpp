@@ -35,7 +35,7 @@ mla_websocket_text_message_t mla_websocket_text_message_empty() {
     };
 }
 
-mla_string_t mla_internal_websocket_client_websocket_key() {
+mla_string_t mla_private_websocket_client_websocket_key() {
 
     // Generate random 16-byte WebSocket key
     mla_bytes_t random_bytes = mla_bytes(16);
@@ -80,7 +80,7 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
     mla_stream_input_t &input = connection.inputStream;
 
     // Generate random WebSocket key (16 bytes, base64 encoded)
-    mla_string_t ws_key = mla_internal_websocket_client_websocket_key();
+    mla_string_t ws_key = mla_private_websocket_client_websocket_key();
 
     // Build HTTP upgrade request
     if (!mla_stream_output_write_string(output, mla_string_const("GET "))) {

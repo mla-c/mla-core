@@ -22,21 +22,21 @@
 
 #else
 
-#define mla_platform_strtod mla_internal_generic_strtod
-#define mla_platform_strtoll mla_internal_generic_strtoll
-#define mla_platform_strtoull mla_internal_generic_strtoull
+#define mla_platform_strtod mla_private_generic_strtod
+#define mla_platform_strtoll mla_private_generic_strtoll
+#define mla_platform_strtoull mla_private_generic_strtoull
 
 #endif
 
 
 
-void mla_internal_windows_sleep(mla_uint32_t milliseconds) {
+void mla_private_windows_sleep(mla_uint32_t milliseconds) {
 
     Sleep(milliseconds);
 
 }
 
-mla_uint64_t mla_internal_windows_system_time_ms() {
+mla_uint64_t mla_private_windows_system_time_ms() {
 
     return GetTickCount64();
 
@@ -44,22 +44,22 @@ mla_uint64_t mla_internal_windows_system_time_ms() {
 
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
-    mla_internal_generic_memcpy,
-        mla_internal_generic_memset,
-        mla_internal_generic_memcmp,
-        mla_internal_generic_memmove,
-        mla_internal_generic_strlen,
-        mla_internal_generic_strstr,
-        mla_internal_generic_malloc,
-        mla_internal_generic_free,
-        mla_internal_generic_on_malloc_failure,
-        mla_internal_generic_print,
-        mla_internal_generic_std_read,
+    mla_private_generic_memcpy,
+        mla_private_generic_memset,
+        mla_private_generic_memcmp,
+        mla_private_generic_memmove,
+        mla_private_generic_strlen,
+        mla_private_generic_strstr,
+        mla_private_generic_malloc,
+        mla_private_generic_free,
+        mla_private_generic_on_malloc_failure,
+        mla_private_generic_print,
+        mla_private_generic_std_read,
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,
-        mla_internal_windows_sleep,
-        mla_internal_windows_system_time_ms
+        mla_private_windows_sleep,
+        mla_private_windows_system_time_ms
     };
 
 void mla_boot_os_application() {

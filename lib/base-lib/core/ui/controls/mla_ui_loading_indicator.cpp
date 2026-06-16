@@ -6,7 +6,7 @@
 #include "mla_ui_style.h"
 #include "../../utils/mla_math_utils.h"
 
-mla_bool_t mla_internal_ui_indicator_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
+mla_bool_t mla_private_ui_indicator_render_to_drawCommands(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas) {
     (void)inputAreas;
 
     // Calculate absolute position based on parent context offset and local element layout
@@ -100,6 +100,6 @@ mla_bool_t mla_internal_ui_indicator_render_to_drawCommands(const mla_ui_control
 
 mla_ui_control_t mla_ui_loading_indicator() {
     mla_ui_control_t indicator = mla_ui_control();
-    indicator.renderToDrawCommands = mla_internal_ui_indicator_render_to_drawCommands;
+    indicator.renderToDrawCommands = mla_private_ui_indicator_render_to_drawCommands;
     return indicator;
 }

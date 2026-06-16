@@ -5,7 +5,7 @@
 #include "mla_ui_text_edit.h"
 #include "../../system/mla_string_concat.h"
 
-mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
+mla_bool_t mla_private_ui_text_edit_process_char_input_event(mla_ui_control_t &control,
                                                        const mla_ui_surface_input_event_char_input_t &charInputEvent,
                                                        mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t>
                                                        &uiControls, mla_user_data_t& userData) {
@@ -163,7 +163,7 @@ mla_bool_t mla_internal_ui_text_edit_process_char_input_event(mla_ui_control_t &
 }
 
 
-mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context,
+mla_bool_t mla_private_ui_text_edit_render_to_drawCommands(const mla_ui_control_context_t &context,
                                                      const mla_ui_control_t &element,
                                                      mla_array_list_t<mla_ui_surface_draw_command_t,
                                                          mla_ui_surface_draw_command_initializer_t> &drawCommands,
@@ -417,8 +417,8 @@ mla_bool_t mla_internal_ui_text_edit_render_to_drawCommands(const mla_ui_control
 
 mla_ui_control_t mla_ui_text_edit() {
     mla_ui_control_t button = mla_ui_control();
-    button.renderToDrawCommands = mla_internal_ui_text_edit_render_to_drawCommands;
-    button.processCharInputEvent = mla_internal_ui_text_edit_process_char_input_event;
+    button.renderToDrawCommands = mla_private_ui_text_edit_render_to_drawCommands;
+    button.processCharInputEvent = mla_private_ui_text_edit_process_char_input_event;
     return button;
 }
 

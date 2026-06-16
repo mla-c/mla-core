@@ -85,33 +85,33 @@
 
 
 // Code length alphabet order (RFC 1951 section 3.2.7)
-static const mla_uint8_t mla_internal_deflate_cl_order[mla_deflate_max_cl_codes] = {
+static const mla_uint8_t mla_private_deflate_cl_order[mla_deflate_max_cl_codes] = {
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
 };
 
 // Length code base values (codes 257..285)
-static const mla_uint16_t mla_internal_deflate_length_base[29] = {
+static const mla_uint16_t mla_private_deflate_length_base[29] = {
     3, 4, 5, 6, 7, 8, 9, 10, 11, 13,
     15, 17, 19, 23, 27, 31, 35, 43, 51, 59,
     67, 83, 99, 115, 131, 163, 195, 227, 258
 };
 
 // Length code extra bits (codes 257..285)
-static const mla_uint8_t mla_internal_deflate_length_extra[29] = {
+static const mla_uint8_t mla_private_deflate_length_extra[29] = {
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
     1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
     4, 4, 4, 4, 5, 5, 5, 5, 0
 };
 
 // Distance code base values (codes 0..29)
-static const mla_uint16_t mla_internal_deflate_dist_base[30] = {
+static const mla_uint16_t mla_private_deflate_dist_base[30] = {
     1, 2, 3, 4, 5, 7, 9, 13, 17, 25,
     33, 49, 65, 97, 129, 193, 257, 385, 513, 769,
     1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577
 };
 
 // Distance code extra bits (codes 0..29)
-static const mla_uint8_t mla_internal_deflate_dist_extra[30] = {
+static const mla_uint8_t mla_private_deflate_dist_extra[30] = {
     0, 0, 0, 0, 1, 1, 2, 2, 3, 3,
     4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
     9, 9, 10, 10, 11, 11, 12, 12, 13, 13
@@ -122,7 +122,7 @@ static const mla_uint8_t mla_internal_deflate_dist_extra[30] = {
 ///////////////////////////////////////////////////////////////////
 
 template<mla_uint16_t TSymbolCapacity>
-struct mla_internal_deflate_huffman_t {
+struct mla_private_deflate_huffman_t {
     mla_uint16_t counts[mla_deflate_max_bits + 1]; // Number of symbols per bit length
     mla_uint16_t symbols[TSymbolCapacity];   // Sorted symbols
     mla_uint32_t first_code[mla_deflate_max_bits + 1];  // Pre-computed first canonical code per bit length
@@ -131,19 +131,19 @@ struct mla_internal_deflate_huffman_t {
 };
 
 template<mla_uint16_t TSymbolCapacity>
-mla_internal_deflate_huffman_t<TSymbolCapacity> mla_internal_deflate_huffman_empty() {
+mla_private_deflate_huffman_t<TSymbolCapacity> mla_private_deflate_huffman_empty() {
     return { {}, {}, {}, {}, 0 };
 }
 
 template<mla_uint16_t TSymbolCapacity>
-static void mla_internal_deflate_huffman_init(mla_internal_deflate_huffman_t<TSymbolCapacity> &table) {
-    mla_memset(&table, 0, sizeof(mla_internal_deflate_huffman_t<TSymbolCapacity>));
+static void mla_private_deflate_huffman_init(mla_private_deflate_huffman_t<TSymbolCapacity> &table) {
+    mla_memset(&table, 0, sizeof(mla_private_deflate_huffman_t<TSymbolCapacity>));
 }
 
 // Build a Huffman decode table from code lengths
 template<mla_uint16_t TSymbolCapacity>
-static mla_bool_t mla_internal_deflate_huffman_build(
-    mla_internal_deflate_huffman_t<TSymbolCapacity> &table,
+static mla_bool_t mla_private_deflate_huffman_build(
+    mla_private_deflate_huffman_t<TSymbolCapacity> &table,
     const mla_uint8_t *lengths,
     mla_uint16_t num_symbols)
 {
@@ -200,7 +200,7 @@ static mla_bool_t mla_internal_deflate_huffman_build(
 /// Bit Reader (for decompression)
 ///////////////////////////////////////////////////////////////////
 
-struct mla_internal_deflate_bit_reader_t {
+struct mla_private_deflate_bit_reader_t {
     mla_uint32_t bit_buffer;
     mla_uint8_t bit_count;
     mla_byte_t prefetched_bytes[2];
@@ -209,7 +209,7 @@ struct mla_internal_deflate_bit_reader_t {
     mla_bool_t error;
 };
 
-static void mla_internal_deflate_bit_reader_init(mla_internal_deflate_bit_reader_t &reader) {
+static void mla_private_deflate_bit_reader_init(mla_private_deflate_bit_reader_t &reader) {
     reader.bit_buffer = 0;
     reader.bit_count = 0;
     reader.prefetched_length = 0;
@@ -217,7 +217,7 @@ static void mla_internal_deflate_bit_reader_init(mla_internal_deflate_bit_reader
     reader.error = false;
 }
 
-static mla_bool_t mla_internal_deflate_bit_reader_read_byte(mla_internal_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_byte_t &byte_val) {
+static mla_bool_t mla_private_deflate_bit_reader_read_byte(mla_private_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_byte_t &byte_val) {
 
     const mla_uint8_t prefetched_capacity =
         (sizeof(reader.prefetched_bytes) / sizeof(reader.prefetched_bytes[0]));
@@ -240,10 +240,10 @@ static mla_bool_t mla_internal_deflate_bit_reader_read_byte(mla_internal_deflate
     return true;
 }
 
-static mla_bool_t mla_internal_deflate_bit_reader_ensure(mla_internal_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_uint8_t bits_needed) {
+static mla_bool_t mla_private_deflate_bit_reader_ensure(mla_private_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_uint8_t bits_needed) {
     while (reader.bit_count < bits_needed) {
         mla_byte_t byte_val = 0;
-        if (!mla_internal_deflate_bit_reader_read_byte(reader, input, byte_val)) {
+        if (!mla_private_deflate_bit_reader_read_byte(reader, input, byte_val)) {
             return false;
         }
         reader.bit_buffer |= static_cast<mla_uint32_t>(byte_val) << reader.bit_count;
@@ -252,12 +252,12 @@ static mla_bool_t mla_internal_deflate_bit_reader_ensure(mla_internal_deflate_bi
     return true;
 }
 
-static mla_uint32_t mla_internal_deflate_bit_reader_read(mla_internal_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_uint8_t num_bits) {
+static mla_uint32_t mla_private_deflate_bit_reader_read(mla_private_deflate_bit_reader_t &reader, mla_stream_input_t &input, mla_uint8_t num_bits) {
     if (num_bits == 0) {
         return 0;
     }
 
-    if (!mla_internal_deflate_bit_reader_ensure(reader, input, num_bits)) {
+    if (!mla_private_deflate_bit_reader_ensure(reader, input, num_bits)) {
         return 0;
     }
 
@@ -270,12 +270,12 @@ static mla_uint32_t mla_internal_deflate_bit_reader_read(mla_internal_deflate_bi
 // Decode a Huffman code from the bit stream using pre-computed first codes
 // Reads bits one at a time and builds the canonical code directly without bit reversal
 template<mla_uint16_t TSymbolCapacity>
-static mla_int32_t mla_internal_deflate_huffman_decode(mla_internal_deflate_bit_reader_t &reader, mla_stream_input_t &input, const mla_internal_deflate_huffman_t<TSymbolCapacity> &table)
+static mla_int32_t mla_private_deflate_huffman_decode(mla_private_deflate_bit_reader_t &reader, mla_stream_input_t &input, const mla_private_deflate_huffman_t<TSymbolCapacity> &table)
 {
     mla_uint32_t code = 0;
 
     for (mla_uint8_t len = 1; len <= mla_deflate_max_bits; len++) {
-        if (!mla_internal_deflate_bit_reader_ensure(reader, input, len)) {
+        if (!mla_private_deflate_bit_reader_ensure(reader, input, len)) {
             return -1;
         }
 
@@ -303,13 +303,13 @@ static mla_int32_t mla_internal_deflate_huffman_decode(mla_internal_deflate_bit_
 }
 
 // Discard bits to align to a byte boundary
-static void mla_internal_deflate_bit_reader_align(mla_internal_deflate_bit_reader_t &reader) {
+static void mla_private_deflate_bit_reader_align(mla_private_deflate_bit_reader_t &reader) {
     mla_uint8_t discard = reader.bit_count & 7;
     reader.bit_buffer >>= discard;
     reader.bit_count -= discard;
 }
 
-static mla_size_t mla_internal_deflate_window_bits_value() {
+static mla_size_t mla_private_deflate_window_bits_value() {
     mla_size_t windowSize = mla_deflate_window_size;
     mla_size_t bits = 0;
     while (windowSize > 1) {
@@ -319,7 +319,7 @@ static mla_size_t mla_internal_deflate_window_bits_value() {
     return bits;
 }
 
-static mla_uint32_t mla_internal_deflate_adler32_update(mla_uint32_t current, const mla_byte_t *data, mla_size_t length) {
+static mla_uint32_t mla_private_deflate_adler32_update(mla_uint32_t current, const mla_byte_t *data, mla_size_t length) {
     const mla_uint32_t mod_adler = 65521U;
     mla_uint32_t sum1 = current & 0xFFFFU;
     mla_uint32_t sum2 = (current >> 16) & 0xFFFFU;
@@ -337,17 +337,17 @@ static mla_uint32_t mla_internal_deflate_adler32_update(mla_uint32_t current, co
     return (sum2 << 16) | sum1;
 }
 
-static mla_uint32_t mla_internal_deflate_adler32_update_byte(mla_uint32_t current, mla_byte_t value) {
-    return mla_internal_deflate_adler32_update(current, &value, 1);
+static mla_uint32_t mla_private_deflate_adler32_update_byte(mla_uint32_t current, mla_byte_t value) {
+    return mla_private_deflate_adler32_update(current, &value, 1);
 }
 
 ///////////////////////////////////////////////////////////////////
 /// CRC-32 (ISO 3309 / ITU-T V.42) – required for gzip (RFC 1952)
 ///////////////////////////////////////////////////////////////////
 
-static mla_uint32_t mla_internal_deflate_crc32_table[256];
+static mla_uint32_t mla_private_deflate_crc32_table[256];
 
-static void mla_internal_deflate_crc32_build_table() {
+static void mla_private_deflate_crc32_build_table() {
     for (mla_uint32_t i = 0; i < 256; i++) {
         mla_uint32_t c = i;
         for (mla_uint8_t k = 0; k < 8; k++) {
@@ -357,23 +357,23 @@ static void mla_internal_deflate_crc32_build_table() {
                 c >>= 1;
             }
         }
-        mla_internal_deflate_crc32_table[i] = c;
+        mla_private_deflate_crc32_table[i] = c;
     }
 }
 
-static mla_uint32_t mla_internal_deflate_crc32_update(mla_uint32_t crc, const mla_byte_t *data, mla_size_t length) {
+static mla_uint32_t mla_private_deflate_crc32_update(mla_uint32_t crc, const mla_byte_t *data, mla_size_t length) {
     crc = ~crc;
     for (mla_size_t i = 0; i < length; i++) {
-        crc = mla_internal_deflate_crc32_table[(crc ^ data[i]) & 0xFFU] ^ (crc >> 8);
+        crc = mla_private_deflate_crc32_table[(crc ^ data[i]) & 0xFFU] ^ (crc >> 8);
     }
     return ~crc;
 }
 
-static mla_uint32_t mla_internal_deflate_crc32_update_byte(mla_uint32_t crc, mla_byte_t value) {
-    return mla_internal_deflate_crc32_update(crc, &value, 1);
+static mla_uint32_t mla_private_deflate_crc32_update_byte(mla_uint32_t crc, mla_byte_t value) {
+    return mla_private_deflate_crc32_update(crc, &value, 1);
 }
 
-static mla_bool_t mla_internal_deflate_is_zlib_header(mla_byte_t cmf, mla_byte_t flg) {
+static mla_bool_t mla_private_deflate_is_zlib_header(mla_byte_t cmf, mla_byte_t flg) {
     if ((cmf & 0x0F) != 8) {
         return false;
     }
@@ -390,7 +390,7 @@ static mla_bool_t mla_internal_deflate_is_zlib_header(mla_byte_t cmf, mla_byte_t
 /// Bit Writer (for compression)
 ///////////////////////////////////////////////////////////////////
 
-struct mla_internal_deflate_bit_writer_t {
+struct mla_private_deflate_bit_writer_t {
     mla_byte_t buffer[mla_deflate_compress_buf_size];
     mla_size_t buffer_pos;
     mla_uint32_t bit_buffer;
@@ -398,14 +398,14 @@ struct mla_internal_deflate_bit_writer_t {
     mla_bool_t error;
 };
 
-static void mla_internal_deflate_bit_writer_init(mla_internal_deflate_bit_writer_t &writer) {
+static void mla_private_deflate_bit_writer_init(mla_private_deflate_bit_writer_t &writer) {
     writer.buffer_pos = 0;
     writer.bit_buffer = 0;
     writer.bit_count = 0;
     writer.error = false;
 }
 
-static void mla_internal_deflate_bit_writer_flush_buffer(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
+static void mla_private_deflate_bit_writer_flush_buffer(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
     if (writer.buffer_pos > 0) {
         mla_size_t written = output.write(output, 0, writer.buffer_pos, writer.buffer);
         if (written != writer.buffer_pos) {
@@ -415,37 +415,37 @@ static void mla_internal_deflate_bit_writer_flush_buffer(mla_internal_deflate_bi
     }
 }
 
-static void mla_internal_deflate_bit_writer_put_byte(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_byte_t byte_val) {
+static void mla_private_deflate_bit_writer_put_byte(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_byte_t byte_val) {
     writer.buffer[writer.buffer_pos++] = byte_val;
     if (writer.buffer_pos >= mla_deflate_compress_buf_size) {
-        mla_internal_deflate_bit_writer_flush_buffer(writer, output);
+        mla_private_deflate_bit_writer_flush_buffer(writer, output);
     }
 }
 
-static void mla_internal_deflate_bit_writer_write(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint32_t value, mla_uint8_t num_bits) {
+static void mla_private_deflate_bit_writer_write(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint32_t value, mla_uint8_t num_bits) {
     writer.bit_buffer |= value << writer.bit_count;
     writer.bit_count += num_bits;
 
     while (writer.bit_count >= 8) {
-        mla_internal_deflate_bit_writer_put_byte(writer, output, static_cast<mla_byte_t>(writer.bit_buffer & 0xFF));
+        mla_private_deflate_bit_writer_put_byte(writer, output, static_cast<mla_byte_t>(writer.bit_buffer & 0xFF));
         writer.bit_buffer >>= 8;
         writer.bit_count -= 8;
     }
 }
 
 // Write bits in reversed order (MSB first, for Huffman codes)
-static void mla_internal_deflate_bit_writer_write_reversed(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint32_t code, mla_uint8_t length) {
+static void mla_private_deflate_bit_writer_write_reversed(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint32_t code, mla_uint8_t length) {
     mla_uint32_t reversed = 0;
     for (mla_uint8_t i = 0; i < length; i++) {
         reversed = (reversed << 1) | (code & 1);
         code >>= 1;
     }
-    mla_internal_deflate_bit_writer_write(writer, output, reversed, length);
+    mla_private_deflate_bit_writer_write(writer, output, reversed, length);
 }
 
-static void mla_internal_deflate_bit_writer_align(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
+static void mla_private_deflate_bit_writer_align(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
     if (writer.bit_count > 0) {
-        mla_internal_deflate_bit_writer_put_byte(writer, output, static_cast<mla_byte_t>(writer.bit_buffer & 0xFF));
+        mla_private_deflate_bit_writer_put_byte(writer, output, static_cast<mla_byte_t>(writer.bit_buffer & 0xFF));
         writer.bit_buffer = 0;
         writer.bit_count = 0;
     }
@@ -455,14 +455,14 @@ static void mla_internal_deflate_bit_writer_align(mla_internal_deflate_bit_write
 /// Fixed Huffman Tables (RFC 1951 section 3.2.6)
 ///////////////////////////////////////////////////////////////////
 
-struct mla_internal_deflate_fixed_tables_t {
+struct mla_private_deflate_fixed_tables_t {
     mla_uint16_t lit_code[mla_deflate_fixed_lit_codes];
     mla_uint8_t lit_length[mla_deflate_fixed_lit_codes];
 };
 
-static mla_internal_deflate_fixed_tables_t mla_internal_deflate_fixed_tables = { {}, {} };
+static mla_private_deflate_fixed_tables_t mla_private_deflate_fixed_tables = { {}, {} };
 
-static void mla_internal_deflate_build_fixed_tables() {
+static void mla_private_deflate_build_fixed_tables() {
 
     // Build literal/length code lengths per RFC 1951 3.2.6:
     //   0..143   -> 8 bits
@@ -474,16 +474,16 @@ static void mla_internal_deflate_build_fixed_tables() {
     // included so that the canonical code assignment is correct.
     mla_uint16_t i;
     for (i = 0; i <= 143; i++) {
-        mla_internal_deflate_fixed_tables.lit_length[i] = 8;
+        mla_private_deflate_fixed_tables.lit_length[i] = 8;
     }
     for (i = 144; i <= 255; i++) {
-        mla_internal_deflate_fixed_tables.lit_length[i] = 9;
+        mla_private_deflate_fixed_tables.lit_length[i] = 9;
     }
     for (i = 256; i <= 279; i++) {
-        mla_internal_deflate_fixed_tables.lit_length[i] = 7;
+        mla_private_deflate_fixed_tables.lit_length[i] = 7;
     }
     for (i = 280; i <= 287; i++) {
-        mla_internal_deflate_fixed_tables.lit_length[i] = 8;
+        mla_private_deflate_fixed_tables.lit_length[i] = 8;
     }
 
     // Build the actual Huffman codes from the lengths
@@ -491,7 +491,7 @@ static void mla_internal_deflate_build_fixed_tables() {
     mla_uint16_t bl_count[mla_deflate_max_bits + 1];
     mla_memset(bl_count, 0, sizeof(bl_count));
     for (i = 0; i < mla_deflate_fixed_lit_codes; i++) {
-        bl_count[mla_internal_deflate_fixed_tables.lit_length[i]]++;
+        bl_count[mla_private_deflate_fixed_tables.lit_length[i]]++;
     }
 
     // Step 2: Find the numerical value of the smallest code for each code length
@@ -505,9 +505,9 @@ static void mla_internal_deflate_build_fixed_tables() {
 
     // Step 3: Assign codes to symbols
     for (i = 0; i < mla_deflate_fixed_lit_codes; i++) {
-        mla_uint8_t len = mla_internal_deflate_fixed_tables.lit_length[i];
+        mla_uint8_t len = mla_private_deflate_fixed_tables.lit_length[i];
         if (len != 0) {
-            mla_internal_deflate_fixed_tables.lit_code[i] = next_code[len]++;
+            mla_private_deflate_fixed_tables.lit_code[i] = next_code[len]++;
         }
     }
 }
@@ -516,9 +516,9 @@ static void mla_internal_deflate_build_fixed_tables() {
 /// Compression: LZ77 + Fixed Huffman Encoding
 ///////////////////////////////////////////////////////////////////
 
-struct mla_internal_deflate_compress_state_t {
+struct mla_private_deflate_compress_state_t {
     mla_stream_output_t base_output;
-    mla_internal_deflate_bit_writer_t writer;
+    mla_private_deflate_bit_writer_t writer;
 
     // Sliding window
     mla_byte_t window[mla_deflate_window_size];
@@ -537,8 +537,8 @@ struct mla_internal_deflate_compress_state_t {
     mla_bool_t finished;
     mla_deflate_mode_t mode;
 
-    static mla_internal_deflate_compress_state_t init() {
-        mla_internal_deflate_compress_state_t result = {
+    static mla_private_deflate_compress_state_t init() {
+        mla_private_deflate_compress_state_t result = {
             mla_stream_noop_output(),      // base_output
             { {}, 0, 0, 0, false}, // writer
             {}, 0, 0,                      // window, window_pos, window_filled
@@ -552,54 +552,54 @@ struct mla_internal_deflate_compress_state_t {
     }
 };
 
-static void mla_internal_deflate_write_zlib_header(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
-    mla_uint8_t cinfo = static_cast<mla_uint8_t>(mla_internal_deflate_window_bits_value() - 8);
+static void mla_private_deflate_write_zlib_header(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
+    mla_uint8_t cinfo = static_cast<mla_uint8_t>(mla_private_deflate_window_bits_value() - 8);
     mla_uint8_t cmf = static_cast<mla_uint8_t>((cinfo << 4) | 8U);
     mla_uint8_t flg = 0;
     mla_uint16_t header = static_cast<mla_uint16_t>((static_cast<mla_uint16_t>(cmf) << 8) | flg);
     flg = static_cast<mla_uint8_t>((31U - (header % 31U)) % 31U);
 
-    mla_internal_deflate_bit_writer_put_byte(writer, output, cmf);
-    mla_internal_deflate_bit_writer_put_byte(writer, output, flg);
+    mla_private_deflate_bit_writer_put_byte(writer, output, cmf);
+    mla_private_deflate_bit_writer_put_byte(writer, output, flg);
 }
 
-static void mla_internal_deflate_write_gzip_header(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x1F); // ID1
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x8B); // ID2
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x08); // CM = deflate
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // FLG = no extras
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 0
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 1
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 2
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 3
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0x00); // XFL
-    mla_internal_deflate_bit_writer_put_byte(writer, output, 0xFF); // OS = unknown
+static void mla_private_deflate_write_gzip_header(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x1F); // ID1
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x8B); // ID2
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x08); // CM = deflate
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // FLG = no extras
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 0
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 1
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 2
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // MTIME byte 3
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0x00); // XFL
+    mla_private_deflate_bit_writer_put_byte(writer, output, 0xFF); // OS = unknown
 }
 
-static mla_bool_t mla_internal_deflate_compress_ensure_container_header(mla_internal_deflate_compress_state_t &state) {
+static mla_bool_t mla_private_deflate_compress_ensure_container_header(mla_private_deflate_compress_state_t &state) {
     if (state.container_header_written) {
         return true;
     }
 
     if (state.mode == mla_deflate_mode_zlib) {
-        mla_internal_deflate_write_zlib_header(state.writer, state.base_output);
+        mla_private_deflate_write_zlib_header(state.writer, state.base_output);
     } else if (state.mode == mla_deflate_mode_gzip) {
-        mla_internal_deflate_write_gzip_header(state.writer, state.base_output);
+        mla_private_deflate_write_gzip_header(state.writer, state.base_output);
     }
 
     state.container_header_written = true;
     return !state.writer.error;
 }
 
-static mla_uint16_t mla_internal_deflate_hash3(const mla_byte_t *data) {
+static mla_uint16_t mla_private_deflate_hash3(const mla_byte_t *data) {
     mla_uint32_t h = (static_cast<mla_uint32_t>(data[0]) * 257) ^ (static_cast<mla_uint32_t>(data[1]) * 13) ^ static_cast<mla_uint32_t>(data[2]);
     return static_cast<mla_uint16_t>(h & mla_deflate_hash_mask);
 }
 
 // Find the length code index for a given length value
-static mla_uint16_t mla_internal_deflate_length_code(mla_uint16_t length) {
+static mla_uint16_t mla_private_deflate_length_code(mla_uint16_t length) {
     for (mla_uint16_t i = 0; i < 29; i++) {
-        mla_uint16_t next_base = (i < 28) ? mla_internal_deflate_length_base[i + 1] : 259;
+        mla_uint16_t next_base = (i < 28) ? mla_private_deflate_length_base[i + 1] : 259;
         if (length < next_base) {
             return i;
         }
@@ -608,9 +608,9 @@ static mla_uint16_t mla_internal_deflate_length_code(mla_uint16_t length) {
 }
 
 // Find the distance code index for a given distance value
-static mla_uint16_t mla_internal_deflate_dist_code(mla_uint16_t distance) {
+static mla_uint16_t mla_private_deflate_dist_code(mla_uint16_t distance) {
     for (mla_uint16_t i = 0; i < 30; i++) {
-        mla_uint16_t next_base = (i < 29) ? mla_internal_deflate_dist_base[i + 1] : 32769;
+        mla_uint16_t next_base = (i < 29) ? mla_private_deflate_dist_base[i + 1] : 32769;
         if (distance < next_base) {
             return i;
         }
@@ -619,49 +619,49 @@ static mla_uint16_t mla_internal_deflate_dist_code(mla_uint16_t distance) {
 }
 
 // Emit a literal byte using fixed Huffman coding
-static void mla_internal_deflate_emit_literal(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_byte_t literal) {
-    mla_uint16_t code = mla_internal_deflate_fixed_tables.lit_code[literal];
-    mla_uint8_t length = mla_internal_deflate_fixed_tables.lit_length[literal];
-    mla_internal_deflate_bit_writer_write_reversed(writer, output, code, length);
+static void mla_private_deflate_emit_literal(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_byte_t literal) {
+    mla_uint16_t code = mla_private_deflate_fixed_tables.lit_code[literal];
+    mla_uint8_t length = mla_private_deflate_fixed_tables.lit_length[literal];
+    mla_private_deflate_bit_writer_write_reversed(writer, output, code, length);
 }
 
 // Emit a length/distance pair using fixed Huffman coding
-static void mla_internal_deflate_emit_match(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint16_t match_len, mla_uint16_t match_dist) {
+static void mla_private_deflate_emit_match(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output, mla_uint16_t match_len, mla_uint16_t match_dist) {
     // Emit length code
-    mla_uint16_t len_idx = mla_internal_deflate_length_code(match_len);
+    mla_uint16_t len_idx = mla_private_deflate_length_code(match_len);
     mla_uint16_t len_symbol = 257 + len_idx;
-    mla_uint16_t code = mla_internal_deflate_fixed_tables.lit_code[len_symbol];
-    mla_uint8_t code_len = mla_internal_deflate_fixed_tables.lit_length[len_symbol];
-    mla_internal_deflate_bit_writer_write_reversed(writer, output, code, code_len);
+    mla_uint16_t code = mla_private_deflate_fixed_tables.lit_code[len_symbol];
+    mla_uint8_t code_len = mla_private_deflate_fixed_tables.lit_length[len_symbol];
+    mla_private_deflate_bit_writer_write_reversed(writer, output, code, code_len);
 
     // Emit length extra bits (LSB first, no reversal)
-    mla_uint8_t extra = mla_internal_deflate_length_extra[len_idx];
+    mla_uint8_t extra = mla_private_deflate_length_extra[len_idx];
     if (extra > 0) {
-        mla_uint16_t extra_val = match_len - mla_internal_deflate_length_base[len_idx];
-        mla_internal_deflate_bit_writer_write(writer, output, extra_val, extra);
+        mla_uint16_t extra_val = match_len - mla_private_deflate_length_base[len_idx];
+        mla_private_deflate_bit_writer_write(writer, output, extra_val, extra);
     }
 
     // Emit distance code (fixed: 5 bits, reversed)
-    mla_uint16_t dist_idx = mla_internal_deflate_dist_code(match_dist);
-    mla_internal_deflate_bit_writer_write_reversed(writer, output, dist_idx, 5);
+    mla_uint16_t dist_idx = mla_private_deflate_dist_code(match_dist);
+    mla_private_deflate_bit_writer_write_reversed(writer, output, dist_idx, 5);
 
     // Emit distance extra bits
-    mla_uint8_t dist_extra = mla_internal_deflate_dist_extra[dist_idx];
+    mla_uint8_t dist_extra = mla_private_deflate_dist_extra[dist_idx];
     if (dist_extra > 0) {
-        mla_uint16_t dist_extra_val = match_dist - mla_internal_deflate_dist_base[dist_idx];
-        mla_internal_deflate_bit_writer_write(writer, output, dist_extra_val, dist_extra);
+        mla_uint16_t dist_extra_val = match_dist - mla_private_deflate_dist_base[dist_idx];
+        mla_private_deflate_bit_writer_write(writer, output, dist_extra_val, dist_extra);
     }
 }
 
 // Emit end-of-block marker
-static void mla_internal_deflate_emit_end_of_block(mla_internal_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
-    mla_uint16_t code = mla_internal_deflate_fixed_tables.lit_code[mla_deflate_end_of_block];
-    mla_uint8_t length = mla_internal_deflate_fixed_tables.lit_length[mla_deflate_end_of_block];
-    mla_internal_deflate_bit_writer_write_reversed(writer, output, code, length);
+static void mla_private_deflate_emit_end_of_block(mla_private_deflate_bit_writer_t &writer, mla_stream_output_t &output) {
+    mla_uint16_t code = mla_private_deflate_fixed_tables.lit_code[mla_deflate_end_of_block];
+    mla_uint8_t length = mla_private_deflate_fixed_tables.lit_length[mla_deflate_end_of_block];
+    mla_private_deflate_bit_writer_write_reversed(writer, output, code, length);
 }
 
 // Find the best match in the window using hash chains
-static mla_bool_t mla_internal_deflate_find_match(mla_internal_deflate_compress_state_t &state,
+static mla_bool_t mla_private_deflate_find_match(mla_private_deflate_compress_state_t &state,
                                            const mla_byte_t *data, mla_size_t data_len, mla_size_t pos,
                                            mla_uint16_t &best_len, mla_uint16_t &best_dist) {
     best_len = 0;
@@ -674,7 +674,7 @@ static mla_bool_t mla_internal_deflate_find_match(mla_internal_deflate_compress_
         return false;
     }
 
-    mla_uint16_t hash = mla_internal_deflate_hash3(data + pos);
+    mla_uint16_t hash = mla_private_deflate_hash3(data + pos);
     mla_uint16_t chain = state.hash_head[hash];
     mla_uint16_t chain_limit = mla_deflate_chain_limit;
 
@@ -727,13 +727,13 @@ static mla_bool_t mla_internal_deflate_find_match(mla_internal_deflate_compress_
 }
 
 // Add bytes to the sliding window and update hash chains
-static void mla_internal_deflate_window_add(mla_internal_deflate_compress_state_t &state, const mla_byte_t *data, mla_size_t length) {
+static void mla_private_deflate_window_add(mla_private_deflate_compress_state_t &state, const mla_byte_t *data, mla_size_t length) {
     for (mla_size_t i = 0; i < length; i++) {
         state.window[state.window_pos] = data[i];
 
         // Update hash chains if we have at least 3 bytes in the window to hash
         if (state.window_filled >= 2 && i >= 2) {
-            mla_uint16_t hash = mla_internal_deflate_hash3(data + i - 2);
+            mla_uint16_t hash = mla_private_deflate_hash3(data + i - 2);
             mla_size_t pos = (state.window_pos - 2) & mla_deflate_window_mask;
             state.hash_prev[pos] = state.hash_head[hash];
             state.hash_head[hash] = static_cast<mla_uint16_t>(pos);
@@ -743,7 +743,7 @@ static void mla_internal_deflate_window_add(mla_internal_deflate_compress_state_
             hash_bytes[0] = state.window[(mla_deflate_window_size + state.window_pos - 2) & mla_deflate_window_mask];
             hash_bytes[1] = state.window[(mla_deflate_window_size + state.window_pos - 1) & mla_deflate_window_mask];
             hash_bytes[2] = data[i];
-            mla_uint16_t hash = mla_internal_deflate_hash3(hash_bytes);
+            mla_uint16_t hash = mla_private_deflate_hash3(hash_bytes);
             mla_size_t pos = (mla_deflate_window_size + state.window_pos - 2) & mla_deflate_window_mask;
             state.hash_prev[pos] = state.hash_head[hash];
             state.hash_head[hash] = static_cast<mla_uint16_t>(pos);
@@ -757,12 +757,12 @@ static void mla_internal_deflate_window_add(mla_internal_deflate_compress_state_
 }
 
 // Compress a block of data using LZ77 + fixed Huffman
-static void mla_internal_deflate_compress_block(mla_internal_deflate_compress_state_t &state, const mla_byte_t *data, mla_size_t length, mla_bool_t is_final) {
+static void mla_private_deflate_compress_block(mla_private_deflate_compress_state_t &state, const mla_byte_t *data, mla_size_t length, mla_bool_t is_final) {
 
     if (!state.block_started) {
         // Write block header: BFINAL (1 bit) + BTYPE (2 bits) = fixed Huffman (01)
-        mla_internal_deflate_bit_writer_write(state.writer, state.base_output, is_final ? 1U : 0U, 1);
-        mla_internal_deflate_bit_writer_write(state.writer, state.base_output, mla_deflate_block_fixed, 2);
+        mla_private_deflate_bit_writer_write(state.writer, state.base_output, is_final ? 1U : 0U, 1);
+        mla_private_deflate_bit_writer_write(state.writer, state.base_output, mla_deflate_block_fixed, 2);
         state.block_started = true;
     }
 
@@ -771,13 +771,13 @@ static void mla_internal_deflate_compress_block(mla_internal_deflate_compress_st
         mla_uint16_t best_len = 0;
         mla_uint16_t best_dist = 0;
 
-        if (mla_internal_deflate_find_match(state, data, length, pos, best_len, best_dist)) {
-            mla_internal_deflate_emit_match(state.writer, state.base_output, best_len, best_dist);
-            mla_internal_deflate_window_add(state, data + pos, best_len);
+        if (mla_private_deflate_find_match(state, data, length, pos, best_len, best_dist)) {
+            mla_private_deflate_emit_match(state.writer, state.base_output, best_len, best_dist);
+            mla_private_deflate_window_add(state, data + pos, best_len);
             pos += best_len;
         } else {
-            mla_internal_deflate_emit_literal(state.writer, state.base_output, data[pos]);
-            mla_internal_deflate_window_add(state, data + pos, 1);
+            mla_private_deflate_emit_literal(state.writer, state.base_output, data[pos]);
+            mla_private_deflate_window_add(state, data + pos, 1);
             pos++;
         }
     }
@@ -787,10 +787,10 @@ static void mla_internal_deflate_compress_block(mla_internal_deflate_compress_st
 /// Compression Output Wrapper
 ///////////////////////////////////////////////////////////////////
 
-mla_user_data_id_init(mla_internal_stream_deflate_compress_data_name)
+mla_user_data_id_init(mla_private_stream_deflate_compress_data_name)
 
-static mla_size_t mla_internal_stream_deflate_compress_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
-    mla_internal_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_internal_deflate_compress_state_t>(output.userdata, mla_internal_stream_deflate_compress_data_name);
+static mla_size_t mla_private_stream_deflate_compress_write(mla_stream_output_t &output, mla_size_t offset, mla_size_t length, const mla_byte_t *buffer) {
+    mla_private_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_private_deflate_compress_state_t>(output.userdata, mla_private_stream_deflate_compress_data_name);
 
     if (state == nullptr || buffer == nullptr || state->finished) {
         return 0;
@@ -798,20 +798,20 @@ static mla_size_t mla_internal_stream_deflate_compress_write(mla_stream_output_t
 
     const mla_byte_t *input_data = buffer + offset;
 
-    if (!mla_internal_deflate_compress_ensure_container_header(*state)) {
+    if (!mla_private_deflate_compress_ensure_container_header(*state)) {
         return 0;
     }
 
     if (state->mode == mla_deflate_mode_zlib && length > 0) {
-        state->adler32 = mla_internal_deflate_adler32_update(state->adler32, input_data, length);
+        state->adler32 = mla_private_deflate_adler32_update(state->adler32, input_data, length);
     }
 
     if (state->mode == mla_deflate_mode_gzip && length > 0) {
-        state->crc32 = mla_internal_deflate_crc32_update(state->crc32, input_data, length);
+        state->crc32 = mla_private_deflate_crc32_update(state->crc32, input_data, length);
         state->input_size += static_cast<mla_uint32_t>(length);
     }
 
-    mla_internal_deflate_compress_block(*state, input_data, length, false);
+    mla_private_deflate_compress_block(*state, input_data, length, false);
 
     if (state->writer.error) {
         return 0;
@@ -820,8 +820,8 @@ static mla_size_t mla_internal_stream_deflate_compress_write(mla_stream_output_t
     return length;
 }
 
-static mla_size_t mla_internal_stream_deflate_compress_available_bytes(mla_stream_output_t &output) {
-    mla_internal_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_internal_deflate_compress_state_t>(output.userdata, mla_internal_stream_deflate_compress_data_name);
+static mla_size_t mla_private_stream_deflate_compress_available_bytes(mla_stream_output_t &output) {
+    mla_private_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_private_deflate_compress_state_t>(output.userdata, mla_private_stream_deflate_compress_data_name);
 
     if (state == nullptr || state->finished) {
         return 0;
@@ -839,16 +839,16 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
         return mla_stream_noop_output();
     }
 
-    mla_pointer_t state_ptr = mla_malloc_struct(mla_internal_deflate_compress_state_t);
+    mla_pointer_t state_ptr = mla_malloc_struct(mla_private_deflate_compress_state_t);
 
-    mla_internal_deflate_compress_state_t *state = mla_pointer_get_data<mla_internal_deflate_compress_state_t>(state_ptr);
+    mla_private_deflate_compress_state_t *state = mla_pointer_get_data<mla_private_deflate_compress_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_stream_noop_output();
     }
 
     state->base_output = output;
-    mla_internal_deflate_bit_writer_init(state->writer);
+    mla_private_deflate_bit_writer_init(state->writer);
     state->block_started = false;
     state->finished = false;
     state->window_pos = 0;
@@ -864,29 +864,29 @@ mla_stream_output_t mla_stream_output_deflate_compress_wrapper(mla_stream_output
     mla_memset(state->hash_prev, 0xFF, sizeof(state->hash_prev));
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer(user_data, mla_internal_stream_deflate_compress_data_name, state_ptr);
+    mla_user_data_set_pointer(user_data, mla_private_stream_deflate_compress_data_name, state_ptr);
 
     return {
         user_data,
-        mla_internal_stream_deflate_compress_write,
-        mla_internal_stream_deflate_compress_available_bytes
+        mla_private_stream_deflate_compress_write,
+        mla_private_stream_deflate_compress_available_bytes
     };
 }
 
 mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
-    mla_internal_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_internal_deflate_compress_state_t>(output.userdata, mla_internal_stream_deflate_compress_data_name);
+    mla_private_deflate_compress_state_t *state = mla_user_data_get_pointer_data<mla_private_deflate_compress_state_t>(output.userdata, mla_private_stream_deflate_compress_data_name);
 
     if (state == nullptr || state->finished) {
         return false;
     }
 
-    if (!mla_internal_deflate_compress_ensure_container_header(*state)) {
+    if (!mla_private_deflate_compress_ensure_container_header(*state)) {
         return false;
     }
 
     // Step 1 – close the in-progress Huffman block (if any).
     if (state->block_started) {
-        mla_internal_deflate_emit_end_of_block(state->writer, state->base_output);
+        mla_private_deflate_emit_end_of_block(state->writer, state->base_output);
         state->block_started = false;
     }
 
@@ -900,49 +900,49 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
         // Z_OK – not Z_STREAM_END.  Using BFINAL=1 here would cause standard
         // clients (e.g. Node.js ws library) to receive Z_STREAM_END, which can
         // corrupt the inflate stream state and produce garbled output.
-        mla_internal_deflate_bit_writer_write(state->writer, state->base_output, 0x00, 3);
+        mla_private_deflate_bit_writer_write(state->writer, state->base_output, 0x00, 3);
 
         // Byte-align so the kept prefix exactly matches a Z_SYNC_FLUSH with
         // only the last four LEN/NLEN bytes removed.
-        mla_internal_deflate_bit_writer_align(state->writer, state->base_output);
+        mla_private_deflate_bit_writer_align(state->writer, state->base_output);
     } else {
 
         // Step 3 – write the empty stored-block header byte.
         //   Bit layout: BFINAL=1 (bit 0), BTYPE=00 (bits 1-2), padding=00000 (bits 3-7)
         //   → byte value 0x01.
-        mla_internal_deflate_bit_writer_write(state->writer, state->base_output, 0x01, 3);
+        mla_private_deflate_bit_writer_write(state->writer, state->base_output, 0x01, 3);
 
         // byte-align: flush any partially-accumulated bits with zero padding.
-        mla_internal_deflate_bit_writer_align(state->writer, state->base_output);
+        mla_private_deflate_bit_writer_align(state->writer, state->base_output);
 
         // Normal mode: complete the empty stored block with LEN=0 and NLEN=0xFFFF.
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, 0x00); // LEN  low
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, 0x00); // LEN  high
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, 0xFF); // NLEN low
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, 0xFF); // NLEN high
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, 0x00); // LEN  low
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, 0x00); // LEN  high
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, 0xFF); // NLEN low
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, 0xFF); // NLEN high
     }
 
     if (state->mode == mla_deflate_mode_zlib) {
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 24) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 16) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 8) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->adler32 & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 24) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 16) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->adler32 >> 8) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->adler32 & 0xFFU));
     }
 
     if (state->mode == mla_deflate_mode_gzip) {
         // CRC32 – little-endian (RFC 1952 section 2.3.1)
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->crc32 & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 8) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 16) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 24) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->crc32 & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 8) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 16) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->crc32 >> 24) & 0xFFU));
         // ISIZE – little-endian (original input size mod 2^32)
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->input_size & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 8) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 16) & 0xFFU));
-        mla_internal_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 24) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>(state->input_size & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 8) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 16) & 0xFFU));
+        mla_private_deflate_bit_writer_put_byte(state->writer, state->base_output, static_cast<mla_byte_t>((state->input_size >> 24) & 0xFFU));
     }
 
-    mla_internal_deflate_bit_writer_flush_buffer(state->writer, state->base_output);
+    mla_private_deflate_bit_writer_flush_buffer(state->writer, state->base_output);
 
     state->finished = true;
 
@@ -953,15 +953,15 @@ mla_bool_t mla_stream_output_deflate_finish(mla_stream_output_t &output) {
 /// Decompression Input Wrapper
 ///////////////////////////////////////////////////////////////////
 
-enum mla_internal_deflate_container_mode_t : mla_uint8_t {
-    mla_internal_deflate_container_mode_raw,
-    mla_internal_deflate_container_mode_zlib,
-    mla_internal_deflate_container_mode_gzip
+enum mla_private_deflate_container_mode_t : mla_uint8_t {
+    mla_private_deflate_container_mode_raw,
+    mla_private_deflate_container_mode_zlib,
+    mla_private_deflate_container_mode_gzip
 };
 
-struct mla_internal_deflate_decompress_state_t {
+struct mla_private_deflate_decompress_state_t {
     mla_stream_input_t base_input;
-    mla_internal_deflate_bit_reader_t reader;
+    mla_private_deflate_bit_reader_t reader;
 
     // Output window (circular buffer)
     mla_byte_t window[mla_deflate_window_size];
@@ -973,8 +973,8 @@ struct mla_internal_deflate_decompress_state_t {
     mla_size_t output_buf_len;   // amount of decoded data in buffer
 
     // Huffman tables for current block
-    mla_internal_deflate_huffman_t<mla_deflate_fixed_lit_codes> lit_table;
-    mla_internal_deflate_huffman_t<mla_deflate_max_dist_codes> dist_table;
+    mla_private_deflate_huffman_t<mla_deflate_fixed_lit_codes> lit_table;
+    mla_private_deflate_huffman_t<mla_deflate_max_dist_codes> dist_table;
 
     // Block state
     mla_bool_t block_final;
@@ -990,23 +990,23 @@ struct mla_internal_deflate_decompress_state_t {
     mla_uint32_t adler32;
     mla_uint32_t crc32;
     mla_uint32_t decompressed_size;
-    mla_internal_deflate_container_mode_t container_mode;
+    mla_private_deflate_container_mode_t container_mode;
     mla_bool_t finished;
     mla_bool_t error;
 
-    static mla_internal_deflate_decompress_state_t init() {
+    static mla_private_deflate_decompress_state_t init() {
 
-        mla_internal_deflate_decompress_state_t result = {
+        mla_private_deflate_decompress_state_t result = {
             mla_stream_noop_input(),       // base_input
             {0, 0, {}, 0, 0, false}, // reader
             {}, 0,                         // window, window_pos
             mla_bytes_empty(), 0, 0,             // output_buf, output_buf_size, output_buf_pos, output_buf_len
-            mla_internal_deflate_huffman_empty<mla_deflate_fixed_lit_codes>(),                   // lit_table
-            mla_internal_deflate_huffman_empty<mla_deflate_max_dist_codes>(),                   // dist_table
+            mla_private_deflate_huffman_empty<mla_deflate_fixed_lit_codes>(),                   // lit_table
+            mla_private_deflate_huffman_empty<mla_deflate_max_dist_codes>(),                   // dist_table
             false, false, 0, 0,           // block_final, block_active, block_type, uncompressed_remaining
             0, 0,                          // pending_match_remaining, pending_match_dist
             1U, 0U, 0U,                   // adler32, crc32, decompressed_size
-            mla_internal_deflate_container_mode_raw, // container_mode
+            mla_private_deflate_container_mode_raw, // container_mode
             false, false                   // finished, error
         };
         return result;
@@ -1014,12 +1014,12 @@ struct mla_internal_deflate_decompress_state_t {
 };
 
 
-static mla_bool_t mla_internal_deflate_decompress_consume_zlib_trailer(mla_internal_deflate_decompress_state_t &state) {
-    mla_internal_deflate_bit_reader_align(state.reader);
+static mla_bool_t mla_private_deflate_decompress_consume_zlib_trailer(mla_private_deflate_decompress_state_t &state) {
+    mla_private_deflate_bit_reader_align(state.reader);
 
     mla_byte_t trailer[4];
     for (mla_size_t i = 0; i < 4; i++) {
-        if (!mla_internal_deflate_bit_reader_read_byte(state.reader, state.base_input, trailer[i])) {
+        if (!mla_private_deflate_bit_reader_read_byte(state.reader, state.base_input, trailer[i])) {
             state.error = true;
             return false;
         }
@@ -1039,13 +1039,13 @@ static mla_bool_t mla_internal_deflate_decompress_consume_zlib_trailer(mla_inter
     return true;
 }
 
-static mla_bool_t mla_internal_deflate_decompress_consume_gzip_trailer(mla_internal_deflate_decompress_state_t &state) {
-    mla_internal_deflate_bit_reader_align(state.reader);
+static mla_bool_t mla_private_deflate_decompress_consume_gzip_trailer(mla_private_deflate_decompress_state_t &state) {
+    mla_private_deflate_bit_reader_align(state.reader);
 
     // CRC32 – 4 bytes, little-endian
     mla_byte_t trailer[8];
     for (mla_size_t i = 0; i < 8; i++) {
-        if (!mla_internal_deflate_bit_reader_read_byte(state.reader, state.base_input, trailer[i])) {
+        if (!mla_private_deflate_bit_reader_read_byte(state.reader, state.base_input, trailer[i])) {
             state.error = true;
             return false;
         }
@@ -1077,13 +1077,13 @@ static mla_bool_t mla_internal_deflate_decompress_consume_gzip_trailer(mla_inter
     return true;
 }
 
-mla_user_data_id_init(mla_internal_stream_deflate_decompress_data_name)
+mla_user_data_id_init(mla_private_stream_deflate_decompress_data_name)
 
 
-static mla_internal_deflate_huffman_t<mla_deflate_fixed_lit_codes> mla_internal_deflate_fixed_lit_decode_table;
-static mla_internal_deflate_huffman_t<mla_deflate_max_dist_codes> mla_internal_deflate_fixed_dist_decode_table;
+static mla_private_deflate_huffman_t<mla_deflate_fixed_lit_codes> mla_private_deflate_fixed_lit_decode_table;
+static mla_private_deflate_huffman_t<mla_deflate_max_dist_codes> mla_private_deflate_fixed_dist_decode_table;
 
-static void mla_internal_deflate_build_fixed_decode_tables_once() {
+static void mla_private_deflate_build_fixed_decode_tables_once() {
     mla_uint8_t lengths[mla_deflate_fixed_lit_codes];
     mla_uint16_t i;
 
@@ -1102,7 +1102,7 @@ static void mla_internal_deflate_build_fixed_decode_tables_once() {
         lengths[i] = 8;
     }
 
-    mla_internal_deflate_huffman_build(mla_internal_deflate_fixed_lit_decode_table, lengths, mla_deflate_fixed_lit_codes);
+    mla_private_deflate_huffman_build(mla_private_deflate_fixed_lit_decode_table, lengths, mla_deflate_fixed_lit_codes);
 
     // Distance: all 5 bits
     mla_uint8_t dist_lengths[mla_deflate_max_dist_codes];
@@ -1110,26 +1110,26 @@ static void mla_internal_deflate_build_fixed_decode_tables_once() {
         dist_lengths[i] = 5;
     }
 
-    mla_internal_deflate_huffman_build(mla_internal_deflate_fixed_dist_decode_table, dist_lengths, mla_deflate_max_dist_codes);
+    mla_private_deflate_huffman_build(mla_private_deflate_fixed_dist_decode_table, dist_lengths, mla_deflate_max_dist_codes);
 }
 
 struct mla_deflate_static_data_initializer_t {
     mla_deflate_static_data_initializer_t() {
-        mla_internal_deflate_crc32_build_table();
-        mla_internal_deflate_build_fixed_tables();
-        mla_internal_deflate_build_fixed_decode_tables_once();
+        mla_private_deflate_crc32_build_table();
+        mla_private_deflate_build_fixed_tables();
+        mla_private_deflate_build_fixed_decode_tables_once();
     }
 };
 
 static mla_deflate_static_data_initializer_t g_mla_deflate_static_data_initializer_instance;
 
 // Decode dynamic Huffman tables from the stream
-static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflate_decompress_state_t &state) {
-    mla_internal_deflate_bit_reader_t &reader = state.reader;
+static mla_bool_t mla_private_deflate_decode_dynamic_tables(mla_private_deflate_decompress_state_t &state) {
+    mla_private_deflate_bit_reader_t &reader = state.reader;
 
-    mla_uint32_t hlit = mla_internal_deflate_bit_reader_read(reader, state.base_input, 5) + 257;
-    mla_uint32_t hdist = mla_internal_deflate_bit_reader_read(reader, state.base_input, 5) + 1;
-    mla_uint32_t hclen = mla_internal_deflate_bit_reader_read(reader, state.base_input, 4) + 4;
+    mla_uint32_t hlit = mla_private_deflate_bit_reader_read(reader, state.base_input, 5) + 257;
+    mla_uint32_t hdist = mla_private_deflate_bit_reader_read(reader, state.base_input, 5) + 1;
+    mla_uint32_t hclen = mla_private_deflate_bit_reader_read(reader, state.base_input, 4) + 4;
 
     if (reader.error) {
         return false;
@@ -1145,16 +1145,16 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
     mla_memset(cl_lengths, 0, sizeof(cl_lengths));
 
     for (mla_uint32_t i = 0; i < hclen; i++) {
-        cl_lengths[mla_internal_deflate_cl_order[i]] = static_cast<mla_uint8_t>(mla_internal_deflate_bit_reader_read(reader, state.base_input, 3));
+        cl_lengths[mla_private_deflate_cl_order[i]] = static_cast<mla_uint8_t>(mla_private_deflate_bit_reader_read(reader, state.base_input, 3));
         if (reader.error) {
             return false;
         }
     }
 
     // Build the code length Huffman table
-    mla_internal_deflate_huffman_t<mla_deflate_max_cl_codes> cl_table = mla_internal_deflate_huffman_empty<mla_deflate_max_cl_codes>();
-    mla_internal_deflate_huffman_init(cl_table);
-    if (!mla_internal_deflate_huffman_build(cl_table, cl_lengths, mla_deflate_max_cl_codes)) {
+    mla_private_deflate_huffman_t<mla_deflate_max_cl_codes> cl_table = mla_private_deflate_huffman_empty<mla_deflate_max_cl_codes>();
+    mla_private_deflate_huffman_init(cl_table);
+    if (!mla_private_deflate_huffman_build(cl_table, cl_lengths, mla_deflate_max_cl_codes)) {
         state.error = true;
         return false;
     }
@@ -1166,7 +1166,7 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
     mla_uint32_t idx = 0;
 
     while (idx < total) {
-        mla_int32_t symbol = mla_internal_deflate_huffman_decode(reader, state.base_input, cl_table);
+        mla_int32_t symbol = mla_private_deflate_huffman_decode(reader, state.base_input, cl_table);
         if (symbol < 0) {
             state.error = true;
             return false;
@@ -1180,7 +1180,7 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
                 state.error = true;
                 return false;
             }
-            mla_uint32_t repeat = mla_internal_deflate_bit_reader_read(reader, state.base_input, 2) + 3;
+            mla_uint32_t repeat = mla_private_deflate_bit_reader_read(reader, state.base_input, 2) + 3;
             if (reader.error) {
                 return false;
             }
@@ -1190,7 +1190,7 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
             }
         } else if (symbol == 17) {
             // Repeat 0 for 3..10 times
-            mla_uint32_t repeat = mla_internal_deflate_bit_reader_read(reader, state.base_input, 3) + 3;
+            mla_uint32_t repeat = mla_private_deflate_bit_reader_read(reader, state.base_input, 3) + 3;
             if (reader.error) {
                 return false;
             }
@@ -1199,7 +1199,7 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
             }
         } else if (symbol == 18) {
             // Repeat 0 for 11..138 times
-            mla_uint32_t repeat = mla_internal_deflate_bit_reader_read(reader, state.base_input, 7) + 11;
+            mla_uint32_t repeat = mla_private_deflate_bit_reader_read(reader, state.base_input, 7) + 11;
             if (reader.error) {
                 return false;
             }
@@ -1213,11 +1213,11 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
     }
 
     // Build literal/length and distance tables
-    if (!mla_internal_deflate_huffman_build(state.lit_table, lengths, static_cast<mla_uint16_t>(hlit))) {
+    if (!mla_private_deflate_huffman_build(state.lit_table, lengths, static_cast<mla_uint16_t>(hlit))) {
         state.error = true;
         return false;
     }
-    if (!mla_internal_deflate_huffman_build(state.dist_table, lengths + hlit, static_cast<mla_uint16_t>(hdist))) {
+    if (!mla_private_deflate_huffman_build(state.dist_table, lengths + hlit, static_cast<mla_uint16_t>(hdist))) {
         state.error = true;
         return false;
     }
@@ -1226,8 +1226,8 @@ static mla_bool_t mla_internal_deflate_decode_dynamic_tables(mla_internal_deflat
 }
 
 // Decode data from a Huffman-coded block into the output buffer
-static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate_decompress_state_t &state) {
-    mla_internal_deflate_bit_reader_t &reader = state.reader;
+static mla_bool_t mla_private_deflate_decode_huffman_block(mla_private_deflate_decompress_state_t &state) {
+    mla_private_deflate_bit_reader_t &reader = state.reader;
 
     mla_size_t output_buf_size = mla_bytes_length(state.output_buf);
     mla_byte_t* output_buf = mla_bytes_get_data_for_writing(state.output_buf);
@@ -1243,15 +1243,15 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
                 output_buf[state.output_buf_len++] = byte_val;
                 state.window[state.window_pos] = byte_val;
                 state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
-                state.adler32 = mla_internal_deflate_adler32_update_byte(state.adler32, byte_val);
-                state.crc32 = mla_internal_deflate_crc32_update_byte(state.crc32, byte_val);
+                state.adler32 = mla_private_deflate_adler32_update_byte(state.adler32, byte_val);
+                state.crc32 = mla_private_deflate_crc32_update_byte(state.crc32, byte_val);
                 state.decompressed_size++;
                 state.pending_match_remaining--;
             }
             continue; // re-check outer while condition before decoding a new symbol
         }
 
-        mla_int32_t symbol = mla_internal_deflate_huffman_decode(reader, state.base_input, state.lit_table);
+        mla_int32_t symbol = mla_private_deflate_huffman_decode(reader, state.base_input, state.lit_table);
 
         if (symbol < 0) {
             state.error = true;
@@ -1263,8 +1263,8 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
             output_buf[state.output_buf_len++] = static_cast<mla_byte_t>(symbol);
             state.window[state.window_pos] = static_cast<mla_byte_t>(symbol);
             state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
-            state.adler32 = mla_internal_deflate_adler32_update_byte(state.adler32, static_cast<mla_byte_t>(symbol));
-            state.crc32 = mla_internal_deflate_crc32_update_byte(state.crc32, static_cast<mla_byte_t>(symbol));
+            state.adler32 = mla_private_deflate_adler32_update_byte(state.adler32, static_cast<mla_byte_t>(symbol));
+            state.crc32 = mla_private_deflate_crc32_update_byte(state.crc32, static_cast<mla_byte_t>(symbol));
             state.decompressed_size++;
         } else if (symbol == mla_deflate_end_of_block) {
             // End of block
@@ -1277,10 +1277,10 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
                 state.error = true;
                 return false;
             }
-            mla_uint16_t match_len = mla_internal_deflate_length_base[len_idx];
-            mla_uint8_t extra = mla_internal_deflate_length_extra[len_idx];
+            mla_uint16_t match_len = mla_private_deflate_length_base[len_idx];
+            mla_uint8_t extra = mla_private_deflate_length_extra[len_idx];
             if (extra > 0) {
-                match_len += static_cast<mla_uint16_t>(mla_internal_deflate_bit_reader_read(reader, state.base_input, extra));
+                match_len += static_cast<mla_uint16_t>(mla_private_deflate_bit_reader_read(reader, state.base_input, extra));
                 if (reader.error) {
                     state.error = true;
                     return false;
@@ -1288,15 +1288,15 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
             }
 
             // Decode distance
-            mla_int32_t dist_symbol = mla_internal_deflate_huffman_decode(reader, state.base_input, state.dist_table);
+            mla_int32_t dist_symbol = mla_private_deflate_huffman_decode(reader, state.base_input, state.dist_table);
             if (dist_symbol < 0 || dist_symbol >= mla_deflate_max_dist_codes) {
                 state.error = true;
                 return false;
             }
-            mla_uint16_t match_dist = mla_internal_deflate_dist_base[dist_symbol];
-            mla_uint8_t dist_extra = mla_internal_deflate_dist_extra[dist_symbol];
+            mla_uint16_t match_dist = mla_private_deflate_dist_base[dist_symbol];
+            mla_uint8_t dist_extra = mla_private_deflate_dist_extra[dist_symbol];
             if (dist_extra > 0) {
-                match_dist += static_cast<mla_uint16_t>(mla_internal_deflate_bit_reader_read(reader, state.base_input, dist_extra));
+                match_dist += static_cast<mla_uint16_t>(mla_private_deflate_bit_reader_read(reader, state.base_input, dist_extra));
                 if (reader.error) {
                     state.error = true;
                     return false;
@@ -1310,8 +1310,8 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
                 output_buf[state.output_buf_len++] = byte_val;
                 state.window[state.window_pos] = byte_val;
                 state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
-                state.adler32 = mla_internal_deflate_adler32_update_byte(state.adler32, byte_val);
-                state.crc32 = mla_internal_deflate_crc32_update_byte(state.crc32, byte_val);
+                state.adler32 = mla_private_deflate_adler32_update_byte(state.adler32, byte_val);
+                state.crc32 = mla_private_deflate_crc32_update_byte(state.crc32, byte_val);
                 state.decompressed_size++;
 
                 if (state.output_buf_len >= output_buf_size) {
@@ -1329,21 +1329,21 @@ static mla_bool_t mla_internal_deflate_decode_huffman_block(mla_internal_deflate
 }
 
 // Decode uncompressed block data
-static mla_bool_t mla_internal_deflate_decode_uncompressed_block(mla_internal_deflate_decompress_state_t &state) {
+static mla_bool_t mla_private_deflate_decode_uncompressed_block(mla_private_deflate_decompress_state_t &state) {
 
     mla_size_t output_buf_size = mla_bytes_length(state.output_buf);
     mla_byte_t* output_buf = mla_bytes_get_data_for_writing(state.output_buf);
 
     while (state.uncompressed_remaining > 0 && state.output_buf_len < output_buf_size) {
         mla_byte_t byte_val = 0;
-        if (!mla_internal_deflate_bit_reader_read_byte(state.reader, state.base_input, byte_val)) {
+        if (!mla_private_deflate_bit_reader_read_byte(state.reader, state.base_input, byte_val)) {
             return false;
         }
         output_buf[state.output_buf_len++] = byte_val;
         state.window[state.window_pos] = byte_val;
         state.window_pos = (state.window_pos + 1) & mla_deflate_window_mask;
-        state.adler32 = mla_internal_deflate_adler32_update_byte(state.adler32, byte_val);
-        state.crc32 = mla_internal_deflate_crc32_update_byte(state.crc32, byte_val);
+        state.adler32 = mla_private_deflate_adler32_update_byte(state.adler32, byte_val);
+        state.crc32 = mla_private_deflate_crc32_update_byte(state.crc32, byte_val);
         state.decompressed_size++;
         state.uncompressed_remaining--;
     }
@@ -1356,7 +1356,7 @@ static mla_bool_t mla_internal_deflate_decode_uncompressed_block(mla_internal_de
 }
 
 // Decode compressed data into the output buffer
-static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_decompress_state_t &state) {
+static mla_bool_t mla_private_deflate_decompress_fill(mla_private_deflate_decompress_state_t &state) {
 
     mla_size_t output_buf_size = mla_bytes_length(state.output_buf);
 
@@ -1367,8 +1367,8 @@ static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_deco
 
         if (!state.block_active) {
             // Read block header
-            mla_uint32_t bfinal = mla_internal_deflate_bit_reader_read(state.reader, state.base_input, 1);
-            mla_uint32_t btype = mla_internal_deflate_bit_reader_read(state.reader, state.base_input, 2);
+            mla_uint32_t bfinal = mla_private_deflate_bit_reader_read(state.reader, state.base_input, 1);
+            mla_uint32_t btype = mla_private_deflate_bit_reader_read(state.reader, state.base_input, 2);
 
             if (state.reader.error) {
                 state.error = true;
@@ -1381,11 +1381,11 @@ static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_deco
 
             if (btype == mla_deflate_block_uncompressed) {
                 // Align to byte boundary
-                mla_internal_deflate_bit_reader_align(state.reader);
+                mla_private_deflate_bit_reader_align(state.reader);
 
                 // Read LEN and NLEN
-                mla_uint32_t len = mla_internal_deflate_bit_reader_read(state.reader, state.base_input, 16);
-                mla_uint32_t nlen = mla_internal_deflate_bit_reader_read(state.reader, state.base_input, 16);
+                mla_uint32_t len = mla_private_deflate_bit_reader_read(state.reader, state.base_input, 16);
+                mla_uint32_t nlen = mla_private_deflate_bit_reader_read(state.reader, state.base_input, 16);
 
                 if (state.reader.error) {
                     state.error = true;
@@ -1399,10 +1399,10 @@ static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_deco
 
                 state.uncompressed_remaining = len;
             } else if (btype == mla_deflate_block_fixed) {
-                state.lit_table = mla_internal_deflate_fixed_lit_decode_table;
-                state.dist_table = mla_internal_deflate_fixed_dist_decode_table;
+                state.lit_table = mla_private_deflate_fixed_lit_decode_table;
+                state.dist_table = mla_private_deflate_fixed_dist_decode_table;
             } else if (btype == mla_deflate_block_dynamic) {
-                if (!mla_internal_deflate_decode_dynamic_tables(state)) {
+                if (!mla_private_deflate_decode_dynamic_tables(state)) {
                     return false;
                 }
             } else {
@@ -1412,22 +1412,22 @@ static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_deco
         }
 
         if (state.block_type == mla_deflate_block_uncompressed) {
-            if (!mla_internal_deflate_decode_uncompressed_block(state)) {
+            if (!mla_private_deflate_decode_uncompressed_block(state)) {
                 return false;
             }
         } else {
-            if (!mla_internal_deflate_decode_huffman_block(state)) {
+            if (!mla_private_deflate_decode_huffman_block(state)) {
                 return false;
             }
         }
 
         if (!state.block_active && state.block_final) {
-            if (state.container_mode == mla_internal_deflate_container_mode_zlib) {
-                if (!mla_internal_deflate_decompress_consume_zlib_trailer(state)) {
+            if (state.container_mode == mla_private_deflate_container_mode_zlib) {
+                if (!mla_private_deflate_decompress_consume_zlib_trailer(state)) {
                     return false;
                 }
-            } else if (state.container_mode == mla_internal_deflate_container_mode_gzip) {
-                if (!mla_internal_deflate_decompress_consume_gzip_trailer(state)) {
+            } else if (state.container_mode == mla_private_deflate_container_mode_gzip) {
+                if (!mla_private_deflate_decompress_consume_gzip_trailer(state)) {
                     return false;
                 }
             }
@@ -1438,8 +1438,8 @@ static mla_bool_t mla_internal_deflate_decompress_fill(mla_internal_deflate_deco
     return true;
 }
 
-static mla_size_t mla_internal_stream_deflate_decompress_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
-    mla_internal_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<mla_internal_deflate_decompress_state_t>(input.userdata, mla_internal_stream_deflate_decompress_data_name);
+static mla_size_t mla_private_stream_deflate_decompress_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length, mla_byte_t *buffer) {
+    mla_private_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<mla_private_deflate_decompress_state_t>(input.userdata, mla_private_stream_deflate_decompress_data_name);
 
     if (state == nullptr || buffer == nullptr) {
         return 0;
@@ -1470,7 +1470,7 @@ static mla_size_t mla_internal_stream_deflate_decompress_read(mla_stream_input_t
             // an error or EOF (e.g. the WebSocket empty stored-block tail), we still want
             // to return those bytes. The copy branch above will drain output_buf on the
             // next iteration, and the error/finished guard will stop the loop afterward.
-            mla_internal_deflate_decompress_fill(*state);
+            mla_private_deflate_decompress_fill(*state);
 
             if (state->output_buf_len == 0) {
                 break;
@@ -1481,8 +1481,8 @@ static mla_size_t mla_internal_stream_deflate_decompress_read(mla_stream_input_t
     return total_read;
 }
 
-static mla_size_t mla_internal_stream_deflate_decompress_remaining_bytes(mla_stream_input_t &input) {
-    mla_internal_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<mla_internal_deflate_decompress_state_t>(input.userdata, mla_internal_stream_deflate_decompress_data_name);
+static mla_size_t mla_private_stream_deflate_decompress_remaining_bytes(mla_stream_input_t &input) {
+    mla_private_deflate_decompress_state_t *state = mla_user_data_get_pointer_data<mla_private_deflate_decompress_state_t>(input.userdata, mla_private_stream_deflate_decompress_data_name);
 
     if (state == nullptr) {
         return 0;
@@ -1509,23 +1509,23 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         return mla_stream_noop_input();
     }
 
-    mla_pointer_t state_ptr = mla_malloc_struct(mla_internal_deflate_decompress_state_t);
+    mla_pointer_t state_ptr = mla_malloc_struct(mla_private_deflate_decompress_state_t);
 
-    mla_internal_deflate_decompress_state_t *state = mla_pointer_get_data<mla_internal_deflate_decompress_state_t>(state_ptr);
+    mla_private_deflate_decompress_state_t *state = mla_pointer_get_data<mla_private_deflate_decompress_state_t>(state_ptr);
 
     if (state == nullptr) {
         return mla_stream_noop_input();
     }
 
     state->base_input = input;
-    mla_internal_deflate_bit_reader_init(state->reader);
+    mla_private_deflate_bit_reader_init(state->reader);
     state->window_pos = 0;
     state->block_active = false;
     state->block_final = false;
     state->adler32 = 1U;
     state->crc32 = 0U;
     state->decompressed_size = 0U;
-    state->container_mode = mla_internal_deflate_container_mode_raw;
+    state->container_mode = mla_private_deflate_container_mode_raw;
     state->finished = false;
     state->error = false;
 
@@ -1603,16 +1603,16 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
         }
 
         if (!state->error) {
-            state->container_mode = mla_internal_deflate_container_mode_gzip;
+            state->container_mode = mla_private_deflate_container_mode_gzip;
         }
-    } else if (prefix_length == 2 && mla_internal_deflate_is_zlib_header(prefix[0], prefix[1])) {
+    } else if (prefix_length == 2 && mla_private_deflate_is_zlib_header(prefix[0], prefix[1])) {
         mla_uint8_t flg = prefix[1];
         mla_size_t header_window_bits = static_cast<mla_size_t>((prefix[0] >> 4) + 8);
 
-        if ((flg & 0x20U) != 0 || header_window_bits > mla_internal_deflate_window_bits_value()) {
+        if ((flg & 0x20U) != 0 || header_window_bits > mla_private_deflate_window_bits_value()) {
             state->error = true;
         } else {
-            state->container_mode = mla_internal_deflate_container_mode_zlib;
+            state->container_mode = mla_private_deflate_container_mode_zlib;
         }
     } else {
         state->reader.prefetched_length = static_cast<mla_uint8_t>(prefix_length);
@@ -1634,16 +1634,16 @@ mla_stream_input_t mla_stream_input_deflate_decompress_wrapper(mla_stream_input_
     state->pending_match_remaining = 0;
     state->pending_match_dist      = 0;
 
-    mla_internal_deflate_huffman_init(state->lit_table);
-    mla_internal_deflate_huffman_init(state->dist_table);
+    mla_private_deflate_huffman_init(state->lit_table);
+    mla_private_deflate_huffman_init(state->dist_table);
 
     mla_user_data_t user_data = mla_user_data_empty();
-    mla_user_data_set_pointer(user_data, mla_internal_stream_deflate_decompress_data_name, state_ptr);
+    mla_user_data_set_pointer(user_data, mla_private_stream_deflate_decompress_data_name, state_ptr);
 
     return {
         user_data,
-        mla_internal_stream_deflate_decompress_read,
-        mla_internal_stream_deflate_decompress_remaining_bytes
+        mla_private_stream_deflate_decompress_read,
+        mla_private_stream_deflate_decompress_remaining_bytes
     };
 }
 
@@ -1672,5 +1672,5 @@ mla_size_t mla_stream_input_deflate_compressed_size_calculation(mla_stream_input
 mla_size_t mla_stream_output_deflate_window_bits(mla_stream_output_t &output) {
     (void)output; // window bits depend only on the compile-time window size
 
-    return mla_internal_deflate_window_bits_value();
+    return mla_private_deflate_window_bits_value();
 }

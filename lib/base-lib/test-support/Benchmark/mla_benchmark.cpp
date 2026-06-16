@@ -112,7 +112,7 @@ void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
 
 // Simple partition function for median calculation
-static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, mla_test_uint32_t left, mla_test_uint32_t right, mla_test_uint32_t k) {
+static void mla_private_benchmark_partition_for_median(mla_test_uint64_t* arr, mla_test_uint32_t left, mla_test_uint32_t right, mla_test_uint32_t k) {
     while (left < right) {
         // Median-of-three with branchless min/max
         mla_test_uint32_t mid = left + ((right - left) >> 1);
@@ -162,7 +162,7 @@ static void mla_internal_benchmark_partition_for_median(mla_test_uint64_t* arr, 
     }
 }
 
-static mla_test_uint64_t mla_internal_benchmark_calculate_median(mla_test_uint64_t* times, mla_test_uint32_t count) {
+static mla_test_uint64_t mla_private_benchmark_calculate_median(mla_test_uint64_t* times, mla_test_uint32_t count) {
     if (count == 0) {
         return 0;
     }
@@ -172,14 +172,14 @@ static mla_test_uint64_t mla_internal_benchmark_calculate_median(mla_test_uint64
     }
     
     mla_test_uint32_t mid = count / 2;
-    mla_internal_benchmark_partition_for_median(times, 0, count - 1, mid);
+    mla_private_benchmark_partition_for_median(times, 0, count - 1, mid);
     
     if (count % 2 == 1) {
         return times[mid];
     } else {
         // For even count, find both middle elements using quickselect
         mla_test_uint64_t mid1 = times[mid];
-        mla_internal_benchmark_partition_for_median(times, 0, mid - 1, mid - 1);
+        mla_private_benchmark_partition_for_median(times, 0, mid - 1, mid - 1);
         mla_test_uint64_t mid2 = times[mid - 1];
         return (mid1 + mid2) / 2;
     }
@@ -260,7 +260,7 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
         maxTime = 999999;
         medianTime = 999999;
     } else {
-        medianTime = mla_internal_benchmark_calculate_median(times, actualIterations);
+        medianTime = mla_private_benchmark_calculate_median(times, actualIterations);
         if (actualIterations == 0) {
             allocated_memory_per_interation = 0;
         } else {
@@ -623,7 +623,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
         }
     }
 
-    auto medianTime = mla_internal_benchmark_calculate_median(times, benchmarkIterations);
+    auto medianTime = mla_private_benchmark_calculate_median(times, benchmarkIterations);
 
     mla_test_free(times);
 #else

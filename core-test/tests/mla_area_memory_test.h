@@ -39,7 +39,7 @@ inline void MlaAreaMemoryPageOverflowTest() {
 }
 
 static mla_bool_t g_cleanup_called = false;
-inline void mla_internal_test_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+inline void mla_private_test_cleanup_hook(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)data; (void)userData;
     g_cleanup_called = true;
 }
@@ -49,7 +49,7 @@ inline void MlaAreaMemoryCleanupTest() {
     {
         mla_area_pointer_memory_manager_t area_manager = mla_area_pointer_memory_manager_create(1024);
         {
-            mla_pointer_t ptr = mla_malloc_with_manager(&area_manager.manager, 100, mla_internal_test_cleanup_hook, mla_dynamic_data_empty());
+            mla_pointer_t ptr = mla_malloc_with_manager(&area_manager.manager, 100, mla_private_test_cleanup_hook, mla_dynamic_data_empty());
         }
         // At this point ptr is destroyed, page ref count hit 0 and called cleanup.
     }

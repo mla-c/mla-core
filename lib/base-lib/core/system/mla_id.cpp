@@ -5,7 +5,7 @@
 #include "mla_id.h"
 #include "../task/mla_mutx.h"
 
-void mla_internal_string_from_uint32_hex(mla_char_t *buffer, mla_uint32_t value, mla_size_t padding) {
+void mla_private_string_from_uint32_hex(mla_char_t *buffer, mla_uint32_t value, mla_size_t padding) {
     // Convert to hex from right to left
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint32_t nibble = value & 0xF;
@@ -18,7 +18,7 @@ void mla_internal_string_from_uint32_hex(mla_char_t *buffer, mla_uint32_t value,
     }
 }
 
-void mla_internal_string_from_uint16_hex(mla_char_t *buffer, mla_uint16_t value, mla_size_t padding) {
+void mla_private_string_from_uint16_hex(mla_char_t *buffer, mla_uint16_t value, mla_size_t padding) {
     // Convert to hex from right to left
     for (mla_size_t i = padding; i > 0; i--) {
         mla_uint16_t nibble = value & 0xF;
@@ -51,16 +51,16 @@ mla_string_t mla_generate_uuid() {
         return mla_string_empty(); // Failed to get buffer data
     }
 
-    mla_internal_string_from_uint32_hex(buffer_data, rand1, 8);
+    mla_private_string_from_uint32_hex(buffer_data, rand1, 8);
     buffer_data[8] = '-';
-    mla_internal_string_from_uint16_hex(buffer_data + 9, (rand2 >> 16) & 0xFFFF, 4);
+    mla_private_string_from_uint16_hex(buffer_data + 9, (rand2 >> 16) & 0xFFFF, 4);
     buffer_data[13] = '-';
-    mla_internal_string_from_uint16_hex(buffer_data + 14, time_hi, 4);
+    mla_private_string_from_uint16_hex(buffer_data + 14, time_hi, 4);
     buffer_data[18] = '-';
-    mla_internal_string_from_uint16_hex(buffer_data + 19, clock_seq, 4);
+    mla_private_string_from_uint16_hex(buffer_data + 19, clock_seq, 4);
     buffer_data[23] = '-';
-    mla_internal_string_from_uint16_hex(buffer_data + 24, (rand3 >> 16) & 0xFFFF, 4);
-    mla_internal_string_from_uint32_hex(buffer_data + 28, rand4, 8);
+    mla_private_string_from_uint16_hex(buffer_data + 24, (rand3 >> 16) & 0xFFFF, 4);
+    mla_private_string_from_uint32_hex(buffer_data + 28, rand4, 8);
     buffer_data[36] = '\0';
 
     return mla_string(buffer, 36);

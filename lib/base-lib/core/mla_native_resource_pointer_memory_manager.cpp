@@ -24,7 +24,7 @@ struct mla_native_resource_item_t {
     };
 };
 
-mla_pointer_t mla_internal_native_resource_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
+mla_pointer_t mla_private_native_resource_pointer_memory_manager_malloc(mla_pointer_memory_manager_t& memory_manager, mla_size_t size, mla_pointer_cleanup_hook_t cleanup_hook, mla_dynamic_data_t cleanup_data, const mla_char_t* filename, const mla_char_t* function_name) {
     (void)memory_manager;
     (void)size;
     (void)cleanup_hook;
@@ -36,7 +36,7 @@ mla_pointer_t mla_internal_native_resource_pointer_memory_manager_malloc(mla_poi
     return mla_pointer_null();
 }
 
-mla_platform_pointer_t mla_internal_native_resource_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+mla_platform_pointer_t mla_private_native_resource_pointer_memory_manager_get_platform_pointer(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
     mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(payload.asPointer);
@@ -54,7 +54,7 @@ mla_platform_pointer_t mla_internal_native_resource_pointer_memory_manager_get_p
 
 }
 
-void mla_internal_native_resource_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+void mla_private_native_resource_pointer_memory_manager_incReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
     mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(payload.asPointer);
@@ -69,7 +69,7 @@ void mla_internal_native_resource_pointer_memory_manager_incReferences(mla_point
 
 
 
-void mla_internal_native_resource_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
+void mla_private_native_resource_pointer_memory_manager_decReferences(mla_pointer_memory_manager_t& memory_manager, mla_dynamic_data_t payload) {
 
     (void)memory_manager;
 
@@ -96,7 +96,7 @@ void mla_internal_native_resource_pointer_memory_manager_decReferences(mla_point
 
 }
 
-mla_int32_t mla_internal_native_resource_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload) {
+mla_int32_t mla_private_native_resource_pointer_memory_manager_get_ref_count(const mla_pointer_memory_manager_t & memory_manager, mla_dynamic_data_t payload) {
     (void)memory_manager;
 
     mla_native_resource_item_t* item = reinterpret_cast<mla_native_resource_item_t*>(payload.asPointer);
@@ -112,11 +112,11 @@ mla_int32_t mla_internal_native_resource_pointer_memory_manager_get_ref_count(co
 // This Memory Manager only exists for external resource. We manage this resource if the pointer goes out of scope
 // we execute the cleanup
 mla_pointer_memory_manager_t g_mla_native_resource_pointer_memory_manager = {
-    mla_internal_native_resource_pointer_memory_manager_malloc,
-    mla_internal_native_resource_pointer_memory_manager_get_platform_pointer,
-    mla_internal_native_resource_pointer_memory_manager_incReferences,
-    mla_internal_native_resource_pointer_memory_manager_decReferences,
-    mla_internal_native_resource_pointer_memory_manager_get_ref_count
+    mla_private_native_resource_pointer_memory_manager_malloc,
+    mla_private_native_resource_pointer_memory_manager_get_platform_pointer,
+    mla_private_native_resource_pointer_memory_manager_incReferences,
+    mla_private_native_resource_pointer_memory_manager_decReferences,
+    mla_private_native_resource_pointer_memory_manager_get_ref_count
 };
 
 

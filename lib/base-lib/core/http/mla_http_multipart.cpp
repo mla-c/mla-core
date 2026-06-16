@@ -160,7 +160,7 @@ struct mla_multipart_stream_state_t {
     }
 };
 
-mla_bool_t mla_internal_http_server_parse_multipart_refill_buffer(mla_multipart_stream_state_t *state) {
+mla_bool_t mla_private_http_server_parse_multipart_refill_buffer(mla_multipart_stream_state_t *state) {
 
     if (state->buffer_pos < state->buffer_len) {
         return true;
@@ -182,7 +182,7 @@ mla_bool_t mla_internal_http_server_parse_multipart_refill_buffer(mla_multipart_
     return true;
 }
 
-mla_size_t mla_internal_http_server_parse_multipart_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length,
+mla_size_t mla_private_http_server_parse_multipart_read(mla_stream_input_t &input, mla_size_t offset, mla_size_t length,
                                                   mla_byte_t *buffer) {
     (void) offset;
 
@@ -202,7 +202,7 @@ mla_size_t mla_internal_http_server_parse_multipart_read(mla_stream_input_t &inp
     mla_size_t bytes_read = 0;
 
     while (bytes_read < length) {
-        if (!mla_internal_http_server_parse_multipart_refill_buffer(state)) {
+        if (!mla_private_http_server_parse_multipart_refill_buffer(state)) {
             break;
         }
 
@@ -279,11 +279,11 @@ mla_size_t mla_internal_http_server_parse_multipart_read(mla_stream_input_t &inp
     return bytes_read;
 }
 
-mla_bool_t mla_internal_http_server_parse_multipart_read_line(mla_multipart_stream_state_t *state, mla_string_builder_t &sb) {
+mla_bool_t mla_private_http_server_parse_multipart_read_line(mla_multipart_stream_state_t *state, mla_string_builder_t &sb) {
     mla_string_builder_reset(sb);
 
     while (true) {
-        if (!mla_internal_http_server_parse_multipart_refill_buffer(state)) {
+        if (!mla_private_http_server_parse_multipart_refill_buffer(state)) {
             return mla_string_builder_length(sb) > 0;
         }
 
@@ -296,7 +296,7 @@ mla_bool_t mla_internal_http_server_parse_multipart_read_line(mla_multipart_stre
     }
 }
 
-void mla_internal_http_server_parse_multipart_parse_content_disposition(const mla_string_t &header, mla_string_t &field_name,
+void mla_private_http_server_parse_multipart_parse_content_disposition(const mla_string_t &header, mla_string_t &field_name,
                                                                  mla_string_t &file_name) {
     mla_string_t name_key = mla_string_const("name=\"");
     mla_string_t file_key = mla_string_const("filename=\"");
@@ -369,7 +369,7 @@ mla_bool_t mla_http_server_parse_multipart_create_context(const mla_http_request
 
     // Search for where the boundary starts
     mla_bool_t success = false;
-    while (mla_internal_http_server_parse_multipart_read_line(state, sb)) {
+    while (mla_private_http_server_parse_multipart_read_line(state, sb)) {
         mla_string_t line = mla_string_builder_to_string(sb);
 
         if (mla_string_starts_with(line, boundary_start)) {
@@ -409,7 +409,7 @@ mla_bool_t mla_http_server_parse_multipart_next_item(mla_http_server_multipart_p
         mla_string_t file_name = mla_string_empty();
         mla_string_t part_content_type = mla_string_empty();
 
-        while (mla_internal_http_server_parse_multipart_read_line(state, sb)) {
+        while (mla_private_http_server_parse_multipart_read_line(state, sb)) {
             // Found empty line
             if (mla_string_builder_length(sb) == 0) {
                 break;
@@ -421,7 +421,7 @@ mla_bool_t mla_http_server_parse_multipart_next_item(mla_http_server_multipart_p
             mla_string_t ct_prefix = mla_string_const("Content-Type:");
 
             if (mla_string_starts_with(line, cd_prefix)) {
-                mla_internal_http_server_parse_multipart_parse_content_disposition(line, field_name, file_name);
+                mla_private_http_server_parse_multipart_parse_content_disposition(line, field_name, file_name);
             } else if (mla_string_starts_with(line, ct_prefix)) {
                 part_content_type = mla_string_substr(line, mla_string_length(ct_prefix));
                 part_content_type = mla_string_trim(part_content_type);
@@ -431,7 +431,7 @@ mla_bool_t mla_http_server_parse_multipart_next_item(mla_http_server_multipart_p
 
         mla_stream_input_t part_stream = {
             context.userdata,
-            mla_internal_http_server_parse_multipart_read,
+            mla_private_http_server_parse_multipart_read,
             nullptr
         };
 
