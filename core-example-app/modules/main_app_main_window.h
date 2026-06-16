@@ -14,7 +14,7 @@
 
 struct main_app_main_window_t {
 
-    static void __primary_button_clicked(mla_ui_control_t &control,
+    static void mla_private_primary_button_clicked(mla_ui_control_t &control,
                                                   const mla_ui_surface_input_event_click_t &clickEvent,
                                                   mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &
                                                   uiControls, mla_user_data_t &userData) {
@@ -148,7 +148,7 @@ struct main_app_main_window_t {
         control = mla_ui_button();
         mla_ui_button_set_text(control, mla_string_const("Primary"));
         mla_ui_button_set_style(control, MLA_UI_BUTTON_STYLE_PRIMARY);
-        mla_ui_button_set_click_event(control, __primary_button_clicked);
+        mla_ui_button_set_click_event(control, mla_private_primary_button_clicked);
         control.layout.x = 440;
         control.layout.y = 20;
         control.layout.width = 120;

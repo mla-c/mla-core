@@ -14,7 +14,7 @@
 
 mla_cli_app_t g_main_app_cli = mla_cli_app_empty();
 
-inline mla_task_process_result_state __cli_task(mla_user_data_t& userdata) {
+inline mla_task_process_result_state mla_private_cli_task(mla_user_data_t& userdata) {
 
     (void)userdata;
 
@@ -26,7 +26,7 @@ inline mla_task_process_result_state __cli_task(mla_user_data_t& userdata) {
     return TASK_PROCESS_RESULT_CONTINUE;
 }
 
-inline mla_cli_module_t __cli_build_root_module() {
+inline mla_cli_module_t mla_private_cli_build_root_module() {
 
     mla_cli_module_t rootModule = mla_cli_module(mla_string_const("Root"));
 
@@ -44,13 +44,13 @@ inline void main_app_cli_init() {
     mla_info("Welcome to the CommandLine Interface (CLI)");
     mla_info("Please enter a command:");
 
-    mla_cli_module_t root = __cli_build_root_module();
+    mla_cli_module_t root = mla_private_cli_build_root_module();
 
     mla_stream_output_t output = mla_stream_output_stdout();
     g_main_app_cli = mla_cli_app_init(root, output);
 
     mla_user_data_t app_user_data = mla_user_data_empty();
-    mla_task_t task = mla_task_repeating(mla_string("cli"), __cli_task, app_user_data);
+    mla_task_t task = mla_task_repeating(mla_string("cli"), mla_private_cli_task, app_user_data);
     mla_task_manager_register_task(task);
 
 }

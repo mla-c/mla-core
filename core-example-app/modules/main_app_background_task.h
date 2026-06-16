@@ -11,7 +11,7 @@
 
 mla_user_data_id_init(mla_last_log_time_user_data_id)
 
-mla_task_process_result_state __main_app_background_log_task(mla_user_data_t& userData) {
+mla_task_process_result_state mla_private_main_app_background_log_task(mla_user_data_t& userData) {
 
     mla_uint64_t current_time = mla_system_time_ms();
 
@@ -34,7 +34,7 @@ inline void main_app_background_tasks_init() {
     mla_user_data_t user_data = mla_user_data_empty();
     mla_user_data_set_uint64(user_data, mla_last_log_time_user_data_id, current_time);
 
-    mla_task_t log_task = mla_task_repeating(mla_string_const("background_log_task"), __main_app_background_log_task, user_data);
+    mla_task_t log_task = mla_task_repeating(mla_string_const("background_log_task"), mla_private_main_app_background_log_task, user_data);
     mla_task_manager_register_task(log_task);
 
 
