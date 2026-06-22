@@ -37,7 +37,13 @@ mla_string_t mla_private_file_system_native_file_path_to_full_path(mla_file_syst
     // Repleace all slash with backslash
     mla_string_t correctedPath = mla_string_replace(path, mla_fs_directory_seperator, mla_windows_fs_directory_seperator);
 
-    if (mla_string_length(fs->basePath) == 0) {
+    if (mla_string_is_empty(fs->basePath)) {
+
+        if (mla_string_starts_with(correctedPath, mla_windows_fs_directory_seperator)) {
+            // If the path starts with a slash, we need to remove this one
+            correctedPath = mla_string_substr(correctedPath, 1);
+        }
+
         return correctedPath;
     }
 

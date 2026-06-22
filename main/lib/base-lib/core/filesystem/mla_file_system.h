@@ -8,6 +8,7 @@
 #include "../mla_data_types.h"
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
+#include "../system/mla_stream.h"
 
 enum mla_file_system_file_open_mode: mla_uint8_t {
     MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ,
@@ -29,7 +30,30 @@ struct mla_file_system_stream_t {
     mla_pointer_t resource;
 };
 
+/**
+* @brief Converts a file system stream to a generic stream input interface.
+*
+* This function creates an `mla_stream_input_t` that wraps the provided
+* `mla_file_system_stream_t`. The resulting input stream will use the read
+* callback of the file system stream for reading data. If the file system
+* stream does not support reading (i.e., its read callback is `nullptr`),
+* the resulting input stream will be a no-op stream that always returns 0 bytes read.
+*
+* @param stream The file system stream to convert.
+* @return An `mla_stream_input_t` that can be used for reading from the file system stream.
+*/
+mla_stream_input_t mla_file_system_stream_as_input(const mla_file_system_stream_t& stream);
 
+/**
+* @brief Converts a file system stream to a generic stream output interface.
+* This function creates an `mla_stream_output_t` that wraps the provided
+* `mla_file_system_stream_t`. The resulting output stream will use the write
+* callback of the file system stream for writing data. If the file system stream does not support writing (i.e., its write callback is `nullptr`), the resulting output stream will be a no-op stream that always returns the length of the data as written without actually writing anything.
+*
+* @param stream The file system stream to convert.
+* @return An `mla_stream_output_t` that can be used for writing to the file system stream.
+ */
+mla_stream_output_t mla_file_system_stream_as_output(const mla_file_system_stream_t& stream);
 
 /**
  * @brief Virtual file system interface for mounting custom file system implementations.

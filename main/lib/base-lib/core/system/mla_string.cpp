@@ -718,21 +718,34 @@ mla_int32_t mla_string_index_of(const mla_string_t &p_String, const mla_string_t
 mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring) {
 
     mla_size_t length = mla_string_length(p_String);
+    return mla_string_last_index_of(p_String, p_Substring, length - 1);
+}
+
+mla_int32_t mla_string_last_index_of(const mla_string_t &p_String, const mla_string_t &p_Substring, mla_size_t p_Start) {
+
+    mla_size_t length = mla_string_length(p_String);
     mla_size_t lengthSub = mla_string_length(p_Substring);
 
-    if (lengthSub > length) {
-        return -1; // Substring cannot be longer than the string
+    if (p_Start >= length) {
+        return -1; // Start index is outside the string
+    }
+
+    if (lengthSub > length || p_Start < lengthSub - 1) {
+        return -1; // Substring cannot fit before the start index
     }
 
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataSub = mla_string_data(p_Substring);
 
-    for (mla_int32_t i = mla_s_cast<mla_int32_t>(length - lengthSub); i != -1; --i) {
+    for (mla_int32_t i = mla_s_cast<mla_int32_t>(p_Start); i >= 0; --i) {
+
+        if (i + lengthSub > length) {
+            continue; // Substring cannot fit at this position
+        }
 
         if (mla_memcmp(data + i, dataSub, lengthSub) == 0) {
             return i; // Found the substring
         }
-
     }
     return -1; // Substring not found
 }

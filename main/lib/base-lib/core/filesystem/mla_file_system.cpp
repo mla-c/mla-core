@@ -360,8 +360,19 @@ mla_bool_t mla_fs_is_directory_path(const mla_string_t& path) {
 
 mla_string_t mla_fs_get_parent_directory(const mla_string_t& path) {
 
-    // Find the last slash in the path
-    mla_int32_t last_slash_index = mla_string_last_index_of(path, mla_fs_directory_seperator);
+    mla_int32_t last_slash_index;
+
+    // check if the path end with a slash
+    if (mla_string_ends_with(path, mla_fs_directory_seperator)) {
+        // If it does, we need to find the second last slash
+        // Remove the trailing slash and find the last slash in the remaining path
+        mla_string_t path_without_trailing_slash = mla_string_substr(path, 0, mla_string_length(path) - 1);
+        last_slash_index = mla_string_last_index_of(path_without_trailing_slash, mla_fs_directory_seperator);
+    } else {
+        // Find the last slash in the path
+        last_slash_index = mla_string_last_index_of(path, mla_fs_directory_seperator);
+    }
+
 
     if (last_slash_index < 0) {
         return mla_string_empty();
@@ -461,6 +472,26 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
     }
 
     return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
+}
+
+mla_stream_input_t mla_file_system_stream_as_input(const mla_file_system_stream_t& stream) {
+    return {
+        stream.resource,
+        stream.read,
+        stream.position,
+        stream.length,
+        stream.set_length
+    };
+}
+
+mla_stream_output_t mla_file_system_stream_as_output(const mla_file_system_stream_t& stream) {
+    return {
+        stream.resource,
+        stream.write,
+        stream.position,
+        stream.length,
+        stream.set_length
+    };
 }
 
 mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_file_system_setup, mla_file_system_lock)
