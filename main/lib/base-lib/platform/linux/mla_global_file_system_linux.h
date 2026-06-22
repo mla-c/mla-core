@@ -402,6 +402,26 @@ mla_file_system_t mla_private_file_system_native_create_with_base(const mla_stri
     };
 }
 
+mla_file_system_t mla_file_system_native_create_restricted(mla_string_t full_basePath) {
+    mla_file_system_native_resource_t* resource = mla_platform_memory_allocate_type<mla_file_system_native_resource_t>();
+    resource->basePath = mla_string_copy(full_basePath);
+
+    mla_file_system_t fs = mla_file_system_empty();
+    fs.file_exists = mla_file_system_native_file_exists;
+    fs.open_file = mla_file_system_native_open_file;
+    fs.delete_file = mla_file_system_native_delete_file;
+    fs.list_files = mla_file_system_native_list_files;
+
+    fs.create_directory = mla_file_system_native_create_directory;
+    fs.directory_exists = mla_file_system_native_directory_exists;
+    fs.delete_directory = mla_file_system_native_delete_directory;
+    fs.list_directory = mla_file_system_native_list_directory;
+
+    fs.resource = resource;
+
+    return fs;
+}
+
 mla_file_system_t mla_file_system_native_create_data_restricted(mla_string_t basePath) {
     // Get the executable path
     char exePath[PATH_MAX];
