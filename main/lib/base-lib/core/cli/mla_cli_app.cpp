@@ -225,13 +225,12 @@ mla_cli_parser_t mla_private_cli_setup_parser(mla_cli_app_t &app) {
         // Add all commands to enter sub modules
         for (mla_size_t i = 0; i < mla_array_list_size(currentModule->subModules); ++i) {
             mla_cli_module_t *subModule = mla_array_list_get_ref(currentModule->subModules, i);
-            mla_cli_command_t cmdEnterModule = mla_cli_command(subModule->moduleName);
+            mla_cli_command_t cmdEnterModule = mla_cli_command(subModule->moduleName, mla_private_cli_cmd_open_sub_module_execute);
             mla_pointer_t subModule_ptr = mla_platform_pointer_to_managed_pointer(subModule);
 
             mla_user_data_set_pointer(cmdEnterModule.user_data, mla_cli_app_user_data_name, app_ptr);
             mla_user_data_set_pointer(cmdEnterModule.user_data, mla_cli_submodule_user_data_name, subModule_ptr);
 
-            cmdEnterModule.execute = mla_private_cli_cmd_open_sub_module_execute;
             mla_array_list_add(parser.availableCommands, cmdEnterModule);
         }
     }
@@ -239,23 +238,22 @@ mla_cli_parser_t mla_private_cli_setup_parser(mla_cli_app_t &app) {
 
     // Back Command if we are not in the root module
     if (moduleCount > 1) {
-        mla_cli_command_t cmdExit = mla_cli_command(mla_string_const("exit"));
+        mla_cli_command_t cmdExit = mla_cli_command(mla_string_const("exit"), mla_private_cli_cmd_exit_execute);
 
         mla_user_data_set_pointer(cmdExit.user_data, mla_cli_app_user_data_name, app_ptr);
-        cmdExit.execute = mla_private_cli_cmd_exit_execute;
         mla_array_list_add(parser.availableCommands, cmdExit);
     }
 
     // Help command
-    mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"));
+    mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"), mla_private_cli_cmd_help_execute);
     mla_user_data_set_pointer(cmdHelp.user_data, mla_cli_app_user_data_name, app_ptr);
-    cmdHelp.execute = mla_private_cli_cmd_help_execute;
     mla_array_list_add(parser.availableCommands, cmdHelp);
 
     return parser;
 }
 
-void mla_private_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, mla_stream_output_t &outputStream) {
+mla_bool_t mla_private_cli_process_parser_result(const mla_string_t& inputCommand, const mla_cli_parser_result &parser_result, mla_stream_output_t &outputStream) {
+
     if (parser_result.isValid && mla_string_length(parser_result.matchingCommand.name) != 0) {
         // Validate mandatory parameters
         mla_bool_t missingMandatoryParameter = false;
@@ -273,7 +271,7 @@ void mla_private_cli_process_parser_result(const mla_string_t& inputCommand, con
 
         if (missingMandatoryParameter) {
             // not all mandatory parameters are provided
-            return;
+            return false;
         }
 
         // Execute the command
@@ -289,13 +287,15 @@ void mla_private_cli_process_parser_result(const mla_string_t& inputCommand, con
                 mla_private_cli_command_execute_outstream_c_string_to_stream_bridge
             };
 
-            parser_result.matchingCommand.execute(parser_result.matchingCommand, parser_result.matchingParameters,
+            return parser_result.matchingCommand.execute(parser_result.matchingCommand, parser_result.matchingParameters,
                                                   stringOutstream);
         } else {
             mla_error(
                 mla_string_concat(mla_string("Command '"), parser_result.matchingCommand.name, mla_string(
                     "' has no execute function")));
+            return false;
         }
+
     } else {
         mla_private_cli_write_string(outputStream, mla_string("Unknown Command :\n"));
         mla_private_cli_write_string(outputStream, mla_string("  "));
@@ -319,10 +319,12 @@ void mla_private_cli_process_parser_result(const mla_string_t& inputCommand, con
             mla_private_cli_write_string(outputStream, mla_string("Type 'help' to see available commands.\n"));
 
         }
+
+        return false;
     }
 }
 
-void mla_private_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_string_t &command,
+mla_bool_t mla_private_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const mla_string_t &command,
                                                 mla_stream_output_t &outputStream) {
     // Setup the parser
     mla_cli_parser_t parser = mla_private_cli_setup_parser(app);
@@ -331,7 +333,7 @@ void mla_private_cli_parser_parse_and_execute_command(mla_cli_app_t &app, const 
     const mla_cli_parser_result parser_result = mla_cli_parser_parse(parser, command);
 
     // Process the result
-    mla_private_cli_process_parser_result(command, parser_result, outputStream);
+    return mla_private_cli_process_parser_result(command, parser_result, outputStream);
 }
 
 mla_cli_app_t mla_cli_app_empty() {
@@ -352,7 +354,7 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, mla_stream_output_t
     return app;
 }
 
-void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t &inputStream,
+mla_bool_t mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t &inputStream,
                                           mla_stream_output_t &outputStream) {
 
     // Create an own scopt so that the buffer is removed from the stack after reading
@@ -361,7 +363,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
         mla_size_t bytesRead = inputStream.read(inputStream, 0, sizeof(buffer), buffer);
 
         if (bytesRead == 0) {
-            return;
+            return false;
         }
 
         // Append to unprocessed input
@@ -373,6 +375,7 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
     mla_int32_t lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
 
     mla_bool_t commandProcessed = false;
+    mla_bool_t commandSuccessfullyProcessed = true;
 
     while (lineEnd != -1) {
         // Process the line
@@ -383,7 +386,9 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
         app.unprocessedInput = remainingInput;
 
         // Parse and execute the command
-        mla_private_cli_parser_parse_and_execute_command(app, line, outputStream);
+        if (!mla_private_cli_parser_parse_and_execute_command(app, line, outputStream)) {
+            commandSuccessfullyProcessed = false;
+        }
         commandProcessed = true;
 
         // Check for another complete line
@@ -394,6 +399,8 @@ void mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t
         outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>("\n"));
         mla_private_cli_write_module_prompt(app, outputStream);
     }
+
+    return commandSuccessfullyProcessed;
 }
 
 

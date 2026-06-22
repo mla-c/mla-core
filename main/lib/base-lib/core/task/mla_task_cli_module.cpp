@@ -80,14 +80,12 @@ mla_cli_module_t mla_task_cli_module_create() {
     mla_cli_module_t module = mla_cli_module(mla_string_const("task"), mla_string_const("Task management commands"));
 
     // Add 'list' command
-    mla_cli_command_t cmdList = mla_cli_command(mla_string_const("ls"), mla_string_const("List all tasks"));
-    cmdList.execute = mla_private_task_cli_list_all_tasks;
+    mla_cli_command_t cmdList = mla_cli_command(mla_string_const("ls"), mla_string_const("List all tasks"), mla_private_task_cli_list_all_tasks);
     mla_cli_module_add_command(module, cmdList);
 
     // Add 'kill' command
-    mla_cli_command_t cmdKill = mla_cli_command(mla_string_const("kill"), mla_string_const("Kill a task by Name"));
+    mla_cli_command_t cmdKill = mla_cli_command(mla_string_const("kill"), mla_string_const("Kill a task by Name"), mla_private_task_cli_kill_task);
     mla_cli_command_add_parameter(cmdKill, mla_string_const("name"), mla_string_const("Name of the task to kill"), true);
-    cmdKill.execute = mla_private_task_cli_kill_task;
     mla_cli_module_add_command(module, cmdKill);
 
     return module;

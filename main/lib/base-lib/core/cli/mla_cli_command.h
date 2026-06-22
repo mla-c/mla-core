@@ -76,24 +76,24 @@ struct mla_cli_command_initializer {
     }
 };
 
-inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name, const mla_string_t &p_Description) {
+inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name, const mla_string_t &p_Description, const mla_cli_command_execute_t &p_Execute) {
     return {
         p_Name,
         p_Description,
         mla_array_list_empty<mla_cli_command_parameter_t,
             mla_cli_command_parameter_initializer>(),
-        nullptr,
+        p_Execute,
         mla_user_data_empty()
     };
 }
 
-inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name) {
+inline mla_cli_command_t mla_cli_command(const mla_string_t &p_Name, const mla_cli_command_execute_t &p_Execute) {
     return {
         p_Name,
         mla_string_empty(),
         mla_array_list_empty<mla_cli_command_parameter_t,
             mla_cli_command_parameter_initializer>(),
-        nullptr,
+        p_Execute,
         mla_user_data_empty()
     };
 }
