@@ -111,7 +111,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
 
     mla_test_print(" (Memory allocated: ", 20);
     mla_test_char_t buffer[32];
-    mla_test_uint32_t len = mla_uint64_to_string(buffer, sizeof(buffer), current_test_result.allocated_memory);
+    mla_test_uint32_t len = mla_test_uint64_to_string(buffer, sizeof(buffer), current_test_result.allocated_memory);
     mla_test_print(buffer, len);
     mla_test_print(" bytes)", 7);
 
@@ -121,7 +121,7 @@ mla_test_bool_t mla_test_run(mla_test_t &test) {
         mla_test_print(" (Runtime: ", 11);
         mla_test_char_t time_buffer[32];
         mla_test_uint32_t duration_ms = static_cast<mla_test_uint32_t>((end_ns - start_ns) / 1000000);
-        mla_test_uint32_t time_len = mla_uint32_to_string(time_buffer, sizeof(time_buffer), duration_ms);
+        mla_test_uint32_t time_len = mla_test_uint32_to_string(time_buffer, sizeof(time_buffer), duration_ms);
         mla_test_print(time_buffer, time_len);
         mla_test_print(" ms)", 4);
     }
@@ -191,7 +191,7 @@ void mla_check_assert_fail(const mla_test_char_t *p_Message, mla_test_int16_t p_
     // Build: "Assertion failed at line "
     offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
     // Add line number
-    offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+    offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
 
     if (p_Message != nullptr) {
         // Add ": "
@@ -219,7 +219,7 @@ void mla_check_assert_true(mla_test_bool_t p_Condition, const mla_test_char_t *p
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
 
         if (p_Message != nullptr) {
             // Add ": "
@@ -248,7 +248,7 @@ void mla_check_assert_false(mla_test_bool_t p_Condition, const mla_test_char_t *
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
 
         if (p_Message != nullptr) {
             // Add ": "
@@ -276,15 +276,15 @@ void mla_check_assert_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expected
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_bool_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_bool_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_bool_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_bool_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -312,15 +312,15 @@ void mla_check_assert_not_equal(mla_test_bool_t p_Actual, mla_test_bool_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_bool_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_bool_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_bool_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_bool_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -348,15 +348,15 @@ void mla_check_assert_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expected
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -384,15 +384,15 @@ void mla_check_assert_not_equal(mla_test_char_t p_Actual, mla_test_char_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -421,15 +421,15 @@ void mla_check_assert_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expected
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -457,15 +457,15 @@ void mla_check_assert_not_equal(mla_test_int8_t p_Actual, mla_test_int8_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -493,15 +493,15 @@ void mla_check_assert_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -529,15 +529,15 @@ void mla_check_assert_not_equal(mla_test_uint8_t p_Actual, mla_test_uint8_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -565,15 +565,15 @@ void mla_check_assert_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -601,15 +601,15 @@ void mla_check_assert_not_equal(mla_test_int16_t p_Actual, mla_test_int16_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -637,15 +637,15 @@ void mla_check_assert_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_uint16_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint16_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint16_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint16_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -673,15 +673,15 @@ void mla_check_assert_not_equal(mla_test_uint16_t p_Actual, mla_test_uint16_t p_
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_uint16_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint16_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint16_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint16_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -709,15 +709,15 @@ void mla_check_assert_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -745,15 +745,15 @@ void mla_check_assert_not_equal(mla_test_int32_t p_Actual, mla_test_int32_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -781,15 +781,15 @@ void mla_check_assert_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_uint32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -817,15 +817,15 @@ void mla_check_assert_not_equal(mla_test_uint32_t p_Actual, mla_test_uint32_t p_
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_uint32_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint32_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint32_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint32_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -853,15 +853,15 @@ void mla_check_assert_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_int64_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int64_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int64_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int64_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -889,15 +889,15 @@ void mla_check_assert_not_equal(mla_test_int64_t p_Actual, mla_test_int64_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_int64_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_int64_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_int64_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_int64_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -926,15 +926,15 @@ void mla_check_assert_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_uint64_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint64_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint64_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint64_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -962,15 +962,15 @@ void mla_check_assert_not_equal(mla_test_uint64_t p_Actual, mla_test_uint64_t p_
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal to Actual. Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal to Actual. Expected: ");
         // Add expected value
-        offset += mla_uint64_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_uint64_to_string(l_Result + offset, 4096 - offset, p_Expected);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_uint64_to_string(l_Result + offset, 4096 - offset, p_Actual);
+        offset += mla_test_uint64_to_string(l_Result + offset, 4096 - offset, p_Actual);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -999,15 +999,15 @@ void mla_check_assert_equal(mla_test_float_t p_Actual, mla_test_float_t p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_float_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
+        offset += mla_test_float_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_float_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
+        offset += mla_test_float_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1036,15 +1036,15 @@ void mla_check_assert_not_equal(mla_test_float_t p_Actual, mla_test_float_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal: ");
         // Add expected value
-        offset += mla_float_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
+        offset += mla_test_float_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_float_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
+        offset += mla_test_float_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1073,15 +1073,15 @@ void mla_check_assert_equal(mla_test_double_t p_Actual, mla_test_double_t p_Expe
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: ");
         // Add expected value
-        offset += mla_double_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
+        offset += mla_test_double_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_double_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
+        offset += mla_test_double_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1109,15 +1109,15 @@ void mla_check_assert_not_equal(mla_test_double_t p_Actual, mla_test_double_t p_
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal: ");
         // Add expected value
-        offset += mla_double_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
+        offset += mla_test_double_to_string(l_Result + offset, 4096 - offset, p_Expected, 6);
         // Add ", Actual: "
         offset += mla_test_strcat(l_Result, 4096, offset, ", Actual: ");
         // Add actual value
-        offset += mla_double_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
+        offset += mla_test_double_to_string(l_Result + offset, 4096 - offset, p_Actual, 6);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1145,7 +1145,7 @@ void mla_check_assert_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Expect
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected: '"
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected: '");
         // Add expected value
@@ -1183,7 +1183,7 @@ void mla_check_assert_not_equal(mla_test_char_t *p_Actual, mla_test_char_t *p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal: '"
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal: '");
         // Add expected value
@@ -1221,11 +1221,11 @@ void mla_check_assert_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t p_Ex
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected equal pointer, but got different pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected equal pointer, but got different pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, p_Expected);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1253,11 +1253,11 @@ void mla_check_assert_not_equal(mla_test_pointer_t p_Actual, mla_test_pointer_t 
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal pointer, but got same pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal pointer, but got same pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, p_Expected);
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, p_Expected);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1286,11 +1286,11 @@ void mla_check_assert_equal(const mla_test_pointer_t p_Actual, const mla_test_po
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected equal pointer, but got different pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected equal pointer, but got different pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1317,11 +1317,11 @@ void mla_check_assert_not_equal(const mla_test_pointer_t p_Actual, const mla_tes
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not equal pointer, but got same pointer: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not equal pointer, but got same pointer: ");
         // Add expected pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Expected));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1349,11 +1349,11 @@ void mla_check_assert_null(mla_test_pointer_t p_Pointer, const mla_test_char_t *
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected null pointer, but got: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected null pointer, but got: ");
         // Add pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, p_Pointer);
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, p_Pointer);
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1381,7 +1381,7 @@ void mla_check_assert_not_null(mla_test_pointer_t p_Pointer, const mla_test_char
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not null pointer, but got null"
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not null pointer, but got null");
 
@@ -1411,11 +1411,11 @@ void mla_check_assert_null(const mla_test_pointer_t p_Pointer, const mla_test_ch
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected null pointer, but got: "
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected null pointer, but got: ");
         // Add pointer
-        offset += mla_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Pointer));
+        offset += mla_test_pointer_to_string(l_Result + offset, 4096 - offset, const_cast<mla_test_pointer_t>(p_Pointer));
 
         if (p_Message != nullptr) {
             // Add ". "
@@ -1443,7 +1443,7 @@ void mla_check_assert_not_null(const mla_test_pointer_t p_Pointer, const mla_tes
         // Build: "Assertion failed at line "
         offset += mla_test_strcat(l_Result, 4096, offset, "Assertion failed at line ");
         // Add line number
-        offset += mla_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
+        offset += mla_test_int16_to_string(l_Result + offset, 4096 - offset, p_Line);
         // Add ": Expected not null pointer, but got null"
         offset += mla_test_strcat(l_Result, 4096, offset, ": Expected not null pointer, but got null");
 

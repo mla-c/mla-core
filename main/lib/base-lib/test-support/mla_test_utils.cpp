@@ -59,7 +59,7 @@ mla_test_uint32_t mla_test_strlen(const mla_test_char_t* str) {
 }
 
 // Helper function to convert uint32 to string and return length
-mla_test_uint32_t mla_uint32_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint32_t value) {
+mla_test_uint32_t mla_test_uint32_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint32_t value) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -96,7 +96,7 @@ mla_test_uint32_t mla_uint32_to_string(mla_test_char_t* buffer, mla_test_uint32_
 }
 
 // Helper function to convert int16 to string and return length
-mla_test_uint32_t mla_int16_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int16_t value) {
+mla_test_uint32_t mla_test_int16_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int16_t value) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -119,17 +119,17 @@ mla_test_uint32_t mla_int16_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint32 function
-    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
+    mla_test_uint32_t len = mla_test_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
     return offset + len;
 }
 
 // Helper function to convert uint16 to string and return length
-mla_test_uint32_t mla_uint16_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint16_t value) {
-    return mla_uint32_to_string(buffer, buffer_size, static_cast<mla_test_uint32_t>(value));
+mla_test_uint32_t mla_test_uint16_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint16_t value) {
+    return mla_test_uint32_to_string(buffer, buffer_size, static_cast<mla_test_uint32_t>(value));
 }
 
 // Helper function to convert a bool to string and return length
-mla_test_uint32_t mla_bool_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_bool_t value) {
+mla_test_uint32_t mla_test_bool_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_bool_t value) {
     const mla_test_char_t* str = value ? "true" : "false";
     mla_test_uint32_t len = mla_test_strlen(str);
 
@@ -142,7 +142,7 @@ mla_test_uint32_t mla_bool_to_string(mla_test_char_t* buffer, mla_test_uint32_t 
 }
 
 // Helper function to convert int32 to string and return length
-mla_test_uint32_t mla_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int32_t value) {
+mla_test_uint32_t mla_test_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int32_t value) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -165,12 +165,12 @@ mla_test_uint32_t mla_int32_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint32 function
-    mla_test_uint32_t len = mla_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
+    mla_test_uint32_t len = mla_test_uint32_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint32_t>(value));
     return offset + len;
 }
 
 // Helper function to convert uint64 to string and return length
-mla_test_uint32_t mla_uint64_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint64_t value) {
+mla_test_uint32_t mla_test_uint64_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_uint64_t value) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -207,7 +207,7 @@ mla_test_uint32_t mla_uint64_to_string(mla_test_char_t* buffer, mla_test_uint32_
 }
 
 // Helper function to convert int64 to string and return length
-mla_test_uint32_t mla_int64_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int64_t value) {
+mla_test_uint32_t mla_test_int64_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_int64_t value) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -230,12 +230,12 @@ mla_test_uint32_t mla_int64_to_string(mla_test_char_t* buffer, mla_test_uint32_t
     }
 
     // Convert absolute value using uint64 function
-    mla_test_uint32_t len = mla_uint64_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint64_t>(value));
+    mla_test_uint32_t len = mla_test_uint64_to_string(buffer + offset, buffer_size - offset, static_cast<mla_test_uint64_t>(value));
     return offset + len;
 }
 
 // Helper function to convert float to string with precision
-mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_float_t value, mla_test_uint32_t precision) {
+mla_test_uint32_t mla_test_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_float_t value, mla_test_uint32_t precision) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -250,7 +250,7 @@ mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t
 
     // Get integer part
     mla_test_int32_t int_part = static_cast<mla_test_int32_t>(value);
-    offset += mla_int32_to_string(buffer + offset, buffer_size - offset, int_part);
+    offset += mla_test_int32_to_string(buffer + offset, buffer_size - offset, int_part);
 
     // Add decimal point
     if (offset < buffer_size - 1) {
@@ -270,7 +270,7 @@ mla_test_uint32_t mla_float_to_string(mla_test_char_t* buffer, mla_test_uint32_t
 }
 
 // Helper function to convert double to string with precision
-mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_double_t value, mla_test_uint32_t precision) {
+mla_test_uint32_t mla_test_double_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, mla_test_double_t value, mla_test_uint32_t precision) {
     if (buffer_size == 0) {
         return 0;
     }
@@ -285,7 +285,7 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
 
     // Get integer part
     mla_test_int64_t int_part = static_cast<mla_test_int64_t>(value);
-    offset += mla_int64_to_string(buffer + offset, buffer_size - offset, int_part);
+    offset += mla_test_int64_to_string(buffer + offset, buffer_size - offset, int_part);
 
     // Add decimal point
     if (offset < buffer_size - 1) {
@@ -305,7 +305,7 @@ mla_test_uint32_t mla_double_to_string(mla_test_char_t* buffer, mla_test_uint32_
 }
 
 // Helper function to convert pointer to hex string
-mla_test_uint32_t mla_pointer_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, void* ptr) {
+mla_test_uint32_t mla_test_pointer_to_string(mla_test_char_t* buffer, mla_test_uint32_t buffer_size, void* ptr) {
     if (buffer_size < 3) {
         return 0;
     }

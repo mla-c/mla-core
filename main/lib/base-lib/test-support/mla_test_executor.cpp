@@ -40,7 +40,7 @@ mla_test_int32_t mla_test_executor_run_test(mla_test_executor_t &executor, mla_t
     }
 
     char buffer[12];
-    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), test_index + 1);
+    mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), test_index + 1);
     mla_test_print(buffer, strLength);
     mla_test_print("). ", 3);
 
@@ -60,7 +60,7 @@ mla_test_int32_t mla_test_executor_run_all_tests(mla_test_executor_t &executor, 
         if (executor.tests[i].name != nullptr) {
 
             char buffer[12];
-            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+            mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), i + 1);
             mla_test_print(buffer, strLength);
             mla_test_print("). ", 3);
 
@@ -171,7 +171,7 @@ mla_test_int32_t mla_test_executor_run_test_with_allocation_failure(mla_test_exe
     }
 
     char buffer[12];
-    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), testIndex + 1);
+    mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), testIndex + 1);
     mla_test_print(buffer, strLength);
     mla_test_print("). ", 3);
 
@@ -205,7 +205,7 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
 
     mla_test_print("Running Tests with Allocation Failure (Seed: ", 45);
     char seedBuffer[12];
-    mla_test_uint32_t seedLen = mla_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
+    mla_test_uint32_t seedLen = mla_test_uint32_to_string(seedBuffer, sizeof(seedBuffer), p_Seed);
     mla_test_print(seedBuffer, seedLen);
     mla_test_print(")...\n", 5);
 
@@ -236,7 +236,7 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
             g_mla_test_failure_prng_state = p_Seed;
 
             char buffer[12];
-            mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+            mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), i + 1);
             mla_test_print(buffer, strLength);
             mla_test_print("). ", 3);
 
@@ -254,7 +254,7 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_allocation_failure(mla_tes
     mla_test_print(seedBuffer, seedLen);
     mla_test_print(") completed with ", 17);
     char failBuffer[12];
-    mla_test_uint32_t failLen = mla_uint32_to_string(failBuffer, sizeof(failBuffer), static_cast<mla_test_uint32_t>(failedTests));
+    mla_test_uint32_t failLen = mla_test_uint32_to_string(failBuffer, sizeof(failBuffer), static_cast<mla_test_uint32_t>(failedTests));
     mla_test_print(failBuffer, failLen);
     mla_test_print(" failed tests\n", 14);
 
@@ -272,10 +272,10 @@ mla_test_int32_t mla_test_executor_run_all_tests_with_generated_allocation_failu
 
     mla_test_print("\nAllocation Failure Tests completed with ", 41);
     char buffer[12];
-    mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), static_cast<mla_test_uint32_t>(totalFailed));
+    mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), static_cast<mla_test_uint32_t>(totalFailed));
     mla_test_print(buffer, strLength);
     mla_test_print(" total failed tests across ", 27);
-    strLength = mla_uint32_to_string(buffer, sizeof(buffer), p_SeedCount);
+    strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), p_SeedCount);
     mla_test_print(buffer, strLength);
     mla_test_print(" seeds\n", 7);
 

@@ -64,7 +64,7 @@ void mla_benchmark_executor_run_all(mla_benchmark_executor_t &executor, mla_test
 
             if (output_format == mla_test_output_format_text) {
                 mla_test_char_t buffer[12];
-                mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), i + 1);
+                mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), i + 1);
 
                 if (strLength < 3) {
                     for (mla_test_uint32_t k = 0; k < 3 - strLength; k++) {
@@ -100,7 +100,7 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
     if (benchmark_index >= executor.count || executor.benchmarks[benchmark_index].name == nullptr) {
         mla_test_print("Invalid benchmark index: ", 25);
         mla_test_char_t buffer[12];
-        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
+        mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
         mla_test_print(buffer, strLength);
         mla_test_print("\n", 1);
         return; // Invalid benchmark index
@@ -108,7 +108,7 @@ void mla_benchmark_executor_run(mla_benchmark_executor_t &executor, mla_test_uin
 
     if (output_format == mla_test_output_format_text) {
         mla_test_char_t buffer[12];
-        mla_test_uint32_t strLength = mla_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
+        mla_test_uint32_t strLength = mla_test_uint32_to_string(buffer, sizeof(buffer), benchmark_number);
 
         if (strLength < 3) {
             for (mla_test_uint32_t k = 0; k < 3 - strLength; k++) {
