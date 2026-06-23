@@ -37,6 +37,33 @@ mla_bool_t mla_user_data_set_bool(mla_user_data_t& target, mla_user_data_id id, 
 mla_bool_t mla_user_data_set_char(mla_user_data_t& target, mla_user_data_id id, mla_char_t data);
 mla_bool_t mla_user_data_set_string(mla_user_data_t& target, mla_user_data_id id, mla_string_t& data);
 
+template <typename T>
+struct mla_user_data_struct_container {
+    T data;
+
+    static mla_user_data_struct_container<T> init() {
+        return {
+            T::init()
+        };
+    }
+};
+
+
+template <typename T>
+mla_bool_t mla_user_data_set_struct(mla_user_data_t& target, mla_user_data_id id, const T& data) {
+
+    // Create an container for memory management
+    mla_pointer_t ptr = mla_malloc_struct(mla_user_data_struct_container<T>);
+    mla_user_data_struct_container<T>* container = mla_pointer_get_data<mla_user_data_struct_container<T>>(ptr);
+
+    if (container == nullptr) {
+        return false;
+    }
+
+    container->data = data;
+    return mla_user_data_set_pointer(target, id, ptr);
+}
+
 mla_bool_t mla_user_data_inc_int8(mla_user_data_t& target, mla_user_data_id id, mla_int8_t step);
 mla_bool_t mla_user_data_inc_uint8(mla_user_data_t& target, mla_user_data_id id, mla_uint8_t step);
 mla_bool_t mla_user_data_inc_int16(mla_user_data_t& target, mla_user_data_id id, mla_int16_t step);
@@ -108,6 +135,19 @@ T* mla_user_data_get_pointer_data(const mla_user_data_t& userData, mla_user_data
 
 }
 
+template <typename T>
+T* mla_user_data_get_struct_data(const mla_user_data_t& userData, mla_user_data_id id) {
+
+    mla_pointer_t pointer = mla_user_data_get_pointer(userData, id);
+    mla_user_data_struct_container<T>* container = mla_pointer_get_data<mla_user_data_struct_container<T>>(pointer);
+
+    if (container == nullptr) {
+        return nullptr;
+    }
+
+    return &container->data;
+
+}
 
 template <typename T>
 T mla_user_data_get_callback(const mla_user_data_t& userData, mla_user_data_id id) {

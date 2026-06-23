@@ -57,7 +57,7 @@ mla_string_t mla_string_from_stream(mla_stream_input_t &input, mla_size_t max_le
         return mla_string_empty();
     }
 
-    mla_size_t read_length = input.read(input, 0, max_length, buffer_data);
+    mla_size_t read_length = input.read(input, 0, buffer_length, buffer_data);
     return mla_string(buffer, read_length);
 }
 
@@ -90,7 +90,7 @@ mla_bytes_t mla_bytes_from_stream(mla_stream_input_t &input, mla_size_t max_leng
         return mla_bytes_empty(); // Allocation failed, return empty bytes
     }
 
-    mla_size_t read_length = input.read(input, 0, max_length, buffer_data);
+    mla_size_t read_length = input.read(input, 0, buffer_length, buffer_data);
     return mla_bytes_from_external_buffer(buffer, read_length);
 }
 

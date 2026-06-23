@@ -288,6 +288,11 @@ inline mla_size_t mla_array_list_size(const mla_array_list_t<T, TInit>& list) {
 }
 
 template <mla_array_list_template>
+inline mla_bool_t mla_array_list_is_empty(const mla_array_list_t<T, TInit>& list) {
+    return list.size == 0; // Return true if the list is empty
+}
+
+template <mla_array_list_template>
 inline void mla_array_list_clear(mla_array_list_t<T, TInit>& list) {
 
     // assign default value to trigger destructor if T is a class

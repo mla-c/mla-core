@@ -15,28 +15,34 @@ mla_file_system_stream_t mla_file_system_stream_empty() {
     return { mla_string_empty(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, mla_pointer_null() };
 }
 
+mla_file_system_stream_t mla_file_system_stream_t::init() {
+    return mla_file_system_stream_empty();
+}
 
 struct mla_file_system_mount_t {
     mla_string_t mount_path;
     mla_file_system_t file_system;
-};
 
-struct mla_file_system_mount_initializer {
     static mla_file_system_mount_t init() {
         return { mla_string_empty(), mla_file_system_empty() };
     }
 };
 
+mla_file_system_mount_t mla_file_system_mount_empty() {
+    return { mla_string_empty(), mla_file_system_empty() };
+}
+
+
 struct mla_file_system_manager_t {
     mla_bool_t locked;
     mla_mutex_t mounded_file_systems_mutex;
-    mla_array_list_t<mla_file_system_mount_t, mla_file_system_mount_initializer> mounted_file_systems;
+    mla_array_list_t<mla_file_system_mount_t, mla_file_system_mount_t> mounted_file_systems;
 };
 
 static mla_file_system_manager_t file_system_manager = {
     false,
     mla_mutex_create("file_system_manager"),
-    mla_array_list_empty<mla_file_system_mount_t, mla_file_system_mount_initializer>()
+    mla_array_list_empty<mla_file_system_mount_t, mla_file_system_mount_t>()
 };
 
 mla_int32_t mla_private_file_system_sort_compare(const mla_file_system_mount_t &a, const mla_file_system_mount_t &b) {
@@ -208,7 +214,7 @@ mla_string_t mla_private_file_system_get_relative_path(const mla_string_t& full_
 
 mla_bool_t mla_fs_file_exists(const mla_string_t& path) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_file(path, file_system_mount)) {
         return false;
@@ -227,7 +233,7 @@ mla_bool_t mla_fs_file_exists(const mla_string_t& path) {
 
 mla_bool_t mla_fs_delete_file(const mla_string_t& path) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_file(path, file_system_mount)) {
         return false;
@@ -245,7 +251,7 @@ mla_bool_t mla_fs_delete_file(const mla_string_t& path) {
 
 mla_bool_t mla_fs_list_files(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_path(path, file_system_mount)) {
         return false;
@@ -263,7 +269,7 @@ mla_bool_t mla_fs_list_files(const mla_string_t& path, mla_array_list_t<mla_stri
 
 mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_path(path, file_system_mount)) {
         return false;
@@ -281,7 +287,7 @@ mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
 
 mla_bool_t mla_fs_directory_exists(const mla_string_t& path) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_path(path, file_system_mount)) {
         return false;
@@ -299,7 +305,7 @@ mla_bool_t mla_fs_directory_exists(const mla_string_t& path) {
 
 mla_bool_t mla_fs_delete_directory(const mla_string_t& path) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_path(path, file_system_mount)) {
         return false;
@@ -316,7 +322,7 @@ mla_bool_t mla_fs_delete_directory(const mla_string_t& path) {
 
 mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_path(path, file_system_mount)) {
         return false;
@@ -333,7 +339,7 @@ mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_
 
 mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
 
-    mla_file_system_mount_t file_system_mount = mla_file_system_mount_initializer::init();
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
     if (!mla_private_file_system_find_file_system_for_file(path, file_system_mount)) {
         return false;
@@ -474,23 +480,90 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
     return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
 }
 
-mla_stream_input_t mla_file_system_stream_as_input(const mla_file_system_stream_t& stream) {
-    return {
-        stream.resource,
-        stream.read,
-        stream.position,
-        stream.length,
-        stream.set_length
-    };
+mla_user_data_id_init(mla_file_system_stream_userdata_id);
+
+mla_size_t mla_private_file_system_stream_as_input_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+
+    mla_file_system_stream_t* fs_stream = mla_user_data_get_struct_data<mla_file_system_stream_t>(input.userdata, mla_file_system_stream_userdata_id);
+
+    if (fs_stream == nullptr || fs_stream->read == nullptr) {
+        return 0;
+    }
+
+    return fs_stream->read(*fs_stream, offset, length, buffer);
 }
 
+mla_size_t mla_private_file_system_stream_as_input_remaining_bytes(mla_stream_input_t& input) {
+
+    mla_file_system_stream_t* fs_stream = mla_user_data_get_struct_data<mla_file_system_stream_t>(input.userdata, mla_file_system_stream_userdata_id);
+
+    if (fs_stream == nullptr || fs_stream->position == nullptr || fs_stream->length == nullptr) {
+        return 0;
+    }
+
+    mla_file_system_stream_t stream = *fs_stream;
+
+    return stream.length(stream) - stream.position(stream);
+}
+
+
+mla_stream_input_t mla_file_system_stream_as_input(const mla_file_system_stream_t& stream) {
+
+    if (stream.read == nullptr) {
+        return mla_stream_noop_input();
+    }
+
+    mla_user_data_t userdata = mla_user_data_empty();
+    mla_user_data_set_struct(userdata, mla_file_system_stream_userdata_id, stream);
+
+    if (stream.position != nullptr && stream.length != nullptr) {
+        // We can calculate the remaining bytes
+        return {
+            userdata,
+            mla_private_file_system_stream_as_input_read,
+            mla_private_file_system_stream_as_input_remaining_bytes
+        };
+    } else {
+        // We don't know the remaining bytes, return nullptr for the function pointer
+        return {
+            userdata,
+            mla_private_file_system_stream_as_input_read,
+            nullptr
+        };
+    }
+}
+
+
+mla_size_t mla_private_file_system_stream_as_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+
+    mla_file_system_stream_t* fs_stream = mla_user_data_get_struct_data<mla_file_system_stream_t>(output.userdata, mla_file_system_stream_userdata_id);
+
+    if (fs_stream == nullptr || fs_stream->write == nullptr || buffer == nullptr) {
+        return 0;
+    }
+
+    return fs_stream->write(*fs_stream, offset, length, buffer);
+}
+
+mla_size_t mla_private_file_system_stream_as_output_available_bytes(mla_stream_output_t& output) {
+    (void)output;
+    return mla_size_max; // We don't know the available bytes, return max size_t
+}
+
+
 mla_stream_output_t mla_file_system_stream_as_output(const mla_file_system_stream_t& stream) {
+
+    if (stream.write == nullptr) {
+        return mla_stream_noop_output();
+    }
+
+    mla_user_data_t userdata = mla_user_data_empty();
+    mla_user_data_set_struct(userdata, mla_file_system_stream_userdata_id, stream);
+
     return {
-        stream.resource,
-        stream.write,
-        stream.position,
-        stream.length,
-        stream.set_length
+        userdata,
+        mla_private_file_system_stream_as_output_write,
+        mla_private_file_system_stream_as_output_available_bytes
     };
 }
 

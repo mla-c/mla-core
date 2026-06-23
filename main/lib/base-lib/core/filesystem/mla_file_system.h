@@ -28,6 +28,8 @@ struct mla_file_system_stream_t {
     mla_size_t (*write)(const mla_file_system_stream_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer); // Optional, can be nullptr if not supported
 
     mla_pointer_t resource;
+
+    static mla_file_system_stream_t init();
 };
 
 /**
