@@ -35,6 +35,17 @@ void mla_private_cli_command_execute_outstream_c_string_to_stream_bridge(const m
     output->write(*output, 0, mla_strlen(data), mla_r_cast<const mla_byte_t*>(data));
 }
 
+void mla_private_cli_command_execute_outstream_buffer_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length) {
+
+    mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
+    output->write(*output, 0, length, mla_r_cast<const mla_byte_t*>(data));
+}
+
 void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
     mla_size_t size = mla_array_list_size(app.activeModules);
 
@@ -284,6 +295,7 @@ mla_bool_t mla_private_cli_process_parser_result(const mla_string_t& inputComman
             mla_cli_command_execute_outstream_t stringOutstream = {
                 user_data,
                 mla_private_cli_command_execute_outstream_to_stream_bridge,
+                mla_private_cli_command_execute_outstream_buffer_to_stream_bridge,
                 mla_private_cli_command_execute_outstream_c_string_to_stream_bridge
             };
 

@@ -8,7 +8,7 @@
 #include "../lifecycle/mla_lifecycle_events.h"
 
 mla_file_system_t mla_file_system_empty() {
-    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, mla_pointer_null() };
+    return { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, mla_pointer_null() };
 }
 
 mla_file_system_stream_t mla_file_system_stream_empty() {
@@ -357,6 +357,30 @@ mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_
     }
 
     return false;
+}
+
+mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path) {
+
+    mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
+
+    if (!mla_private_file_system_find_file_system_for_file(path, file_system_mount)) {
+        return mla_string_empty();
+    }
+
+    mla_string_t relative_path = mla_private_file_system_get_relative_path(path, file_system_mount.mount_path);
+
+    if (file_system_mount.file_system.os_absolute_path == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_string_t out = mla_string_empty();
+
+    if (!file_system_mount.file_system.os_absolute_path(file_system_mount.file_system, relative_path, out)) {
+        return mla_string_empty();
+    }
+
+    return out;
+
 }
 
 mla_bool_t mla_fs_is_directory_path(const mla_string_t& path) {

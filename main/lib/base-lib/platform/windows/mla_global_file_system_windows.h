@@ -236,6 +236,25 @@ mla_bool_t mla_private_file_system_native_delete_directory(mla_file_system_t& fi
     return result;
 }
 
+mla_bool_t mla_private_file_system_native_os_absolute_path(mla_file_system_t& file_system, const mla_string_t& path, mla_string_t& out) {
+
+    if (!mla_private_file_system_native_file_exists(file_system, path) && !mla_private_file_system_native_directory_exists(file_system, path)) {
+        return false;
+    }
+
+    mla_file_system_native_t* fs = mla_private_file_system_native_get_native_data(file_system);
+
+    if (fs == nullptr) {
+        return false;
+    }
+
+    mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
+
+    out = fullPath;
+
+    return true;
+}
+
 mla_bool_t mla_private_file_system_native_list_files(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {
 
     mla_file_system_native_t* fs = mla_private_file_system_native_get_native_data(file_system);
@@ -575,6 +594,7 @@ mla_file_system_t mla_private_file_system_native_create_with_base(const mla_stri
         mla_private_file_system_native_directory_exists,
         mla_private_file_system_native_delete_directory,
         mla_private_file_system_native_list_directory,
+        mla_private_file_system_native_os_absolute_path,
         fs_ptr
     };
 }

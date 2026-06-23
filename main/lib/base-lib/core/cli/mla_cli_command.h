@@ -8,6 +8,7 @@
 #include "../system/mla_string.h"
 #include "../system/mla_array_list.h"
 #include "../system/mla_hash_map.h"
+#include "../system/mla_stream.h"
 #include "../system/mla_user_data.h"
 
 struct mla_cli_command_parameter_t {
@@ -48,8 +49,11 @@ struct mla_cli_command_execute_outstream_t {
     mla_user_data_t userdata;
 
     void (*write)(const mla_user_data_t& userdata, const mla_string_t &data);
+    void (*writeBuffer)(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length);
     void (*writeCString)(const mla_user_data_t& userdata, const mla_char_t* data);
 };
+
+mla_stream_output_t mla_cli_command_execute_outstream_as_stream_output(const mla_cli_command_execute_outstream_t &out);
 
 typedef mla_bool_t (*mla_cli_command_execute_t)(const mla_cli_command_t &command,
                                           const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,

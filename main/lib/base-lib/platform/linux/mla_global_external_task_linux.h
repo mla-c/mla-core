@@ -16,12 +16,12 @@
 #include <signal.h>
 #include <sys/prctl.h>
 
-struct __linux_external_task_native_resource_t {
+struct mla_private_linux_external_task_native_resource_t {
     pid_t pid;
     mla_int32_t stdin_write_fd;
     mla_int32_t stdout_read_fd;
 
-    static __linux_external_task_native_resource_t init() {
+    static mla_private_linux_external_task_native_resource_t init() {
         return {
             -1, // pid
             -1, // stdin_write_fd
@@ -29,7 +29,7 @@ struct __linux_external_task_native_resource_t {
         };
     }
 
-    static void clean_up_resource(__linux_external_task_native_resource_t& self) {
+    static void clean_up_resource(mla_private_linux_external_task_native_resource_t& self) {
 
         if (self.stdin_write_fd >= 0) {
             close(self.stdin_write_fd);
@@ -49,7 +49,7 @@ struct __linux_external_task_native_resource_t {
     }
 };
 
-void __linux_external_task_child_fail(mla_int32_t p_StatusPipeFd) {
+void mla_private_linux_external_task_child_fail(mla_int32_t p_StatusPipeFd) {
     mla_uint8_t childError = 1;
     write(p_StatusPipeFd, &childError, sizeof(childError));
     kill(getpid(), SIGKILL);
@@ -58,7 +58,7 @@ void __linux_external_task_child_fail(mla_int32_t p_StatusPipeFd) {
     }
 }
 
-void __linux_external_task_cleanup_process_data(__linux_external_task_native_resource_t* p_ProcessData) {
+void mla_private_linux_external_task_cleanup_process_data(mla_private_linux_external_task_native_resource_t* p_ProcessData) {
 
     if (p_ProcessData == nullptr) {
         return;
@@ -75,12 +75,12 @@ void __linux_external_task_cleanup_process_data(__linux_external_task_native_res
     }
 }
 
-__linux_external_task_native_resource_t* __linux_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
+mla_private_linux_external_task_native_resource_t* __linux_external_task_get_process_data(const mla_pointer_t& p_TaskResource) {
 
-    return mla_pointer_get_data<__linux_external_task_native_resource_t>(p_TaskResource);
+    return mla_pointer_get_data<mla_private_linux_external_task_native_resource_t>(p_TaskResource);
 }
 
-mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
+mla_bool_t mla_private_linux_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine, const mla_string_t& p_WorkingDirectory) {
 
     p_OutTaskResource = mla_pointer_null();
 
@@ -138,25 +138,33 @@ mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource
         close(stdoutPipe[0]);
 
         if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0 || getppid() == 1) {
-            __linux_external_task_child_fail(statusPipe[1]);
+            mla_private_linux_external_task_child_fail(statusPipe[1]);
         }
 
         if (dup2(stdinPipe[0], STDIN_FILENO) < 0 || dup2(stdoutPipe[1], STDOUT_FILENO) < 0) {
-            __linux_external_task_child_fail(statusPipe[1]);
+            mla_private_linux_external_task_child_fail(statusPipe[1]);
         }
 
         close(stdinPipe[0]);
         close(stdoutPipe[1]);
 
+        if (!mla_string_is_empty(p_WorkingDirectory)) {
+            mla_c_string_t workingDirCStr = mla_string_to_cString(p_WorkingDirectory);
+            const mla_char_t* workingDir = mla_c_string_data(workingDirCStr);
+            if (workingDir == nullptr || chdir(workingDir) != 0) {
+                mla_private_linux_external_task_child_fail(statusPipe[1]);
+            }
+        }
+
         mla_c_string_t cmdlineCStr = mla_string_to_cString(p_CmdLine);
         const mla_char_t* cmdline = mla_c_string_data(cmdlineCStr);
 
         if (cmdline == nullptr) {
-            __linux_external_task_child_fail(statusPipe[1]);
+            mla_private_linux_external_task_child_fail(statusPipe[1]);
         }
 
         execl("/bin/sh", "sh", "-c", cmdline, nullptr);
-        __linux_external_task_child_fail(statusPipe[1]);
+        mla_private_linux_external_task_child_fail(statusPipe[1]);
     }
 
     close(statusPipe[1]);
@@ -177,8 +185,8 @@ mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource
         return false;
     }
 
-    p_OutTaskResource = mla_malloc_struct_cleanup_extension(__linux_external_task_native_resource_t);
-    __linux_external_task_native_resource_t* processData = mla_pointer_get_data<__linux_external_task_native_resource_t>(p_OutTaskResource);
+    p_OutTaskResource = mla_malloc_struct_cleanup_extension(mla_private_linux_external_task_native_resource_t);
+    mla_private_linux_external_task_native_resource_t* processData = mla_pointer_get_data<mla_private_linux_external_task_native_resource_t>(p_OutTaskResource);
 
     if (processData == nullptr) {
         close(stdinPipe[1]);
@@ -201,9 +209,9 @@ mla_bool_t __linux_external_task_create_process(mla_pointer_t& p_OutTaskResource
     return true;
 }
 
-mla_external_task_state __linux_external_task_get_state(const mla_pointer_t& p_TaskResource) {
+mla_external_task_state mla_private_linux_external_task_get_state(const mla_pointer_t& p_TaskResource) {
 
-    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->pid <= 0) {
         return MLA_EXTERNAL_TASK_STATE_STOPPED;
@@ -220,19 +228,19 @@ mla_external_task_state __linux_external_task_get_state(const mla_pointer_t& p_T
     }
 
     processData->pid = -1;
-    __linux_external_task_cleanup_process_data(processData);
+    mla_private_linux_external_task_cleanup_process_data(processData);
     return MLA_EXTERNAL_TASK_STATE_STOPPED;
 }
 
-void __linux_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
+void mla_private_linux_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
 
-    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr) {
         return;
     }
 
-    __linux_external_task_cleanup_process_data(processData);
+    mla_private_linux_external_task_cleanup_process_data(processData);
 
     if (processData->pid > 0) {
         kill(processData->pid, SIGTERM);
@@ -241,9 +249,9 @@ void __linux_external_task_stop_process(const mla_pointer_t& p_TaskResource) {
     }
 }
 
-mla_size_t __linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
+mla_size_t mla_private_linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer) {
 
-    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdout_read_fd < 0 || p_Buffer == nullptr) {
         return 0;
@@ -259,9 +267,9 @@ mla_size_t __linux_external_task_read_stdout(const mla_pointer_t& p_TaskResource
     return mla_s_cast<mla_size_t>(bytesRead);
 }
 
-mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
+mla_size_t mla_private_linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer) {
 
-    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr || processData->stdin_write_fd < 0 || p_Buffer == nullptr) {
         return 0;
@@ -277,9 +285,9 @@ mla_size_t __linux_external_task_write_stdin(const mla_pointer_t& p_TaskResource
     return mla_s_cast<mla_size_t>(bytesWritten);
 }
 
-void __linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
+void mla_private_linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
 
-    __linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
 
     if (processData == nullptr) {
         return;
@@ -291,13 +299,42 @@ void __linux_external_task_close_stdin(const mla_pointer_t& p_TaskResource) {
     }
 }
 
+mla_int32_t mla_private_linux_external_task_read_result_code(const mla_pointer_t& p_TaskResource) {
+
+    mla_private_linux_external_task_native_resource_t* processData = __linux_external_task_get_process_data(p_TaskResource);
+
+    if (processData == nullptr || processData->pid <= 0) {
+        return -1;
+    }
+
+    int status = 0;
+    pid_t waitResult = -1;
+    do {
+        waitResult = waitpid(processData->pid, &status, WNOHANG);
+    } while (waitResult < 0 && errno == EINTR);
+
+    if (waitResult == 0) {
+        return -1; // Still running
+    }
+
+    processData->pid = -1;
+    mla_private_linux_external_task_cleanup_process_data(processData);
+
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    } else {
+        return -1; // Abnormal termination
+    }
+}
+
 mla_external_task_management_t g_external_task_management = {
-    __linux_external_task_create_process,
-    __linux_external_task_stop_process,
-    __linux_external_task_get_state,
-    __linux_external_task_read_stdout,
-    __linux_external_task_write_stdin,
-    __linux_external_task_close_stdin,
+    mla_private_linux_external_task_create_process,
+    mla_private_linux_external_task_stop_process,
+    mla_private_linux_external_task_get_state,
+    mla_private_linux_external_task_read_stdout,
+    mla_private_linux_external_task_write_stdin,
+    mla_private_linux_external_task_close_stdin,
+    mla_private_linux_external_task_read_result_code
 };
 
 #endif

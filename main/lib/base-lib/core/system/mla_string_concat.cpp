@@ -581,6 +581,59 @@ mla_string_t mla_string_concat(const mla_string_t& p_String1, const mla_char_t* 
 
 }
 
+mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &p_String2, const mla_string_t& p_String3, const mla_char_t* p_String4, const mla_string_t& p_String5 ) {
+
+    mla_size_t size1   = mla_strlen(p_String1);
+    mla_size_t length2 = mla_string_length(p_String2);
+    mla_size_t length3 = mla_string_length(p_String3);
+    mla_size_t size4   = mla_strlen(p_String4);
+    mla_size_t length5 = mla_string_length(p_String5);
+    mla_size_t newLength = size1 + length2 + length3 + size4 + length5;
+
+    // Use small string optimization if the result fits
+    if (newLength <= mla_global_config_string_sso_max_length) {
+        mla_string_t result = {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = mla_s_cast<mla_uint8_t>(newLength);
+
+        const mla_char_t* data2 = mla_string_data(p_String2);
+        const mla_char_t* data3 = mla_string_data(p_String3);
+        const mla_char_t* data5 = mla_string_data(p_String5);
+
+        mla_memcpy(result.embedded.data, p_String1, size1);
+        mla_memcpy(result.embedded.data + size1, data2, length2);
+        mla_memcpy(result.embedded.data + size1 + length2, data3, length3);
+        mla_memcpy(result.embedded.data + size1 + length2 + length3, p_String4, size4);
+        mla_memcpy(result.embedded.data + size1 + length2 + length3 + size4, data5, length5);
+
+        return result;
+    }
+
+    // Fall back to heap allocation for larger strings
+    mla_pointer_t newData = mla_create_char_array(newLength + 1);
+
+    mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+    if (new_data_ptr == nullptr) {
+        return mla_string_const("Concat Failed - Out of Memory");
+    }
+
+    const mla_char_t* data2 = mla_string_data(p_String2);
+    const mla_char_t* data3 = mla_string_data(p_String3);
+    const mla_char_t* data5 = mla_string_data(p_String5);
+
+    mla_memcpy(new_data_ptr, p_String1, size1);
+    mla_memcpy(new_data_ptr + size1, data2, length2);
+    mla_memcpy(new_data_ptr + size1 + length2, data3, length3);
+    mla_memcpy(new_data_ptr + size1 + length2 + length3, p_String4, size4);
+    mla_memcpy(new_data_ptr + size1 + length2 + length3 + size4, data5, length5);
+    new_data_ptr[newLength] = '\0';
+
+    mla_string_t result = {newData, {{MLA_STRING_MEMORY_LAYOUT_C_STRING, 0, {0}}}};
+    result.heap.char_offset = 0;
+    result.heap.length = newLength;
+    return result;
+}
+
 mla_string_t mla_string_concat(const mla_char_t* p_String1, const mla_string_t &p_String2, const mla_char_t* p_String3, const mla_string_t &p_String4, const mla_char_t* p_String5) {
 
     mla_size_t size1 = mla_strlen(p_String1);

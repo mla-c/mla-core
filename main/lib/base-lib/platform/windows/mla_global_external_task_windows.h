@@ -98,7 +98,7 @@ mla_private_windows_external_task_native_resource_t* mla_private_windows_externa
     return mla_pointer_get_data<mla_private_windows_external_task_native_resource_t>(p_TaskResource);
 }
 
-mla_bool_t mla_private_windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine) {
+mla_bool_t mla_private_windows_external_task_create_process(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine, const mla_string_t& p_WorkingDirectory) {
 
     p_OutTaskResource = mla_pointer_null();
 
@@ -175,6 +175,13 @@ mla_bool_t mla_private_windows_external_task_create_process(mla_pointer_t& p_Out
     mla_memcpy(commandBuffer + prefixLength + cmdlineLength, suffix, suffixLength);
     commandBuffer[commandLength] = '\0';
 
+    const mla_char_t* workingDirectory = nullptr;
+
+    if (!mla_string_is_empty(p_WorkingDirectory)) {
+        mla_c_string_t workingDirectoryCStr = mla_string_to_cString(p_WorkingDirectory);
+        workingDirectory = mla_c_string_data(workingDirectoryCStr);
+    }
+
     STARTUPINFOA startupInfo = {};
     PROCESS_INFORMATION processInformation = {};
     startupInfo.cb = sizeof(startupInfo);
@@ -191,7 +198,7 @@ mla_bool_t mla_private_windows_external_task_create_process(mla_pointer_t& p_Out
         TRUE,
         CREATE_NO_WINDOW,
         nullptr,
-        nullptr,
+        workingDirectory,
         &startupInfo,
         &processInformation
     );
@@ -330,6 +337,29 @@ void mla_private_windows_external_task_close_stdin(const mla_pointer_t& p_TaskRe
         CloseHandle(processData->stdin_write_handle);
         processData->stdin_write_handle = nullptr;
     }
+}
+
+mla_int32_t mla_private_windows_external_task_read_result_code(const mla_pointer_t& p_TaskResource) {
+
+    mla_private_windows_external_task_native_resource_t* processData = mla_private_windows_external_task_get_process_data(p_TaskResource);
+
+    if (processData == nullptr || processData->process_handle == nullptr) {
+        return -1;
+    }
+
+    DWORD exitCode = 0;
+    if (GetExitCodeProcess(processData->process_handle, &exitCode) == FALSE) {
+        return -1;
+    }
+
+    if (exitCode == STILL_ACTIVE) {
+        return -1;
+    }
+
+    mla_private_windows_external_task_cleanup_process_data(processData);
+    mla_private_windows_external_task_cleanup_process_handles(processData);
+
+    return mla_s_cast<mla_int32_t>(exitCode);
 }
 
 mla_external_task_management_t g_external_task_management = {

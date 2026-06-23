@@ -83,6 +83,8 @@ struct mla_file_system_t {
     mla_bool_t (*delete_directory)(mla_file_system_t& file_system, const mla_string_t& path);
     mla_bool_t (*list_directory)(mla_file_system_t& file_system, const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
 
+    mla_bool_t (*os_absolute_path)(mla_file_system_t& file_system, const mla_string_t& path, mla_string_t& out);
+
     mla_pointer_t resource;
 };
 
@@ -117,6 +119,7 @@ mla_string_t mla_fs_get_file_name(const mla_string_t& path);
 mla_string_t mla_fs_get_file_extension(const mla_string_t& path);
 mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_string_t& new_extension);
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2);
+mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path);
 
 /// Const
 static const mla_string_t mla_fs_directory_seperator = mla_string_const("/");

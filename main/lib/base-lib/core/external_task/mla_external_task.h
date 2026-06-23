@@ -22,20 +22,23 @@ enum mla_external_task_state: mla_uint8_t {
 
 mla_external_task_t mla_external_task_invalid();
 mla_external_task_t mla_external_task_create(const mla_string_t& p_CmdLine);
+mla_external_task_t mla_external_task_create(const mla_string_t& p_CmdLine, const mla_string_t &p_WorkingDirectory);
 mla_external_task_state mla_external_task_get_state(const mla_external_task_t& p_Task);
 void mla_external_task_stop(mla_external_task_t& p_Task);
+mla_int32_t mla_external_task_read_result_code(const mla_external_task_t& p_Task);
 
 // Close the stdin pipe of the task, signalling EOF to the child process.
 // This does not kill the process; it allows the child to finish reading and flush its output.
 void mla_external_task_close_stdin(mla_external_task_t& p_Task);
 
 struct mla_external_task_management_t {
-    mla_bool_t (*create_process)(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine);
+    mla_bool_t (*create_process)(mla_pointer_t& p_OutTaskResource, const mla_string_t& p_CmdLine, const mla_string_t& p_WorkingDirectory);
     void (*stop_process)(const mla_pointer_t& p_TaskResource);
     mla_external_task_state (*get_state)(const mla_pointer_t& p_TaskResource);
     mla_size_t (*read_stdout)(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, mla_byte_t* p_Buffer);
     mla_size_t (*write_stdin)(const mla_pointer_t& p_TaskResource, mla_size_t p_Offset, mla_size_t p_Length, const mla_byte_t* p_Buffer);
     void (*close_stdin)(const mla_pointer_t& p_TaskResource);
+    mla_int32_t (*read_result_code)(const mla_pointer_t& p_TaskResource);
 };
 
 #endif
