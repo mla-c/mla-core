@@ -133,4 +133,20 @@ inline mla_bool_t mla_cli_command_parameter_verbose_output_active(const mla_hash
     return mla_hash_map_contains(parameters, mla_string(mla_cli_command_verbose_parameter_name));
 }
 
+inline mla_string_t mla_cli_command_get_parameter_value(const mla_cli_command_t &command,
+    const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
+        mla_string_initializer, mla_string_initializer> &parameters,
+    const mla_string_t &parameterName) {
+
+    (void)command;
+
+    mla_string_t out = mla_string_empty();
+
+    if (!mla_hash_map_get(parameters, parameterName, out)) {
+        return mla_string_empty();
+    }
+
+    return out;
+}
+
 #endif
