@@ -12,6 +12,7 @@
 #include <windows.h>
 
 struct mla_private_windows_external_task_native_resource_t {
+    mla_int32_t result_code;
     HANDLE process_handle;
     HANDLE thread_handle;
     HANDLE stdin_write_handle;
@@ -19,6 +20,7 @@ struct mla_private_windows_external_task_native_resource_t {
 
     static mla_private_windows_external_task_native_resource_t init() {
         return {
+            mla_int32_min,
             nullptr,
             nullptr,
             nullptr,
@@ -253,6 +255,7 @@ mla_external_task_state mla_private_windows_external_task_get_state(const mla_po
         return MLA_EXTERNAL_TASK_STATE_RUNNING;
     }
 
+    processData->result_code = mla_s_cast<mla_int32_t>(exitCode);
     mla_private_windows_external_task_cleanup_process_data(processData);
     mla_private_windows_external_task_cleanup_process_handles(processData);
     return MLA_EXTERNAL_TASK_STATE_STOPPED;
@@ -343,8 +346,12 @@ mla_int32_t mla_private_windows_external_task_read_result_code(const mla_pointer
 
     mla_private_windows_external_task_native_resource_t* processData = mla_private_windows_external_task_get_process_data(p_TaskResource);
 
-    if (processData == nullptr || processData->process_handle == nullptr) {
+    if (processData == nullptr) {
         return -1;
+    }
+
+    if (processData->process_handle == nullptr) {
+        return processData->result_code;
     }
 
     DWORD exitCode = 0;
@@ -356,10 +363,11 @@ mla_int32_t mla_private_windows_external_task_read_result_code(const mla_pointer
         return -1;
     }
 
+    processData->result_code = mla_s_cast<mla_int32_t>(exitCode);
     mla_private_windows_external_task_cleanup_process_data(processData);
     mla_private_windows_external_task_cleanup_process_handles(processData);
 
-    return mla_s_cast<mla_int32_t>(exitCode);
+    return processData->result_code;
 }
 
 mla_external_task_management_t g_external_task_management = {
@@ -369,6 +377,7 @@ mla_external_task_management_t g_external_task_management = {
     mla_private_windows_external_task_read_stdout,
     mla_private_windows_external_task_write_stdin,
     mla_private_windows_external_task_close_stdin,
+    mla_private_windows_external_task_read_result_code
 };
 
 #endif
