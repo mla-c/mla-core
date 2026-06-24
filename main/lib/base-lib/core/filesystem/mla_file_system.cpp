@@ -359,7 +359,7 @@ mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_
     return false;
 }
 
-mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path) {
+mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path, mla_bool_t check_if_exists) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
 
@@ -375,12 +375,16 @@ mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path) {
 
     mla_string_t out = mla_string_empty();
 
-    if (!file_system_mount.file_system.os_absolute_path(file_system_mount.file_system, relative_path, out)) {
+    if (!file_system_mount.file_system.os_absolute_path(file_system_mount.file_system, relative_path, check_if_exists, out)) {
         return mla_string_empty();
     }
 
     return out;
 
+}
+
+mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path) {
+    return mla_fs_get_complete_os_absolute_path(path, true);
 }
 
 mla_bool_t mla_fs_is_directory_path(const mla_string_t& path) {
@@ -493,6 +497,10 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
     mla_string_t p1 = path1;
     mla_string_t p2 = path2;
 
+    if (mla_string_starts_with(p1, mla_fs_directory_seperator)) {
+        p1 = mla_string_substr(p1, 1);
+    }
+
     if (mla_string_ends_with(p1, mla_fs_directory_seperator)) {
         p1 = mla_string_substr(p1, 0, mla_string_length(p1) - 1);
     }
@@ -502,6 +510,65 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
     }
 
     return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
+}
+
+mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2, const mla_string_t& path3) {
+
+    mla_size_t len1 = mla_string_length(path1);
+    mla_size_t len2 = mla_string_length(path2);
+    mla_size_t len3 = mla_string_length(path3);
+
+    // All empty → return a single separator
+    if (len1 == 0 && len2 == 0 && len3 == 0) {
+        return mla_fs_directory_seperator;
+    }
+
+    // Normalize paths
+    mla_string_t p1 = path1;
+    mla_string_t p2 = path2;
+    mla_string_t p3 = path3;
+
+    // Handle when any path is empty, ensuring separators are correct
+    // (similar to your 2‑path version but covering 3 inputs)
+
+    // Trim trailing slash from p1 if present
+    if (mla_string_ends_with(p1, mla_fs_directory_seperator)) {
+        p1 = mla_string_substr(p1, 0, mla_string_length(p1) - 1);
+    }
+
+    // Trim leading and trailing slashes for middle path (p2)
+    if (len1 != 1 && mla_string_starts_with(p2, mla_fs_directory_seperator)) {
+        p2 = mla_string_substr(p2, 1);
+    }
+    if (len2 != 1 && mla_string_ends_with(p2, mla_fs_directory_seperator)) {
+        p2 = mla_string_substr(p2, 0, mla_string_length(p2) - 1);
+    }
+
+    // Trim leading slash from last path
+    if (len3 != 1 && mla_string_starts_with(p3, mla_fs_directory_seperator)) {
+        p3 = mla_string_substr(p3, 1);
+    }
+
+    // Handle any empty parts gracefully
+    if (mla_string_length(p1) == 0 && mla_string_length(p2) == 0) {
+        return mla_fs_combine_paths(p3, mla_string_empty()); // → just normalized p3
+    }
+
+    if (mla_string_length(p1) == 0) {
+        return mla_fs_combine_paths(p2, p3);
+    }
+
+    if (mla_string_length(p2) == 0) {
+        return mla_fs_combine_paths(p1, p3);
+    }
+
+    if (mla_string_length(p3) == 0) {
+        return mla_fs_combine_paths(p1, p2);
+    }
+
+    // Combine efficiently in one shot
+    return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2, mla_fs_directory_seperator, p3);
+
 }
 
 mla_user_data_id_init(mla_file_system_stream_userdata_id);

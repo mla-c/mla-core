@@ -131,9 +131,9 @@ mla_bool_t mla_private_file_system_native_delete_directory(mla_file_system_t& fi
     return result == 0;
 }
 
-mla_bool_t mla_private_file_system_native_os_absolute_path(mla_file_system_t& file_system, const mla_string_t& path, mla_string_t& out) {
+mla_bool_t mla_private_file_system_native_os_absolute_path(mla_file_system_t& file_system, const mla_string_t& path, mla_bool_t check_if_exists, mla_string_t& out) {
 
-    if (!mla_private_file_system_native_file_exists(file_system, path) && !mla_private_file_system_native_directory_exists(file_system, path)) {
+    if (check_if_exists && !mla_private_file_system_native_file_exists(file_system, path) && !mla_private_file_system_native_directory_exists(file_system, path)) {
         return false;
     }
 

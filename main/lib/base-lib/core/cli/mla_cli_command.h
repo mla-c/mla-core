@@ -11,6 +11,8 @@
 #include "../system/mla_stream.h"
 #include "../system/mla_user_data.h"
 
+#define mla_cli_command_verbose_parameter_name "verbose"
+
 struct mla_cli_command_parameter_t {
     mla_string_t parameterName;
     mla_string_t description;
@@ -48,12 +50,19 @@ struct mla_cli_command_t;
 struct mla_cli_command_execute_outstream_t {
     mla_user_data_t userdata;
 
+    // Regular
     void (*write)(const mla_user_data_t& userdata, const mla_string_t &data);
     void (*writeBuffer)(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length);
     void (*writeCString)(const mla_user_data_t& userdata, const mla_char_t* data);
+
+    // Verbose
+    void (*writeVerbose)(const mla_user_data_t& userdata, const mla_string_t &data);
+    void (*writeVerboseBuffer)(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length);
+    void (*writeVerboseCString)(const mla_user_data_t& userdata, const mla_char_t* data);
 };
 
 mla_stream_output_t mla_cli_command_execute_outstream_as_stream_output(const mla_cli_command_execute_outstream_t &out);
+mla_stream_output_t mla_cli_command_execute_outstream_verbose_as_stream_output(const mla_cli_command_execute_outstream_t &out);
 
 typedef mla_bool_t (*mla_cli_command_execute_t)(const mla_cli_command_t &command,
                                           const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
@@ -112,6 +121,16 @@ inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_
 
 inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_string_t &parameterName, const mla_string_t &description, mla_bool_t mandatory) {
     mla_cli_command_add_parameter(command, mla_cli_command_parameter(parameterName, description, mandatory));
+}
+
+inline void mla_cli_command_add_parameter_verbose_output(mla_cli_command_t &command) {
+    mla_cli_command_add_parameter(command, mla_string(mla_cli_command_verbose_parameter_name), mla_string("Enable verbose output"), false);
+}
+
+inline mla_bool_t mla_cli_command_parameter_verbose_output_active(const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
+    mla_string_initializer, mla_string_initializer> &parameters) {
+
+    return mla_hash_map_contains(parameters, mla_string(mla_cli_command_verbose_parameter_name));
 }
 
 #endif

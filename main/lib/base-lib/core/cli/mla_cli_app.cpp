@@ -25,6 +25,21 @@ void mla_private_cli_command_execute_outstream_to_stream_bridge(const mla_user_d
     mla_private_cli_write_string(*output, data);
 }
 
+void mla_private_cli_command_execute_outstream_verbose_to_stream_bridge(const mla_user_data_t& userdata, const mla_string_t &data) {
+    mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
+    mla_private_cli_write_string(*output, data);
+}
+
+void mla_private_cli_command_execute_outstream_verbose_to_stream_disabled(const mla_user_data_t& userdata, const mla_string_t &data) {
+    (void)userdata;
+    (void)data;
+}
+
 void mla_private_cli_command_execute_outstream_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
     mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
 
@@ -33,6 +48,21 @@ void mla_private_cli_command_execute_outstream_c_string_to_stream_bridge(const m
     }
 
     output->write(*output, 0, mla_strlen(data), mla_r_cast<const mla_byte_t*>(data));
+}
+
+void mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data) {
+    mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
+    output->write(*output, 0, mla_strlen(data), mla_r_cast<const mla_byte_t*>(data));
+}
+
+void mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_disabled(const mla_user_data_t& userdata, const mla_char_t* data) {
+    (void)userdata;
+    (void)data;
 }
 
 void mla_private_cli_command_execute_outstream_buffer_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length) {
@@ -44,6 +74,23 @@ void mla_private_cli_command_execute_outstream_buffer_to_stream_bridge(const mla
     }
 
     output->write(*output, 0, length, mla_r_cast<const mla_byte_t*>(data));
+}
+
+void mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_bridge(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length) {
+
+    mla_stream_output_t *output = mla_user_data_get_pointer_data<mla_stream_output_t>(userdata, mla_stream_output_user_data_name);
+
+    if (output == nullptr) {
+        return;
+    }
+
+    output->write(*output, 0, length, mla_r_cast<const mla_byte_t*>(data));
+}
+
+void mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_disabled(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length) {
+    (void)userdata;
+    (void)data;
+    (void)length;
 }
 
 void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
@@ -296,8 +343,18 @@ mla_bool_t mla_private_cli_process_parser_result(const mla_string_t& inputComman
                 user_data,
                 mla_private_cli_command_execute_outstream_to_stream_bridge,
                 mla_private_cli_command_execute_outstream_buffer_to_stream_bridge,
-                mla_private_cli_command_execute_outstream_c_string_to_stream_bridge
+                mla_private_cli_command_execute_outstream_c_string_to_stream_bridge,
+
+                mla_private_cli_command_execute_outstream_verbose_to_stream_disabled,
+                mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_disabled,
+                mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_disabled
             };
+
+            if (mla_cli_command_parameter_verbose_output_active(parser_result.matchingParameters)) {
+                stringOutstream.writeVerbose = mla_private_cli_command_execute_outstream_verbose_to_stream_bridge;
+                stringOutstream.writeVerboseBuffer = mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_bridge;
+                stringOutstream.writeVerboseCString = mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_bridge;
+            }
 
             return parser_result.matchingCommand.execute(parser_result.matchingCommand, parser_result.matchingParameters,
                                                   stringOutstream);
