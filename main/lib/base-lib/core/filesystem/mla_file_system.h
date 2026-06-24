@@ -122,6 +122,8 @@ mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_st
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2);
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2, const mla_string_t& path3);
 
+mla_string_t mla_fs_get_relative_path(const mla_string_t& base_path, const mla_string_t& target_path);
+
 
 mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path);
 mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path, mla_bool_t check_if_exists);
