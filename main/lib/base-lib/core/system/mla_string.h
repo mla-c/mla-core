@@ -145,6 +145,7 @@ mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start)
 mla_string_t mla_string_substr(const mla_string_t &p_String, mla_size_t p_Start, mla_size_t p_Length);
 mla_string_t mla_string_repeat(const mla_string_t &p_String, mla_size_t p_Times);
 mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const mla_string_t &p_String, const mla_string_t &p_Delimiter);
+mla_string_t mla_string_join(const mla_array_list_t<mla_string_t, mla_string_initializer> &p_Strings, const mla_string_t &p_Delimiter);
 mla_string_t mla_string_trim(const mla_string_t &p_String);
 
 // This function returns a multi-byte character at the specified index

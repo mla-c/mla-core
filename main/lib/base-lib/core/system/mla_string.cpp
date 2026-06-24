@@ -899,6 +899,79 @@ mla_array_list_t<mla_string_t, mla_string_initializer> mla_string_split(const ml
     return result;
 }
 
+mla_string_t mla_string_join(const mla_array_list_t<mla_string_t, mla_string_initializer> &p_Strings, const mla_string_t &p_Delimiter) {
+
+    mla_size_t totalLength = 0;
+    mla_size_t count = mla_array_list_size(p_Strings);
+    mla_size_t delimiterLength = mla_string_length(p_Delimiter);
+
+    for (mla_size_t i = 0; i < count; ++i) {
+        totalLength += mla_string_length(mla_array_list_get_unsafe(p_Strings, i));
+    }
+
+    if (count > 1) {
+        totalLength += delimiterLength * (count - 1);
+    }
+
+    if (totalLength <= mla_global_config_string_sso_max_length) {
+
+        mla_string_t result =  {mla_pointer_null(), {{MLA_STRING_MEMORY_LAYOUT_EMBEDDED, 0, {0}}}};
+        result.embedded.length = mla_s_cast<mla_uint8_t>(totalLength);
+
+        mla_size_t pos = 0;
+        for (mla_size_t i = 0; i < count; ++i) {
+            const mla_string_t &str = mla_array_list_get_unsafe(p_Strings, i);
+            const mla_char_t* data = mla_string_data(str);
+            mla_size_t length = mla_string_length(str);
+
+            if (length > 0) {
+                mla_memcpy(result.embedded.data + pos, data, length);
+                pos += length;
+            }
+
+            // Add delimiter if not the last string
+            if (i < count - 1 && delimiterLength > 0) {
+                const mla_char_t* delimiterData = mla_string_data(p_Delimiter);
+                mla_memcpy(result.embedded.data + pos, delimiterData, delimiterLength);
+                pos += delimiterLength;
+            }
+        }
+        return result;
+    }
+
+    // Allocate new buffer
+    mla_pointer_t newData = mla_create_char_array(totalLength);
+    mla_char_t* new_data_ptr = mla_pointer_get_data<mla_char_t>(newData);
+
+    if (new_data_ptr == nullptr) {
+        return mla_string_empty(); // Memory allocation failed
+    }
+
+    // Build the joined string
+    mla_size_t pos = 0;
+    for (mla_size_t i = 0; i < count; ++i) {
+        const mla_string_t &str = mla_array_list_get_unsafe(p_Strings, i);
+        const mla_char_t* data = mla_string_data(str);
+        mla_size_t length = mla_string_length(str);
+
+        if (length > 0) {
+            mla_memcpy(new_data_ptr + pos, data, length);}
+        pos += length;
+
+        // Add delimiter if not the last string
+        if (i < count - 1 && delimiterLength > 0) {
+            const mla_char_t* delimiterData = mla_string_data(p_Delimiter);
+            mla_memcpy(new_data_ptr + pos, delimiterData, delimiterLength);
+            pos += delimiterLength;
+        }
+    }
+
+    mla_string_t result =  {newData, {{MLA_STRING_MEMORY_LAYOUT_BUFFER, 0, {0}}}};
+    result.heap.length = totalLength;
+    result.heap.char_offset = 0;
+    return result;
+}
+
 mla_string_t mla_string_trim(const mla_string_t &p_String) {
 
     mla_size_t length = mla_string_length(p_String);

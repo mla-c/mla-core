@@ -186,6 +186,118 @@ mla_bool_t mla_array_list_add(mla_array_list_t<T, TInit>& list, const T& item) {
 }
 
 template <mla_array_list_template>
+mla_bool_t mla_array_list_insert(mla_array_list_t<T, TInit>& list, mla_size_t index, const T& item) {
+
+    if (index > list.size) {
+        return false; // Index out of bounds
+    }
+
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+
+    mla_size_t current_capacity;
+
+    if (header != nullptr) {
+        current_capacity = header->capacity;
+    } else {
+        current_capacity = 0;
+    }
+
+    if (list.size >= current_capacity) {
+        // Resize the array if necessary
+        mla_size_t newCapacity = mla_max(current_capacity * 2, mla_global_config_array_list_default_capacity);
+
+        if (!mla_array_list_resize(list, newCapacity)) {
+            return false; // Memory allocation failed
+        }
+
+        header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+    }
+
+    T* items = mla_private_array_list_items_data_from_header(header);
+
+    // Shift items to the right to make space for the new item
+    mla_memmove(items + index + 1, items + index, (list.size - index) * sizeof(T));
+
+    items[index] = item; // Insert the new item at the specified index
+    ++list.size; // Increment the size
+
+    return true;
+}
+
+template <mla_array_list_template>
+mla_bool_t mla_array_list_remove_range(mla_array_list_t<T, TInit>& list, mla_size_t startIndex, mla_size_t count) {
+
+    if (startIndex >= list.size || count == 0 || startIndex + count > list.size) {
+        return false; // Invalid range
+    }
+
+    T* items = mla_private_array_list_items_data(list);
+
+    // Assign default value to trigger destructor if T is a class
+    for (mla_size_t i = startIndex; i < startIndex + count; ++i) {
+        items[i] = TInit::init();
+    }
+
+    // Shift items to the left to remove the specified range
+    mla_memmove(items + startIndex, items + startIndex + count, (list.size - (startIndex + count)) * sizeof(T));
+
+    list.size -= count; // Decrement the size
+
+    // Clear the last 'count' items because they are no longer valid
+    mla_memset(items + list.size, 0, count * sizeof(T));
+
+    return true;
+}
+
+template <mla_array_list_template>
+mla_bool_t mla_array_list_insert_range(mla_array_list_t<T, TInit>& list, mla_size_t index, const mla_array_list_t<T, TInit>& newItems) {
+
+    if (index > list.size) {
+        return false; // Index out of bounds
+    }
+
+    mla_size_t newItemsCount = newItems.size;
+
+    if (newItemsCount == 0) {
+        return true; // Nothing to insert
+    }
+
+    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+
+    mla_size_t current_capacity;
+
+    if (header != nullptr) {
+        current_capacity = header->capacity;
+    } else {
+        current_capacity = 0;
+    }
+
+    if (list.size + newItemsCount > current_capacity) {
+        // Resize the array if necessary
+        mla_size_t newCapacity = mla_max(current_capacity * 2, list.size + newItemsCount);
+
+        if (!mla_array_list_resize(list, newCapacity)) {
+            return false; // Memory allocation failed
+        }
+
+        header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
+    }
+
+    T* items = mla_private_array_list_items_data_from_header(header);
+    T* items_to_copy = mla_private_array_list_items_data(newItems);
+
+    // Shift existing items to the right to make space for the new items
+    mla_memmove(items + index + newItemsCount, items + index, (list.size - index) * sizeof(T));
+
+    // Copy new items into the specified index
+    mla_memcpy(items + index, items_to_copy, newItemsCount * sizeof(T));
+
+    list.size += newItemsCount; // Increment the size
+
+    return true;
+}
+
+template <mla_array_list_template>
 mla_bool_t mla_array_list_add_all(mla_array_list_t<T, TInit>& list, const mla_array_list_t<T, TInit>& newItems) {
 
     T* items_to_copy = mla_private_array_list_items_data(newItems);
