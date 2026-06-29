@@ -492,7 +492,6 @@ mla_string_t mla_fs_change_file_extension(const mla_string_t& path, const mla_st
 }
 
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2) {
-
     mla_size_t path1_length = mla_string_length(path1);
     mla_size_t path2_length = mla_string_length(path2);
 
@@ -533,7 +532,11 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
         p2 = mla_string_substr(p2, 1);
     }
 
-    return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
+    if (mla_string_is_empty(p1)) {
+        return mla_string_concat(mla_fs_directory_seperator, p2);
+    } else {
+        return mla_string_concat(mla_fs_directory_seperator, p1, mla_fs_directory_seperator, p2);
+    }
 }
 
 mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t& path2, const mla_string_t& path3) {
