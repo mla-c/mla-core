@@ -160,10 +160,9 @@ inline void CommandExecutionTest() {
     mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
 
     // Create a command with parameters
-    mla_cli_command_t testCommand = mla_cli_command(mla_string_const("testcmd"));
+    mla_cli_command_t testCommand = mla_cli_command(mla_string_const("testcmd"), test_command_execute);
     mla_cli_command_add_parameter(testCommand, mla_string_const("param1"), true);
     mla_cli_command_add_parameter(testCommand, mla_string_const("param2"), false);
-    testCommand.execute = test_command_execute;
 
     mla_array_list_add(root.availableCommands, testCommand);
 
@@ -409,13 +408,13 @@ inline void MultipleCommandsTest() {
     mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
 
     // Create multiple commands
-    mla_cli_command_t cmd1 = mla_cli_command(mla_string_const("command1"));
+    mla_cli_command_t cmd1 = mla_cli_command(mla_string_const("command1"), test_command_execute);
     cmd1.execute = test_command_execute;
 
-    mla_cli_command_t cmd2 = mla_cli_command(mla_string_const("command2"));
+    mla_cli_command_t cmd2 = mla_cli_command(mla_string_const("command2"), test_command_execute);
     cmd2.execute = test_command_execute;
 
-    mla_cli_command_t cmd3 = mla_cli_command(mla_string_const("help"));
+    mla_cli_command_t cmd3 = mla_cli_command(mla_string_const("help"), test_command_execute);
     cmd3.execute = test_command_execute;
 
     mla_array_list_add(root.availableCommands, cmd1);

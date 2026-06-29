@@ -13,7 +13,7 @@ inline void ParseCommandWithParameters() {
 
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"));
+    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"), nullptr);
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("path"), true));
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("force"), false));
     mla_array_list_add(parser.availableCommands, cmdExecute);
@@ -39,7 +39,7 @@ inline void ParseCommandWithParametersAndWhiteSpace() {
 
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"));
+    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"), nullptr);
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("path"), true));
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("force"), false));
     mla_array_list_add(parser.availableCommands, cmdExecute);
@@ -65,7 +65,7 @@ inline void AutoCompleteCommand() {
 
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"));
+    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"), nullptr);
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("path"), true));
     mla_cli_command_add_parameter(cmdExecute, mla_cli_command_parameter(mla_string_const("force"), false));
     mla_array_list_add(parser.availableCommands, cmdExecute);
@@ -86,7 +86,7 @@ inline void AutoCompleteCommand() {
 inline void ParseCommandWithQuotedParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdBackup = mla_cli_command(mla_string_const("backup"));
+    mla_cli_command_t cmdBackup = mla_cli_command(mla_string_const("backup"), nullptr);
     mla_cli_command_add_parameter(cmdBackup, mla_string_const("source"), true);
     mla_cli_command_add_parameter(cmdBackup, mla_string_const("destination"), true);
     mla_cli_command_add_parameter(cmdBackup, mla_string_const("verbose"), false);
@@ -111,7 +111,7 @@ inline void ParseCommandWithQuotedParameters() {
 inline void ParseCommandWithOnlyMandatoryParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdDeploy = mla_cli_command(mla_string_const("deploy"));
+    mla_cli_command_t cmdDeploy = mla_cli_command(mla_string_const("deploy"), nullptr);
     mla_cli_command_add_parameter(cmdDeploy, mla_string_const("app"), true);
     mla_cli_command_add_parameter(cmdDeploy, mla_string_const("debug"), false);
     mla_array_list_add(parser.availableCommands, cmdDeploy);
@@ -133,7 +133,7 @@ inline void ParseCommandWithOnlyMandatoryParameters() {
 inline void ParseInvalidCommand() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdStart = mla_cli_command(mla_string_const("start"));
+    mla_cli_command_t cmdStart = mla_cli_command(mla_string_const("start"), nullptr);
     mla_cli_command_add_parameter(cmdStart, mla_string_const("service"), true);
     mla_array_list_add(parser.availableCommands, cmdStart);
 
@@ -146,7 +146,7 @@ inline void ParseInvalidCommand() {
 inline void ParseEmptyCommand() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("help")));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("help"), nullptr));
 
     auto result = mla_cli_parser_parse(parser, mla_string(""));
     assert_false(result.isValid, "Empty command should not be valid");
@@ -157,7 +157,7 @@ inline void ParseEmptyCommand() {
 inline void ParseCommandWithoutAnyParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("version")));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("version"), nullptr));
 
     auto result = mla_cli_parser_parse(parser, mla_string("version"));
     assert_true(result.isValid, "Command without parameters should be valid");
@@ -168,9 +168,9 @@ inline void ParseCommandWithoutAnyParameters() {
 inline void AutoCompleteMultipleCommands() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("start")));
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("stop")));
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("status")));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("start"), nullptr));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("stop"), nullptr));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("status"), nullptr));
 
     auto result = mla_cli_parser_parse(parser, mla_string("st"));
     assert_false(result.isValid, "Partial command should not be valid");
@@ -180,7 +180,7 @@ inline void AutoCompleteMultipleCommands() {
 inline void AutoCompleteParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdConfigure = mla_cli_command(mla_string_const("configure"));
+    mla_cli_command_t cmdConfigure = mla_cli_command(mla_string_const("configure"), nullptr);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("database"), true);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("debug"), false);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("deploy"), false);
@@ -205,7 +205,7 @@ inline void AutoCompleteParameters() {
 inline void AutoCompleteIncompleteParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdConfigure = mla_cli_command(mla_string_const("configure"));
+    mla_cli_command_t cmdConfigure = mla_cli_command(mla_string_const("configure"), nullptr);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("database"), true);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("debug"), false);
     mla_cli_command_add_parameter(cmdConfigure, mla_string_const("deploy"), false);
@@ -228,7 +228,7 @@ inline void AutoCompleteIncompleteParameters() {
 inline void ParseCommandWithMalformedParameters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdTest = mla_cli_command(mla_string_const("test"));
+    mla_cli_command_t cmdTest = mla_cli_command(mla_string_const("test"), nullptr);
     mla_cli_command_add_parameter(cmdTest, mla_string_const("input"), true);
     mla_array_list_add(parser.availableCommands, cmdTest);
 
@@ -239,7 +239,7 @@ inline void ParseCommandWithMalformedParameters() {
 inline void ParseCommandWithTrailingSpaces() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdClean = mla_cli_command(mla_string_const("clean"));
+    mla_cli_command_t cmdClean = mla_cli_command(mla_string_const("clean"), nullptr);
     mla_cli_command_add_parameter(cmdClean, mla_string_const("force"), false);
     mla_array_list_add(parser.availableCommands, cmdClean);
 
@@ -250,7 +250,7 @@ inline void ParseCommandWithTrailingSpaces() {
 inline void ParseCommandWithSpecialCharacters() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_cli_command_t cmdProcess = mla_cli_command(mla_string_const("process"));
+    mla_cli_command_t cmdProcess = mla_cli_command(mla_string_const("process"), nullptr);
     mla_cli_command_add_parameter(cmdProcess, mla_string_const("file"), true);
     mla_cli_command_add_parameter(cmdProcess, mla_string_const("pattern"), false);
     mla_array_list_add(parser.availableCommands, cmdProcess);
@@ -270,8 +270,8 @@ inline void ParseCommandWithSpecialCharacters() {
 inline void ParseMultipleCommandsWithSamePrefixes() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("build")));
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("buildall")));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("build"), nullptr));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("buildall"), nullptr));
 
     auto result = mla_cli_parser_parse(parser, mla_string("build"));
     assert_true(result.isValid, "Exact command match should be valid even with similar prefixes");
@@ -281,8 +281,8 @@ inline void ParseMultipleCommandsWithSamePrefixes() {
 inline void AutoCompleteWithNoMatches() {
     mla_cli_parser_t parser = mla_cli_parser();
 
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("start")));
-    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("stop")));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("start"), nullptr));
+    mla_array_list_add(parser.availableCommands, mla_cli_command(mla_string_const("stop"), nullptr));
 
     auto result = mla_cli_parser_parse(parser, mla_string("xyz"));
     assert_false(result.isValid, "No matching command should not be valid");

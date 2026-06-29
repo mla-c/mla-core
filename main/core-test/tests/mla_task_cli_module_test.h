@@ -29,6 +29,17 @@ inline void test_output_write(const mla_user_data_t& userdata, const mla_string_
     }
 }
 
+inline void test_output_write_buffer(const mla_user_data_t& userdata, const mla_char_t* data, mla_size_t length) {
+    mla_pointer_t output_ptr = mla_user_data_get_pointer(userdata, mla_cli_module_TestOutputData_user_data_name);
+    TestOutputData* output = mla_pointer_get_data<TestOutputData>(output_ptr);
+    mla_size_t dataLen = length;
+    if (output->position + dataLen < 1024) {
+        mla_memcpy(output->buffer + output->position, data, dataLen);
+        output->position += dataLen;
+        output->buffer[output->position] = '\0';
+    }
+}
+
 inline void test_output_write_cstring(const mla_user_data_t& userdata, const mla_char_t* data) {
     mla_pointer_t output_ptr = mla_user_data_get_pointer(userdata, mla_cli_module_TestOutputData_user_data_name);
     TestOutputData* output = mla_pointer_get_data<TestOutputData>(output_ptr);
@@ -70,6 +81,10 @@ inline void ListTaskCliTaskTest() {
     mla_cli_command_execute_outstream_t outStream = {
         mla_user_data_empty(),
         test_output_write,
+        test_output_write_buffer,
+        test_output_write_cstring,
+        test_output_write,
+        test_output_write_buffer,
         test_output_write_cstring
     };
     mla_pointer_t outputData_ptr = mla_platform_pointer_to_managed_pointer(&outputData);
@@ -116,6 +131,10 @@ inline void KillCliTaskTest() {
     mla_cli_command_execute_outstream_t outStream = {
         mla_user_data_empty(),
         test_output_write,
+        test_output_write_buffer,
+        test_output_write_cstring,
+        test_output_write,
+        test_output_write_buffer,
         test_output_write_cstring
     };
     mla_pointer_t outputData_ptr = mla_platform_pointer_to_managed_pointer(&outputData);

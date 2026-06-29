@@ -46,15 +46,15 @@ void FileSystemGetParentDirectoryTest() {
 
     // Edge cases
     parent = mla_fs_get_parent_directory(mla_string("file.txt"));
-    assert_true(mla_string_equals(parent, mla_string_empty()),
-                "Parent of 'file.txt' should be empty");
+    assert_true(mla_string_equals(parent, mla_string_const("/")),
+                "Parent of 'file.txt' should be '/'");
 
     parent = mla_fs_get_parent_directory(mla_string(""));
     assert_true(mla_string_equals(parent, mla_string_empty()),
                 "Parent of empty string should be empty");
 
     parent = mla_fs_get_parent_directory(mla_string("/"));
-    assert_true(mla_string_equals(parent, mla_string("/")),
+    assert_true(mla_string_equals(parent, mla_string_const("/")),
                 "Parent of root '/' should be '/'");
 }
 

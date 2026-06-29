@@ -420,6 +420,10 @@ mla_string_t mla_fs_get_parent_directory(const mla_string_t& path) {
 
     mla_int32_t last_slash_index;
 
+    if (mla_string_length(path) == 0) {
+        return mla_string_empty();
+    }
+
     // check if the path end with a slash
     if (mla_string_ends_with(path, mla_fs_directory_seperator)) {
         // If it does, we need to find the second last slash
@@ -433,7 +437,7 @@ mla_string_t mla_fs_get_parent_directory(const mla_string_t& path) {
 
 
     if (last_slash_index < 0) {
-        return mla_string_empty();
+        return mla_fs_directory_seperator; // No slashes, return root
     }
 
     return mla_string_substr(path, 0, last_slash_index + 1); // Include the slash
