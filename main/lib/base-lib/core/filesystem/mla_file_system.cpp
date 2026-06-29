@@ -267,6 +267,18 @@ mla_bool_t mla_fs_list_files(const mla_string_t& path, mla_array_list_t<mla_stri
 
 }
 
+mla_bool_t mla_fs_count_files(const mla_string_t& path, mla_size_t& out_count) {
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> entries = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!mla_fs_list_files(path, entries)) {
+        return false;
+    }
+
+    out_count = mla_array_list_size(entries);
+    return true;
+}
+
 mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
@@ -335,6 +347,18 @@ mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_
     }
 
     return file_system_mount.file_system.list_directory(file_system_mount.file_system, relative_path, out_entries);
+}
+
+mla_bool_t mla_fs_count_directory(const mla_string_t& path, mla_size_t& out_count) {
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> entries = mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!mla_fs_list_directory(path, entries)) {
+        return false;
+    }
+
+    out_count = mla_array_list_size(entries);
+    return true;
 }
 
 mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {

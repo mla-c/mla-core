@@ -103,6 +103,7 @@ mla_bool_t mla_file_system_is_locked();
 mla_bool_t mla_fs_file_exists(const mla_string_t& path);
 mla_bool_t mla_fs_delete_file(const mla_string_t& path);
 mla_bool_t mla_fs_list_files(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
+mla_bool_t mla_fs_count_files(const mla_string_t& path, mla_size_t& out_count);
 
 mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream);
 
@@ -111,6 +112,7 @@ mla_bool_t mla_fs_directory_exists(const mla_string_t& path);
 mla_bool_t mla_fs_create_directory(const mla_string_t& path);
 mla_bool_t mla_fs_delete_directory(const mla_string_t& path);
 mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
+mla_bool_t mla_fs_count_directory(const mla_string_t& path, mla_size_t& out_count);
 
 // Helpers
 mla_bool_t mla_fs_is_directory_path(const mla_string_t& path);
