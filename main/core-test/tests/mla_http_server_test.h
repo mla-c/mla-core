@@ -18,18 +18,20 @@ static mla_network_host_t test_server_host = mla_network_host_ip4(mla_string_con
 static mla_string_t test_server_url = mla_string_const("http://127.0.0.1:41258");
 static mla_string_t test_server_url_ws = mla_string_const("ws://127.0.0.1:41258");
 
-inline mla_bool_t mla_http_server_request_hello_world_handler(mla_http_server_t& http_server, const mla_http_request_t &request,
+inline mla_bool_t mla_http_server_request_hello_world_handler(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request,
                                                               mla_http_response_t &response) {
     (void) request;
     (void)http_server;
+    (void)userdata;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
 
     return true;
 }
 
-inline mla_bool_t mla_http_server_request_echo_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+inline mla_bool_t mla_http_server_request_echo_handler(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response) {
     (void) http_server;
+    (void)userdata;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     response.content = request.content;
@@ -37,9 +39,10 @@ inline mla_bool_t mla_http_server_request_echo_handler(mla_http_server_t& http_s
     return true;
 }
 
-inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response) {
     (void) http_server;
     (void) request;
+    (void)userdata;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     const mla_char_t *body = "test";
@@ -48,10 +51,11 @@ inline mla_bool_t mla_http_server_request_test_handler(mla_http_server_t& http_s
     return true;
 }
 
-inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_server_t& http_server,
+inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_server_t& http_server, const mla_user_data_t &userdata,
                                                                       const mla_http_request_t &request,
                                                                       mla_http_response_t &response) {
     (void) http_server;
+    (void)userdata;
 
     response.statusCode = mla_http_status_bad_request;
     response.statusMessage = mla_string_const("Bad Request");
