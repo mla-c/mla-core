@@ -74,6 +74,7 @@ set(SOURCE_NETWORK_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/network/mla_network.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/rpc/mla_rpc_http_server.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/rpc/mla_rpc_http_client.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/ui/web/mla_ui_html_template_compile.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/ui/web/mla_ui_http_server.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/core/ui/web/mla_ui_web_remote_surface.cpp
 )

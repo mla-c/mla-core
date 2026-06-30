@@ -4,6 +4,14 @@
 
 #include "mla_stream.h"
 
+mla_stream_input_t mla_stream_input_t::init() {
+    return mla_stream_noop_input();
+}
+
+mla_stream_output_t mla_stream_output_t::init() {
+    return mla_stream_noop_output();
+}
+
 struct mla_private_stream_buffer_manager {
     mla_byte_t* buffer;
     mla_size_t size;

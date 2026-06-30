@@ -13,12 +13,16 @@ struct mla_stream_input_t {
     mla_user_data_t userdata; // Userdata for the read function
     mla_size_t (*read)(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer); // Read function
     mla_size_t (*remaining_bytes)(mla_stream_input_t& input); // Function to get the remaining bytes, can be nullptr. If result is max size_t, means data are there but unknown size
+
+    static mla_stream_input_t init();
 };
 
 struct mla_stream_output_t {
     mla_user_data_t userdata;
     mla_size_t (*write)(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer);
     mla_size_t (*available_bytes)(mla_stream_output_t& output); // Function to get the available bytes, can be nullptr. If result is max size_t, means space is there but unknown size
+
+    static mla_stream_output_t init();
 };
 
 // No-op streams
