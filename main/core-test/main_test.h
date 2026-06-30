@@ -35,6 +35,7 @@
 #include "tests/mla_hash_test.h"
 #include "tests/mla_rpc_test.h"
 #include "tests/mla_stream_test.h"
+#include "tests/mla_ui_html_template_compile_test.h"
 #include "tests/mla_stream_deflate_test.h"
 #include "tests/mla_logger_rpc_test.h"
 #include "tests/mla_reflection_test.h"
@@ -101,6 +102,7 @@ int run(mla_test_bool_t runTest, mla_test_bool_t runBenchmark, mla_test_output_f
     RegisterHashTests(l_TestExecutor);
     RegisterRpcTests(l_TestExecutor);
     RegisterStreamTests(l_TestExecutor);
+    RegisterUiHtmlTemplateCompileTests(l_TestExecutor);
     RegisterStreamDeflateTests(l_TestExecutor);
     RegisterLoggerRpcTests(l_TestExecutor);
     RegisterReflectionTests(l_TestExecutor);
