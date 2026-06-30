@@ -555,7 +555,7 @@ mla_task_process_result_state mla_private_http_server_handler_new_request(mla_us
         }
 
         if (handlerItem.executor != nullptr) {
-            if (!handlerItem.executor(server, request, response)) {
+            if (!handlerItem.executor(server, handlerItem.userdata, request, response)) {
                 mla_warning(mla_string_concat("Handler executor failed for URL: ", request.url));
                 response.statusCode = 500; // Internal Server Error
                 response.statusMessage = mla_string_const("Internal Server Error");

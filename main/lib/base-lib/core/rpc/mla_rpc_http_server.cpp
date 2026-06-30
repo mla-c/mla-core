@@ -103,10 +103,11 @@ mla_bool_t mla_private_rpc_http_server_handler_content_writer(const mla_http_res
     return result;
 }
 
-mla_bool_t mla_private_rpc_http_server_handler_options(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_rpc_http_server_handler_options(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response) {
 
     (void)request;
     (void)http_server;
+    (void)userdata;
 
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
@@ -121,9 +122,10 @@ mla_bool_t mla_private_rpc_http_server_handler_options(mla_http_server_t& http_s
 
 }
 
-mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, const mla_user_data_t& userdata, const mla_http_request_t &request, mla_http_response_t &response) {
 
     (void)http_server;
+    (void)userdata;
 
     // Remove "/rpc/" prefix
     mla_string_t procedure_name = mla_string_substr(request.url, 5);

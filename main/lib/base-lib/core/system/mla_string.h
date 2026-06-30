@@ -98,6 +98,8 @@ struct mla_string_t {
         mla_string_t thisString = *this;
         return !mla_string_equals(thisString, other);
     }
+
+    static mla_string_t init();
 };
 
 mla_string_t mla_string_empty();

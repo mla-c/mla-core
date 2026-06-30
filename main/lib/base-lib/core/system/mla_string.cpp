@@ -7,6 +7,10 @@
 #include "../log/mla_logging.h"
 #include "../utils/mla_char_utils.h"
 
+mla_string_t mla_string_t::init() {
+    return mla_string_empty();
+}
+
 mla_bool_t mla_string_is_embedded(const mla_string_t &p_String) {
     return (p_String.embedded.memoryLayout & MLA_STRING_MEMORY_LOCATION_MASK) == MLA_STRING_LOCATION_EMBEDDED;
 }

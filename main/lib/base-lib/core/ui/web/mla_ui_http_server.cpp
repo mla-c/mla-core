@@ -86,7 +86,9 @@ struct mla_ui_http_server_web_surface_data_t {
 
 };
 
-mla_bool_t mla_private_ui_http_server_handler(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response) {
+mla_bool_t mla_private_ui_http_server_handler(mla_http_server_t& http_server, const mla_user_data_t& userdata, const mla_http_request_t &request, mla_http_response_t &response) {
+
+    (void)userdata;
 
     // Remove "/ui/" prefix
     mla_string_t resource_name = mla_string_substr(request.url, 4, mla_string_length(request.url) - 4);

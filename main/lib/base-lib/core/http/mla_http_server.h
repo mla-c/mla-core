@@ -31,7 +31,7 @@ typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &
 /// HTTP Server Handler Item
 //////////////////////////////////
 
-typedef mla_bool_t (*mla_http_request_handler_t)(mla_http_server_t& http_server, const mla_http_request_t &request, mla_http_response_t &response);
+typedef mla_bool_t (*mla_http_request_handler_t)(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response);
 
 struct mla_http_server_handler_item_t {
     mla_user_data_t userdata;
