@@ -16,7 +16,7 @@ mla_bool_t mla_private_ui_html_template_compile_emit_code_block(mla_string_build
     }
 
     if (writer.emit_code == nullptr) {
-        return false;
+        return true; // If no emit_code function is provided, we can just ignore the code block and continue
     }
 
     mla_string_t code_block = mla_string_builder_to_string(current_block);
@@ -35,7 +35,7 @@ mla_bool_t mla_private_ui_html_template_compile_emit_html_block(mla_string_build
     }
 
     if (writer.emit_html == nullptr) {
-        return false;
+        return true; // If no emit_html function is provided, we can just ignore the HTML block and continue
     }
 
     mla_string_t html_block = mla_string_builder_to_string(current_block);

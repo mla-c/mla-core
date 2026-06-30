@@ -11,6 +11,10 @@
 
 #include <unistd.h>
 #include <time.h>
+#include <unistd.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 #if mla_use_fast_float == 1
 
@@ -48,6 +52,49 @@ mla_uint64_t __linux_system_time_ms() {
 
 }
 
+mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
+    struct termios oldt, newt;
+    int oldf;
+    mla_size_t count = 0;
+    int ch;
+
+    // Save terminal settings
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+
+    // Disable canonical mode and echo, we’ll echo manually
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    // Make stdin non-blocking
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    // Read whatever is available
+    while (count < size - 1) {
+        ch = getchar();
+        if (ch == EOF) break;
+
+        if (ch == '\n' || ch == '\r') {
+            putchar('\n');  // manual echo for newline
+            buffer[count++] = '\n';
+            break;
+        } else {
+            putchar(ch);     // echo character to screen
+            buffer[count++] = (mla_char_t) ch;
+            fflush(stdout);
+        }
+    }
+
+    buffer[count] = '\0';
+
+    // Restore terminal and flags
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    return count;
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access ={
     mla_private_generic_memcpy,
@@ -60,7 +107,7 @@ mla_low_level_operations_t g_low_level_access ={
         mla_private_generic_free,
         mla_private_generic_on_malloc_failure,
         mla_private_generic_print,
-        mla_private_generic_std_read,
+        mla_private_linux_std_read,
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,

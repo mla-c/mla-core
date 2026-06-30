@@ -34,6 +34,7 @@ struct mla_url_t {
 mla_url_t mla_url_empty();
 
 mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl);
+mla_bool_t mla_url_parse_pathAndQuery(const mla_string_t &pathAndQueryString, mla_url_t &outUrl);
 mla_string_t mla_url_to_string(const mla_url_t &url);
 mla_string_t mla_url_to_string_pathAndQuery(const mla_url_t &url);
 

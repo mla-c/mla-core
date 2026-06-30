@@ -127,26 +127,44 @@ inline void mla_cli_command_add_parameter_verbose_output(mla_cli_command_t &comm
     mla_cli_command_add_parameter(command, mla_string(mla_cli_command_verbose_parameter_name), mla_string("Enable verbose output"), false);
 }
 
-inline mla_bool_t mla_cli_command_parameter_verbose_output_active(const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
-    mla_string_initializer, mla_string_initializer> &parameters) {
-
-    return mla_hash_map_contains(parameters, mla_string(mla_cli_command_verbose_parameter_name));
-}
-
 inline mla_string_t mla_cli_command_get_parameter_value(const mla_cli_command_t &command,
     const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
         mla_string_initializer, mla_string_initializer> &parameters,
-    const mla_string_t &parameterName) {
+    const mla_string_t &parameterName, const mla_string_t &defaultValue = mla_string_empty()) {
 
     (void)command;
 
     mla_string_t out = mla_string_empty();
 
     if (!mla_hash_map_get(parameters, parameterName, out)) {
-        return mla_string_empty();
+        return defaultValue;
     }
 
     return out;
+}
+
+inline mla_bool_t mla_cli_command_get_switch_value(const mla_cli_command_t &command, const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
+    mla_string_initializer, mla_string_initializer> &parameters,
+    const mla_string_t &parameterName, mla_bool_t defaultValue = false) {
+
+    mla_string_t value = mla_cli_command_get_parameter_value(command, parameters, parameterName);
+
+    if (mla_string_is_empty(value)) {
+
+        // maybe it is a switch parameter, check if the parameter exists in the parameters map
+        mla_bool_t exists = mla_hash_map_contains(parameters, parameterName);
+        return exists ? true : defaultValue;
+
+    }
+
+    return mla_string_equals_ignore_case(value, mla_string_const("true")) || mla_string_equals_ignore_case(value, mla_string_const("1"));
+
+}
+
+inline mla_bool_t mla_cli_command_parameter_verbose_output_active(const mla_cli_command_t &command,const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t,
+    mla_string_initializer, mla_string_initializer> &parameters) {
+
+    return mla_cli_command_get_switch_value(command, parameters, mla_string(mla_cli_command_verbose_parameter_name));
 }
 
 #endif

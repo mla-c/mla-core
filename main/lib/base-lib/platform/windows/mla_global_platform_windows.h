@@ -6,6 +6,8 @@
 #include "../../core/lifecycle/mla_lifecycle_events.h"
 
 #include <windows.h>
+#include <conio.h>
+#include <stdio.h>
 
 #if mla_use_fast_float == 1
 
@@ -42,6 +44,25 @@ mla_uint64_t mla_private_windows_system_time_ms() {
 
 }
 
+mla_size_t mla_private_windows_std_read(mla_char_t* buffer, mla_size_t size) {
+
+    mla_size_t count = 0;
+
+    while (_kbhit() == TRUE && count < size - 1) {
+        int ch = _getche(); // <- echo input automatically
+        if (ch == '\r') {   // convert CR to newline (for consistency)
+            buffer[count++] = '\n';
+            break;
+        } else {
+            buffer[count++] = mla_s_cast<mla_char_t>(ch);
+        }
+    }
+
+    buffer[count] = '\0';
+    return count;
+
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access {
     mla_private_generic_memcpy,
@@ -54,7 +75,7 @@ mla_low_level_operations_t g_low_level_access {
         mla_private_generic_free,
         mla_private_generic_on_malloc_failure,
         mla_private_generic_print,
-        mla_private_generic_std_read,
+        mla_private_windows_std_read,
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,

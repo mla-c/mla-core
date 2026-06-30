@@ -92,15 +92,6 @@ void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* fi
     fflush(stdout);
 }
 
-mla_size_t mla_private_generic_std_read(mla_char_t* buffer, mla_size_t size) {
-    mla_char_t* lastChar = fgets(buffer, mla_s_cast<int>(size), stdin);
-    if (lastChar == nullptr) {
-        return 0; // No data read
-    }
-    char *nul = mla_s_cast<mla_char_t *>(memchr(buffer, '\0', size));
-    return nul != nullptr ? mla_s_cast<mla_size_t>(nul - buffer) : size;
-}
-
 mla_bool_t mla_private_generic_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
 
     mla_char_t* endptr;

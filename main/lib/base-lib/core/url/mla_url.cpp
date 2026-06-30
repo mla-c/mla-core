@@ -164,6 +164,72 @@ mla_bool_t mla_url_parse(const mla_string_t &urlString, mla_url_t &outUrl) {
     return true;
 }
 
+mla_bool_t mla_url_parse_pathAndQuery(const mla_string_t &pathAndQueryString, mla_url_t &outUrl) {
+
+    if (mla_string_is_empty(pathAndQueryString)) {
+        return false;
+    }
+
+    mla_size_t pos = 0;
+    mla_size_t length = mla_string_length(pathAndQueryString);
+    const mla_char_t* data = mla_string_data(pathAndQueryString);
+
+    // Parse path
+    if (pos < length && data[pos] == '/') {
+        mla_size_t pathEnd = pos;
+        while (pathEnd < length && data[pathEnd] != '?') {
+            pathEnd++;
+        }
+        outUrl.path = mla_string_substr(pathAndQueryString, pos, pathEnd - pos);
+        pos = pathEnd;
+    } else {
+        outUrl.path = mla_string_empty();
+    }
+
+    // Parse query parameters
+    if (pos < length && data[pos] == '?') {
+        pos++; // Skip '?'
+        mla_size_t queryEnd = pos;
+        while (queryEnd < length) {
+            queryEnd++;
+        }
+
+        // Parse individual query parameters
+        mla_size_t paramStart = pos;
+        while (paramStart < queryEnd) {
+            mla_size_t equalSign = paramStart;
+            while (equalSign < queryEnd &&
+                   data[equalSign] != '=' &&
+                   data[equalSign] != '&') {
+                equalSign++;
+            }
+
+            mla_url_query_param_t param = mla_url_query_param_empty();
+            param.key = mla_string_substr(pathAndQueryString, paramStart, equalSign - paramStart);
+
+            if (equalSign < queryEnd && data[equalSign] == '=') {
+                mla_size_t valueStart = equalSign + 1;
+                mla_size_t valueEnd = valueStart;
+                while (valueEnd < queryEnd && data[valueEnd] != '&') {
+                    valueEnd++;
+                }
+                param.value = mla_string_substr(pathAndQueryString, valueStart, valueEnd - valueStart);
+                paramStart = valueEnd;
+            } else {
+                paramStart = equalSign;
+            }
+
+            if (paramStart < queryEnd && data[paramStart] == '&') {
+                paramStart++;
+            }
+
+            mla_array_list_add(outUrl.query, param);
+        }
+    }
+
+    return true;
+}
+
 mla_string_t mla_url_to_string(const mla_url_t &url) {
 
     // Calculate required buffer size

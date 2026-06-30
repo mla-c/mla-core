@@ -350,7 +350,7 @@ mla_bool_t mla_private_cli_process_parser_result(const mla_string_t& inputComman
                 mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_disabled
             };
 
-            if (mla_cli_command_parameter_verbose_output_active(parser_result.matchingParameters)) {
+            if (mla_cli_command_parameter_verbose_output_active(parser_result.matchingCommand, parser_result.matchingParameters)) {
                 stringOutstream.writeVerbose = mla_private_cli_command_execute_outstream_verbose_to_stream_bridge;
                 stringOutstream.writeVerboseBuffer = mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_bridge;
                 stringOutstream.writeVerboseCString = mla_private_cli_command_execute_outstream_verbose_c_string_to_stream_bridge;
