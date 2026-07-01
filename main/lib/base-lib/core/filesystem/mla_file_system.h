@@ -107,6 +107,10 @@ mla_bool_t mla_fs_count_files(const mla_string_t& path, mla_size_t& out_count);
 
 mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream);
 
+mla_bool_t mla_fs_copy_file_to(const mla_string_t& source_path, const mla_string_t& destination_path);
+mla_bool_t mla_fs_copy_file_to_stream(const mla_string_t& source_path, mla_stream_output_t& destination_stream);
+mla_bool_t mla_fs_copy_stream_to_file(mla_stream_input_t& source_stream, const mla_string_t& destination_path);
+
 //// Directory operations
 mla_bool_t mla_fs_directory_exists(const mla_string_t& path);
 mla_bool_t mla_fs_create_directory(const mla_string_t& path);

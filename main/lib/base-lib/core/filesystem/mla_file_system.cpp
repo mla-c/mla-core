@@ -383,6 +383,64 @@ mla_bool_t mla_fs_open_file(const mla_string_t& path, mla_file_system_file_open_
     return false;
 }
 
+mla_bool_t mla_fs_copy_file_to(const mla_string_t& source_path, const mla_string_t& destination_path) {
+
+    // Open the source file for reading
+    mla_file_system_stream_t source_stream = mla_file_system_stream_empty();
+
+    if (!mla_fs_open_file(source_path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, source_stream)) {
+        return false;
+    }
+
+    mla_stream_input_t source_input_stream = mla_file_system_stream_as_input(source_stream);
+
+    // Copy the contents from the source stream to the destination stream
+    if (!mla_fs_copy_stream_to_file(source_input_stream, destination_path)) {
+        return false;
+    }
+
+    return true;
+}
+
+mla_bool_t mla_fs_copy_file_to_stream(const mla_string_t& source_path, mla_stream_output_t& destination_stream) {
+
+    mla_file_system_stream_t source_stream = mla_file_system_stream_empty();
+
+    if (!mla_fs_open_file(source_path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, source_stream)) {
+        return false;
+    }
+
+    mla_stream_input_t source_input_stream = mla_file_system_stream_as_input(source_stream);
+
+    // Copy the contents from the source stream to the destination stream
+    if (!mla_stream_copy(source_input_stream, destination_stream)) {
+        return false;
+    }
+
+    return true;
+}
+
+mla_bool_t mla_fs_copy_stream_to_file(mla_stream_input_t& source_stream, const mla_string_t& destination_path) {
+
+    // Open the destination file for writing
+    mla_file_system_stream_t destination_stream = mla_file_system_stream_empty();
+
+    if (!mla_fs_open_file(destination_path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, destination_stream)) {
+        return false;
+    }
+
+    mla_stream_output_t destination_output_stream = mla_file_system_stream_as_output(destination_stream);
+
+    // Copy the contents from the source stream to the destination stream
+    if (!mla_stream_copy(source_stream, destination_output_stream)) {
+        return false;
+    }
+
+    destination_stream.set_length(destination_stream, destination_stream.position(destination_stream)); // Set the length of the destination file to the current position after writing
+
+    return true;
+}
+
 mla_string_t mla_fs_get_complete_os_absolute_path(const mla_string_t& path, mla_bool_t check_if_exists) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
