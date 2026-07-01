@@ -46,6 +46,7 @@ mla_stream_output_t mla_stream_output_to_buffer(mla_size_t size);
 //////////////////////////////////////////////////////////////////
 
 mla_bool_t mla_stream_copy(mla_stream_input_t &input, mla_stream_output_t &output);
+mla_bool_t mla_stream_equal(mla_stream_input_t &input1, mla_stream_input_t &input2);
 
 mla_bool_t mla_stream_output_write_string(mla_stream_output_t &output, const mla_string_t &string);
 
