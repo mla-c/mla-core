@@ -210,6 +210,11 @@ struct mla_string_hash_t {
 // Usage: mla_string_const("Hello World")
 template<mla_size_t N>
 mla_string_t mla_string_const(const mla_char_t (&literal)[N]) {
+
+    if (N == 0) {
+        return mla_string_empty();
+    }
+
     mla_pointer_t str_ptr = mla_platform_pointer_to_managed_pointer(literal);
     return mla_string_from_c_string(str_ptr, N-1);  // N includes null terminator
 }

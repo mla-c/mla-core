@@ -485,6 +485,10 @@ mla_string_t mla_string_replace(const mla_string_t &p_String, const mla_string_t
         return p_String; // Empty string, nothing to replace
     }
 
+    if (lengthOldSub > length) {
+        return p_String; // Old substring is longer than the string, cannot replace
+    }
+
     const mla_char_t* data = mla_string_data(p_String);
     const mla_char_t* dataOldSub = mla_string_data(p_OldSubstring);
 
