@@ -41,8 +41,8 @@ struct mla_http_server_handler_item_t {
 };
 
 mla_http_server_handler_item_t mla_http_server_handler(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_http_request_handler_checker_t& checker, const mla_http_request_handler_t& executor);
-mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method, const mla_string_t& pathPrefix, const mla_http_request_handler_t& executor);
-mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &http_method, const mla_http_request_handler_t& executor);
+mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_string_t& pathPrefix, const mla_http_request_handler_t& executor);
+mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_http_request_handler_t& executor);
 mla_http_server_handler_item_t mla_http_server_handler_invalid();
 
 struct mla_http_server_handler_item_initializer {

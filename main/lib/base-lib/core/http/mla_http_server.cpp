@@ -91,7 +91,7 @@ mla_bool_t mla_private_http_server_handler_equals_checker(const mla_user_data_t 
     return false;
 }
 
-mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method,
+mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method, mla_user_data_t& userdata,
                                                                    const mla_string_t& pathPrefix,
                                                                    const mla_http_request_handler_t &executor) {
 
@@ -105,11 +105,10 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
 
     checker_userdata_ptr->path_data = pathPrefix;
 
-    mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_pointer(userData, mla_http_server_handler_path_data_user_data_name, checker_userdata);
+    mla_user_data_set_pointer(userdata, mla_http_server_handler_path_data_user_data_name, checker_userdata);
 
     return {
-        userData,
+        userdata,
         mla_string_to_upper(http_method),
         mla_private_http_server_handler_starts_with_checker,
         executor
@@ -123,10 +122,10 @@ mla_bool_t mla_private_http_server_handler_all_checker(const mla_user_data_t& us
     return true;
 }
 
-mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &http_method,
+mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &http_method, mla_user_data_t& userdata,
                                                            const mla_http_request_handler_t &executor) {
     return {
-        mla_user_data_empty(),
+        userdata,
         mla_string_to_upper(http_method),
         mla_private_http_server_handler_all_checker,
         executor

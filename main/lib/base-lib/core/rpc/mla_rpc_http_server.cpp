@@ -291,8 +291,9 @@ mla_bool_t mla_private_rpc_http_server_handler(mla_http_server_t& http_server, c
 
 mla_bool_t mla_rpc_http_server_initialize(mla_http_server_t &server) {
 
-    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler);
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_post, user_data, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler);
     mla_bool_t result1 = mla_http_server_register_handler(server, handler);
-    mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler_options);
+    mla_http_server_handler_item_t handlerOptions = mla_http_server_handler_starts_with(mla_http_method_options, user_data, mla_string_const("/rpc/"), mla_private_rpc_http_server_handler_options);
     return result1 && mla_http_server_register_handler(server, handlerOptions);
 }

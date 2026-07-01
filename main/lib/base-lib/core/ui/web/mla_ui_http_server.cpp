@@ -164,7 +164,8 @@ mla_bool_t mla_private_ui_http_server_handler(mla_http_server_t& http_server, co
 
 mla_bool_t mla_ui_http_server_initialize(mla_http_server_t &server) {
 
-    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_get, mla_string_const("/ui/"), mla_private_ui_http_server_handler);
+    mla_user_data_t user_data = mla_user_data_empty();
+    mla_http_server_handler_item_t handler = mla_http_server_handler_starts_with(mla_http_method_get, user_data, mla_string_const("/ui/"), mla_private_ui_http_server_handler);
     return mla_http_server_register_handler(server, handler);
 
 }
