@@ -664,7 +664,7 @@ mla_string_t mla_fs_combine_paths(const mla_string_t& path1, const mla_string_t&
 
 }
 
-mla_string_t mla_fs_get_relative_path(const mla_string_t& base_path, const mla_string_t& target_path) {
+mla_string_t mla_fs_get_relative_path(const mla_string_t& base_path, const mla_string_t& target_path, mla_bool_t navigate_up_if_needed) {
 
     mla_size_t base_length = mla_string_length(base_path);
     mla_size_t target_length = mla_string_length(target_path);
@@ -675,6 +675,63 @@ mla_string_t mla_fs_get_relative_path(const mla_string_t& base_path, const mla_s
 
     if (!mla_string_starts_with(base_path, mla_fs_directory_seperator) || !mla_string_starts_with(target_path, mla_fs_directory_seperator)) {
         return mla_string_empty();
+    }
+
+    if (navigate_up_if_needed) {
+
+        mla_array_list_t<mla_string_t, mla_string_initializer> base_parts = mla_string_split(base_path, mla_fs_directory_seperator);
+        mla_array_list_t<mla_string_t, mla_string_initializer> target_parts = mla_string_split(target_path, mla_fs_directory_seperator);
+
+        mla_size_t base_count = mla_array_list_size(base_parts);
+        mla_size_t target_count = mla_array_list_size(target_parts);
+
+        mla_size_t i = 0;
+        while (i < base_count && i < target_count) {
+            mla_string_t base_part = mla_array_list_get_unsafe(base_parts, i);
+            mla_string_t target_part = mla_array_list_get_unsafe(target_parts, i);
+
+            if (!mla_string_equals(base_part, target_part)) {
+                break;
+            }
+            i++;
+        }
+
+        mla_string_t result = mla_string_empty();
+
+        mla_size_t up_count = 0;
+        for (mla_size_t j = i; j < base_count; j++) {
+            mla_string_t base_part = mla_array_list_get_unsafe(base_parts, j);
+            if (!mla_string_is_empty(base_part)) {
+                up_count++;
+            }
+        }
+
+        for (mla_size_t j = 0; j < up_count; j++) {
+            if (mla_string_is_empty(result)) {
+                result = mla_string_concat(mla_fs_directory_seperator, mla_string_const(".."));
+            } else {
+                result = mla_string_concat(result, mla_fs_directory_seperator, mla_string_const(".."));
+            }
+        }
+
+        for (mla_size_t j = i; j < target_count; j++) {
+            mla_string_t target_part = mla_array_list_get_unsafe(target_parts, j);
+            if (!mla_string_is_empty(target_part)) {
+                if (mla_string_is_empty(result)) {
+                    result = mla_string_concat(mla_fs_directory_seperator, target_part);
+                } else {
+                    result = mla_string_concat(result, mla_fs_directory_seperator, target_part);
+                }
+            }
+        }
+
+        if (mla_string_is_empty(result)) {
+             result = mla_fs_directory_seperator;
+        } else if (mla_string_ends_with(target_path, mla_fs_directory_seperator)) {
+             result = mla_string_concat(result, mla_fs_directory_seperator);
+        }
+
+        return result;
     }
 
     if (base_length > target_length) {

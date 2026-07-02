@@ -40,10 +40,67 @@ struct mla_http_server_handler_item_t {
     mla_http_request_handler_t executor;
 };
 
+mla_http_server_handler_item_t mla_http_server_handler_invalid();
 mla_http_server_handler_item_t mla_http_server_handler(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_http_request_handler_checker_t& checker, const mla_http_request_handler_t& executor);
 mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_string_t& pathPrefix, const mla_http_request_handler_t& executor);
 mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_http_request_handler_t& executor);
-mla_http_server_handler_item_t mla_http_server_handler_invalid();
+
+mla_user_data_id_init(mla_http_server_handler_struct_user_data_id)
+
+template<typename T>
+mla_bool_t mla_http_request_handler_checker_execute(const mla_user_data_t &userdata, const mla_string_t& url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+
+    T* handler_struct = mla_user_data_get_struct_data<T>(userdata, mla_http_server_handler_struct_user_data_id);
+
+    if (handler_struct == nullptr) {
+        return false;
+    }
+
+    return handler_struct->http_request_check(userdata, url, compare_mode);
+}
+
+template<typename T>
+mla_bool_t mla_http_server_handler_struct_handle_execute(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response) {
+
+    T* handler_struct = mla_user_data_get_struct_data<T>(userdata, mla_http_server_handler_struct_user_data_id);
+
+    if (handler_struct == nullptr) {
+        return false;
+    }
+
+    return handler_struct->http_request_handle(http_server, userdata, request, response);
+}
+
+template<typename T>
+mla_http_server_handler_item_t mla_http_server_handler_struct(const mla_string_t &http_method, mla_user_data_t& userdata, T& handler_struct) {
+
+    if (!mla_user_data_set_struct(userdata, mla_http_server_handler_struct_user_data_id, handler_struct)) {
+        return mla_http_server_handler_invalid();
+    }
+
+    return mla_http_server_handler(http_method, userdata, mla_http_request_handler_checker_execute<T>, mla_http_server_handler_struct_handle_execute<T>);
+}
+
+template<typename T>
+mla_http_server_handler_item_t mla_http_server_handler_struct_starts_with(const mla_string_t &http_method, mla_user_data_t& userdata, const mla_string_t& pathPrefix, T& handler_struct) {
+
+    if (!mla_user_data_set_struct(userdata, mla_http_server_handler_struct_user_data_id, handler_struct)) {
+        return mla_http_server_handler_invalid();
+    }
+
+    return mla_http_server_handler_starts_with(http_method, userdata, pathPrefix, mla_http_server_handler_struct_handle_execute<T>);
+}
+
+template<typename T>
+mla_http_server_handler_item_t mla_http_server_handler_struct_all(const mla_string_t &http_method, mla_user_data_t& userdata, T& handler_struct) {
+
+    if (!mla_user_data_set_struct(userdata, mla_http_server_handler_struct_user_data_id, handler_struct)) {
+        return mla_http_server_handler_invalid();
+    }
+
+    return mla_http_server_handler_all(http_method, userdata, mla_http_server_handler_struct_handle_execute<T>);
+}
+
 
 struct mla_http_server_handler_item_initializer {
     static mla_http_server_handler_item_t init() {

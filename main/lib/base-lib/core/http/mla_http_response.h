@@ -40,6 +40,13 @@ struct mla_http_response_content_writer_t {
     mla_http_response_content_writer_func_t writeTo;
 };
 
+inline mla_http_response_content_writer_t mla_http_response_content_writer_invalid() {
+    return {
+        mla_user_data_empty(),
+        nullptr
+    };
+}
+
 inline mla_http_response_content_writer_t mla_http_response_content_writer(
     const mla_user_data_t &userdata,
     const mla_http_response_content_writer_func_t &writer
@@ -50,12 +57,30 @@ inline mla_http_response_content_writer_t mla_http_response_content_writer(
     };
 }
 
-inline mla_http_response_content_writer_t mla_http_response_content_writer_invalid() {
-    return {
-        mla_user_data_empty(),
-        nullptr
-    };
+mla_user_data_id_init(mla_http_response_content_writer_struct_user_data_id)
+
+template<typename T>
+mla_bool_t mla_http_response_content_writer_struct_execute(const mla_http_response_content_writer_t &writer, const mla_stream_output_t &outputStream) {
+    T* writer_struct = mla_user_data_get_struct_data<T>(writer.userData, mla_http_response_content_writer_struct_user_data_id);
+
+    if (writer_struct == nullptr) {
+        return false;
+    }
+
+    return writer_struct->http_response_content_write(writer, outputStream);
 }
+
+
+template<typename T>
+mla_http_response_content_writer_t mla_http_response_content_writer_struct(mla_user_data_t &userdata, T& writer_struct) {
+    if (!mla_user_data_set_struct(userdata, mla_http_response_content_writer_struct_user_data_id, writer_struct)) {
+        return mla_http_response_content_writer_invalid();
+    }
+
+    return mla_http_response_content_writer(userdata, mla_http_response_content_writer_struct_execute<T>);
+}
+
+
 
 inline mla_bool_t mla_http_response_content_writer_is_valid(const mla_http_response_content_writer_t &writer) {
     return writer.writeTo != nullptr;

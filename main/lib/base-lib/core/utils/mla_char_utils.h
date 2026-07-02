@@ -26,4 +26,8 @@ inline mla_bool_t mla_char_is_whitespace(const mla_char_t p_Char) {
     return (p_Char == ' ') || (p_Char == '\t') || (p_Char == '\n') || (p_Char == '\r');
 }
 
+inline mla_bool_t mla_char_is_digit(const mla_char_t p_Char) {
+    return (p_Char >= '0') && (p_Char <= '9');
+}
+
 #endif

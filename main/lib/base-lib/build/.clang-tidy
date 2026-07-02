@@ -64,6 +64,8 @@ Checks: >-
   -readability-redundant-casting,
   -readability-simplify-boolean-expr,
   -readability-qualified-auto,
+  -readability-make-member-function-const,
+  -readability-convert-member-functions-to-static,
   portability-*,
   modernize-use-nullptr,
   modernize-avoid-c-style-cast
