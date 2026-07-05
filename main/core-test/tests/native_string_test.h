@@ -68,11 +68,21 @@ void CStringConcatBenchmark() {
     const char* str1 = "Hello, ";
     const char* str2 = "World!";
     const char* str3 = " This is a test of concatenation.";
-    const size_t size = strlen(str1) + strlen(str2) + strlen(str3);
+    const size_t len1 = strlen(str1);
+    const size_t len2 = strlen(str2);
+    const size_t len3 = strlen(str3);
+    const size_t size = len1 + len2 + len3;
     char* result = new char[size + 1];
+#if defined(_WIN32) || defined(_WIN64)
     strcpy_s(result, size + 1, str1);
     strcat_s(result, size + 1, str2);
     strcat_s(result, size + 1, str3);
+#else
+    result[0] = '\0';
+    strncat(result, str1, len1);
+    strncat(result, str2, len2);
+    strncat(result, str3, len3);
+#endif
     result[size] = '\0'; // Null-terminate the string
     // Just to ensure the operation is performed
     mla_test_int32_t length = mla_s_cast<mla_test_int32_t>(strlen(result));

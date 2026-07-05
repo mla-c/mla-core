@@ -7,6 +7,7 @@
 #include "../lib/base-lib/platform/linux/mla_global_network_linux.h"
 #include "../lib/base-lib/platform/linux/mla_global_external_task_linux.h"
 #include "../lib/base-lib/platform/linux/mla_global_platform_task_manager_linux.h"
+#include "../lib/base-lib/platform/generic/mla_global_ui_surface_disabled.h"
 
 #include "main_app.h"
 

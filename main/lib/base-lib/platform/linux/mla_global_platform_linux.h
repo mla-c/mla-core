@@ -11,7 +11,6 @@
 
 #include <unistd.h>
 #include <time.h>
-#include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -38,22 +37,23 @@
 #endif
 
 
-void __linux_sleep(mla_uint32_t milliseconds) {
+void mla_private_linux_sleep(mla_uint32_t milliseconds) {
 
     usleep(milliseconds * 1000); // Convert milliseconds to microseconds
 }
 
-mla_uint64_t __linux_system_time_ms() {
+mla_uint64_t mla_private_linux_system_time_ms() {
 
     struct timespec ts;
     // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    return (mla_uint64_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+    return (mla_uint64_t)ts.tv_sec * 1000 + (mla_uint64_t)ts.tv_nsec / 1000000;
 
 }
 
 mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
-    struct termios oldt, newt;
+    struct termios oldt;
+    struct termios newt;
     int oldf;
     mla_size_t count = 0;
     int ch;
@@ -62,7 +62,7 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
 
-    // Disable canonical mode and echo, we’ll echo manually
+    // Disable canonical mode and echo, we'll echo manually
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
@@ -73,7 +73,7 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     // Read whatever is available
     while (count < size - 1) {
         ch = getchar();
-        if (ch == EOF) break;
+        if (ch == EOF) { break; }
 
         if (ch == '\n' || ch == '\r') {
             putchar('\n');  // manual echo for newline
@@ -111,8 +111,8 @@ mla_low_level_operations_t g_low_level_access ={
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,
-    __linux_sleep,
-    __linux_system_time_ms
+    mla_private_linux_sleep,
+    mla_private_linux_system_time_ms
 };
 
 

@@ -110,8 +110,9 @@ inline mla_bool_t mla_http_server_request_multipart_roundtrip_handler(mla_http_s
 
 inline void StartSimpleHttpServerTest() {
     mla_http_server_t server = mla_http_server(test_server_host);
+    mla_user_data_t handlerUserData = mla_user_data_empty();
     mla_http_server_handler_item_t handlerItem = mla_http_server_handler_all(
-        mla_http_method_get, mla_http_server_request_hello_world_handler);
+        mla_http_method_get, handlerUserData, mla_http_server_request_hello_world_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem), "Should register hello world handler");
 
     mla_http_server_set_timeout(server, 1000);
@@ -133,11 +134,13 @@ inline void StartSimpleHttpServerTest() {
 
 inline void HttpServerMultiHandlerTest() {
     mla_http_server_t server = mla_http_server(test_server_host);
+    mla_user_data_t handlerUserData1 = mla_user_data_empty();
     mla_http_server_handler_item_t handlerItem1 = mla_http_server_handler_starts_with(
-        mla_http_method_get, mla_string_const("/test"), mla_http_server_request_test_handler);
+        mla_http_method_get, handlerUserData1, mla_string_const("/test"), mla_http_server_request_test_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem1), "Should register test handler");
+    mla_user_data_t handlerUserData2 = mla_user_data_empty();
     mla_http_server_handler_item_t handlerItem2 = mla_http_server_handler_starts_with(
-        mla_http_method_post, mla_string_const("/echo"), mla_http_server_request_echo_handler);
+        mla_http_method_post, handlerUserData2, mla_string_const("/echo"), mla_http_server_request_echo_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem2), "Should register echo handler");
 
     mla_http_server_set_timeout(server, 1000);
@@ -195,8 +198,9 @@ inline void HttpServerMultiHandlerTest() {
 inline void HttpMultipartRoundTripTest() {
 
     mla_http_server_t server = mla_http_server(test_server_host);
+    mla_user_data_t handlerUserData = mla_user_data_empty();
     mla_http_server_handler_item_t handlerItem = mla_http_server_handler_starts_with(
-        mla_http_method_post, mla_string_const("/multipart/upload"), mla_http_server_request_multipart_roundtrip_handler);
+        mla_http_method_post, handlerUserData, mla_string_const("/multipart/upload"), mla_http_server_request_multipart_roundtrip_handler);
     assert_true(mla_http_server_register_handler(server, handlerItem), "Should register multipart roundtrip handler");
 
     mla_http_server_set_timeout(server, 2000);
@@ -439,8 +443,9 @@ void StartSimpleHttpServerTest_Setup() {
     test_server = mla_http_server(test_server_host);
     mla_http_server_set_timeout(test_server, 500);
 
+    mla_user_data_t handlerUserData = mla_user_data_empty();
     mla_http_server_handler_item_t handlerItem = mla_http_server_handler_all(
-        mla_http_method_get, mla_http_server_request_hello_world_handler);
+        mla_http_method_get, handlerUserData, mla_http_server_request_hello_world_handler);
     mla_http_server_register_handler(test_server, handlerItem);
     mla_http_server_start(test_server, 1);
 }
