@@ -6,7 +6,7 @@
 
 mla_user_data_id_init(mla_cli_command_execute_outstream_user_data_id)
 
-mla_size_t mla_private_mla_cli_command_execute_outstream_as_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_cli_command_execute_outstream_as_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     mla_pointer_t out_ptr = mla_user_data_get_pointer(output.userdata, mla_cli_command_execute_outstream_user_data_id);
     mla_cli_command_execute_outstream_t* out = mla_pointer_get_data<mla_cli_command_execute_outstream_t>(out_ptr);
@@ -21,7 +21,7 @@ mla_size_t mla_private_mla_cli_command_execute_outstream_as_stream_output_write(
     return length; // Return the number of bytes written
 }
 
-mla_size_t mla_private_mla_cli_command_execute_outstream_as_stream_output_available_bytes(mla_stream_output_t& output) {
+mla_size_t mla_private_cli_command_execute_outstream_as_stream_output_available_bytes(mla_stream_output_t& output) {
     (void)output;
     return mla_size_max; // Unknown available bytes
 }
@@ -34,14 +34,14 @@ mla_stream_output_t mla_cli_command_execute_outstream_as_stream_output(const mla
 
     mla_stream_output_t stream_output = {
         userdata,
-        mla_private_mla_cli_command_execute_outstream_as_stream_output_write,
-        mla_private_mla_cli_command_execute_outstream_as_stream_output_available_bytes
+        mla_private_cli_command_execute_outstream_as_stream_output_write,
+        mla_private_cli_command_execute_outstream_as_stream_output_available_bytes
     };
 
     return stream_output;
 }
 
-mla_size_t mla_private_mla_cli_command_execute_outstream_verbose_as_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_cli_command_execute_outstream_verbose_as_stream_output_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
 
     mla_pointer_t out_ptr = mla_user_data_get_pointer(output.userdata, mla_cli_command_execute_outstream_user_data_id);
     mla_cli_command_execute_outstream_t* out = mla_pointer_get_data<mla_cli_command_execute_outstream_t>(out_ptr);
@@ -64,8 +64,8 @@ mla_stream_output_t mla_cli_command_execute_outstream_verbose_as_stream_output(c
 
     mla_stream_output_t stream_output = {
         userdata,
-        mla_private_mla_cli_command_execute_outstream_verbose_as_stream_output_write,
-        mla_private_mla_cli_command_execute_outstream_as_stream_output_available_bytes
+        mla_private_cli_command_execute_outstream_verbose_as_stream_output_write,
+        mla_private_cli_command_execute_outstream_as_stream_output_available_bytes
     };
 
     return stream_output;

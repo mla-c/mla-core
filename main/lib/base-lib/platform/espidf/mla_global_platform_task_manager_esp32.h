@@ -113,7 +113,7 @@ inline mla_bool_t mla_task_manager_esp32_atomic_compare_exchange(mla_atomic_int3
     return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
 }
 
-void mla_private_mla_task_manager_esp32_native_worker(void * param) {
+void mla_private_task_manager_esp32_native_worker(void * param) {
 
     mla_task_manager_esp32_native_data_t* thread_data = mla_s_cast<mla_task_manager_esp32_native_data_t*>(param);
 
@@ -193,7 +193,7 @@ mla_bool_t mla_task_manager_esp32_native_create_task(
     mla_char_t taskNameBuffer[configMAX_TASK_NAME_LEN] = {0};
     mla_memcpy(taskNameBuffer, mla_string_data(task_name), mla_min(mla_string_length(task_name), configMAX_TASK_NAME_LEN - 1));
 
-    mla_bool_t success = xTaskCreate(mla_private_mla_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
+    mla_bool_t success = xTaskCreate(mla_private_task_manager_esp32_native_worker, taskNameBuffer, stackSizeInBytes, thread_data, prio, &thread_data->hThread) == pdTRUE;
 
     if (!success) {
         outTaskResourceOwner = mla_pointer_null();

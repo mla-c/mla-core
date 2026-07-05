@@ -76,7 +76,7 @@ struct mla_arduino_gfx_render_cache {
     mla_uint16_t currentStrokeColor;
 };
 
-mla_arduino_gfx_render_cache mla_private_mla_arduino_gfx_cache_empty() {
+mla_arduino_gfx_render_cache mla_private_arduino_gfx_cache_empty() {
     return {
         mla_array_list_empty<mla_arduino_gfx_font_cache_item,
             mla_arduino_gfx_font_cache_item_initializer>(),
@@ -184,7 +184,7 @@ static const GFXfont* mla_private_arduino_gfx_get_font_for_size(mla_double_t siz
     }
 }
 
-const GFXfont* mla_private_mla_arduino_gfx_cache_getOrCreateFont(
+const GFXfont* mla_private_arduino_gfx_cache_getOrCreateFont(
     mla_arduino_gfx_render_cache &cache, const mla_ui_surface_font_type_t &fontType) {
 
     if (mla_string_is_empty(fontType.family)) {
@@ -286,7 +286,7 @@ mla_ui_surface_draw_size_t mla_private_arduino_gfx_surface_calc_text_size(const 
         return size;
     }
 
-    const GFXfont *font = mla_private_mla_arduino_gfx_cache_getOrCreateFont(gfx_surface->renderCache, font_type);
+    const GFXfont *font = mla_private_arduino_gfx_cache_getOrCreateFont(gfx_surface->renderCache, font_type);
     g_gfx->setFont(font);
 
     int16_t x1, y1;
@@ -624,7 +624,7 @@ mla_bool_t mla_private_arduino_gfx_surface_render_draw_commands(const mla_ui_sur
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
                 if (mla_string_is_empty(cmd.text.content)) break;
 
-                const GFXfont *font = mla_private_mla_arduino_gfx_cache_getOrCreateFont(
+                const GFXfont *font = mla_private_arduino_gfx_cache_getOrCreateFont(
                     gfx_surface->renderCache, cmd.text.font_type);
 
                 g_gfx->setFont(font);
@@ -668,7 +668,7 @@ mla_buffer_cleanup_mode mla_private_arduino_gfx_surface_buffer_cleanup(mla_platf
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(data);
 
     if (gfx_surface != nullptr) {
-        gfx_surface->renderCache = mla_private_mla_arduino_gfx_cache_empty();
+        gfx_surface->renderCache = mla_private_arduino_gfx_cache_empty();
     }
 
     return CLEAN_UP_NEEDED;
@@ -685,7 +685,7 @@ mla_bool_t mla_private_arduino_gfx_create_surface(mla_ui_surface_t &outSurface) 
     mla_memset(gfx_surface, 0, sizeof(mla_arduino_gfx_surface_t));
     gfx_surface->is_initialized = false;
     gfx_surface->size = {TFT_WIDTH, TFT_HEIGHT};
-    gfx_surface->renderCache = mla_private_mla_arduino_gfx_cache_empty();
+    gfx_surface->renderCache = mla_private_arduino_gfx_cache_empty();
     gfx_surface->touchState = {false, 0, 0, false};
 
     outSurface.resource = gfx_surface;

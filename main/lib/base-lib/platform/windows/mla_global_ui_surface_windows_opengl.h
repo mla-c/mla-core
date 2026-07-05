@@ -21,7 +21,7 @@
 // Helper wrappers for GL float-precision math using MLA math utilities
 static inline GLfloat mla_private_gl_cosf(GLfloat x) { return (GLfloat)mla_math_cos((mla_double_t)x); }
 static inline GLfloat mla_private_gl_sinf(GLfloat x) { return (GLfloat)mla_math_sin((mla_double_t)x); }
-static inline mla_double_t mla_private_mla_fabs(mla_double_t x) { return x < 0.0 ? -x : x; }
+static inline mla_double_t mla_private_fabs(mla_double_t x) { return x < 0.0 ? -x : x; }
 
 // Global OpenGL context
 static HGLRC g_hGLRC = nullptr;
@@ -42,7 +42,7 @@ struct mla_opengl_gradient_state {
     mla_ui_surface_draw_command_color_t radial_edge_color;
 };
 
-mla_opengl_gradient_state mla_private_mla_opengl_gradient_state_empty() {
+mla_opengl_gradient_state mla_private_opengl_gradient_state_empty() {
     return {
         false, false,
         0, 0, 0, 0,
@@ -90,15 +90,15 @@ struct mla_global_ui_surface_windows_opengl_Cache {
     mla_opengl_gradient_state gradientState;
 };
 
-mla_global_ui_surface_windows_opengl_Cache mla_private_mla_global_ui_surface_windows_opengl_cache_empty() {
+mla_global_ui_surface_windows_opengl_Cache mla_private_global_ui_surface_windows_opengl_cache_empty() {
     return {
         mla_array_list_empty<mla_global_ui_surface_windows_opengl_font_cache_item, mla_global_ui_surface_windows_opengl_font_cache_item_initializer>(),
         {1.0f, 1.0f, 1.0f, 1.0f},
-        mla_private_mla_opengl_gradient_state_empty()
+        mla_private_opengl_gradient_state_empty()
     };
 }
 
-mla_buffer_cleanup_mode mla_private_mla_global_ui_surface_windows_opengl_font_cleanup(
+mla_buffer_cleanup_mode mla_private_global_ui_surface_windows_opengl_font_cleanup(
     mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
@@ -115,7 +115,7 @@ mla_buffer_cleanup_mode mla_private_mla_global_ui_surface_windows_opengl_font_cl
     return CLEAN_UP_NEEDED;
 }
 
-mla_global_ui_surface_windows_opengl_font_cache_item* mla_private_mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+mla_global_ui_surface_windows_opengl_font_cache_item* mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
     mla_global_ui_surface_windows_opengl_Cache& cache, HDC hdc, const mla_ui_surface_font_type_t& fontType) {
     
     if (mla_string_is_empty(fontType.family))
@@ -206,7 +206,7 @@ mla_global_ui_surface_windows_opengl_font_cache_item* mla_private_mla_global_ui_
     
     mla_global_ui_surface_windows_opengl_font_cache_item newItem = {
         fontType,
-        mla_buffer_reference_create(resources, true, mla_private_mla_global_ui_surface_windows_opengl_font_cleanup, mla_dynamic_data_empty()),
+        mla_buffer_reference_create(resources, true, mla_private_global_ui_surface_windows_opengl_font_cleanup, mla_dynamic_data_empty()),
         resources
     };
     
@@ -295,8 +295,8 @@ mla_arc_params mla_private_svg_arc_to_center_param(mla_double_t x1, mla_double_t
         return result;
     }
     
-    rx = mla_private_mla_fabs(rx);
-    ry = mla_private_mla_fabs(ry);
+    rx = mla_private_fabs(rx);
+    ry = mla_private_fabs(ry);
     
     mla_double_t phi = x_axis_rotation * mla_math_pi / 180.0;
     mla_double_t cos_phi = mla_math_cos(phi);
@@ -766,7 +766,7 @@ mla_bool_t mla_private_windows_create_windows_opengl_surface(mla_windows_window_
     
     wglMakeCurrent(hdc, hglrc);
     
-    surface->renderCache = mla_private_mla_global_ui_surface_windows_opengl_cache_empty();
+    surface->renderCache = mla_private_global_ui_surface_windows_opengl_cache_empty();
     surface->is_initialized = true;
     surface->hwnd = hwnd;
     surface->hdc = hdc;
@@ -791,7 +791,7 @@ mla_ui_surface_draw_size_t mla_private_windows_surface_opengl_calc_text_size(con
     }
     
     mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
-        mla_private_mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+        mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
             window_surface->renderCache, window_surface->hdc, font_type);
     
     if (fontItem && fontItem->resources && fontItem->resources->hFont) {
@@ -1444,7 +1444,7 @@ mla_bool_t mla_private_windows_surface_opengl_render_draw_commands(const mla_ui_
                     break;
                 
                 mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
-                    mla_private_mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+                    mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
                         window_surface->renderCache, window_surface->hdc, cmd.text.font_type);
                 
                 if (fontItem && fontItem->resources && fontItem->resources->displayListBase != 0) {
@@ -1577,7 +1577,7 @@ mla_bool_t mla_private_windows_surface_opengl_render_draw_commands(const mla_ui_
     // Draw FPS counter using OpenGL
     mla_ui_surface_font_type_t debugFontType = { mla_string_const("Arial"), 15.0, false, false };
     mla_global_ui_surface_windows_opengl_font_cache_item* debugFont = 
-        mla_private_mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+        mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
             window_surface->renderCache, window_surface->hdc, debugFontType);
     
     if (debugFont && debugFont->resources && debugFont->resources->displayListBase != 0) {
@@ -1612,7 +1612,7 @@ mla_buffer_cleanup_mode mla_private_windows_surface_opengl_buffer_cleanup(
     if (window_surface != nullptr) {
         
         // Cleanup OpenGL resources
-        window_surface->renderCache = mla_private_mla_global_ui_surface_windows_opengl_cache_empty();
+        window_surface->renderCache = mla_private_global_ui_surface_windows_opengl_cache_empty();
         
         if (window_surface->hglrc) {
             wglMakeCurrent(nullptr, nullptr);
