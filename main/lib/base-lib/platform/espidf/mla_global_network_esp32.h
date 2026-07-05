@@ -29,7 +29,7 @@ mla_user_data_id_init(mla_network_connection_user_data_name)
 /// Must be called before any socket operations.
 /// Initializes esp_netif and the default event loop which in turn
 //////////////////////////////////////////////////////////////////
-void __esp32_network_stack_init() {
+void mla_private_esp32_network_stack_init() {
 
     static bool initialized = false;
     if (initialized) {
@@ -49,9 +49,9 @@ void __esp32_network_stack_init() {
     initialized = true;
 }
 
-mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_preSetup, __esp32_network_stack_init)
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_preSetup, mla_private_esp32_network_stack_init)
 
-mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
+mla_bool_t mla_private_esp32_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     struct addrinfo hints;
     mla_memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -98,7 +98,7 @@ mla_bool_t __esp32_resolve_host(mla_network_host_t &host, const mla_string_t &ho
     return true;
 }
 
-void __esp32_socket_cleanup(const mla_dynamic_data_t& userData) {
+void mla_private_esp32_socket_cleanup(const mla_dynamic_data_t& userData) {
 
     mla_int32_t sock = userData.asInt32;
     if (sock >= 0) {
@@ -106,7 +106,7 @@ void __esp32_socket_cleanup(const mla_dynamic_data_t& userData) {
     }
 }
 
-mla_size_t __esp32_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
+mla_size_t mla_private_esp32_socket_read(mla_stream_input_t& input, mla_size_t offset, mla_size_t length, mla_byte_t* buffer) {
     (void)offset;
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
     mla_int32_t sock = socket_data.asInt32;
@@ -122,7 +122,7 @@ mla_size_t __esp32_socket_read(mla_stream_input_t& input, mla_size_t offset, mla
     return (mla_size_t)bytesRead;
 }
 
-mla_size_t __esp32_socket_remaining_bytes(mla_stream_input_t& input) {
+mla_size_t mla_private_esp32_socket_remaining_bytes(mla_stream_input_t& input) {
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(input.userdata, mla_network_connection_user_data_name);
     mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
@@ -139,7 +139,7 @@ mla_size_t __esp32_socket_remaining_bytes(mla_stream_input_t& input) {
     return 0;
 }
 
-mla_size_t __esp32_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
+mla_size_t mla_private_esp32_socket_write(mla_stream_output_t& output, mla_size_t offset, mla_size_t length, const mla_byte_t* buffer) {
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(output.userdata, mla_network_connection_user_data_name);
     mla_int32_t sock = socket_data.asInt32;
     if (sock < 0) {
@@ -180,7 +180,7 @@ mla_size_t __esp32_socket_write(mla_stream_output_t& output, mla_size_t offset, 
     return total_sent;
 }
 
-mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
+mla_bool_t mla_private_esp32_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
                            mla_connection_type_t type, mla_size_t timeout_ms) {
     connection.host = host;
 
@@ -267,24 +267,24 @@ mla_bool_t __esp32_connect(mla_network_connection_t &connection, const mla_netwo
     }
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __esp32_socket_cleanup);
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), mla_private_esp32_socket_cleanup);
 
     connection.inputStream = {
         userData,
-        __esp32_socket_read,
-        __esp32_socket_remaining_bytes
+        mla_private_esp32_socket_read,
+        mla_private_esp32_socket_remaining_bytes
     };
 
     connection.outputStream = {
         userData,
-        __esp32_socket_write,
+        mla_private_esp32_socket_write,
         nullptr
     };
 
     return true;
 }
 
-mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
+mla_bool_t mla_private_esp32_accept_connection(const mla_network_listener_t& listener, mla_network_connection_t &connection) {
     mla_dynamic_data_t socket_data = mla_user_data_get_native_resource(listener.userdata, mla_network_connection_user_data_name);
     mla_int32_t listenSock = socket_data.asInt32;
     if (listenSock < 0) {
@@ -342,24 +342,24 @@ mla_bool_t __esp32_accept_connection(const mla_network_listener_t& listener, mla
     connection.host = peer;
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(clientSock), __esp32_socket_cleanup);
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(clientSock), mla_private_esp32_socket_cleanup);
 
     connection.inputStream = {
         userData,
-        __esp32_socket_read,
-        __esp32_socket_remaining_bytes
+        mla_private_esp32_socket_read,
+        mla_private_esp32_socket_remaining_bytes
     };
 
     connection.outputStream = {
         userData,
-        __esp32_socket_write,
+        mla_private_esp32_socket_write,
         nullptr
     };
 
     return true;
 }
 
-mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
+mla_bool_t mla_private_esp32_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
     listener.host = host;
 
     mla_int32_t family = host.address.is_ipv6 ? AF_INET6 : AF_INET;
@@ -432,15 +432,15 @@ mla_bool_t __esp32_bind_and_listen(mla_network_listener_t &listener, const mla_n
     }
 
     mla_user_data_t userData = mla_user_data_empty();
-    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), __esp32_socket_cleanup);
+    mla_user_data_set_native_resource(userData, mla_network_connection_user_data_name, mla_dynamic_data_from_int32(sock), mla_private_esp32_socket_cleanup);
 
-    listener.accept_connection = __esp32_accept_connection;
+    listener.accept_connection = mla_private_esp32_accept_connection;
     listener.userdata = userData;
 
     return true;
 }
 
-mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __esp32_get_local_ip_addresses() {
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_private_esp32_get_local_ip_addresses() {
     mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> ipAddresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
 
     esp_netif_t *netif = nullptr;
@@ -496,10 +496,10 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
 }
 
 mla_network_low_level_operations_t g_network_low_level_operations = {
-    __esp32_resolve_host,
-    __esp32_connect,
-    __esp32_bind_and_listen,
-    __esp32_get_local_ip_addresses
+    mla_private_esp32_resolve_host,
+    mla_private_esp32_connect,
+    mla_private_esp32_bind_and_listen,
+    mla_private_esp32_get_local_ip_addresses
 };
 
 #endif

@@ -25,7 +25,7 @@
  * @param port   Port number (ignored).
  * @return false always, indicating resolution failed / not supported.
  */
-mla_bool_t __disabled_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
+mla_bool_t mla_private_disabled_resolve_host(mla_network_host_t &host, const mla_string_t &hostname, mla_uint16_t port) {
     (void) host;
     (void) hostname;
     (void) port;
@@ -45,7 +45,7 @@ mla_bool_t __disabled_resolve_host(mla_network_host_t &host, const mla_string_t 
  * @param timeout_ms  Connection timeout in milliseconds (ignored).
  * @return false always, indicating connect failed / not supported.
  */
-mla_bool_t __disabled_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
+mla_bool_t mla_private_disabled_connect(mla_network_connection_t &connection, const mla_network_host_t &host,
                            mla_connection_type_t type, mla_size_t timeout_ms) {
     (void) connection;
     (void) host;
@@ -66,7 +66,7 @@ mla_bool_t __disabled_connect(mla_network_connection_t &connection, const mla_ne
  * @param type      Connection type/protocol (ignored).
  * @return false always, indicating bind/listen failed / not supported.
  */
-mla_bool_t __disabled_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
+mla_bool_t mla_private_disabled_bind_and_listen(mla_network_listener_t &listener, const mla_network_host_t &host, mla_connection_type_t type) {
     (void) listener;
     (void) host;
     (void) type;
@@ -82,7 +82,7 @@ mla_bool_t __disabled_bind_and_listen(mla_network_listener_t &listener, const ml
  *
  * @return An empty array list of local IP addresses.
  */
-mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> __disabled_get_local_ip_addresses() {
+mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_private_disabled_get_local_ip_addresses() {
     return mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
 }
 
@@ -95,10 +95,10 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
  * network functionality.
  */
 mla_network_low_level_operations_t g_network_low_level_operations = {
-    __disabled_resolve_host,
-    __disabled_connect,
-    __disabled_bind_and_listen,
-    __disabled_get_local_ip_addresses
+    mla_private_disabled_resolve_host,
+    mla_private_disabled_connect,
+    mla_private_disabled_bind_and_listen,
+    mla_private_disabled_get_local_ip_addresses
 };
 
 #endif

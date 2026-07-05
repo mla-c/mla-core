@@ -20,7 +20,7 @@
 // On ESP32 the configuration is stored in NVS (Non-Volatile Storage)
 // NVS is a key-value storage system that persists across reboots
 
-mla_bytes_t __esp32_read_config_input() {
+mla_bytes_t mla_private_esp32_read_config_input() {
 
     // Initialize NVS if not already initialized
     esp_err_t err = nvs_flash_init();
@@ -69,12 +69,12 @@ mla_bytes_t __esp32_read_config_input() {
     return config_data;
 }
 
-mla_bytes_t __esp32_create_config_output_buffer() {
+mla_bytes_t mla_private_esp32_create_config_output_buffer() {
 
     return mla_bytes(mla_max_config_size);
 }
 
-mla_bool_t __esp32_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
+mla_bool_t mla_private_esp32_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
     // Initialize NVS if not already initialized
     esp_err_t err = nvs_flash_init();
@@ -119,7 +119,7 @@ mla_bool_t __esp32_commit_config_output(mla_bytes_t& output, mla_size_t unused_b
     return err == ESP_OK;
 }
 
-mla_bool_t __esp32_reset() {
+mla_bool_t mla_private_esp32_reset() {
 
     // Initialize NVS if not already initialized
     esp_err_t err = nvs_flash_init();
@@ -154,10 +154,10 @@ mla_bool_t __esp32_reset() {
 }
 
 mla_config_low_level_operations_t g_config_low_level_operations = {
-    __esp32_read_config_input,
-    __esp32_create_config_output_buffer,
-    __esp32_commit_config_output,
-    __esp32_reset
+    mla_private_esp32_read_config_input,
+    mla_private_esp32_create_config_output_buffer,
+    mla_private_esp32_commit_config_output,
+    mla_private_esp32_reset
 };
 
 #endif

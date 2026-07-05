@@ -7,13 +7,13 @@
 
 #include "../../core/ui/display/mla_ui_display_surface.h"
 
-mla_bool_t __disabled_create_surface(mla_ui_surface_t &outSurface) {
+mla_bool_t mla_private_disabled_create_surface(mla_ui_surface_t &outSurface) {
     (void)outSurface;
     return false;
 }
 
 mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
-    __disabled_create_surface
+    mla_private_disabled_create_surface
 };
 
 #endif

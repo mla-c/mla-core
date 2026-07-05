@@ -72,7 +72,7 @@ mla_private_logging_concat(temp, mla_filename_only, __func__); \
 
 #include "mla_logger.h"
 
-inline void __mla_logging_native(const mla_log_level level, const mla_char_t* message) {
+inline void mla_private_mla_logging_native(const mla_log_level level, const mla_char_t* message) {
     mla_filename_and_method()\
     mla_print("[", 1);
     mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
@@ -84,7 +84,7 @@ inline void __mla_logging_native(const mla_log_level level, const mla_char_t* me
     mla_print("\n", 1);
 }
 
-inline void __mla_logging_native(const mla_log_level level, const mla_string_t& message) {
+inline void mla_private_mla_logging_native(const mla_log_level level, const mla_string_t& message) {
     mla_filename_and_method()\
     mla_print("[", 1);
     mla_print(mla_log_level_to_string(level), mla_log_level_to_string_length(level));
@@ -100,12 +100,12 @@ inline void __mla_logging_native(const mla_log_level level, const mla_string_t& 
     mla_print("\n", 1);
 }
 
-#define mla_log_msg(level, msg) __mla_logging_native(level, msg)
-#define mla_verbose(msg) __mla_logging_native(MLA_LOG_LEVEL_VERBOSE, msg)
-#define mla_debug(msg) __mla_logging_native(MLA_LOG_LEVEL_DEBUG, msg)
-#define mla_info(msg) __mla_logging_native(MLA_LOG_LEVEL_INFO, msg)
-#define mla_warning(msg) __mla_logging_native(MLA_LOG_LEVEL_WARNING, msg)
-#define mla_error(msg) __mla_logging_native(MLA_LOG_LEVEL_ERROR, msg)
+#define mla_log_msg(level, msg) mla_private_mla_logging_native(level, msg)
+#define mla_verbose(msg) mla_private_mla_logging_native(MLA_LOG_LEVEL_VERBOSE, msg)
+#define mla_debug(msg) mla_private_mla_logging_native(MLA_LOG_LEVEL_DEBUG, msg)
+#define mla_info(msg) mla_private_mla_logging_native(MLA_LOG_LEVEL_INFO, msg)
+#define mla_warning(msg) mla_private_mla_logging_native(MLA_LOG_LEVEL_WARNING, msg)
+#define mla_error(msg) mla_private_mla_logging_native(MLA_LOG_LEVEL_ERROR, msg)
 
 
 #endif

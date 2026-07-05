@@ -18,9 +18,9 @@
 
 #include "../generic/mla_global_platform_fast_float.h"
 
-#define mla_platform_strtod __fast_float_strtod
-#define mla_platform_strtoll __fast_float_strtoll
-#define mla_platform_strtoull __fast_float_strtoull
+#define mla_platform_strtod mla_private_fast_float_strtod
+#define mla_platform_strtoll mla_private_fast_float_strtoll
+#define mla_platform_strtoull mla_private_fast_float_strtoull
 
 #else
 

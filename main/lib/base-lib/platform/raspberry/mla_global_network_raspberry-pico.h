@@ -12,7 +12,7 @@
 // For actual network operations, users would need to integrate with WiFi/Ethernet modules
 // like the Pico W (with WiFi) or external Ethernet shields
 
-mla_bool_t __pico_resolve_host(mla_network_host_t& host, const mla_string_t& hostname, mla_uint16_t port) {
+mla_bool_t mla_private_pico_resolve_host(mla_network_host_t& host, const mla_string_t& hostname, mla_uint16_t port) {
     (void)host;
     (void)hostname;
     (void)port;
@@ -20,7 +20,7 @@ mla_bool_t __pico_resolve_host(mla_network_host_t& host, const mla_string_t& hos
     return false;
 }
 
-mla_bool_t __pico_connect(mla_network_connection_t& connection, const mla_network_host_t& host,
+mla_bool_t mla_private_pico_connect(mla_network_connection_t& connection, const mla_network_host_t& host,
                           mla_connection_type_t type, mla_size_t timeout_ms) {
     (void)connection;
     (void)host;
@@ -30,7 +30,7 @@ mla_bool_t __pico_connect(mla_network_connection_t& connection, const mla_networ
     return false;
 }
 
-mla_bool_t __pico_bind_and_listen(mla_network_listener_t& listener, const mla_network_host_t& host, mla_connection_type_t type) {
+mla_bool_t mla_private_pico_bind_and_listen(mla_network_listener_t& listener, const mla_network_host_t& host, mla_connection_type_t type) {
     (void)listener;
     (void)host;
     (void)type;
@@ -39,9 +39,9 @@ mla_bool_t __pico_bind_and_listen(mla_network_listener_t& listener, const mla_ne
 }
 
 mla_network_low_level_operations_t g_network_low_level_operations = {
-    __pico_resolve_host,
-    __pico_connect,
-    __pico_bind_and_listen
+    mla_private_pico_resolve_host,
+    mla_private_pico_connect,
+    mla_private_pico_bind_and_listen
 };
 
 #endif

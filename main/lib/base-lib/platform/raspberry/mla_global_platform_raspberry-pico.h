@@ -10,13 +10,13 @@
 #include "../../core/lifecycle/mla_lifecycle_events.h"
 #include <Arduino.h>
 
-void __pico_sleep(mla_uint32_t milliseconds) {
+void mla_private_pico_sleep(mla_uint32_t milliseconds) {
 
     delayMicroseconds(milliseconds);
 
 }
 
-mla_int32_t __pico_printf(const mla_char_t* format, ...) {
+mla_int32_t mla_private_pico_printf(const mla_char_t* format, ...) {
 
     mla_char_t l_Result[255];
 
@@ -29,7 +29,7 @@ mla_int32_t __pico_printf(const mla_char_t* format, ...) {
     return result;
 }
 
-void __pico_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+void mla_private_pico_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
 
     Serial.print("Memory allocation failed: ");
     const char* bytes_str = " bytes in ";
@@ -68,7 +68,7 @@ void __pico_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const
     Serial.flush();
 }
 
-mla_size_t __prio_std_read(mla_char_t* buffer, mla_size_t size) {
+mla_size_t mla_private_prio_std_read(mla_char_t* buffer, mla_size_t size) {
 
     mla_size_t readedChars = 0;
 
@@ -118,13 +118,13 @@ mla_low_level_operations_t g_low_level_access {
         mla_private_generic_strstr,
         mla_private_generic_malloc,
         mla_private_generic_free,
-        __pico_on_malloc_failure,
-        __pico_printf,
-        __prio_std_read,
+        mla_private_pico_on_malloc_failure,
+        mla_private_pico_printf,
+        mla_private_prio_std_read,
         mla_private_generic_strtod,
         mla_private_generic_strtoll,
         mla_private_generic_strtoull,
-        __pico_sleep,
+        mla_private_pico_sleep,
     };
 
 void mla_boot_os_application() {

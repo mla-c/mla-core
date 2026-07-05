@@ -53,19 +53,19 @@ struct mla_file_system_inmemory_t {
     mla_byte_t *buffer;
 };
 
-mla_size_t __mla_file_system_inmemory_get_buffer_position(mla_size_t offset) {
+mla_size_t mla_private_mla_file_system_inmemory_get_buffer_position(mla_size_t offset) {
     return offset * (sizeof(mla_file_system_inmemory_buffer_item_header_t) + mla_file_system_inmemory_buffer_item_size);
 }
 
-mla_bool_t __mla_file_system_inmemory_find_next_buffer_of_type(mla_file_system_inmemory_t &fs, mla_size_t startOffset,
+mla_bool_t mla_private_mla_file_system_inmemory_find_next_buffer_of_type(mla_file_system_inmemory_t &fs, mla_size_t startOffset,
                                                         mla_file_system_inmemory_buffer_item_type type,
                                                         mla_size_t &out_offset) {
 
     mla_size_t currentOffset = startOffset;
 
-    while (__mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
+    while (mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
 
-        mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
+        mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset));
 
         if (header->type == type) {
             out_offset = currentOffset;
@@ -78,13 +78,13 @@ mla_bool_t __mla_file_system_inmemory_find_next_buffer_of_type(mla_file_system_i
     return false;
 }
 
-mla_bool_t __mla_file_system_inmemory_find_next_free_header(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t* &header) {
+mla_bool_t mla_private_mla_file_system_inmemory_find_next_free_header(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t* &header) {
 
     mla_size_t currentOffset = 0;
 
-    while (__mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
+    while (mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset) < fs.capacity) {
 
-        mla_file_system_inmemory_buffer_item_header_t *currentHeader = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset));
+        mla_file_system_inmemory_buffer_item_header_t *currentHeader = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset));
 
         if (currentHeader->type == MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_FREE) {
             header = currentHeader;
@@ -97,7 +97,7 @@ mla_bool_t __mla_file_system_inmemory_find_next_free_header(mla_file_system_inme
     return false;
 }
 
-mla_string_t __mla_file_system_inmemory_read_string_data(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t *header) {
+mla_string_t mla_private_mla_file_system_inmemory_read_string_data(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t *header) {
 
     mla_string_t result = mla_string_empty();
 
@@ -130,27 +130,27 @@ mla_string_t __mla_file_system_inmemory_read_string_data(mla_file_system_inmemor
             break; // No more data
         }
 
-        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(header->next));
+        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(header->next));
     }
 
     return result;
 }
 
-mla_bool_t __mla_file_system_inmemory_find_file_header(mla_file_system_inmemory_t &fs, const mla_string_t &path,
+mla_bool_t mla_private_mla_file_system_inmemory_find_file_header(mla_file_system_inmemory_t &fs, const mla_string_t &path,
                                                mla_file_system_inmemory_buffer_item_header_t* &out_header) {
 
     mla_size_t lastOffset = 0;
     mla_size_t currentOffset = 0;
 
-    while (__mla_file_system_inmemory_find_next_buffer_of_type(fs, lastOffset, MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_FILE, currentOffset)) {
+    while (mla_private_mla_file_system_inmemory_find_next_buffer_of_type(fs, lastOffset, MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_FILE, currentOffset)) {
 
-        mla_byte_t* position = fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset);
+        mla_byte_t* position = fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset);
 
         // Read the file header
         mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
 
         // Read the file name
-        mla_string_t fileName = __mla_file_system_inmemory_read_string_data(fs, header);
+        mla_string_t fileName = mla_private_mla_file_system_inmemory_read_string_data(fs, header);
 
         if (mla_string_equals(path, fileName)) {
             out_header = header;
@@ -163,19 +163,19 @@ mla_bool_t __mla_file_system_inmemory_find_file_header(mla_file_system_inmemory_
     return false;
 }
 
-mla_bool_t __mla_file_system_inmemory_file_exists(mla_file_system_t &file_system, const mla_string_t &path) {
+mla_bool_t mla_private_mla_file_system_inmemory_file_exists(mla_file_system_t &file_system, const mla_string_t &path) {
 
     mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* ignored = nullptr;
-    return __mla_file_system_inmemory_find_file_header(fs, path, ignored);
+    return mla_private_mla_file_system_inmemory_find_file_header(fs, path, ignored);
 
 }
 
-mla_bool_t __mla_file_system_inmemory_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
+mla_bool_t mla_private_mla_file_system_inmemory_open_file(mla_file_system_t& file_system, const mla_string_t& path, mla_file_system_file_open_mode mode, mla_file_system_stream_t& out_stream) {
     return false;
 }
 
-mla_bool_t __mla_file_system_inmemory_find_file_header_read_meta_data(mla_file_system_inmemory_t &fs,
+mla_bool_t mla_private_mla_file_system_inmemory_find_file_header_read_meta_data(mla_file_system_inmemory_t &fs,
                                                                mla_file_system_inmemory_buffer_item_header_t* header,
                                                                mla_file_system_inmemory_buffer_file_meta_data_t &out_meta_data) {
 
@@ -196,7 +196,7 @@ mla_bool_t __mla_file_system_inmemory_find_file_header_read_meta_data(mla_file_s
     return true;
 }
 
-void __mla_file_system_inmemory_free_item_chain(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t* header) {
+void mla_private_mla_file_system_inmemory_free_item_chain(mla_file_system_inmemory_t &fs, mla_file_system_inmemory_buffer_item_header_t* header) {
 
     while (header != nullptr) {
 
@@ -211,59 +211,59 @@ void __mla_file_system_inmemory_free_item_chain(mla_file_system_inmemory_t &fs, 
             break; // No more items
         }
 
-        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + __mla_file_system_inmemory_get_buffer_position(nextOffset));
+        header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(nextOffset));
     }
 
 
 }
 
-mla_bool_t __mla_file_system_inmemory_delete_file(mla_file_system_t &file_system, const mla_string_t &path) {
+mla_bool_t mla_private_mla_file_system_inmemory_delete_file(mla_file_system_t &file_system, const mla_string_t &path) {
 
     mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* header = nullptr;
 
-    if (!__mla_file_system_inmemory_find_file_header(fs, path, header)) {
+    if (!mla_private_mla_file_system_inmemory_find_file_header(fs, path, header)) {
         return false; // File not found
     }
 
     mla_file_system_inmemory_buffer_file_meta_data_t meta_data;
 
-    if (__mla_file_system_inmemory_find_file_header_read_meta_data(fs, header, meta_data)) {
+    if (mla_private_mla_file_system_inmemory_find_file_header_read_meta_data(fs, header, meta_data)) {
 
         if (meta_data.firstDataOffset != mla_size_max) {
 
             mla_file_system_inmemory_buffer_item_header_t* data_header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(
-                fs.buffer + __mla_file_system_inmemory_get_buffer_position(meta_data.firstDataOffset));
+                fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(meta_data.firstDataOffset));
 
-            __mla_file_system_inmemory_free_item_chain(fs, data_header);
+            mla_private_mla_file_system_inmemory_free_item_chain(fs, data_header);
         }
 
     }
 
-    __mla_file_system_inmemory_free_item_chain(fs, header);
+    mla_private_mla_file_system_inmemory_free_item_chain(fs, header);
     return true;
 }
 
-mla_bool_t __mla_file_system_inmemory_list_files(mla_file_system_t &file_system, const mla_string_t &path,
+mla_bool_t mla_private_mla_file_system_inmemory_list_files(mla_file_system_t &file_system, const mla_string_t &path,
                                                  mla_array_list_t<mla_string_t, mla_string_initializer> &out_entries) {
     return false;
 }
 
-mla_bool_t __mla_file_system_inmemory_find_directory_header(mla_file_system_inmemory_t &fs, const mla_string_t &path,
+mla_bool_t mla_private_mla_file_system_inmemory_find_directory_header(mla_file_system_inmemory_t &fs, const mla_string_t &path,
                                                     mla_file_system_inmemory_buffer_item_header_t* &out_header) {
 
     mla_size_t lastOffset = 0;
     mla_size_t currentOffset = 0;
 
-    while (__mla_file_system_inmemory_find_next_buffer_of_type(fs, lastOffset, MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_DIRECTORY, currentOffset)) {
+    while (mla_private_mla_file_system_inmemory_find_next_buffer_of_type(fs, lastOffset, MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_DIRECTORY, currentOffset)) {
 
-        mla_byte_t* position = fs.buffer + __mla_file_system_inmemory_get_buffer_position(currentOffset);
+        mla_byte_t* position = fs.buffer + mla_private_mla_file_system_inmemory_get_buffer_position(currentOffset);
 
         // Read the directory header
         mla_file_system_inmemory_buffer_item_header_t *header = mla_r_cast<mla_file_system_inmemory_buffer_item_header_t *>(position);
 
         // Read the directory name
-        mla_string_t dirName = __mla_file_system_inmemory_read_string_data(fs, header);
+        mla_string_t dirName = mla_private_mla_file_system_inmemory_read_string_data(fs, header);
 
         if (mla_string_equals(path, dirName)) {
             out_header = header;
@@ -276,7 +276,7 @@ mla_bool_t __mla_file_system_inmemory_find_directory_header(mla_file_system_inme
     return false;
 }
 
-mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_system, const mla_string_t &path) {
+mla_bool_t mla_private_mla_file_system_inmemory_create_directory(mla_file_system_t &file_system, const mla_string_t &path) {
 
     if (mla_fs_is_directory_path(path)) {
         return false;
@@ -295,7 +295,7 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
         mla_file_system_inmemory_buffer_item_header_t* ignored = nullptr;
 
         // Check if parent directory exists
-        if (!__mla_file_system_inmemory_find_directory_header(fs, parent_path, ignored)) {
+        if (!mla_private_mla_file_system_inmemory_find_directory_header(fs, parent_path, ignored)) {
             return false; // Parent directory does not exist
         }
 
@@ -303,32 +303,32 @@ mla_bool_t __mla_file_system_inmemory_create_directory(mla_file_system_t &file_s
 
     mla_file_system_inmemory_buffer_item_header_t* freeBlock = nullptr;
 
-    if (!__mla_file_system_inmemory_find_next_free_header(fs, freeBlock)) {
+    if (!mla_private_mla_file_system_inmemory_find_next_free_header(fs, freeBlock)) {
         return false;
     }
 
     freeBlock->type = MLA_FILE_SYSTEM_INMEMORY_BUFFER_ITEM_TYPE_DIRECTORY;
     freeBlock->next = mla_size_max;
 
-    //__mla_file_system_inmemory_read_string_data()
+    //mla_private_mla_file_system_inmemory_read_string_data()
 
 
     return true;
 }
 
-mla_bool_t __mla_file_system_inmemory_directory_exists(mla_file_system_t &file_system, const mla_string_t &path) {
+mla_bool_t mla_private_mla_file_system_inmemory_directory_exists(mla_file_system_t &file_system, const mla_string_t &path) {
 
     mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* ignored = nullptr;
-    return __mla_file_system_inmemory_find_directory_header(fs, path, ignored);
+    return mla_private_mla_file_system_inmemory_find_directory_header(fs, path, ignored);
 }
 
-mla_bool_t __mla_file_system_inmemory_delete_directory(mla_file_system_t &file_system, const mla_string_t &path) {
+mla_bool_t mla_private_mla_file_system_inmemory_delete_directory(mla_file_system_t &file_system, const mla_string_t &path) {
 
     mla_file_system_inmemory_t fs = *mla_r_cast<mla_file_system_inmemory_t *>(file_system.user_data.asPointer);
     mla_file_system_inmemory_buffer_item_header_t* header = nullptr;
 
-    if (!__mla_file_system_inmemory_find_directory_header(fs, path, header)) {
+    if (!mla_private_mla_file_system_inmemory_find_directory_header(fs, path, header)) {
         return false; // Directory not found
     }
 
@@ -339,17 +339,17 @@ mla_bool_t __mla_file_system_inmemory_delete_directory(mla_file_system_t &file_s
 
 
 
-    __mla_file_system_inmemory_free_item_chain(fs, header);
+    mla_private_mla_file_system_inmemory_free_item_chain(fs, header);
     return true;
 }
 
-mla_bool_t __mla_file_system_inmemory_list_directories(mla_file_system_t &file_system, const mla_string_t &path,
+mla_bool_t mla_private_mla_file_system_inmemory_list_directories(mla_file_system_t &file_system, const mla_string_t &path,
                                                        mla_array_list_t<mla_string_t, mla_string_initializer> &
                                                        out_entries) {
     return false;
 }
 
-mla_buffer_cleanup_mode __mla_file_system_inmemory_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
+mla_buffer_cleanup_mode mla_private_mla_file_system_inmemory_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
 
     mla_file_system_inmemory_t *fs = mla_s_cast<mla_file_system_inmemory_t *>(data);
 
@@ -379,16 +379,16 @@ mla_file_system_t mla_file_system_inmemory_create_from_buffer(mla_byte_t *buffer
     fs->capacity = capacity;
 
     return {
-        __mla_file_system_inmemory_file_exists,
-        __mla_file_system_inmemory_open_file,
-        __mla_file_system_inmemory_delete_file,
-        __mla_file_system_inmemory_list_files,
-        __mla_file_system_inmemory_create_directory,
-        __mla_file_system_inmemory_directory_exists,
-        __mla_file_system_inmemory_delete_directory,
-        __mla_file_system_inmemory_list_directories,
+        mla_private_mla_file_system_inmemory_file_exists,
+        mla_private_mla_file_system_inmemory_open_file,
+        mla_private_mla_file_system_inmemory_delete_file,
+        mla_private_mla_file_system_inmemory_list_files,
+        mla_private_mla_file_system_inmemory_create_directory,
+        mla_private_mla_file_system_inmemory_directory_exists,
+        mla_private_mla_file_system_inmemory_delete_directory,
+        mla_private_mla_file_system_inmemory_list_directories,
         mla_dynamic_data_from_pointer(fs),
-        mla_buffer_reference_create(fs, true, __mla_file_system_inmemory_cleanup, mla_dynamic_data_empty())
+        mla_buffer_reference_create(fs, true, mla_private_mla_file_system_inmemory_cleanup, mla_dynamic_data_empty())
     };
 }
 

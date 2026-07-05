@@ -68,48 +68,48 @@ extern "C" int __cxa_atexit(void (*func)(void*), void* arg, void* dso_handle) {
 }
 
 // WASM standalone implementations using JavaScript functions
-mla_platform_pointer_t __wasm_standalone_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_private_wasm_standalone_memcpy(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memcpy(dest, src, size);
 }
 
-mla_platform_pointer_t __wasm_standalone_memset(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size) {
+mla_platform_pointer_t mla_private_wasm_standalone_memset(mla_platform_pointer_t dest, mla_byte_t value, mla_size_t size) {
     return external_memset(dest, value, size);
 }
 
-mla_int32_t __wasm_standalone_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_int32_t mla_private_wasm_standalone_memcmp(mla_platform_const_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memcmp(dest, src, size);
 }
 
-mla_platform_pointer_t __wasm_standalone_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
+mla_platform_pointer_t mla_private_wasm_standalone_memmove(mla_platform_pointer_t dest, mla_platform_const_pointer_t src, mla_size_t size) {
     return external_memmove(dest, src, size);
 }
 
-mla_char_t* __wasm_standalone_strcpy(mla_char_t* dest, const mla_char_t* src) {
+mla_char_t* mla_private_wasm_standalone_strcpy(mla_char_t* dest, const mla_char_t* src) {
     return external_strcpy(dest, src);
 }
 
-mla_size_t __wasm_standalone_strlen(const mla_char_t* str) {
+mla_size_t mla_private_wasm_standalone_strlen(const mla_char_t* str) {
     return external_strlen(str);
 }
 
-const mla_char_t* __wasm_standalone_strstr(const mla_char_t* str, const mla_char_t* substr) {
+const mla_char_t* mla_private_wasm_standalone_strstr(const mla_char_t* str, const mla_char_t* substr) {
     return external_strstr(str, substr);
 }
 
-mla_platform_pointer_t __wasm_standalone_malloc(mla_size_t size) {
+mla_platform_pointer_t mla_private_wasm_standalone_malloc(mla_size_t size) {
     return external_malloc(size);
 }
 
-void __wasm_standalone_free(mla_platform_pointer_t ptr) {
+void mla_private_wasm_standalone_free(mla_platform_pointer_t ptr) {
     external_free(ptr);
 }
 
-mla_uint32_t __wasm_standalone_print(const mla_char_t* str, mla_size_t length) {
+mla_uint32_t mla_private_wasm_standalone_print(const mla_char_t* str, mla_size_t length) {
 
     return external_print(str, length);
 }
 
-void __wasm_standalone_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
+void mla_private_wasm_standalone_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
     external_print("Memory allocation failed: ", 26);
     // Convert the size to string
     char size_str[10]; // Enough for 32-bit size
@@ -143,49 +143,49 @@ void __wasm_standalone_on_malloc_failure(mla_size_t size, const mla_char_t* file
 
 }
 
-mla_size_t __wasm_standalone_std_read(mla_char_t* buffer, mla_size_t size) {
+mla_size_t mla_private_wasm_standalone_std_read(mla_char_t* buffer, mla_size_t size) {
     return external_std_read(buffer, size);
 }
 
-mla_bool_t __wasm_standalone_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
+mla_bool_t mla_private_wasm_standalone_strtod(const mla_char_t* str, mla_size_t length, mla_double_t* out_value) {
     return external_strtod(str, length, out_value) != 0;
 }
 
-mla_bool_t __wasm_standalone_strtoll(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value) {
+mla_bool_t mla_private_wasm_standalone_strtoll(const mla_char_t* str, mla_size_t length, mla_int64_t* out_value) {
     return external_strtoll(str, length, out_value) != 0;
 }
 
-mla_bool_t __wasm_standalone_strtoull(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value) {
+mla_bool_t mla_private_wasm_standalone_strtoull(const mla_char_t* str, mla_size_t length, mla_uint64_t* out_value) {
     return external_strtoull(str, length, out_value) != 0;
 }
 
-void __wasm_standalone_sleep(mla_uint32_t milliseconds) {
+void mla_private_wasm_standalone_sleep(mla_uint32_t milliseconds) {
     external_sleep(milliseconds);
 }
 
-mla_uint64_t __wasm_standalone_system_time_ms() {
+mla_uint64_t mla_private_wasm_standalone_system_time_ms() {
     return external_system_time_ms();
 }
 
 // Initialize low-level memory operations with WASM standalone implementations
 mla_low_level_operations_t g_low_level_access = {
-    __wasm_standalone_memcpy,
-    __wasm_standalone_memset,
-    __wasm_standalone_memcmp,
-    __wasm_standalone_memmove,
-    __wasm_standalone_strcpy,
-    __wasm_standalone_strlen,
-    __wasm_standalone_strstr,
-    __wasm_standalone_malloc,
-    __wasm_standalone_free,
-    __wasm_standalone_on_malloc_failure,
-    __wasm_standalone_print,
-    __wasm_standalone_std_read,
-    __wasm_standalone_strtod,
-    __wasm_standalone_strtoll,
-    __wasm_standalone_strtoull,
-    __wasm_standalone_sleep,
-    __wasm_standalone_system_time_ms
+    mla_private_wasm_standalone_memcpy,
+    mla_private_wasm_standalone_memset,
+    mla_private_wasm_standalone_memcmp,
+    mla_private_wasm_standalone_memmove,
+    mla_private_wasm_standalone_strcpy,
+    mla_private_wasm_standalone_strlen,
+    mla_private_wasm_standalone_strstr,
+    mla_private_wasm_standalone_malloc,
+    mla_private_wasm_standalone_free,
+    mla_private_wasm_standalone_on_malloc_failure,
+    mla_private_wasm_standalone_print,
+    mla_private_wasm_standalone_std_read,
+    mla_private_wasm_standalone_strtod,
+    mla_private_wasm_standalone_strtoll,
+    mla_private_wasm_standalone_strtoull,
+    mla_private_wasm_standalone_sleep,
+    mla_private_wasm_standalone_system_time_ms
 };
 
 void mla_boot_os_application() {
