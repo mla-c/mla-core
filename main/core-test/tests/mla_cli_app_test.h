@@ -446,6 +446,139 @@ inline void MultipleCommandsTest() {
     assert_equal(test_command_executed, false, "Non-existent command should not execute");
 }
 
+// Feed a raw byte sequence to the CLI line editor as a single non-blocking read.
+inline void FeedCliInput(mla_cli_app_t& app, mla_stream_output_t& output, const mla_string_t& data) {
+    mla_stream_input_t input = mla_stream_input_from_buffer(
+        mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(data))), mla_string_length(data));
+    mla_cli_app_update_and_process_input(app, input, output);
+}
+
+inline void HistoryNavigationTest() {
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
+
+    // Enter two commands to build up history
+    FeedCliInput(app, output, mla_string("foo\n"));
+    FeedCliInput(app, output, mla_string("bar\n"));
+
+    assert_equal(mla_array_list_size(app.history), (mla_size_t)2, "History should contain two entries");
+    assert_equal(app.historyIndex, (mla_int32_t)-1, "History index should start on the live line");
+    assert_equal(mla_string_length(app.currentLine), (mla_size_t)0, "Current line should be empty after commit");
+
+    // Up -> most recent entry
+    FeedCliInput(app, output, mla_string("\x1b[A"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("bar"), "Up should recall the newest history entry");
+    assert_equal(app.cursorPos, (mla_size_t)3, "Cursor should be at end of recalled line");
+    assert_equal(app.historyIndex, (mla_int32_t)1, "History index should point at newest entry");
+
+    // Up -> older entry
+    FeedCliInput(app, output, mla_string("\x1b[A"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("foo"), "Up again should recall the older entry");
+    assert_equal(app.historyIndex, (mla_int32_t)0, "History index should point at oldest entry");
+
+    // Up at the oldest entry -> stays put
+    FeedCliInput(app, output, mla_string("\x1b[A"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("foo"), "Up at the oldest entry should not move");
+
+    // Down -> newer entry
+    FeedCliInput(app, output, mla_string("\x1b[B"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("bar"), "Down should move to the newer entry");
+
+    // Down past the newest -> back to the (empty) live line
+    FeedCliInput(app, output, mla_string("\x1b[B"));
+    assert_equal(mla_string_length(app.currentLine), (mla_size_t)0, "Down past newest should restore the live line");
+    assert_equal(app.historyIndex, (mla_int32_t)-1, "History index should be back on the live line");
+}
+
+inline void LineEditingTest() {
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
+
+    // Type three characters (no newline, so the line is not committed)
+    FeedCliInput(app, output, mla_string("abc"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("abc"), "Typed characters should build the line");
+    assert_equal(app.cursorPos, (mla_size_t)3, "Cursor should follow inserted characters");
+
+    // Backspace removes the character before the cursor
+    FeedCliInput(app, output, mla_string("\x7f"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("ab"), "Backspace should delete the last character");
+    assert_equal(app.cursorPos, (mla_size_t)2, "Cursor should move left after backspace");
+
+    // Move left, then insert in the middle
+    FeedCliInput(app, output, mla_string("\x1b[D"));
+    assert_equal(app.cursorPos, (mla_size_t)1, "Left arrow should move the cursor left");
+    FeedCliInput(app, output, mla_string("X"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("aXb"), "Insert should happen at the cursor");
+    assert_equal(app.cursorPos, (mla_size_t)2, "Cursor should advance past the inserted character");
+
+    // Home, then Delete removes the character under the cursor
+    FeedCliInput(app, output, mla_string("\x1b[H"));
+    assert_equal(app.cursorPos, (mla_size_t)0, "Home should move the cursor to the start");
+    FeedCliInput(app, output, mla_string("\x1b[3~"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("Xb"), "Delete should remove the character at the cursor");
+
+    // End moves the cursor to the end of the line
+    FeedCliInput(app, output, mla_string("\x1b[F"));
+    assert_equal(app.cursorPos, (mla_size_t)2, "End should move the cursor to the end");
+}
+
+inline void AutocompleteTest() {
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+    mla_cli_module_t alpha = mla_cli_module(mla_string_const("Alpha"));
+    mla_cli_module_t almond = mla_cli_module(mla_string_const("Almond"));
+    mla_array_list_add(root.subModules, alpha);
+    mla_array_list_add(root.subModules, almond);
+
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
+
+    // Unique prefix -> completes fully
+    FeedCliInput(app, output, mla_string("Alp"));
+    FeedCliInput(app, output, mla_string("\t"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("Alpha"), "Tab should complete a unique prefix");
+    assert_equal(app.cursorPos, (mla_size_t)5, "Cursor should be at end of the completed line");
+
+    // Clear the line (Ctrl-C)
+    FeedCliInput(app, output, mla_string("\x03"));
+    assert_equal(mla_string_length(app.currentLine), (mla_size_t)0, "Ctrl-C should clear the current line");
+
+    // Ambiguous prefix -> line is left unchanged (candidates are listed instead)
+    FeedCliInput(app, output, mla_string("Al"));
+    FeedCliInput(app, output, mla_string("\t"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("Al"), "Tab on an ambiguous prefix should not change the line");
+    assert_equal(app.cursorPos, (mla_size_t)2, "Cursor should be unchanged on an ambiguous completion");
+}
+
+inline void SplitEscapeSequenceTest() {
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
+
+    FeedCliInput(app, output, mla_string("foo\n"));
+
+    // Deliver an Up-arrow escape sequence split across two non-blocking reads
+    FeedCliInput(app, output, mla_string("\x1b"));
+    FeedCliInput(app, output, mla_string("[A"));
+
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("foo"), "Split escape sequence should still be recognised as Up");
+    assert_equal(app.historyIndex, (mla_int32_t)0, "Split Up arrow should recall the history entry");
+}
+
+inline void WindowsArrowKeyTest() {
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+    mla_stream_output_t output = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, output);
+
+    FeedCliInput(app, output, mla_string("foo\n"));
+
+    // Windows conio Up arrow: 0xE0 prefix followed by scan code 0x48 ('H')
+    FeedCliInput(app, output, mla_string("\xe0H"));
+    assert_struct_equal(mla_string_t, app.currentLine, mla_string("foo"), "Windows Up arrow should recall the history entry");
+    assert_equal(app.cursorPos, (mla_size_t)3, "Cursor should be at end of the recalled line");
+}
+
 inline void RegisterCliAppTests(mla_test_executor_t &p_TestExecutor) {
 
     mla_test_t test = mla_test("SimpleNavigation", test_category, SimpleNavigationTest);
@@ -473,6 +606,21 @@ inline void RegisterCliAppTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MultipleCommands", test_category, MultipleCommandsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("HistoryNavigation", test_category, HistoryNavigationTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("LineEditing", test_category, LineEditingTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Autocomplete", test_category, AutocompleteTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("SplitEscapeSequence", test_category, SplitEscapeSequenceTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("WindowsArrowKey", test_category, WindowsArrowKeyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
 }

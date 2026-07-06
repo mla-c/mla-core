@@ -93,22 +93,27 @@ void mla_private_cli_command_execute_outstream_verbose_buffer_to_stream_disabled
     (void)length;
 }
 
-void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+mla_string_t mla_private_cli_build_module_prompt(mla_cli_app_t &app) {
+    mla_string_t result = mla_string_empty();
     mla_size_t size = mla_array_list_size(app.activeModules);
 
     if (size > 1) {
         // Dont print the root module
         for (mla_size_t i = 1; i < size; ++i) {
             if (i != 1) {
-                outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>(">"));
+                result = mla_string_concat(result, ">");
             }
 
             mla_string_t currentModuleName = mla_array_list_get_ref(app.activeModules, i)->moduleName;
-            mla_private_cli_write_string(outputStream, currentModuleName);
+            result = mla_string_concat(result, currentModuleName);
         }
     }
 
-    outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>(">"));
+    return mla_string_concat(result, ">");
+}
+
+void mla_private_cli_write_module_prompt(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+    mla_private_cli_write_string(outputStream, mla_private_cli_build_module_prompt(app));
 }
 
 void mla_private_cli_activate_module(mla_cli_app_t &app, mla_cli_module_t &module) {
@@ -408,14 +413,26 @@ mla_bool_t mla_private_cli_parser_parse_and_execute_command(mla_cli_app_t &app, 
 mla_cli_app_t mla_cli_app_empty() {
     return {
         mla_array_list_empty<mla_cli_module_t, mla_cli_module_initializer>(),
-        mla_string_empty()
+        mla_string_empty(), // currentLine
+        0,                  // cursorPos
+        0,                  // escState
+        0,                  // escParam
+        mla_array_list_empty<mla_string_t, mla_string_initializer>(), // history
+        -1,                 // historyIndex
+        mla_string_empty()  // savedLiveLine
     };
 }
 
 mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, mla_stream_output_t &outputStream) {
     mla_cli_app_t app = {
         mla_array_list<mla_cli_module_t, mla_cli_module_initializer>(2),
-        mla_string_empty()
+        mla_string_empty(), // currentLine
+        0,                  // cursorPos
+        0,                  // escState
+        0,                  // escParam
+        mla_array_list<mla_string_t, mla_string_initializer>(8), // history
+        -1,                 // historyIndex
+        mla_string_empty()  // savedLiveLine
     };
 
     mla_private_cli_activate_module(app, rootModule);
@@ -423,53 +440,377 @@ mla_cli_app_t mla_cli_app_init(mla_cli_module_t &rootModule, mla_stream_output_t
     return app;
 }
 
+// --------------------------------------------------------------------------
+// Interactive line editor
+//
+// stdin is read in raw, non-blocking mode (see the platform std_read
+// implementations). The terminal driver no longer performs line editing or
+// echo, so we do it ourselves here: printable characters are inserted at the
+// cursor, control keys are interpreted, and the whole line is repainted using
+// ANSI escape sequences. A completed line is only handed to the parser when
+// the user presses Enter.
+//
+// Multi-byte keys arrive in two flavours we both understand:
+//   * ANSI escape sequences (Linux / VT terminals):  ESC '[' final-byte,
+//     e.g. ESC[A = Up, ESC[3~ = Delete.
+//   * Windows conio special keys: a 0x00 / 0xE0 prefix followed by a scan
+//     code, e.g. 0xE0 0x48 = Up.
+// Because reads are non-blocking a sequence can be split across reads, so the
+// parse state (escState/escParam) lives on mla_cli_app_t.
+// --------------------------------------------------------------------------
+
+enum mla_private_cli_escape_t :mla_uint8_t {
+    MLA_CLI_ESC_NORMAL = 0, // not inside an escape sequence
+    MLA_CLI_ESC_GOT_ESC,    // saw ESC (0x1B)
+    MLA_CLI_ESC_GOT_CSI,    // saw ESC '[' (ANSI control sequence introducer)
+    MLA_CLI_ESC_GOT_WIN     // saw 0x00 / 0xE0 (Windows conio special-key prefix)
+};
+
+enum mla_private_cli_key_t: mla_uint8_t {
+    MLA_CLI_KEY_UP,
+    MLA_CLI_KEY_DOWN,
+    MLA_CLI_KEY_LEFT,
+    MLA_CLI_KEY_RIGHT,
+    MLA_CLI_KEY_HOME,
+    MLA_CLI_KEY_END,
+    MLA_CLI_KEY_DELETE
+};
+
+void mla_private_cli_write_c_string(mla_stream_output_t &outputStream, const mla_char_t *str) {
+    outputStream.write(outputStream, 0, mla_strlen(str), mla_r_cast<const mla_byte_t*>(str));
+}
+
+mla_string_t mla_private_cli_char_to_string(mla_char_t c) {
+    mla_char_t buffer[1] = { c };
+    return mla_string_copy(buffer, 1);
+}
+
+// Repaint the current line: return to column 0, clear the line, write the
+// prompt and the edited line, then reposition the cursor.
+void mla_private_cli_redraw_line(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+    mla_private_cli_write_c_string(outputStream, "\r\x1b[K");
+    mla_private_cli_write_string(outputStream, mla_private_cli_build_module_prompt(app));
+    mla_private_cli_write_string(outputStream, app.currentLine);
+
+    mla_size_t lineLength = mla_string_length(app.currentLine);
+    if (app.cursorPos < lineLength) {
+        // Move the cursor left so it sits at cursorPos again
+        mla_string_t moveLeft = mla_string_concat("\x1b[", mla_string_from_size(lineLength - app.cursorPos), "D");
+        mla_private_cli_write_string(outputStream, moveLeft);
+    }
+}
+
+void mla_private_cli_editor_insert_char(mla_cli_app_t &app, mla_char_t c) {
+    mla_string_t prefix = mla_string_substr(app.currentLine, 0, app.cursorPos);
+    mla_string_t suffix = mla_string_substr(app.currentLine, app.cursorPos);
+    app.currentLine = mla_string_concat(prefix, mla_private_cli_char_to_string(c), suffix);
+    app.cursorPos++;
+}
+
+void mla_private_cli_editor_backspace(mla_cli_app_t &app) {
+    if (app.cursorPos == 0) {
+        return;
+    }
+    mla_string_t prefix = mla_string_substr(app.currentLine, 0, app.cursorPos - 1);
+    mla_string_t suffix = mla_string_substr(app.currentLine, app.cursorPos);
+    app.currentLine = mla_string_concat(prefix, suffix);
+    app.cursorPos--;
+}
+
+void mla_private_cli_editor_delete(mla_cli_app_t &app) {
+    mla_size_t lineLength = mla_string_length(app.currentLine);
+    if (app.cursorPos >= lineLength) {
+        return;
+    }
+    mla_string_t prefix = mla_string_substr(app.currentLine, 0, app.cursorPos);
+    mla_string_t suffix = mla_string_substr(app.currentLine, app.cursorPos + 1);
+    app.currentLine = mla_string_concat(prefix, suffix);
+}
+
+// Replace the edited line and move the cursor to its end.
+void mla_private_cli_editor_set_line(mla_cli_app_t &app, const mla_string_t &line) {
+    app.currentLine = line;
+    app.cursorPos = mla_string_length(app.currentLine);
+}
+
+void mla_private_cli_history_previous(mla_cli_app_t &app) {
+    mla_size_t historySize = mla_array_list_size(app.history);
+    if (historySize == 0) {
+        return;
+    }
+
+    if (app.historyIndex == -1) {
+        // Leaving the live line: remember it so Down can restore it later
+        app.savedLiveLine = app.currentLine;
+        app.historyIndex = mla_s_cast<mla_int32_t>(historySize) - 1;
+    } else if (app.historyIndex > 0) {
+        app.historyIndex--;
+    } else {
+        return; // already at the oldest entry
+    }
+
+    mla_string_t *entry = mla_array_list_get_ref(app.history, mla_s_cast<mla_size_t>(app.historyIndex));
+    mla_private_cli_editor_set_line(app, mla_string_copy(*entry));
+}
+
+void mla_private_cli_history_next(mla_cli_app_t &app) {
+    if (app.historyIndex == -1) {
+        return; // already on the live line
+    }
+
+    mla_size_t historySize = mla_array_list_size(app.history);
+    if (mla_s_cast<mla_size_t>(app.historyIndex) + 1 < historySize) {
+        app.historyIndex++;
+        mla_string_t *entry = mla_array_list_get_ref(app.history, mla_s_cast<mla_size_t>(app.historyIndex));
+        mla_private_cli_editor_set_line(app, mla_string_copy(*entry));
+    } else {
+        // Past the newest entry: restore the line the user was typing
+        app.historyIndex = -1;
+        mla_private_cli_editor_set_line(app, app.savedLiveLine);
+    }
+}
+
+void mla_private_cli_handle_special_key(mla_cli_app_t &app, mla_private_cli_key_t key, mla_stream_output_t &outputStream) {
+    mla_size_t lineLength = mla_string_length(app.currentLine);
+
+    switch (key) {
+        case MLA_CLI_KEY_UP:
+            mla_private_cli_history_previous(app);
+            break;
+        case MLA_CLI_KEY_DOWN:
+            mla_private_cli_history_next(app);
+            break;
+        case MLA_CLI_KEY_LEFT:
+            if (app.cursorPos > 0) {
+                app.cursorPos--;
+            }
+            break;
+        case MLA_CLI_KEY_RIGHT:
+            if (app.cursorPos < lineLength) {
+                app.cursorPos++;
+            }
+            break;
+        case MLA_CLI_KEY_HOME:
+            app.cursorPos = 0;
+            break;
+        case MLA_CLI_KEY_END:
+            app.cursorPos = lineLength;
+            break;
+        case MLA_CLI_KEY_DELETE:
+            mla_private_cli_editor_delete(app);
+            break;
+    }
+
+    mla_private_cli_redraw_line(app, outputStream);
+}
+
+void mla_private_cli_autocomplete(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+    mla_cli_parser_t parser = mla_private_cli_setup_parser(app);
+    mla_cli_parser_result result = mla_cli_parser_parse(parser, app.currentLine);
+
+    mla_size_t completionCount = mla_array_list_size(result.possibleAutoCompletions);
+
+    if (completionCount == 0) {
+        // Nothing to complete
+        mla_private_cli_write_c_string(outputStream, "\a");
+        return;
+    }
+
+    if (completionCount == 1) {
+        // Unique completion: append the missing suffix and keep editing
+        mla_string_t *completion = mla_array_list_get_ref(result.possibleAutoCompletions, 0);
+        app.currentLine = mla_string_concat(app.currentLine, *completion);
+        app.cursorPos = mla_string_length(app.currentLine);
+        mla_private_cli_redraw_line(app, outputStream);
+        return;
+    }
+
+    // Multiple candidates: list them, then redraw the prompt with the current line
+    mla_private_cli_write_c_string(outputStream, "\r\n");
+    for (mla_size_t i = 0; i < completionCount; ++i) {
+        mla_string_t *completion = mla_array_list_get_ref(result.possibleAutoCompletions, i);
+        mla_private_cli_write_c_string(outputStream, "  ");
+        mla_private_cli_write_string(outputStream, app.currentLine);
+        mla_private_cli_write_string(outputStream, *completion);
+        mla_private_cli_write_c_string(outputStream, "\n");
+    }
+    mla_private_cli_redraw_line(app, outputStream);
+}
+
+// Submit the current line: echo a newline, push to history, execute it, and
+// print a fresh prompt. Returns false if the executed command reported failure.
+mla_bool_t mla_private_cli_commit_line(mla_cli_app_t &app, mla_stream_output_t &outputStream) {
+    mla_private_cli_write_c_string(outputStream, "\r\n");
+
+    mla_string_t line = app.currentLine;
+
+    // Reset the editor for the next line before executing, so a command can
+    // safely inspect/modify the app state
+    app.currentLine = mla_string_empty();
+    app.cursorPos = 0;
+    app.historyIndex = -1;
+    app.savedLiveLine = mla_string_empty();
+
+    mla_bool_t success = true;
+
+    if (!mla_string_is_empty(line)) {
+        mla_array_list_add(app.history, mla_string_copy(line));
+        success = mla_private_cli_parser_parse_and_execute_command(app, line, outputStream);
+    }
+
+    mla_private_cli_write_module_prompt(app, outputStream);
+    return success;
+}
+
+// Handle a single byte while not inside an escape sequence.
+// Returns false if committing a command reported failure.
+mla_bool_t mla_private_cli_handle_normal_byte(mla_cli_app_t &app, mla_uint8_t b, mla_stream_output_t &outputStream) {
+    switch (b) {
+        case 0x1B: // ESC -> possibly an ANSI escape sequence
+            app.escState = MLA_CLI_ESC_GOT_ESC;
+            return true;
+        case 0x00:
+        case 0xE0: // Windows conio special-key prefix
+            app.escState = MLA_CLI_ESC_GOT_WIN;
+            return true;
+        case '\r':
+        case '\n':
+            return mla_private_cli_commit_line(app, outputStream);
+        case '\t':
+            mla_private_cli_autocomplete(app, outputStream);
+            return true;
+        case 0x7F: // DEL (Backspace on most terminals)
+        case 0x08: // BS  (Ctrl-H / Backspace)
+            mla_private_cli_editor_backspace(app);
+            mla_private_cli_redraw_line(app, outputStream);
+            return true;
+        case 0x03: // Ctrl-C -> discard the current line
+            mla_private_cli_write_c_string(outputStream, "^C\r\n");
+            app.currentLine = mla_string_empty();
+            app.cursorPos = 0;
+            app.historyIndex = -1;
+            app.savedLiveLine = mla_string_empty();
+            mla_private_cli_write_module_prompt(app, outputStream);
+            return true;
+        default:
+            break;
+    }
+
+    // Printable ASCII: insert it at the cursor. All other control bytes are ignored.
+    if (b >= 0x20 && b <= 0x7E) {
+        mla_private_cli_editor_insert_char(app, mla_s_cast<mla_char_t>(b));
+        mla_private_cli_redraw_line(app, outputStream);
+    }
+
+    return true;
+}
+
+// Handle a byte after ESC '[' (an ANSI control sequence).
+void mla_private_cli_handle_csi_byte(mla_cli_app_t &app, mla_uint8_t b, mla_stream_output_t &outputStream) {
+    if (b >= '0' && b <= '9') {
+        // Accumulate the numeric parameter (e.g. the 3 in ESC[3~)
+        app.escParam = mla_s_cast<mla_uint8_t>((app.escParam * 10) + (b - '0'));
+        return; // still inside the sequence
+    }
+
+    mla_bool_t handled = true;
+    mla_private_cli_key_t key = MLA_CLI_KEY_UP;
+
+    switch (b) {
+        case 'A': key = MLA_CLI_KEY_UP; break;
+        case 'B': key = MLA_CLI_KEY_DOWN; break;
+        case 'C': key = MLA_CLI_KEY_RIGHT; break;
+        case 'D': key = MLA_CLI_KEY_LEFT; break;
+        case 'H': key = MLA_CLI_KEY_HOME; break;
+        case 'F': key = MLA_CLI_KEY_END; break;
+        case '~':
+            // ESC [ <n> ~  (1/7 = Home, 3 = Delete, 4/8 = End)
+            switch (app.escParam) {
+                case 1: case 7: key = MLA_CLI_KEY_HOME; break;
+                case 4: case 8: key = MLA_CLI_KEY_END; break;
+                case 3: key = MLA_CLI_KEY_DELETE; break;
+                default: handled = false; break;
+            }
+            break;
+        default:
+            handled = false;
+            break;
+    }
+
+    if (handled) {
+        mla_private_cli_handle_special_key(app, key, outputStream);
+    }
+
+    app.escState = MLA_CLI_ESC_NORMAL;
+    app.escParam = 0;
+}
+
+// Handle a Windows conio scan code after a 0x00 / 0xE0 prefix.
+void mla_private_cli_handle_win_key(mla_cli_app_t &app, mla_uint8_t b, mla_stream_output_t &outputStream) {
+    mla_bool_t handled = true;
+    mla_private_cli_key_t key = MLA_CLI_KEY_UP;
+
+    switch (b) {
+        case 0x48: key = MLA_CLI_KEY_UP; break;
+        case 0x50: key = MLA_CLI_KEY_DOWN; break;
+        case 0x4B: key = MLA_CLI_KEY_LEFT; break;
+        case 0x4D: key = MLA_CLI_KEY_RIGHT; break;
+        case 0x47: key = MLA_CLI_KEY_HOME; break;
+        case 0x4F: key = MLA_CLI_KEY_END; break;
+        case 0x53: key = MLA_CLI_KEY_DELETE; break;
+        default: handled = false; break;
+    }
+
+    if (handled) {
+        mla_private_cli_handle_special_key(app, key, outputStream);
+    }
+
+    app.escState = MLA_CLI_ESC_NORMAL;
+}
+
 mla_bool_t mla_cli_app_update_and_process_input(mla_cli_app_t &app, mla_stream_input_t &inputStream,
                                           mla_stream_output_t &outputStream) {
 
-    // Create an own scopt so that the buffer is removed from the stack after reading
-    {
-        mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
-        mla_size_t bytesRead = inputStream.read(inputStream, 0, sizeof(buffer), buffer);
+    mla_byte_t buffer[mla_global_config_stream_fast_read_buffer_size] = {0};
+    mla_size_t bytesRead = inputStream.read(inputStream, 0, sizeof(buffer), buffer);
 
-        if (bytesRead == 0) {
-            return false;
+    if (bytesRead == 0) {
+        return true; // Nothing available this tick
+    }
+
+    mla_bool_t success = true;
+
+    for (mla_size_t i = 0; i < bytesRead; ++i) {
+        mla_uint8_t b = buffer[i];
+
+        switch (app.escState) {
+            case MLA_CLI_ESC_GOT_ESC:
+                if (b == '[') {
+                    app.escState = MLA_CLI_ESC_GOT_CSI;
+                    app.escParam = 0;
+                } else {
+                    // Lone ESC (or Alt-<key>): handle this byte normally
+                    app.escState = MLA_CLI_ESC_NORMAL;
+                    if (!mla_private_cli_handle_normal_byte(app, b, outputStream)) {
+                        success = false;
+                    }
+                }
+                break;
+            case MLA_CLI_ESC_GOT_CSI:
+                mla_private_cli_handle_csi_byte(app, b, outputStream);
+                break;
+            case MLA_CLI_ESC_GOT_WIN:
+                mla_private_cli_handle_win_key(app, b, outputStream);
+                break;
+            default:
+                if (!mla_private_cli_handle_normal_byte(app, b, outputStream)) {
+                    success = false;
+                }
+                break;
         }
-
-        // Append to unprocessed input
-        mla_pointer_t buffer_ptr = mla_platform_pointer_to_managed_pointer(buffer);
-        mla_string_t newInput = mla_string(buffer_ptr, bytesRead);
-        app.unprocessedInput = mla_string_concat(app.unprocessedInput, newInput);
     }
 
-    mla_int32_t lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
-
-    mla_bool_t commandProcessed = false;
-    mla_bool_t commandSuccessfullyProcessed = true;
-
-    while (lineEnd != -1) {
-        // Process the line
-        mla_string_t line = mla_string_substr(app.unprocessedInput, 0, lineEnd); // Exclude the newline character
-
-        // Remove the processed line from unprocessed input
-        mla_string_t remainingInput = mla_string_substr(app.unprocessedInput, lineEnd + 1);
-        app.unprocessedInput = remainingInput;
-
-        // Parse and execute the command
-        if (!mla_private_cli_parser_parse_and_execute_command(app, line, outputStream)) {
-            commandSuccessfullyProcessed = false;
-        }
-        commandProcessed = true;
-
-        // Check for another complete line
-        lineEnd = mla_string_index_of(app.unprocessedInput, mla_string("\n"));
-    }
-
-    if (commandProcessed) {
-        outputStream.write(outputStream, 0, 1, mla_r_cast<const mla_byte_t*>("\n"));
-        mla_private_cli_write_module_prompt(app, outputStream);
-    }
-
-    return commandSuccessfullyProcessed;
+    return success;
 }
 
 

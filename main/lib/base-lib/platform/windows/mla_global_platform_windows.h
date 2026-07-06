@@ -48,14 +48,15 @@ mla_size_t mla_private_windows_std_read(mla_char_t* buffer, mla_size_t size) {
 
     mla_size_t count = 0;
 
+    // Raw byte pump: read whatever is currently buffered without echoing or
+    // translating. Line editing (echo, cursor movement, history, autocomplete)
+    // is handled by the CLI line editor in mla_cli_app.cpp, which needs the raw
+    // bytes. Special keys (arrows, Home/End, ...) arrive as a two-byte sequence
+    // (a 0x00 / 0xE0 prefix followed by a scan code); both bytes are queued by
+    // the console, so consecutive _kbhit()/_getch() calls deliver them in order.
     while (_kbhit() == TRUE && count < size - 1) {
-        int ch = _getche(); // <- echo input automatically
-        if (ch == '\r') {   // convert CR to newline (for consistency)
-            buffer[count++] = '\n';
-            break;
-        } else {
-            buffer[count++] = mla_s_cast<mla_char_t>(ch);
-        }
+        int ch = _getch(); // <- no echo
+        buffer[count++] = mla_s_cast<mla_char_t>(ch);
     }
 
     buffer[count] = '\0';

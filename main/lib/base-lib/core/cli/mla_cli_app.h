@@ -38,7 +38,20 @@ const mla_cli_command_t* mla_cli_module_find_command(const mla_cli_module_t& mod
 
 struct mla_cli_app_t {
     mla_array_list_t<mla_cli_module_t, mla_cli_module_initializer> activeModules;
-    mla_string_t unprocessedInput;
+
+    // Interactive line editor state (see mla_cli_app.cpp).
+    // stdin is read raw and non-blocking, so a multi-byte key (arrow keys,
+    // Home/End, ...) can arrive split across reads. The parse state therefore
+    // lives here and survives between calls to mla_cli_app_update_and_process_input.
+    mla_string_t currentLine;   // the line currently being edited
+    mla_size_t   cursorPos;     // insertion index into currentLine
+    mla_uint8_t  escState;      // escape-sequence parser state
+    mla_uint8_t  escParam;      // numeric parameter of a CSI sequence (e.g. ESC[3~)
+
+    // Command history for up/down navigation
+    mla_array_list_t<mla_string_t, mla_string_initializer> history;
+    mla_int32_t  historyIndex;  // -1 == editing the live line
+    mla_string_t savedLiveLine; // live line stashed while browsing history
 };
 
 mla_cli_app_t mla_cli_app_empty();

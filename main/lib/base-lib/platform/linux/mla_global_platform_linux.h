@@ -62,7 +62,10 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
 
-    // Disable canonical mode and echo, we'll echo manually
+    // Disable canonical mode and echo. This is a raw byte pump: it does NOT echo
+    // or translate anything. Line editing (echo, cursor movement, history,
+    // autocomplete) is handled by the CLI line editor in mla_cli_app.cpp, which
+    // needs to see every raw byte - including escape sequences for arrow keys.
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
@@ -70,20 +73,11 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
 
-    // Read whatever is available
+    // Read whatever is currently available without blocking
     while (count < size - 1) {
         ch = getchar();
         if (ch == EOF) { break; }
-
-        if (ch == '\n' || ch == '\r') {
-            putchar('\n');  // manual echo for newline
-            buffer[count++] = '\n';
-            break;
-        } else {
-            putchar(ch);     // echo character to screen
-            buffer[count++] = (mla_char_t) ch;
-            fflush(stdout);
-        }
+        buffer[count++] = (mla_char_t) ch;
     }
 
     buffer[count] = '\0';
