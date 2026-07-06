@@ -264,17 +264,19 @@ void ToCStringFromBuffer_No_Force_CopyTest() {
 void CStringDataAccessorTest() {
     mla_string_t str = mla_string("hello");
     mla_c_string_t cStr = mla_string_to_cString(str);
-    const mla_char_t *data = mla_c_string_data(cStr);
+    const mla_char_t *cData = mla_c_string_data(cStr);
 
-    assert_true(data != nullptr, "C-string data accessor should return valid pointer");
-    if (data != nullptr) {
-        assert_equal(mla_strlen(data), (mla_size_t)5, "C-string data should have expected length");
+    assert_true(cData != nullptr, "C-string data accessor should return valid pointer");
+    if (cData == nullptr) {
+        return;
     }
+
+    assert_equal(mla_strlen(cData), (mla_size_t)5, "C-string data should have expected length");
 }
 
 void StringFromCStringWithLengthTest() {
-    mla_char_t data[12] = "hello-world";
-    mla_string_t str = mla_string_from_c_string(mla_platform_pointer_to_managed_pointer(data), 5);
+    mla_char_t sourceBuffer[sizeof("hello-world")] = "hello-world";
+    mla_string_t str = mla_string_from_c_string(mla_platform_pointer_to_managed_pointer(sourceBuffer), 5);
 
     assert_equal(mla_string_length(str), (mla_size_t)5, "String length should match provided length");
     assert_equal(mla_string_get_memory_layout(str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "String should use C-string layout");
@@ -1124,6 +1126,11 @@ void JoinTest() {
 
     mla_string_t joined = mla_string_join(parts, mla_string(","));
     assert_true(mla_string_equals(joined, mla_string("apple,banana,cherry")), "Join should concatenate with delimiter");
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> singlePart = mla_array_list<mla_string_t, mla_string_initializer>(1);
+    mla_array_list_add(singlePart, mla_string("only"));
+    mla_string_t singleJoin = mla_string_join(singlePart, mla_string(","));
+    assert_true(mla_string_equals(singleJoin, mla_string("only")), "Join with one element should return the element unchanged");
 
     mla_array_list_t<mla_string_t, mla_string_initializer> emptyParts = mla_array_list<mla_string_t, mla_string_initializer>(0);
     mla_string_t emptyJoin = mla_string_join(emptyParts, mla_string(","));
