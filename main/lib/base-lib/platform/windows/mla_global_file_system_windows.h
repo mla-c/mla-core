@@ -10,6 +10,7 @@
 
 #include "../../core/filesystem/mla_file_system.h"
 #include "../../core/mla_data_types.h"
+#include "../../core/log/mla_logging.h"
 #include "../../core/system/mla_string_concat.h"
 
 // Maximum path length for Windows file operations (supports UNC paths)
@@ -349,7 +350,9 @@ void mla_private_file_system_native_close_file(const mla_native_resource_t& user
     (void)userData;
     HANDLE hFile = mla_r_cast<HANDLE>(userData.asPointer);
 
-    CloseHandle(hFile);
+    if (CloseHandle(hFile) == FALSE) {
+        mla_warning("Failed to close file handle");
+    }
 
 }
 

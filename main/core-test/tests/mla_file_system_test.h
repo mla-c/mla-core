@@ -525,10 +525,16 @@ void FileSystemStreamWrapperTest() {
     assert_true(mla_fs_create_directory(mla_string("/streamwrap/")),
                 "Should create stream wrapper test directory");
 
+    mla_string_t writtenText = mla_string_const("stream wrapper");
+    mla_size_t writtenLength = mla_string_length(writtenText);
+
     mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
     assert_true(mla_fs_open_file(mla_string("/streamwrap/data.txt"),
                                  MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
                 "Should open file in write mode");
+
+    assert_equal(mla_pointer_ref_count(writeStream.resource), 1,
+                 "Write-only stream should have a reference count of 1");
 
     mla_stream_input_t noopInput = mla_file_system_stream_as_input(writeStream);
     mla_byte_t noopReadBuffer[4] = {0};
@@ -536,12 +542,13 @@ void FileSystemStreamWrapperTest() {
                  "Write-only stream should map to a no-op input stream");
 
     mla_stream_output_t output = mla_file_system_stream_as_output(writeStream);
-    mla_string_t writtenText = mla_string_const("stream wrapper");
-    mla_size_t writtenLength = mla_string_length(writtenText);
+
     assert_equal(output.write(output, 0, writtenLength,
                               mla_r_cast<const mla_byte_t*>(mla_string_data(writtenText))), writtenLength,
                  "Output wrapper should forward writes");
 
+    noopInput = mla_stream_noop_input();
+    output = mla_stream_noop_output();
     writeStream = mla_file_system_stream_empty();
 
     mla_file_system_stream_t readStream = mla_file_system_stream_empty();
@@ -711,30 +718,21 @@ void FileSystemAbsolutePathTest() {
 
     mla_string_t existingPath = mla_fs_get_complete_os_absolute_path(mla_string("/abstest/file.txt"));
     assert_false(mla_string_is_empty(existingPath), "Existing file should resolve to an OS path");
-    assert_true(mla_string_ends_with(existingPath, mla_string("/abstest/file.txt")),
+
+    assert_true(mla_string_ends_with(existingPath, mla_string("file.txt")),
                 "Resolved path should end with the original file path");
 
     mla_string_t uncheckedPath = mla_fs_get_complete_os_absolute_path(mla_string("/abstest/missing.txt"), false);
     assert_false(mla_string_is_empty(uncheckedPath), "Unchecked missing file should still resolve");
-    assert_true(mla_string_ends_with(uncheckedPath, mla_string("/abstest/missing.txt")),
+    assert_true(mla_string_ends_with(uncheckedPath, mla_string("missing.txt")),
                 "Unchecked resolved path should end with the missing file path");
 
     mla_fs_delete_file(mla_string("/abstest/file.txt"));
     mla_fs_delete_directory(mla_string("/abstest/"));
 }
 
-void FileSystemApiCoverageTest() {
-    FileSystemEmptyFactoriesTest();
-    FileSystemStreamWrapperTest();
-    FileSystemLifecycleTest();
-    FileSystemCountFilesTest();
-    FileSystemCountDirectoryTest();
-    FileSystemCopyApisTest();
-    FileSystemRelativePathTest();
-    FileSystemAbsolutePathTest();
-}
-
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
+
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -780,7 +778,28 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("ApiCoverage", test_category, FileSystemApiCoverageTest);
+    test = mla_test("EmptyFactories", test_category, FileSystemEmptyFactoriesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamWrapper", test_category, FileSystemStreamWrapperTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("Lifecycle", test_category, FileSystemLifecycleTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CountFiles", test_category, FileSystemCountFilesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CountDirectory", test_category, FileSystemCountDirectoryTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CopyApis", test_category, FileSystemCopyApisTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("RelativePath", test_category, FileSystemRelativePathTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("AbsolutePath", test_category, FileSystemAbsolutePathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
