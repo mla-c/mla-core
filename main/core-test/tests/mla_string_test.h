@@ -273,7 +273,7 @@ void CStringDataAccessorTest() {
 }
 
 void StringFromCStringWithLengthTest() {
-    mla_char_t data[11] = "hello-world";
+    mla_char_t data[12] = "hello-world";
     mla_string_t str = mla_string_from_c_string(mla_platform_pointer_to_managed_pointer(data), 5);
 
     assert_equal(mla_string_length(str), (mla_size_t)5, "String length should match provided length");
