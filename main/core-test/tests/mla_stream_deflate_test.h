@@ -1021,6 +1021,36 @@ inline void StreamDeflateGzipCompressedSizeCalculationTest() {
 }
 
 ///////////////////////////////////////////////////////////////////
+/// Decompressed Size Calculation and Window Bits Tests
+///////////////////////////////////////////////////////////////////
+
+inline void StreamDeflateDecompressedSizeCalculationTest() {
+    const mla_char_t* test_data = "Hello, decompressed size!";
+    mla_size_t test_len = 25;
+
+    // Compress first
+    mla_memory_stream_t compressed = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(compressed.output);
+    compress_out.write(compress_out, 0, test_len, mla_r_cast<const mla_byte_t*>(test_data));
+    mla_stream_output_deflate_finish(compress_out);
+
+    mla_memory_stream_set_position(compressed, 0);
+    mla_size_t decompressed_size = mla_stream_input_deflate_decompressed_size_calculation(compressed.input);
+
+    assert_equal(decompressed_size, test_len, "Decompressed size calculation should match original data length");
+}
+
+inline void StreamDeflateWindowBitsTest() {
+    // mla_stream_output_deflate_window_bits returns the window bits for a deflate output stream
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_stream_output_t compress_out = mla_stream_output_deflate_compress_wrapper(mem.output);
+    mla_size_t window_bits = mla_stream_output_deflate_window_bits(compress_out);
+
+    // Window bits must be in the valid DEFLATE range [8, 15]
+    assert_true(window_bits >= 8 && window_bits <= 15, "Deflate window bits should be in the range [8, 15]");
+}
+
+///////////////////////////////////////////////////////////////////
 /// Test Registration
 ///////////////////////////////////////////////////////////////////
 
@@ -1109,6 +1139,12 @@ void RegisterStreamDeflateTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamDeflateGzipCompressedSizeCalculation", test_category, StreamDeflateGzipCompressedSizeCalculationTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateDecompressedSizeCalculation", test_category, StreamDeflateDecompressedSizeCalculationTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamDeflateWindowBits", test_category, StreamDeflateWindowBitsTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 

@@ -535,6 +535,401 @@ void StreamInterceptorWrapperChainedTest() {
     assert_equal(read_bytes, test_data_length, "Chained interceptors should read correct byte count");
 }
 
+void StreamInputInitTest() {
+    mla_stream_input_t stream = mla_stream_input_t::init();
+    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "init() should set a non-null read function");
+}
+
+void StreamOutputInitTest() {
+    mla_stream_output_t stream = mla_stream_output_t::init();
+    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "init() should set a non-null write function");
+}
+
+void StreamNoopInputTest() {
+    mla_stream_input_t noop = mla_stream_noop_input();
+    assert_not_equal(noop.read, (decltype(noop.read))nullptr, "Noop input should have a read function");
+
+    mla_byte_t buf[8] = {0};
+    mla_size_t read_bytes = noop.read(noop, 0, sizeof(buf), buf);
+    assert_equal(read_bytes, (mla_size_t)0, "Noop input read should return 0");
+}
+
+void StreamNoopOutputTest() {
+    mla_stream_output_t noop = mla_stream_noop_output();
+    assert_not_equal(noop.write, (decltype(noop.write))nullptr, "Noop output should have a write function");
+
+    const mla_char_t* data = "test";
+    mla_size_t written = noop.write(noop, 0, 4, mla_r_cast<const mla_byte_t*>(data));
+    assert_equal(written, (mla_size_t)4, "Noop output write should accept all bytes");
+}
+
+void StreamStdinSmokeTest() {
+    mla_stream_input_t stdin_stream = mla_stream_input_stdin();
+    assert_not_equal(stdin_stream.read, (decltype(stdin_stream.read))nullptr, "stdin stream should have a non-null read function");
+}
+
+void StreamStdoutSmokeTest() {
+    mla_stream_output_t stdout_stream = mla_stream_output_stdout();
+    assert_not_equal(stdout_stream.write, (decltype(stdout_stream.write))nullptr, "stdout stream should have a non-null write function");
+}
+
+void StreamInputFromBufferNonOwningTest() {
+    const mla_char_t* src = "hello buffer";
+    mla_size_t src_len = 12;
+
+    mla_stream_input_t stream = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(src)), src_len);
+    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Non-owning buffer input should have read function");
+
+    mla_byte_t buf[16] = {0};
+    mla_size_t read_bytes = stream.read(stream, 0, src_len, buf);
+    assert_equal(read_bytes, src_len, "Should read all bytes from non-owning buffer");
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, src, src_len), (mla_test_int32_t)0, "Read data should match source buffer");
+}
+
+void StreamOutputToBufferNonOwningTest() {
+    mla_byte_t dest[16] = {0};
+    mla_size_t dest_size = 16;
+
+    mla_stream_output_t stream = mla_stream_output_to_buffer(dest, dest_size);
+    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "Non-owning buffer output should have write function");
+
+    const mla_char_t* data = "write to buf";
+    mla_size_t data_len = 12;
+    mla_size_t written = stream.write(stream, 0, data_len, mla_r_cast<const mla_byte_t*>(data));
+    assert_equal(written, data_len, "Should write all bytes to non-owning buffer");
+    assert_equal((mla_test_int32_t)mla_memcmp(dest, data, data_len), (mla_test_int32_t)0, "Buffer content should match written data");
+}
+
+void StreamOutputToBufferNonOwningTruncatesTest() {
+    mla_byte_t dest[4] = {0};
+    mla_stream_output_t stream = mla_stream_output_to_buffer(dest, 4);
+
+    const mla_char_t* data = "12345678";
+    mla_size_t written = stream.write(stream, 0, 8, mla_r_cast<const mla_byte_t*>(data));
+    assert_equal(written, (mla_size_t)4, "Write to non-owning buffer should be capped at buffer size");
+    assert_equal((mla_test_int32_t)mla_memcmp(dest, "1234", 4), (mla_test_int32_t)0, "Only the first 4 bytes should be written");
+}
+
+void StreamInputFromBufferOwningTest() {
+    mla_stream_input_t stream = mla_stream_input_from_buffer((mla_size_t)8);
+    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Owning buffer input should have read function");
+
+    // An owning buffer starts empty; remaining bytes should be 8 (capacity)
+    if (stream.remaining_bytes != nullptr) {
+        mla_size_t remaining = stream.remaining_bytes(stream);
+        assert_equal(remaining, (mla_size_t)8, "Owning buffer input remaining bytes should equal allocated size");
+    }
+}
+
+void StreamOutputToBufferOwningTest() {
+    mla_stream_output_t stream = mla_stream_output_to_buffer((mla_size_t)16);
+    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "Owning buffer output should have write function");
+
+    const mla_char_t* data = "owning write";
+    mla_size_t data_len = 12;
+    mla_size_t written = stream.write(stream, 0, data_len, mla_r_cast<const mla_byte_t*>(data));
+    assert_equal(written, data_len, "Owning buffer output should accept writes up to its capacity");
+}
+
+void StreamCopyTest() {
+    mla_memory_stream_t src = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("copy test data");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    src.output.write(src.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(src, 0);
+
+    mla_memory_stream_t dst = mla_memory_stream_empty();
+    mla_bool_t result = mla_stream_copy(src.input, dst.output);
+
+    assert_true(result, "Stream copy should succeed");
+    assert_equal(mla_memory_stream_get_size(dst), len, "Destination size should match source");
+
+    mla_memory_stream_set_position(dst, 0);
+    mla_byte_t buf[32] = {0};
+    dst.input.read(dst.input, 0, len, buf);
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, data, len), (mla_test_int32_t)0, "Copied data should match source");
+}
+
+void StreamEqualTrueTest() {
+    mla_string_t s = mla_string_const("equal data");
+    mla_size_t len = mla_string_length(s);
+    const mla_char_t* data = mla_string_data(s);
+
+    mla_memory_stream_t m1 = mla_memory_stream_empty();
+    mla_memory_stream_t m2 = mla_memory_stream_empty();
+    m1.output.write(m1.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    m2.output.write(m2.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(m1, 0);
+    mla_memory_stream_set_position(m2, 0);
+
+    assert_true(mla_stream_equal(m1.input, m2.input), "Streams with identical content should be equal");
+}
+
+void StreamEqualFalseTest() {
+    mla_memory_stream_t m1 = mla_memory_stream_empty();
+    mla_memory_stream_t m2 = mla_memory_stream_empty();
+
+    mla_string_t s1 = mla_string_const("aaa");
+    mla_string_t s2 = mla_string_const("bbb");
+    mla_size_t len = mla_string_length(s1);
+
+    m1.output.write(m1.output, 0, len, mla_r_cast<const mla_byte_t*>(mla_string_data(s1)));
+    m2.output.write(m2.output, 0, len, mla_r_cast<const mla_byte_t*>(mla_string_data(s2)));
+    mla_memory_stream_set_position(m1, 0);
+    mla_memory_stream_set_position(m2, 0);
+
+    assert_false(mla_stream_equal(m1.input, m2.input), "Streams with different content should not be equal");
+}
+
+void StreamEqualDifferentSizeTest() {
+    mla_memory_stream_t m1 = mla_memory_stream_empty();
+    mla_memory_stream_t m2 = mla_memory_stream_empty();
+
+    mla_string_t s1 = mla_string_const("short");
+    mla_string_t s2 = mla_string_const("longer string");
+
+    m1.output.write(m1.output, 0, mla_string_length(s1), mla_r_cast<const mla_byte_t*>(mla_string_data(s1)));
+    m2.output.write(m2.output, 0, mla_string_length(s2), mla_r_cast<const mla_byte_t*>(mla_string_data(s2)));
+    mla_memory_stream_set_position(m1, 0);
+    mla_memory_stream_set_position(m2, 0);
+
+    assert_false(mla_stream_equal(m1.input, m2.input), "Streams with different sizes should not be equal");
+}
+
+void StreamOutputWriteStringTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("write string test");
+    mla_size_t len = mla_string_length(test_string);
+
+    mla_bool_t result = mla_stream_output_write_string(mem.output, test_string);
+    assert_true(result, "Write string should succeed");
+    assert_equal(mla_memory_stream_get_size(mem), len, "Stream size should match string length");
+
+    mla_memory_stream_set_position(mem, 0);
+    mla_byte_t buf[32] = {0};
+    mem.input.read(mem.input, 0, len, buf);
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, mla_string_data(test_string), len), (mla_test_int32_t)0, "Stream content should match written string");
+}
+
+void StreamOutputWriteStringEmptyTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t empty_string = mla_string_empty();
+    mla_bool_t result = mla_stream_output_write_string(mem.output, empty_string);
+    assert_true(result, "Writing empty string should succeed");
+    assert_equal(mla_memory_stream_get_size(mem), (mla_size_t)0, "Stream size should remain 0 after writing empty string");
+}
+
+void StreamInputFromStringTest() {
+    mla_string_t test_string = mla_string_const("from string test");
+    mla_size_t len = mla_string_length(test_string);
+
+    mla_stream_input_t stream = mla_stream_input_from_string(test_string);
+    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Stream from string should have a read function");
+
+    mla_byte_t buf[32] = {0};
+    mla_size_t read_bytes = stream.read(stream, 0, len, buf);
+    assert_equal(read_bytes, len, "Should read all bytes from string stream");
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, mla_string_data(test_string), len), (mla_test_int32_t)0, "Read data should match original string");
+}
+
+void StreamInputFromStringEmptyTest() {
+    mla_string_t empty = mla_string_empty();
+    mla_stream_input_t stream = mla_stream_input_from_string(empty);
+    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Stream from empty string should still have a read function");
+
+    mla_byte_t buf[8] = {0};
+    mla_size_t read_bytes = stream.read(stream, 0, sizeof(buf), buf);
+    assert_equal(read_bytes, (mla_size_t)0, "Stream from empty string should return 0 bytes");
+}
+
+void StringFromStreamTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("stream to string");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_string_t result = mla_string_from_stream(mem.input, len);
+
+    assert_equal(mla_string_length(result), len, "Result string length should match original");
+
+    const mla_char_t* result_data = mla_string_data(result);
+    if (result_data != nullptr) {
+        assert_equal((mla_test_int32_t)mla_memcmp(result_data, data, len), (mla_test_int32_t)0, "Result string content should match original");
+    } else {
+        assert_fail("mla_string_data(result) returned null unexpectedly");
+    }
+}
+
+void StringFromStreamMaxLengthTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("longer than limit");
+    mla_size_t full_len = mla_string_length(test_string);
+    const mla_char_t* full_data = mla_string_data(test_string);
+    mla_size_t limit = 6;
+
+    mem.output.write(mem.output, 0, full_len, mla_r_cast<const mla_byte_t*>(full_data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_string_t result = mla_string_from_stream(mem.input, limit);
+
+    assert_equal(mla_string_length(result), limit, "Result should be capped at max_length");
+
+    const mla_char_t* result_data = mla_string_data(result);
+    if (result_data != nullptr) {
+        assert_equal((mla_test_int32_t)mla_memcmp(result_data, "longer", limit), (mla_test_int32_t)0, "Result content should be the first max_length bytes");
+    } else {
+        assert_fail("mla_string_data(result) returned null unexpectedly");
+    }
+}
+
+void BytesFromStreamTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("bytes from stream");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_bytes_t result = mla_bytes_from_stream(mem.input, len);
+
+    assert_equal(mla_bytes_length(result), len, "Result bytes length should match original");
+
+    const mla_byte_t* result_data = mla_bytes_get_data_readonly(result);
+    if (result_data != nullptr) {
+        assert_equal((mla_test_int32_t)mla_memcmp(result_data, data, len), (mla_test_int32_t)0, "Result bytes content should match original");
+    } else {
+        assert_fail("mla_bytes_get_data_readonly(result) returned null unexpectedly");
+    }
+}
+
+void BytesFromStreamMaxLengthTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("bytes longer than limit");
+    mla_size_t full_len = mla_string_length(test_string);
+    const mla_char_t* full_data = mla_string_data(test_string);
+    mla_size_t limit = 5;
+
+    mem.output.write(mem.output, 0, full_len, mla_r_cast<const mla_byte_t*>(full_data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_bytes_t result = mla_bytes_from_stream(mem.input, limit);
+
+    assert_equal(mla_bytes_length(result), limit, "Result should be capped at max_length");
+
+    const mla_byte_t* result_data = mla_bytes_get_data_readonly(result);
+    if (result_data != nullptr) {
+        assert_equal((mla_test_int32_t)mla_memcmp(result_data, "bytes", limit), (mla_test_int32_t)0, "Result content should be the first max_length bytes");
+    } else {
+        assert_fail("mla_bytes_get_data_readonly(result) returned null unexpectedly");
+    }
+}
+
+void StreamInputReadWithTimeoutTest() {
+    // Use a memory stream with data already available - timeout should not matter
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("timeout read data");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_byte_t buf[32] = {0};
+    mla_size_t read_bytes = mla_stream_input_read_with_timeout(mem.input, 0, len, buf, 100);
+    assert_equal(read_bytes, len, "Read with timeout should read all available bytes");
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, data, len), (mla_test_int32_t)0, "Read data should match source");
+}
+
+void StreamOutputWriteWithTimeoutTest() {
+    // Use a memory stream - data should be accepted immediately, no timeout needed
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("timeout write data");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mla_size_t written = mla_stream_output_write_with_timeout(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data), 100);
+    assert_equal(written, len, "Write with timeout should write all bytes");
+    assert_equal(mla_memory_stream_get_size(mem), len, "Memory stream size should match written data");
+}
+
+void StreamInputTimeoutWrapperTest() {
+    // Wrap a memory stream with timeout; data is already available so it reads immediately
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("timeout wrapper data");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_stream_input_t timeout_stream = mla_stream_input_timeout_wrapper(mem.input, 100);
+    assert_not_equal(timeout_stream.read, (decltype(timeout_stream.read))nullptr, "Timeout wrapper should have a read function");
+
+    mla_byte_t buf[32] = {0};
+    mla_size_t read_bytes = timeout_stream.read(timeout_stream, 0, len, buf);
+    assert_equal(read_bytes, len, "Timeout wrapper should read all available bytes");
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, data, len), (mla_test_int32_t)0, "Timeout wrapper read data should match source");
+}
+
+void StreamInputLimitedWrapperTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("limited wrapper test data");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_size_t limit = 7; // only read "limited"
+    mla_stream_input_t limited = mla_stream_input_limited_wrapper(mem.input, limit);
+    assert_not_equal(limited.read, (decltype(limited.read))nullptr, "Limited wrapper should have a read function");
+
+    mla_byte_t buf[32] = {0};
+    mla_size_t read_bytes = limited.read(limited, 0, len, buf);
+    assert_equal(read_bytes, limit, "Limited wrapper should return at most 'limit' bytes");
+    assert_equal((mla_test_int32_t)mla_memcmp(buf, "limited", limit), (mla_test_int32_t)0, "Limited wrapper should return the first 'limit' bytes");
+}
+
+void StreamInputLimitedWrapperRemainingBytesTest() {
+    mla_memory_stream_t mem = mla_memory_stream_empty();
+    mla_string_t test_string = mla_string_const("hello");
+    mla_size_t len = mla_string_length(test_string);
+    const mla_char_t* data = mla_string_data(test_string);
+
+    mem.output.write(mem.output, 0, len, mla_r_cast<const mla_byte_t*>(data));
+    mla_memory_stream_set_position(mem, 0);
+
+    mla_size_t limit = 3;
+    mla_stream_input_t limited = mla_stream_input_limited_wrapper(mem.input, limit);
+
+    if (limited.remaining_bytes != nullptr) {
+        mla_size_t remaining = limited.remaining_bytes(limited);
+        assert_equal(remaining, limit, "Limited wrapper remaining bytes should equal the limit before any reads");
+    }
+}
+
+void MemoryStreamInvalidTest() {
+    mla_memory_stream_t stream = mla_memory_stream_invalid();
+    // An invalid stream is backed by noop streams; size and position should be 0
+    assert_equal(mla_memory_stream_get_size(stream), (mla_size_t)0, "Invalid stream size should be 0");
+    assert_equal(mla_memory_stream_get_position(stream), (mla_size_t)0, "Invalid stream position should be 0");
+
+    // Writing to an invalid stream should not crash and should return 0 or be a noop
+    const mla_char_t* data = "test";
+    stream.output.write(stream.output, 0, 4, mla_r_cast<const mla_byte_t*>(data));
+
+    // Reading from an invalid stream should return 0
+    mla_byte_t buf[8] = {0};
+    mla_size_t read_bytes = stream.input.read(stream.input, 0, sizeof(buf), buf);
+    assert_equal(read_bytes, (mla_size_t)0, "Reading from invalid stream should return 0");
+}
+
 void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("MemoryStreamCreateEmpty", test_category, MemoryStreamCreateEmptyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -606,6 +1001,93 @@ void RegisterStreamTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("StreamInterceptorWrapperChained", test_category, StreamInterceptorWrapperChainedTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputInit", test_category, StreamInputInitTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputInit", test_category, StreamOutputInitTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamNoopInput", test_category, StreamNoopInputTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamNoopOutput", test_category, StreamNoopOutputTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamStdinSmoke", test_category, StreamStdinSmokeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamStdoutSmoke", test_category, StreamStdoutSmokeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputFromBufferNonOwning", test_category, StreamInputFromBufferNonOwningTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputToBufferNonOwning", test_category, StreamOutputToBufferNonOwningTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputToBufferNonOwningTruncates", test_category, StreamOutputToBufferNonOwningTruncatesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputFromBufferOwning", test_category, StreamInputFromBufferOwningTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputToBufferOwning", test_category, StreamOutputToBufferOwningTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamCopy", test_category, StreamCopyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamEqualTrue", test_category, StreamEqualTrueTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamEqualFalse", test_category, StreamEqualFalseTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamEqualDifferentSize", test_category, StreamEqualDifferentSizeTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputWriteString", test_category, StreamOutputWriteStringTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputWriteStringEmpty", test_category, StreamOutputWriteStringEmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputFromString", test_category, StreamInputFromStringTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputFromStringEmpty", test_category, StreamInputFromStringEmptyTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StringFromStream", test_category, StringFromStreamTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StringFromStreamMaxLength", test_category, StringFromStreamMaxLengthTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("BytesFromStream", test_category, BytesFromStreamTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("BytesFromStreamMaxLength", test_category, BytesFromStreamMaxLengthTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputReadWithTimeout", test_category, StreamInputReadWithTimeoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamOutputWriteWithTimeout", test_category, StreamOutputWriteWithTimeoutTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputTimeoutWrapper", test_category, StreamInputTimeoutWrapperTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputLimitedWrapper", test_category, StreamInputLimitedWrapperTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("StreamInputLimitedWrapperRemainingBytes", test_category, StreamInputLimitedWrapperRemainingBytesTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("MemoryStreamInvalid", test_category, MemoryStreamInvalidTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
