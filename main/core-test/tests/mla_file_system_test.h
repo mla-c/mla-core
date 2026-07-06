@@ -551,8 +551,14 @@ void FileSystemStreamWrapperTest() {
 
     mla_stream_input_t input = mla_file_system_stream_as_input(readStream);
     assert_true(input.remaining_bytes != nullptr, "Readable stream should expose remaining bytes");
-    assert_equal(input.remaining_bytes(input), writtenLength,
-                 "Readable stream remaining bytes should match file length");
+
+    if (input.remaining_bytes == nullptr) {
+        assert_fail("Readable stream should expose remaining bytes");
+    } else {
+        assert_equal(input.remaining_bytes(input), writtenLength,
+                     "Readable stream remaining bytes should match file length");
+    }
+    
 
     mla_byte_t readBuffer[32] = {0};
     assert_equal(input.read(input, 0, sizeof(readBuffer), readBuffer), writtenLength,

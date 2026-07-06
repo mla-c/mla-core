@@ -71,6 +71,120 @@ void mla_check_assert_not_null(mla_test_pointer_t p_Pointer, const mla_test_char
 void mla_check_assert_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 void mla_check_assert_not_null(const mla_test_pointer_t p_Pointer, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0);
 
+template <typename R, typename... Args>
+void mla_check_assert_not_equal(R (*p_Actual)(Args...), decltype(nullptr) p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {
+
+    if (!current_test_result.success) {
+        return;
+    }
+
+    if (p_Actual == p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
+        mla_test_int32_t offset = 0;
+
+        const mla_test_char_t* prefix = "Assertion failed at line ";
+        while (*prefix && offset < 4095) {
+            l_Result[offset++] = *prefix++;
+        }
+
+        mla_test_int16_t line = p_Line;
+        mla_test_char_t line_buffer[10];
+        mla_test_int32_t line_index = 0;
+        if (line == 0) {
+            line_buffer[line_index++] = '0';
+        } else {
+            mla_test_int16_t temp = line;
+            mla_test_int32_t digit_count = 0;
+            while (temp > 0) {
+                temp /= 10;
+                digit_count++;
+            }
+            for (mla_test_int32_t i = digit_count - 1; i >= 0; i--) {
+                line_buffer[i] = static_cast<mla_test_char_t>('0' + (line % 10));
+                line /= 10;
+            }
+            line_index = digit_count;
+        }
+
+        for (mla_test_int32_t i = 0; i < line_index && offset < 4095; i++) {
+            l_Result[offset++] = line_buffer[i];
+        }
+
+        const mla_test_char_t* middle = ": Expected not equal function pointer, but got same function pointer.";
+        while (*middle && offset < 4095) {
+            l_Result[offset++] = *middle++;
+        }
+
+        if (p_Message != nullptr) {
+            l_Result[offset++] = ' ';
+            while (*p_Message && offset < 4095) {
+                l_Result[offset++] = *p_Message++;
+            }
+        }
+
+        l_Result[offset] = '\0';
+        current_test_result.message = l_Result;
+    }
+}
+
+template <typename R, typename... Args>
+void mla_check_assert_not_equal(R (*p_Actual)(Args...), R (*p_Expected)(Args...), const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {
+
+    if (!current_test_result.success) {
+        return;
+    }
+
+    if (p_Actual == p_Expected) {
+        current_test_result.success = false;
+        mla_test_char_t *l_Result = static_cast<mla_test_char_t *>(mla_test_malloc(sizeof(mla_test_char_t) * 4096));
+        mla_test_int32_t offset = 0;
+
+        const mla_test_char_t* prefix = "Assertion failed at line ";
+        while (*prefix && offset < 4095) {
+            l_Result[offset++] = *prefix++;
+        }
+
+        mla_test_int16_t line = p_Line;
+        mla_test_char_t line_buffer[10];
+        mla_test_int32_t line_index = 0;
+        if (line == 0) {
+            line_buffer[line_index++] = '0';
+        } else {
+            mla_test_int16_t temp = line;
+            mla_test_int32_t digit_count = 0;
+            while (temp > 0) {
+                temp /= 10;
+                digit_count++;
+            }
+            for (mla_test_int32_t i = digit_count - 1; i >= 0; i--) {
+                line_buffer[i] = static_cast<mla_test_char_t>('0' + (line % 10));
+                line /= 10;
+            }
+            line_index = digit_count;
+        }
+
+        for (mla_test_int32_t i = 0; i < line_index && offset < 4095; i++) {
+            l_Result[offset++] = line_buffer[i];
+        }
+
+        const mla_test_char_t* middle = ": Expected not equal function pointer, but got same function pointer.";
+        while (*middle && offset < 4095) {
+            l_Result[offset++] = *middle++;
+        }
+
+        if (p_Message != nullptr) {
+            l_Result[offset++] = ' ';
+            while (*p_Message && offset < 4095) {
+                l_Result[offset++] = *p_Message++;
+            }
+        }
+
+        l_Result[offset] = '\0';
+        current_test_result.message = l_Result;
+    }
+}
+
 template <typename T>
 void mla_check_struct_assert_equal(const T& p_Actual, const T& p_Expected, const mla_test_char_t *p_Message = nullptr, mla_test_int16_t p_Line = 0) {
 

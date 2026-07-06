@@ -537,40 +537,40 @@ void StreamInterceptorWrapperChainedTest() {
 
 void StreamInputInitTest() {
     mla_stream_input_t stream = mla_stream_input_t::init();
-    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "init() should set a non-null read function");
+    assert_not_equal(stream.read, nullptr, "init() should set a non-null read function");
 }
 
 void StreamOutputInitTest() {
     mla_stream_output_t stream = mla_stream_output_t::init();
-    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "init() should set a non-null write function");
+    assert_not_equal(stream.write, nullptr, "init() should set a non-null write function");
 }
 
 void StreamNoopInputTest() {
     mla_stream_input_t noop = mla_stream_noop_input();
-    assert_not_equal(noop.read, (decltype(noop.read))nullptr, "Noop input should have a read function");
+    assert_not_equal(noop.read, nullptr, "Noop input should have a read function");
 
     mla_byte_t buf[8] = {0};
     mla_size_t read_bytes = noop.read(noop, 0, sizeof(buf), buf);
-    assert_equal(read_bytes, (mla_size_t)0, "Noop input read should return 0");
+    assert_equal(read_bytes, mla_s_cast<mla_size_t>(0), "Noop input read should return 0");
 }
 
 void StreamNoopOutputTest() {
     mla_stream_output_t noop = mla_stream_noop_output();
-    assert_not_equal(noop.write, (decltype(noop.write))nullptr, "Noop output should have a write function");
+    assert_not_equal(noop.write, nullptr, "Noop output should have a write function");
 
     const mla_char_t* data = "test";
     mla_size_t written = noop.write(noop, 0, 4, mla_r_cast<const mla_byte_t*>(data));
-    assert_equal(written, (mla_size_t)4, "Noop output write should accept all bytes");
+    assert_equal(written, mla_s_cast<mla_size_t>(4), "Noop output write should accept all bytes");
 }
 
 void StreamStdinSmokeTest() {
     mla_stream_input_t stdin_stream = mla_stream_input_stdin();
-    assert_not_equal(stdin_stream.read, (decltype(stdin_stream.read))nullptr, "stdin stream should have a non-null read function");
+    assert_not_equal(stdin_stream.read, nullptr, "stdin stream should have a non-null read function");
 }
 
 void StreamStdoutSmokeTest() {
     mla_stream_output_t stdout_stream = mla_stream_output_stdout();
-    assert_not_equal(stdout_stream.write, (decltype(stdout_stream.write))nullptr, "stdout stream should have a non-null write function");
+    assert_not_equal(stdout_stream.write, nullptr, "stdout stream should have a non-null write function");
 }
 
 void StreamInputFromBufferNonOwningTest() {
@@ -578,7 +578,7 @@ void StreamInputFromBufferNonOwningTest() {
     mla_size_t src_len = 12;
 
     mla_stream_input_t stream = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(src)), src_len);
-    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Non-owning buffer input should have read function");
+    assert_not_equal(stream.read, nullptr, "Non-owning buffer input should have read function");
 
     mla_byte_t buf[16] = {0};
     mla_size_t read_bytes = stream.read(stream, 0, src_len, buf);
@@ -591,7 +591,7 @@ void StreamOutputToBufferNonOwningTest() {
     mla_size_t dest_size = 16;
 
     mla_stream_output_t stream = mla_stream_output_to_buffer(dest, dest_size);
-    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "Non-owning buffer output should have write function");
+    assert_not_equal(stream.write, nullptr, "Non-owning buffer output should have write function");
 
     const mla_char_t* data = "write to buf";
     mla_size_t data_len = 12;
@@ -606,13 +606,13 @@ void StreamOutputToBufferNonOwningTruncatesTest() {
 
     const mla_char_t* data = "12345678";
     mla_size_t written = stream.write(stream, 0, 8, mla_r_cast<const mla_byte_t*>(data));
-    assert_equal(written, (mla_size_t)4, "Write to non-owning buffer should be capped at buffer size");
+    assert_equal(written, mla_s_cast<mla_size_t>(4), "Write to non-owning buffer should be capped at buffer size");
     assert_equal((mla_test_int32_t)mla_memcmp(dest, "1234", 4), (mla_test_int32_t)0, "Only the first 4 bytes should be written");
 }
 
 void StreamInputFromBufferOwningTest() {
-    mla_stream_input_t stream = mla_stream_input_from_buffer((mla_size_t)8);
-    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Owning buffer input should have read function");
+    mla_stream_input_t stream = mla_stream_input_from_buffer(static_cast<mla_size_t>(8));
+    assert_not_equal(stream.read,nullptr, "Owning buffer input should have read function");
 
     // The owning overload allocates a fixed-size internal buffer of `size` bytes and manages its
     // lifetime.  The stream starts with position=0 and size=capacity, so remaining_bytes reports
@@ -624,8 +624,8 @@ void StreamInputFromBufferOwningTest() {
 }
 
 void StreamOutputToBufferOwningTest() {
-    mla_stream_output_t stream = mla_stream_output_to_buffer((mla_size_t)16);
-    assert_not_equal(stream.write, (decltype(stream.write))nullptr, "Owning buffer output should have write function");
+    mla_stream_output_t stream = mla_stream_output_to_buffer(static_cast<mla_size_t>(16));
+    assert_not_equal(stream.write, nullptr, "Owning buffer output should have write function");
 
     const mla_char_t* data = "owning write";
     mla_size_t data_len = 12;
@@ -728,7 +728,7 @@ void StreamInputFromStringTest() {
     mla_size_t len = mla_string_length(test_string);
 
     mla_stream_input_t stream = mla_stream_input_from_string(test_string);
-    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Stream from string should have a read function");
+    assert_not_equal(stream.read, nullptr, "Stream from string should have a read function");
 
     mla_byte_t buf[32] = {0};
     mla_size_t read_bytes = stream.read(stream, 0, len, buf);
@@ -739,7 +739,7 @@ void StreamInputFromStringTest() {
 void StreamInputFromStringEmptyTest() {
     mla_string_t empty = mla_string_empty();
     mla_stream_input_t stream = mla_stream_input_from_string(empty);
-    assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Stream from empty string should still have a read function");
+    assert_not_equal(stream.read, nullptr, "Stream from empty string should still have a read function");
 
     mla_byte_t buf[8] = {0};
     mla_size_t read_bytes = stream.read(stream, 0, sizeof(buf), buf);
