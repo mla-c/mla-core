@@ -200,7 +200,7 @@ jobs:
 
           # For zig-cxx, point CXX to an internal wrapper script inside the repo's build tools
           if [ "${{ matrix.cpp_compiler }}" = "zig-cxx" ]; then
-            echo "cxx_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cxx${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+            echo "cxx_compiler=${{ github.workspace }}${{matrix.directory_sperator}}main${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}base-lib${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cxx${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
           else
             # Otherwise forward the compiler name provided by the matrix
             echo "cxx_compiler=${{ matrix.cpp_compiler }}" >> "$GITHUB_OUTPUT"
@@ -208,7 +208,7 @@ jobs:
 
           # Similarly handle zig-cc for C compiler
           if [ "${{ matrix.c_compiler }}" = "zig-cc" ]; then
-            echo "c_compiler=${{ github.workspace }}${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}core${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cc${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
+            echo "c_compiler=${{ github.workspace }}${{matrix.directory_sperator}}main${{matrix.directory_sperator}}lib${{matrix.directory_sperator}}base-lib${{matrix.directory_sperator}}build${{matrix.directory_sperator}}tools${{matrix.directory_sperator}}zig${{matrix.directory_sperator}}zig-cc${{matrix.script_extension}}" >> "$GITHUB_OUTPUT"
           else
             echo "c_compiler=${{ matrix.c_compiler }}" >> "$GITHUB_OUTPUT"
           fi
@@ -237,7 +237,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ steps.strings.outputs.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DMLA_EMSDK_PATH=${{ steps.wasm-check.outputs.is_wasm == '1' && env.EMSDK || '' }}
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}${{matrix.directory_sperator}}main
 
       - name: Build
         # Build the specific target; `--config` is used for multi-config generators (e.g. MSVC)
