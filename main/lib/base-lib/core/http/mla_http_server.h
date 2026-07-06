@@ -68,7 +68,7 @@ mla_bool_t mla_http_server_handler_struct_handle_execute(mla_http_server_t& http
         return false;
     }
 
-    return T::http_request_handle(&handler_struct, http_server, userdata, request, response);
+    return T::http_request_handle(*handler_struct, http_server, userdata, request, response);
 }
 
 template<typename T>
