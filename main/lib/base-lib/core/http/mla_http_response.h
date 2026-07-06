@@ -67,7 +67,7 @@ mla_bool_t mla_http_response_content_writer_struct_execute(const mla_http_respon
         return false;
     }
 
-    return writer_struct->http_response_content_write(writer, outputStream);
+    return T::http_response_content_write(&writer_struct, writer, outputStream);
 }
 
 
