@@ -614,7 +614,9 @@ void StreamInputFromBufferOwningTest() {
     mla_stream_input_t stream = mla_stream_input_from_buffer((mla_size_t)8);
     assert_not_equal(stream.read, (decltype(stream.read))nullptr, "Owning buffer input should have read function");
 
-    // An owning buffer starts empty; remaining bytes should be 8 (capacity)
+    // The owning overload allocates a fixed-size internal buffer of `size` bytes and manages its
+    // lifetime.  The stream starts with position=0 and size=capacity, so remaining_bytes reports
+    // the full allocated capacity (8) even before any data has been written into the buffer.
     if (stream.remaining_bytes != nullptr) {
         mla_size_t remaining = stream.remaining_bytes(stream);
         assert_equal(remaining, (mla_size_t)8, "Owning buffer input remaining bytes should equal allocated size");
@@ -915,8 +917,10 @@ void StreamInputLimitedWrapperRemainingBytesTest() {
 }
 
 void MemoryStreamInvalidTest() {
+    // mla_memory_stream_invalid() creates a stream that is deliberately non-functional:
+    // its input and output are backed by noop operations (reads return 0, writes are discarded).
+    // This is the error/sentinel value returned when memory allocation fails for a real stream.
     mla_memory_stream_t stream = mla_memory_stream_invalid();
-    // An invalid stream is backed by noop streams; size and position should be 0
     assert_equal(mla_memory_stream_get_size(stream), (mla_size_t)0, "Invalid stream size should be 0");
     assert_equal(mla_memory_stream_get_position(stream), (mla_size_t)0, "Invalid stream position should be 0");
 
