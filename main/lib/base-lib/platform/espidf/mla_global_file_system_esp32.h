@@ -316,7 +316,7 @@ static inline mla_bool_t mla_private_file_system_native_open_file(mla_file_syste
     return true;
 }
 
-static inline mla_buffer_cleanup_mode __mla_file_system_native_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
+static inline mla_buffer_cleanup_mode mla_private_file_system_native_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
 
     (void)userData;
 
@@ -349,7 +349,7 @@ static inline mla_file_system_t mla_private_file_system_native_create_with_base(
         mla_private_file_system_native_delete_directory,
         mla_private_file_system_native_list_directory,
         mla_r_cast<mla_callback_userdata>(fs),
-        mla_buffer_reference(fs, true, __mla_file_system_native_cleanup)
+        mla_buffer_reference(fs, true, mla_private_file_system_native_cleanup)
     };
 }
 

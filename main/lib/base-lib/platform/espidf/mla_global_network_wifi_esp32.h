@@ -66,7 +66,7 @@ mla_config_definition_t mla_global_network_wifi_esp32_config_definition() {
     );
 }
 
-void __mla_global_network_wifi_esp32_init() {
+void mla_private_global_network_wifi_esp32_init() {
 
     // Read the wifi config
     mla_global_network_wifi_esp32_t wifiConfig = mla_global_network_wifi_esp32_t::init();
@@ -135,7 +135,7 @@ void __mla_global_network_wifi_esp32_init() {
 
 }
 
-mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_postSetup, __mla_global_network_wifi_esp32_init)
+mla_lifecycle_boot_event_static_register(mla_lifecycle_boot_event_priority_network_postSetup, mla_private_global_network_wifi_esp32_init)
 
 
 

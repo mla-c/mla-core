@@ -23,7 +23,7 @@ struct mla_windows_gdiplus_gradient_state_t {
     mla_uint8_t stopCount;
 };
 
-mla_windows_gdiplus_gradient_state_t __windows_gdiplus_gradient_state_empty() {
+mla_windows_gdiplus_gradient_state_t mla_private_windows_gdiplus_gradient_state_empty() {
     mla_windows_gdiplus_gradient_state_t state = {};
     state.kind = MLA_WINDOWS_GDIPLUS_GRADIENT_KIND_NONE;
     state.stop0 = Gdiplus::Color(255, 0, 0, 0);
@@ -52,7 +52,7 @@ struct mla_windows_window_surface_gdiplus_t {
 #endif
 };
 
-void __windows_get_system_dpi(mla_double_t &outDpiX, mla_double_t &outDpiY) {
+void mla_private_windows_get_system_dpi(mla_double_t &outDpiX, mla_double_t &outDpiY) {
     outDpiX = 96.0;
     outDpiY = 96.0;
 
@@ -64,11 +64,11 @@ void __windows_get_system_dpi(mla_double_t &outDpiX, mla_double_t &outDpiY) {
     }
 }
 
-Gdiplus::Color __windows_gdiplus_convert_color(const mla_ui_surface_draw_command_color_t &color) {
+Gdiplus::Color mla_private_windows_gdiplus_convert_color(const mla_ui_surface_draw_command_color_t &color) {
     return Gdiplus::Color((BYTE)color.a, (BYTE)color.r, (BYTE)color.g, (BYTE)color.b);
 }
 
-void __windows_gdiplus_add_rounded_rect_path(Gdiplus::GraphicsPath &path, const mla_ui_surface_draw_command_rect_t &rect) {
+void mla_private_windows_gdiplus_add_rounded_rect_path(Gdiplus::GraphicsPath &path, const mla_ui_surface_draw_command_rect_t &rect) {
     Gdiplus::REAL x = (Gdiplus::REAL)rect.x;
     Gdiplus::REAL y = (Gdiplus::REAL)rect.y;
     Gdiplus::REAL width = (Gdiplus::REAL)rect.width;
@@ -95,7 +95,7 @@ void __windows_gdiplus_add_rounded_rect_path(Gdiplus::GraphicsPath &path, const 
     path.CloseFigure();
 }
 
-mla_bool_t __windows_gdiplus_ensure_backbuffer(mla_windows_window_surface_gdiplus_t *surface) {
+mla_bool_t mla_private_windows_gdiplus_ensure_backbuffer(mla_windows_window_surface_gdiplus_t *surface) {
     if (surface == nullptr || !IsWindow(surface->hwnd)) {
         return false;
     }
@@ -152,7 +152,7 @@ mla_bool_t __windows_gdiplus_ensure_backbuffer(mla_windows_window_surface_gdiplu
     return true;
 }
 
-mla_ui_surface_size_t __windows_surface_gdiplus_get_size(const mla_ui_surface_t &surface) {
+mla_ui_surface_size_t mla_private_windows_surface_gdiplus_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
     mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr) {
@@ -165,14 +165,14 @@ mla_ui_surface_size_t __windows_surface_gdiplus_get_size(const mla_ui_surface_t 
     if (IsWindow(window_surface->hwnd) && GetClientRect(window_surface->hwnd, &rect)) {
         mla_double_t dpiX;
         mla_double_t dpiY;
-        __windows_get_system_dpi(dpiX, dpiY);
+        mla_private_windows_get_system_dpi(dpiX, dpiY);
         size.width = (mla_uint32_t)((mla_double_t)(rect.right - rect.left) * (96.0 / dpiX));
         size.height = (mla_uint32_t)((mla_double_t)(rect.bottom - rect.top) * (96.0 / dpiY));
     }
     return size;
 }
 
-mla_bool_t __windows_surface_gdiplus_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
+mla_bool_t mla_private_windows_surface_gdiplus_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
     mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr) {
         return false;
@@ -187,13 +187,13 @@ mla_bool_t __windows_surface_gdiplus_set_size(const mla_ui_surface_t &surface, m
 
     mla_double_t dpiX;
     mla_double_t dpiY;
-    __windows_get_system_dpi(dpiX, dpiY);
+    mla_private_windows_get_system_dpi(dpiX, dpiY);
     mla_int32_t physicalWidth = (mla_int32_t)((mla_double_t)size.width * (dpiX / 96.0));
     mla_int32_t physicalHeight = (mla_int32_t)((mla_double_t)size.height * (dpiY / 96.0));
     return SetWindowPos(window_surface->hwnd, nullptr, 0, 0, physicalWidth, physicalHeight, SWP_NOMOVE | SWP_NOZORDER) != 0;
 }
 
-LRESULT CALLBACK __windows_surface_gdiplus_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK mla_private_windows_surface_gdiplus_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (uMsg == WM_DESTROY) {
         PostQuitMessage(0);
         return 0;
@@ -201,11 +201,11 @@ LRESULT CALLBACK __windows_surface_gdiplus_proc(HWND hwnd, UINT uMsg, WPARAM wPa
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
-mla_bool_t __windows_create_windows_gdiplus_surface(mla_windows_window_surface_gdiplus_t *surface) {
+mla_bool_t mla_private_windows_create_windows_gdiplus_surface(mla_windows_window_surface_gdiplus_t *surface) {
     const char CLASS_NAME[] = "MLA_Window_Class_GDIPlus";
     WNDCLASSEXA wc = {};
     wc.cbSize = sizeof(WNDCLASSEXA);
-    wc.lpfnWndProc = __windows_surface_gdiplus_proc;
+    wc.lpfnWndProc = mla_private_windows_surface_gdiplus_proc;
     wc.hInstance = GetModuleHandleA(nullptr);
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = LoadCursorA(nullptr, IDC_ARROW);
@@ -220,13 +220,13 @@ mla_bool_t __windows_create_windows_gdiplus_surface(mla_windows_window_surface_g
         return false;
     }
 
-    surface->gradientState = __windows_gdiplus_gradient_state_empty();
+    surface->gradientState = mla_private_windows_gdiplus_gradient_state_empty();
     surface->is_initialized = true;
     ShowWindow(surface->hwnd, SW_SHOWDEFAULT);
     return true;
 }
 
-mla_ui_surface_input_states_t __windows_surface_gdiplus_input_states(const mla_ui_surface_t &surface) {
+mla_ui_surface_input_states_t mla_private_windows_surface_gdiplus_input_states(const mla_ui_surface_t &surface) {
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
     mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(surface.resource);
     if (window_surface == nullptr || !window_surface->is_initialized || !IsWindow(window_surface->hwnd)) {
@@ -237,7 +237,7 @@ mla_ui_surface_input_states_t __windows_surface_gdiplus_input_states(const mla_u
     if (GetCursorPos(&cursorPos) && ScreenToClient(window_surface->hwnd, &cursorPos)) {
         mla_double_t dpiX;
         mla_double_t dpiY;
-        __windows_get_system_dpi(dpiX, dpiY);
+        mla_private_windows_get_system_dpi(dpiX, dpiY);
         inputStates.cursorPosition.x = (mla_double_t)cursorPos.x * (96.0 / dpiX);
         inputStates.cursorPosition.y = (mla_double_t)cursorPos.y * (96.0 / dpiY);
     }
@@ -252,7 +252,7 @@ mla_ui_surface_input_states_t __windows_surface_gdiplus_input_states(const mla_u
     return inputStates;
 }
 
-mla_ui_surface_draw_size_t __windows_surface_gdiplus_calc_text_size(const mla_ui_surface_t &surface,
+mla_ui_surface_draw_size_t mla_private_windows_surface_gdiplus_calc_text_size(const mla_ui_surface_t &surface,
                                                                      const mla_ui_surface_font_type_t &font_type,
                                                                      const mla_string_t &text) {
     (void)surface;
@@ -290,7 +290,7 @@ mla_ui_surface_draw_size_t __windows_surface_gdiplus_calc_text_size(const mla_ui
     return size;
 }
 
-void __windows_gdiplus_fill_path(mla_windows_window_surface_gdiplus_t *window_surface,
+void mla_private_windows_gdiplus_fill_path(mla_windows_window_surface_gdiplus_t *window_surface,
                                  Gdiplus::Graphics &graphics,
                                  Gdiplus::GraphicsPath &path,
                                  const mla_ui_surface_draw_command_color_t &fillColor) {
@@ -319,11 +319,11 @@ void __windows_gdiplus_fill_path(mla_windows_window_surface_gdiplus_t *window_su
         return;
     }
 
-    Gdiplus::SolidBrush fillBrush(__windows_gdiplus_convert_color(fillColor));
+    Gdiplus::SolidBrush fillBrush(mla_private_windows_gdiplus_convert_color(fillColor));
     graphics.FillPath(&fillBrush, &path);
 }
 
-mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t &surface,
+mla_bool_t mla_private_windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t &surface,
                                                            const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                                mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                            mla_array_list_t<mla_ui_surface_input_event_t,
@@ -333,7 +333,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
         return false;
     }
 
-    if (!window_surface->is_initialized && !__windows_create_windows_gdiplus_surface(window_surface)) {
+    if (!window_surface->is_initialized && !mla_private_windows_create_windows_gdiplus_surface(window_surface)) {
         return false;
     }
 
@@ -353,7 +353,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
         DispatchMessage(&msg);
     }
 
-    if (!__windows_gdiplus_ensure_backbuffer(window_surface)) {
+    if (!mla_private_windows_gdiplus_ensure_backbuffer(window_surface)) {
         return false;
     }
 
@@ -363,7 +363,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
     graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
     graphics.Clear(Gdiplus::Color(255, 255, 255, 255));
 
-    window_surface->gradientState = __windows_gdiplus_gradient_state_empty();
+    window_surface->gradientState = mla_private_windows_gdiplus_gradient_state_empty();
     Gdiplus::PointF currentPathPoint(0.0f, 0.0f);
 
     for (mla_size_t i = 0; i < mla_array_list_size(drawCommands); i++) {
@@ -371,10 +371,10 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
         switch (cmd.kind) {
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT: {
                 Gdiplus::GraphicsPath path;
-                __windows_gdiplus_add_rounded_rect_path(path, cmd.rect);
-                __windows_gdiplus_fill_path(window_surface, graphics, path, cmd.rect.color);
+                mla_private_windows_gdiplus_add_rounded_rect_path(path, cmd.rect);
+                mla_private_windows_gdiplus_fill_path(window_surface, graphics, path, cmd.rect.color);
                 if (cmd.rect.stroke_width > 0.0) {
-                    Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.rect.stroke), (Gdiplus::REAL)cmd.rect.stroke_width);
+                    Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.rect.stroke), (Gdiplus::REAL)cmd.rect.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
                 break;
@@ -383,9 +383,9 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 Gdiplus::GraphicsPath path;
                 path.AddEllipse((Gdiplus::REAL)(cmd.circle.cx - cmd.circle.r), (Gdiplus::REAL)(cmd.circle.cy - cmd.circle.r),
                                 (Gdiplus::REAL)(cmd.circle.r * 2.0), (Gdiplus::REAL)(cmd.circle.r * 2.0));
-                __windows_gdiplus_fill_path(window_surface, graphics, path, cmd.circle.fill);
+                mla_private_windows_gdiplus_fill_path(window_surface, graphics, path, cmd.circle.fill);
                 if (cmd.circle.stroke_width > 0.0) {
-                    Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.circle.stroke), (Gdiplus::REAL)cmd.circle.stroke_width);
+                    Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.circle.stroke), (Gdiplus::REAL)cmd.circle.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
                 break;
@@ -394,15 +394,15 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 Gdiplus::GraphicsPath path;
                 path.AddEllipse((Gdiplus::REAL)(cmd.ellipse.cx - cmd.ellipse.rx), (Gdiplus::REAL)(cmd.ellipse.cy - cmd.ellipse.ry),
                                 (Gdiplus::REAL)(cmd.ellipse.rx * 2.0), (Gdiplus::REAL)(cmd.ellipse.ry * 2.0));
-                __windows_gdiplus_fill_path(window_surface, graphics, path, cmd.ellipse.fill);
+                mla_private_windows_gdiplus_fill_path(window_surface, graphics, path, cmd.ellipse.fill);
                 if (cmd.ellipse.stroke_width > 0.0) {
-                    Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.ellipse.stroke), (Gdiplus::REAL)cmd.ellipse.stroke_width);
+                    Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.ellipse.stroke), (Gdiplus::REAL)cmd.ellipse.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
                 break;
             }
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE: {
-                Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.line.stroke), (Gdiplus::REAL)cmd.line.stroke_width);
+                Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.line.stroke), (Gdiplus::REAL)cmd.line.stroke_width);
                 graphics.DrawLine(&strokePen, (Gdiplus::REAL)cmd.line.x1, (Gdiplus::REAL)cmd.line.y1,
                                   (Gdiplus::REAL)cmd.line.x2, (Gdiplus::REAL)cmd.line.y2);
                 break;
@@ -421,7 +421,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                     points[j].X = (Gdiplus::REAL)point.x;
                     points[j].Y = (Gdiplus::REAL)point.y;
                 }
-                Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.polyline.stroke), (Gdiplus::REAL)cmd.polyline.stroke_width);
+                Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.polyline.stroke), (Gdiplus::REAL)cmd.polyline.stroke_width);
                 graphics.DrawLines(&strokePen, points, (INT)pointCount);
                 mla_platform_free(points);
                 break;
@@ -442,9 +442,9 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                 }
                 Gdiplus::GraphicsPath path;
                 path.AddPolygon(points, (INT)pointCount);
-                __windows_gdiplus_fill_path(window_surface, graphics, path, cmd.polygon.fill);
+                mla_private_windows_gdiplus_fill_path(window_surface, graphics, path, cmd.polygon.fill);
                 if (cmd.polygon.stroke_width > 0.0) {
-                    Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.polygon.stroke), (Gdiplus::REAL)cmd.polygon.stroke_width);
+                    Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.polygon.stroke), (Gdiplus::REAL)cmd.polygon.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
                 mla_platform_free(points);
@@ -488,9 +488,9 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                         path.CloseFigure();
                     }
                 }
-                __windows_gdiplus_fill_path(window_surface, graphics, path, cmd.path.fill);
+                mla_private_windows_gdiplus_fill_path(window_surface, graphics, path, cmd.path.fill);
                 if (cmd.path.stroke_width > 0.0) {
-                    Gdiplus::Pen strokePen(__windows_gdiplus_convert_color(cmd.path.stroke), (Gdiplus::REAL)cmd.path.stroke_width);
+                    Gdiplus::Pen strokePen(mla_private_windows_gdiplus_convert_color(cmd.path.stroke), (Gdiplus::REAL)cmd.path.stroke_width);
                     graphics.DrawPath(&strokePen, &path);
                 }
                 break;
@@ -503,7 +503,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
                     if (cmd.text.font_type.bold) fontStyle = (Gdiplus::FontStyle)(fontStyle | Gdiplus::FontStyleBold);
                     if (cmd.text.font_type.italic) fontStyle = (Gdiplus::FontStyle)(fontStyle | Gdiplus::FontStyleItalic);
                     Gdiplus::Font font(&fontFamily, (Gdiplus::REAL)cmd.text.font_type.size, fontStyle, Gdiplus::UnitPixel);
-                    Gdiplus::SolidBrush textBrush(__windows_gdiplus_convert_color(cmd.text.fill));
+                    Gdiplus::SolidBrush textBrush(mla_private_windows_gdiplus_convert_color(cmd.text.fill));
                     graphics.DrawString((const WCHAR *)contentWide.data, (INT)contentWide.charCount, &font,
                                         Gdiplus::PointF((Gdiplus::REAL)cmd.text.x, (Gdiplus::REAL)cmd.text.y), &textBrush);
                 }
@@ -545,7 +545,7 @@ mla_bool_t __windows_surface_gdiplus_render_draw_commands(const mla_ui_surface_t
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t &userData) {
+mla_buffer_cleanup_mode mla_private_windows_surface_gdiplus_buffer_cleanup(mla_platform_pointer_t data, const mla_dynamic_data_t &userData) {
     (void)userData;
     mla_windows_window_surface_gdiplus_t *window_surface = mla_s_cast<mla_windows_window_surface_gdiplus_t *>(data);
     if (window_surface != nullptr) {
@@ -563,7 +563,7 @@ mla_buffer_cleanup_mode __windows_surface_gdiplus_buffer_cleanup(mla_platform_po
     return CLEAN_UP_NEEDED;
 }
 
-mla_bool_t __windows_create_gdiplus_surface(mla_ui_surface_t &outSurface) {
+mla_bool_t mla_private_windows_create_gdiplus_surface(mla_ui_surface_t &outSurface) {
     mla_windows_window_surface_gdiplus_t *window_surface =
         mla_s_cast<mla_windows_window_surface_gdiplus_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_gdiplus_t)));
     if (window_surface == nullptr) {
@@ -572,23 +572,23 @@ mla_bool_t __windows_create_gdiplus_surface(mla_ui_surface_t &outSurface) {
     mla_memset(window_surface, 0, sizeof(mla_windows_window_surface_gdiplus_t));
     window_surface->is_initialized = false;
     window_surface->default_size = {0, 0};
-    window_surface->gradientState = __windows_gdiplus_gradient_state_empty();
+    window_surface->gradientState = mla_private_windows_gdiplus_gradient_state_empty();
 
     outSurface.resource = window_surface;
-    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, __windows_surface_gdiplus_buffer_cleanup, mla_dynamic_data_empty());
-    outSurface.get_size = __windows_surface_gdiplus_get_size;
-    outSurface.set_size = __windows_surface_gdiplus_set_size;
-    outSurface.render_draw_commands = __windows_surface_gdiplus_render_draw_commands;
-    outSurface.calc_text_size = __windows_surface_gdiplus_calc_text_size;
-    outSurface.get_input_states = __windows_surface_gdiplus_input_states;
+    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, mla_private_windows_surface_gdiplus_buffer_cleanup, mla_dynamic_data_empty());
+    outSurface.get_size = mla_private_windows_surface_gdiplus_get_size;
+    outSurface.set_size = mla_private_windows_surface_gdiplus_set_size;
+    outSurface.render_draw_commands = mla_private_windows_surface_gdiplus_render_draw_commands;
+    outSurface.calc_text_size = mla_private_windows_surface_gdiplus_calc_text_size;
+    outSurface.get_input_states = mla_private_windows_surface_gdiplus_input_states;
     return true;
 }
 
 mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
-    __windows_create_gdiplus_surface
+    mla_private_windows_create_gdiplus_surface
 };
 
-void __windows_gdiplus_init() {
+void mla_private_windows_gdiplus_init() {
     SetProcessDPIAware();
     if (g_mla_windows_gdiplus_token == 0) {
         Gdiplus::GdiplusStartupInput startupInput;
@@ -596,7 +596,7 @@ void __windows_gdiplus_init() {
     }
 }
 
-void __windows_gdiplus_shutdown() {
+void mla_private_windows_gdiplus_shutdown() {
     if (g_mla_windows_gdiplus_token != 0) {
         Gdiplus::GdiplusShutdown(g_mla_windows_gdiplus_token);
         g_mla_windows_gdiplus_token = 0;
@@ -604,8 +604,8 @@ void __windows_gdiplus_shutdown() {
 }
 
 struct MlaGDIPlusAutoInit {
-    MlaGDIPlusAutoInit() { __windows_gdiplus_init(); }
-    ~MlaGDIPlusAutoInit() { __windows_gdiplus_shutdown(); }
+    MlaGDIPlusAutoInit() { mla_private_windows_gdiplus_init(); }
+    ~MlaGDIPlusAutoInit() { mla_private_windows_gdiplus_shutdown(); }
 };
 
 static MlaGDIPlusAutoInit g_mlaGDIPlusAutoInit;

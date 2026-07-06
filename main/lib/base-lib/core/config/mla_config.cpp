@@ -22,21 +22,21 @@
 // If configuration is disabled, provide dummy implementations
 #if defined(mla_config_enabled) && mla_config_enabled==0
 
-mla_bool_t __mla_config_disabled_commit_output(mla_bytes_t output, mla_size_t unused_bytes) {
+mla_bool_t mla_private_config_disabled_commit_output(mla_bytes_t output, mla_size_t unused_bytes) {
     (void)unused_bytes;
     mla_bytes_destroy(output);
     return false;
 }
 
-mla_bool_t __mla_config_disabled_reset() {
+mla_bool_t mla_private_config_disabled_reset() {
     return false;
 }
 
 static mla_config_low_level_operations_t g_low_level_operations = {
     mla_bytes_empty,
     mla_bytes_empty,
-    __mla_config_disabled_commit_output,
-    __mla_config_disabled_reset
+    mla_private_config_disabled_commit_output,
+    mla_private_config_disabled_reset
 };
 
 #else

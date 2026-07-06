@@ -76,7 +76,7 @@ struct mla_arduino_gfx_render_cache {
     mla_uint16_t currentStrokeColor;
 };
 
-mla_arduino_gfx_render_cache __mla_arduino_gfx_cache_empty() {
+mla_arduino_gfx_render_cache mla_private_arduino_gfx_cache_empty() {
     return {
         mla_array_list_empty<mla_arduino_gfx_font_cache_item,
             mla_arduino_gfx_font_cache_item_initializer>(),
@@ -101,12 +101,12 @@ struct mla_arduino_gfx_surface_t {
 };
 
 // Convert RGBA to RGB565
-static inline mla_uint16_t __arduino_gfx_color_to_rgb565(const mla_ui_surface_draw_command_color_t &color) {
+static inline mla_uint16_t mla_private_arduino_gfx_color_to_rgb565(const mla_ui_surface_draw_command_color_t &color) {
     return ((color.r & 0xF8) << 8) | ((color.g & 0xFC) << 3) | (color.b >> 3);
 }
 
 // Initialize the ST7701 display
-mla_bool_t __arduino_gfx_init_display() {
+mla_bool_t mla_private_arduino_gfx_init_display() {
     if (g_gfx_initialized) {
         return true;
     }
@@ -168,7 +168,7 @@ mla_bool_t __arduino_gfx_init_display() {
 }
 
 // Get approximate GFX font based on size
-static const GFXfont* __arduino_gfx_get_font_for_size(mla_double_t size) {
+static const GFXfont* mla_private_arduino_gfx_get_font_for_size(mla_double_t size) {
     // Arduino_GFX uses built-in fonts with fixed sizes
     // Map requested sizes to available fonts
     if (size <= 9) {
@@ -184,7 +184,7 @@ static const GFXfont* __arduino_gfx_get_font_for_size(mla_double_t size) {
     }
 }
 
-const GFXfont* __mla_arduino_gfx_cache_getOrCreateFont(
+const GFXfont* mla_private_arduino_gfx_cache_getOrCreateFont(
     mla_arduino_gfx_render_cache &cache, const mla_ui_surface_font_type_t &fontType) {
 
     if (mla_string_is_empty(fontType.family)) {
@@ -201,7 +201,7 @@ const GFXfont* __mla_arduino_gfx_cache_getOrCreateFont(
     }
 
     // Create new font mapping
-    const GFXfont *gfxFont = __arduino_gfx_get_font_for_size(fontType.size);
+    const GFXfont *gfxFont = mla_private_arduino_gfx_get_font_for_size(fontType.size);
 
     mla_arduino_gfx_font_cache_item newItem = {
         fontType,
@@ -220,7 +220,7 @@ const GFXfont* __mla_arduino_gfx_cache_getOrCreateFont(
 }
 
 // Surface function implementations
-mla_ui_surface_size_t __arduino_gfx_surface_get_size(const mla_ui_surface_t &surface) {
+mla_ui_surface_size_t mla_private_arduino_gfx_surface_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
 
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
@@ -239,7 +239,7 @@ mla_ui_surface_size_t __arduino_gfx_surface_get_size(const mla_ui_surface_t &sur
     return size;
 }
 
-mla_bool_t __arduino_gfx_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
+mla_bool_t mla_private_arduino_gfx_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
 
     if (gfx_surface == nullptr) {
@@ -251,7 +251,7 @@ mla_bool_t __arduino_gfx_surface_set_size(const mla_ui_surface_t &surface, mla_u
     return true;
 }
 
-mla_ui_surface_input_states_t __arduino_gfx_surface_input_states(const mla_ui_surface_t &surface) {
+mla_ui_surface_input_states_t mla_private_arduino_gfx_surface_input_states(const mla_ui_surface_t &surface) {
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
 
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(surface.resource);
@@ -271,7 +271,7 @@ mla_ui_surface_input_states_t __arduino_gfx_surface_input_states(const mla_ui_su
     return inputStates;
 }
 
-mla_ui_surface_draw_size_t __arduino_gfx_surface_calc_text_size(const mla_ui_surface_t &surface,
+mla_ui_surface_draw_size_t mla_private_arduino_gfx_surface_calc_text_size(const mla_ui_surface_t &surface,
                                                                  const mla_ui_surface_font_type_t &font_type,
                                                                  const mla_string_t &text) {
     mla_ui_surface_draw_size_t size = {0, 0};
@@ -286,7 +286,7 @@ mla_ui_surface_draw_size_t __arduino_gfx_surface_calc_text_size(const mla_ui_sur
         return size;
     }
 
-    const GFXfont *font = __mla_arduino_gfx_cache_getOrCreateFont(gfx_surface->renderCache, font_type);
+    const GFXfont *font = mla_private_arduino_gfx_cache_getOrCreateFont(gfx_surface->renderCache, font_type);
     g_gfx->setFont(font);
 
     int16_t x1, y1;
@@ -309,7 +309,7 @@ mla_ui_surface_draw_size_t __arduino_gfx_surface_calc_text_size(const mla_ui_sur
 }
 
 // Draw a filled rounded rectangle
-static void __arduino_gfx_fill_rounded_rect(mla_int32_t x, mla_int32_t y,
+static void mla_private_arduino_gfx_fill_rounded_rect(mla_int32_t x, mla_int32_t y,
                                              mla_int32_t w, mla_int32_t h,
                                              mla_int32_t rx, mla_int32_t ry,
                                              mla_uint16_t color) {
@@ -322,7 +322,7 @@ static void __arduino_gfx_fill_rounded_rect(mla_int32_t x, mla_int32_t y,
 }
 
 // Draw a rounded rectangle outline
-static void __arduino_gfx_draw_rounded_rect(mla_int32_t x, mla_int32_t y,
+static void mla_private_arduino_gfx_draw_rounded_rect(mla_int32_t x, mla_int32_t y,
                                              mla_int32_t w, mla_int32_t h,
                                              mla_int32_t rx, mla_int32_t ry,
                                              mla_uint16_t color) {
@@ -334,7 +334,7 @@ static void __arduino_gfx_draw_rounded_rect(mla_int32_t x, mla_int32_t y,
     }
 }
 
-mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &surface,
+mla_bool_t mla_private_arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &surface,
                                                        const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                            mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                        mla_array_list_t<mla_ui_surface_input_event_t,
@@ -346,7 +346,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
     }
 
     if (!gfx_surface->is_initialized) {
-        if (!__arduino_gfx_init_display()) {
+        if (!mla_private_arduino_gfx_init_display()) {
             return false;
         }
         gfx_surface->is_initialized = true;
@@ -384,7 +384,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
         switch (cmd.kind) {
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_RECT: {
                 const auto &rect = cmd.rect;
-                mla_uint16_t fillColor = __arduino_gfx_color_to_rgb565(rect.color);
+                mla_uint16_t fillColor = mla_private_arduino_gfx_color_to_rgb565(rect.color);
 
                 mla_int32_t x = (mla_int32_t)rect.x;
                 mla_int32_t y = (mla_int32_t)rect.y;
@@ -394,19 +394,19 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 mla_int32_t ry = (mla_int32_t)rect.ry;
 
                 // Fill
-                __arduino_gfx_fill_rounded_rect(x, y, w, h, rx, ry, fillColor);
+                mla_private_arduino_gfx_fill_rounded_rect(x, y, w, h, rx, ry, fillColor);
 
                 // Stroke
                 if (rect.stroke_width > 0) {
-                    mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(rect.stroke);
-                    __arduino_gfx_draw_rounded_rect(x, y, w, h, rx, ry, strokeColor);
+                    mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(rect.stroke);
+                    mla_private_arduino_gfx_draw_rounded_rect(x, y, w, h, rx, ry, strokeColor);
                 }
                 break;
             }
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_CIRCLE: {
                 const auto &circle = cmd.circle;
-                mla_uint16_t fillColor = __arduino_gfx_color_to_rgb565(circle.fill);
+                mla_uint16_t fillColor = mla_private_arduino_gfx_color_to_rgb565(circle.fill);
 
                 mla_int32_t cx = (mla_int32_t)circle.cx;
                 mla_int32_t cy = (mla_int32_t)circle.cy;
@@ -415,7 +415,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 g_gfx->fillCircle(cx, cy, r, fillColor);
 
                 if (circle.stroke_width > 0) {
-                    mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(circle.stroke);
+                    mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(circle.stroke);
                     g_gfx->drawCircle(cx, cy, r, strokeColor);
                 }
                 break;
@@ -423,7 +423,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_ELLIPSE: {
                 const auto &ellipse = cmd.ellipse;
-                mla_uint16_t fillColor = __arduino_gfx_color_to_rgb565(ellipse.fill);
+                mla_uint16_t fillColor = mla_private_arduino_gfx_color_to_rgb565(ellipse.fill);
 
                 mla_int32_t cx = (mla_int32_t)ellipse.cx;
                 mla_int32_t cy = (mla_int32_t)ellipse.cy;
@@ -433,7 +433,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 g_gfx->fillEllipse(cx, cy, rx, ry, fillColor);
 
                 if (ellipse.stroke_width > 0) {
-                    mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(ellipse.stroke);
+                    mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(ellipse.stroke);
                     g_gfx->drawEllipse(cx, cy, rx, ry, strokeColor);
                 }
                 break;
@@ -441,7 +441,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
 
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE: {
                 const auto &line = cmd.line;
-                mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(line.stroke);
+                mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(line.stroke);
 
                 g_gfx->drawLine(
                     (mla_int32_t)line.x1, (mla_int32_t)line.y1,
@@ -455,7 +455,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 const auto &polyline = cmd.polyline;
                 if (mla_array_list_size(polyline.points) < 2) break;
 
-                mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(polyline.stroke);
+                mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(polyline.stroke);
 
                 for (mla_size_t j = 0; j < mla_array_list_size(polyline.points) - 1; j++) {
                     const mla_ui_surface_draw_point_t &p1 = mla_array_list_get_unsafe(polyline.points, j);
@@ -474,8 +474,8 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 const auto &polygon = cmd.polygon;
                 if (mla_array_list_size(polygon.points) < 3) break;
 
-                mla_uint16_t fillColor = __arduino_gfx_color_to_rgb565(polygon.fill);
-                mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(polygon.stroke);
+                mla_uint16_t fillColor = mla_private_arduino_gfx_color_to_rgb565(polygon.fill);
+                mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(polygon.stroke);
 
                 // For triangles, use fillTriangle
                 if (mla_array_list_size(polygon.points) == 3) {
@@ -519,7 +519,7 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
                 const auto &path = cmd.path;
                 if (mla_array_list_size(path.commands) == 0) break;
 
-                mla_uint16_t strokeColor = __arduino_gfx_color_to_rgb565(path.stroke);
+                mla_uint16_t strokeColor = mla_private_arduino_gfx_color_to_rgb565(path.stroke);
 
                 for (mla_size_t j = 0; j < mla_array_list_size(path.commands); j++) {
                     const auto &pathCmd = mla_array_list_get_unsafe(path.commands, j);
@@ -624,11 +624,11 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_TEXT: {
                 if (mla_string_is_empty(cmd.text.content)) break;
 
-                const GFXfont *font = __mla_arduino_gfx_cache_getOrCreateFont(
+                const GFXfont *font = mla_private_arduino_gfx_cache_getOrCreateFont(
                     gfx_surface->renderCache, cmd.text.font_type);
 
                 g_gfx->setFont(font);
-                g_gfx->setTextColor(__arduino_gfx_color_to_rgb565(cmd.text.fill));
+                g_gfx->setTextColor(mla_private_arduino_gfx_color_to_rgb565(cmd.text.fill));
 
                 char *textStr = mla_string_to_cstr(cmd.text.content);
                 if (textStr != nullptr) {
@@ -662,19 +662,19 @@ mla_bool_t __arduino_gfx_surface_render_draw_commands(const mla_ui_surface_t &su
     return true;
 }
 
-mla_buffer_cleanup_mode __arduino_gfx_surface_buffer_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
+mla_buffer_cleanup_mode mla_private_arduino_gfx_surface_buffer_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void)userData;
 
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(data);
 
     if (gfx_surface != nullptr) {
-        gfx_surface->renderCache = __mla_arduino_gfx_cache_empty();
+        gfx_surface->renderCache = mla_private_arduino_gfx_cache_empty();
     }
 
     return CLEAN_UP_NEEDED;
 }
 
-mla_bool_t __arduino_gfx_create_surface(mla_ui_surface_t &outSurface) {
+mla_bool_t mla_private_arduino_gfx_create_surface(mla_ui_surface_t &outSurface) {
     mla_arduino_gfx_surface_t *gfx_surface = mla_s_cast<mla_arduino_gfx_surface_t *>(
         mla_platform_malloc(sizeof(mla_arduino_gfx_surface_t)));
 
@@ -685,26 +685,26 @@ mla_bool_t __arduino_gfx_create_surface(mla_ui_surface_t &outSurface) {
     mla_memset(gfx_surface, 0, sizeof(mla_arduino_gfx_surface_t));
     gfx_surface->is_initialized = false;
     gfx_surface->size = {TFT_WIDTH, TFT_HEIGHT};
-    gfx_surface->renderCache = __mla_arduino_gfx_cache_empty();
+    gfx_surface->renderCache = mla_private_arduino_gfx_cache_empty();
     gfx_surface->touchState = {false, 0, 0, false};
 
     outSurface.resource = gfx_surface;
-    outSurface.resourceOwner = mla_buffer_reference(gfx_surface, true, __arduino_gfx_surface_buffer_cleanup);
-    outSurface.get_size = __arduino_gfx_surface_get_size;
-    outSurface.set_size = __arduino_gfx_surface_set_size;
-    outSurface.render_draw_commands = __arduino_gfx_surface_render_draw_commands;
-    outSurface.calc_text_size = __arduino_gfx_surface_calc_text_size;
-    outSurface.get_input_states = __arduino_gfx_surface_input_states;
+    outSurface.resourceOwner = mla_buffer_reference(gfx_surface, true, mla_private_arduino_gfx_surface_buffer_cleanup);
+    outSurface.get_size = mla_private_arduino_gfx_surface_get_size;
+    outSurface.set_size = mla_private_arduino_gfx_surface_set_size;
+    outSurface.render_draw_commands = mla_private_arduino_gfx_surface_render_draw_commands;
+    outSurface.calc_text_size = mla_private_arduino_gfx_surface_calc_text_size;
+    outSurface.get_input_states = mla_private_arduino_gfx_surface_input_states;
 
     return true;
 }
 
 mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
-    __arduino_gfx_create_surface
+    mla_private_arduino_gfx_create_surface
 };
 
 // Shutdown function
-void __arduino_gfx_shutdown() {
+void mla_private_arduino_gfx_shutdown() {
     if (g_gfx != nullptr) {
         delete g_gfx;
         g_gfx = nullptr;

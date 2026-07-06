@@ -12,12 +12,12 @@
 #include "../../core/lifecycle/mla_lifecycle_events.h"
 
 
-void __wasm_sleep(mla_uint32_t milliseconds) {
+void mla_private_wasm_sleep(mla_uint32_t milliseconds) {
 
     usleep(milliseconds * 1000); // Convert milliseconds to microseconds
 }
 
-mla_uint64_t __wasm_system_time_ms() {
+mla_uint64_t mla_private_wasm_system_time_ms() {
     struct timespec ts;
     // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
@@ -40,8 +40,8 @@ mla_low_level_operations_t g_low_level_access ={
     mla_private_generic_strtod,
     mla_private_generic_strtoll,
     mla_private_generic_strtoull,
-    __wasm_sleep,
-    __wasm_system_time_ms
+    mla_private_wasm_sleep,
+    mla_private_wasm_system_time_ms
 };
 
 

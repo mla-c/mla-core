@@ -19,9 +19,9 @@
 #define MLA_ARC_SEGMENTS 32
 
 // Helper wrappers for GL float-precision math using MLA math utilities
-static inline GLfloat __gl_cosf(GLfloat x) { return (GLfloat)mla_math_cos((mla_double_t)x); }
-static inline GLfloat __gl_sinf(GLfloat x) { return (GLfloat)mla_math_sin((mla_double_t)x); }
-static inline mla_double_t __mla_fabs(mla_double_t x) { return x < 0.0 ? -x : x; }
+static inline GLfloat mla_private_gl_cosf(GLfloat x) { return (GLfloat)mla_math_cos((mla_double_t)x); }
+static inline GLfloat mla_private_gl_sinf(GLfloat x) { return (GLfloat)mla_math_sin((mla_double_t)x); }
+static inline mla_double_t mla_private_fabs(mla_double_t x) { return x < 0.0 ? -x : x; }
 
 // Global OpenGL context
 static HGLRC g_hGLRC = nullptr;
@@ -42,7 +42,7 @@ struct mla_opengl_gradient_state {
     mla_ui_surface_draw_command_color_t radial_edge_color;
 };
 
-mla_opengl_gradient_state __mla_opengl_gradient_state_empty() {
+mla_opengl_gradient_state mla_private_opengl_gradient_state_empty() {
     return {
         false, false,
         0, 0, 0, 0,
@@ -90,15 +90,15 @@ struct mla_global_ui_surface_windows_opengl_Cache {
     mla_opengl_gradient_state gradientState;
 };
 
-mla_global_ui_surface_windows_opengl_Cache __mla_global_ui_surface_windows_opengl_cache_empty() {
+mla_global_ui_surface_windows_opengl_Cache mla_private_global_ui_surface_windows_opengl_cache_empty() {
     return {
         mla_array_list_empty<mla_global_ui_surface_windows_opengl_font_cache_item, mla_global_ui_surface_windows_opengl_font_cache_item_initializer>(),
         {1.0f, 1.0f, 1.0f, 1.0f},
-        __mla_opengl_gradient_state_empty()
+        mla_private_opengl_gradient_state_empty()
     };
 }
 
-mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(
+mla_buffer_cleanup_mode mla_private_global_ui_surface_windows_opengl_font_cleanup(
     mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
@@ -115,7 +115,7 @@ mla_buffer_cleanup_mode __mla_global_ui_surface_windows_opengl_font_cleanup(
     return CLEAN_UP_NEEDED;
 }
 
-mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+mla_global_ui_surface_windows_opengl_font_cache_item* mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
     mla_global_ui_surface_windows_opengl_Cache& cache, HDC hdc, const mla_ui_surface_font_type_t& fontType) {
     
     if (mla_string_is_empty(fontType.family))
@@ -206,7 +206,7 @@ mla_global_ui_surface_windows_opengl_font_cache_item* __mla_global_ui_surface_wi
     
     mla_global_ui_surface_windows_opengl_font_cache_item newItem = {
         fontType,
-        mla_buffer_reference_create(resources, true, __mla_global_ui_surface_windows_opengl_font_cleanup, mla_dynamic_data_empty()),
+        mla_buffer_reference_create(resources, true, mla_private_global_ui_surface_windows_opengl_font_cleanup, mla_dynamic_data_empty()),
         resources
     };
     
@@ -238,7 +238,7 @@ struct mla_windows_window_surface_opengl_t {
 };
 
 // Helper functions for OpenGL rendering
-void __gl_set_color(const mla_ui_surface_draw_command_color_t &color) {
+void mla_private_gl_set_color(const mla_ui_surface_draw_command_color_t &color) {
     glColor4f(
         (GLfloat)color.r / 255.0f,
         (GLfloat)color.g / 255.0f,
@@ -252,7 +252,7 @@ struct mla_vec2 {
     mla_double_t x, y;
 };
 
-mla_vec2 __bezier_quadratic_point(mla_vec2 p0, mla_vec2 p1, mla_vec2 p2, mla_double_t t) {
+mla_vec2 mla_private_bezier_quadratic_point(mla_vec2 p0, mla_vec2 p1, mla_vec2 p2, mla_double_t t) {
     mla_double_t u = 1.0 - t;
     mla_double_t tt = t * t;
     mla_double_t uu = u * u;
@@ -263,7 +263,7 @@ mla_vec2 __bezier_quadratic_point(mla_vec2 p0, mla_vec2 p1, mla_vec2 p2, mla_dou
     return result;
 }
 
-mla_vec2 __bezier_cubic_point(mla_vec2 p0, mla_vec2 p1, mla_vec2 p2, mla_vec2 p3, mla_double_t t) {
+mla_vec2 mla_private_bezier_cubic_point(mla_vec2 p0, mla_vec2 p1, mla_vec2 p2, mla_vec2 p3, mla_double_t t) {
     mla_double_t u = 1.0 - t;
     mla_double_t tt = t * t;
     mla_double_t uu = u * u;
@@ -285,7 +285,7 @@ struct mla_arc_params {
     mla_double_t x_axis_rotation;
 };
 
-mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double_t y2,
+mla_arc_params mla_private_svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double_t y2,
                                           mla_double_t rx, mla_double_t ry, mla_double_t x_axis_rotation,
                                           mla_bool_t large_arc, mla_bool_t sweep) {
     
@@ -295,8 +295,8 @@ mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_d
         return result;
     }
     
-    rx = __mla_fabs(rx);
-    ry = __mla_fabs(ry);
+    rx = mla_private_fabs(rx);
+    ry = mla_private_fabs(ry);
     
     mla_double_t phi = x_axis_rotation * mla_math_pi / 180.0;
     mla_double_t cos_phi = mla_math_cos(phi);
@@ -362,11 +362,11 @@ mla_arc_params __svg_arc_to_center_param(mla_double_t x1, mla_double_t y1, mla_d
     return result;
 }
 
-void __gl_draw_arc(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double_t y2,
+void mla_private_gl_draw_arc(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double_t y2,
                    mla_double_t rx, mla_double_t ry, mla_double_t x_axis_rotation,
                    mla_bool_t large_arc, mla_bool_t sweep, mla_bool_t use_line_to) {
     
-    mla_arc_params arc = __svg_arc_to_center_param(x1, y1, x2, y2, rx, ry, x_axis_rotation, large_arc, sweep);
+    mla_arc_params arc = mla_private_svg_arc_to_center_param(x1, y1, x2, y2, rx, ry, x_axis_rotation, large_arc, sweep);
     
     mla_double_t phi = arc.x_axis_rotation * mla_math_pi / 180.0;
     mla_double_t cos_phi = mla_math_cos(phi);
@@ -391,7 +391,7 @@ void __gl_draw_arc(mla_double_t x1, mla_double_t y1, mla_double_t x2, mla_double
 }
 
 // Linear gradient rendering using vertex colors
-void __gl_apply_linear_gradient(mla_opengl_gradient_state& gradient, mla_double_t x, mla_double_t y) {
+void mla_private_gl_apply_linear_gradient(mla_opengl_gradient_state& gradient, mla_double_t x, mla_double_t y) {
     if (!gradient.has_linear_gradient) return;
     
     // Calculate gradient position (0 to 1)
@@ -400,7 +400,7 @@ void __gl_apply_linear_gradient(mla_opengl_gradient_state& gradient, mla_double_
     mla_double_t len = mla_math_sqrt(dx * dx + dy * dy);
     
     if (len < 0.001) {
-        __gl_set_color(gradient.linear_start_color);
+        mla_private_gl_set_color(gradient.linear_start_color);
         return;
     }
     
@@ -417,11 +417,11 @@ void __gl_apply_linear_gradient(mla_opengl_gradient_state& gradient, mla_double_
     color.b = (mla_uint8_t)(gradient.linear_start_color.b * (1.0 - t) + gradient.linear_end_color.b * t);
     color.a = (mla_uint8_t)(gradient.linear_start_color.a * (1.0 - t) + gradient.linear_end_color.a * t);
     
-    __gl_set_color(color);
+    mla_private_gl_set_color(color);
 }
 
 // Radial gradient rendering using vertex colors
-void __gl_apply_radial_gradient(mla_opengl_gradient_state& gradient, mla_double_t x, mla_double_t y) {
+void mla_private_gl_apply_radial_gradient(mla_opengl_gradient_state& gradient, mla_double_t x, mla_double_t y) {
     if (!gradient.has_radial_gradient) return;
     
     mla_double_t dx = x - gradient.radial_cx;
@@ -438,48 +438,48 @@ void __gl_apply_radial_gradient(mla_opengl_gradient_state& gradient, mla_double_
     color.b = (mla_uint8_t)(gradient.radial_center_color.b * (1.0 - t) + gradient.radial_edge_color.b * t);
     color.a = (mla_uint8_t)(gradient.radial_center_color.a * (1.0 - t) + gradient.radial_edge_color.a * t);
     
-    __gl_set_color(color);
+    mla_private_gl_set_color(color);
 }
 
-void __gl_draw_circle(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64) {
+void mla_private_gl_draw_circle(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64) {
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
     for (int i = 0; i <= segments; i++) {
         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + radius * __gl_cosf(angle), cy + radius * __gl_sinf(angle));
+        glVertex2f(cx + radius * mla_private_gl_cosf(angle), cy + radius * mla_private_gl_sinf(angle));
     }
     glEnd();
 }
 
-void __gl_draw_circle_outline(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64) {
+void mla_private_gl_draw_circle_outline(GLfloat cx, GLfloat cy, GLfloat radius, int segments = 64) {
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < segments; i++) {
         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + radius * __gl_cosf(angle), cy + radius * __gl_sinf(angle));
+        glVertex2f(cx + radius * mla_private_gl_cosf(angle), cy + radius * mla_private_gl_sinf(angle));
     }
     glEnd();
 }
 
-void __gl_draw_ellipse(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segments = 64) {
+void mla_private_gl_draw_ellipse(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segments = 64) {
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
     for (int i = 0; i <= segments; i++) {
         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + rx * __gl_cosf(angle), cy + ry * __gl_sinf(angle));
+        glVertex2f(cx + rx * mla_private_gl_cosf(angle), cy + ry * mla_private_gl_sinf(angle));
     }
     glEnd();
 }
 
-void __gl_draw_ellipse_outline(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segments = 64) {
+void mla_private_gl_draw_ellipse_outline(GLfloat cx, GLfloat cy, GLfloat rx, GLfloat ry, int segments = 64) {
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < segments; i++) {
         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / (GLfloat)segments;
-        glVertex2f(cx + rx * __gl_cosf(angle), cy + ry * __gl_sinf(angle));
+        glVertex2f(cx + rx * mla_private_gl_cosf(angle), cy + ry * mla_private_gl_sinf(angle));
     }
     glEnd();
 }
 
-void __gl_draw_rounded_rect(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat rx, GLfloat ry) {
+void mla_private_gl_draw_rounded_rect(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat rx, GLfloat ry) {
     const int segments = 16;
     
     glBegin(GL_POLYGON);
@@ -487,31 +487,31 @@ void __gl_draw_rounded_rect(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
     // Top-left corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
+        glVertex2f(x + rx + rx * mla_private_gl_cosf(angle), y + ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Top-right corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = 1.5f * (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
+        glVertex2f(x + width - rx + rx * mla_private_gl_cosf(angle), y + ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Bottom-right corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
+        glVertex2f(x + width - rx + rx * mla_private_gl_cosf(angle), y + height - ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Bottom-left corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)mla_math_pi / 2.0f + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
+        glVertex2f(x + rx + rx * mla_private_gl_cosf(angle), y + height - ry + ry * mla_private_gl_sinf(angle));
     }
     
     glEnd();
 }
 
-void __gl_draw_rounded_rect_outline(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat rx, GLfloat ry, GLfloat stroke_width) {
+void mla_private_gl_draw_rounded_rect_outline(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat rx, GLfloat ry, GLfloat stroke_width) {
     glLineWidth(stroke_width);
     glBegin(GL_LINE_LOOP);
     
@@ -520,32 +520,32 @@ void __gl_draw_rounded_rect_outline(GLfloat x, GLfloat y, GLfloat width, GLfloat
     // Top-left corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
+        glVertex2f(x + rx + rx * mla_private_gl_cosf(angle), y + ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Top-right corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = 1.5f * (GLfloat)mla_math_pi + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + ry + ry * __gl_sinf(angle));
+        glVertex2f(x + width - rx + rx * mla_private_gl_cosf(angle), y + ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Bottom-right corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + width - rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
+        glVertex2f(x + width - rx + rx * mla_private_gl_cosf(angle), y + height - ry + ry * mla_private_gl_sinf(angle));
     }
     
     // Bottom-left corner
     for (int i = segments; i >= 0; i--) {
         GLfloat angle = (GLfloat)mla_math_pi / 2.0f + (GLfloat)i * ((GLfloat)mla_math_pi / 2.0f) / (GLfloat)segments;
-        glVertex2f(x + rx + rx * __gl_cosf(angle), y + height - ry + ry * __gl_sinf(angle));
+        glVertex2f(x + rx + rx * mla_private_gl_cosf(angle), y + height - ry + ry * mla_private_gl_sinf(angle));
     }
     
     glEnd();
 }
 
 // Stub implementations for the surface function pointers
-mla_ui_surface_size_t __windows_surface_opengl_get_size(const mla_ui_surface_t &surface) {
+mla_ui_surface_size_t mla_private_windows_surface_opengl_get_size(const mla_ui_surface_t &surface) {
     mla_ui_surface_size_t size = {0, 0};
     
     mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
@@ -582,7 +582,7 @@ mla_ui_surface_size_t __windows_surface_opengl_get_size(const mla_ui_surface_t &
     return size;
 }
 
-mla_bool_t __windows_surface_opengl_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
+mla_bool_t mla_private_windows_surface_opengl_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
     mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(surface.resource);
     
     if (window_surface == nullptr) {
@@ -615,7 +615,7 @@ mla_bool_t __windows_surface_opengl_set_size(const mla_ui_surface_t &surface, ml
     return false;
 }
 
-LRESULT CALLBACK __windows_surface_opengl_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK mla_private_windows_surface_opengl_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (uMsg == WM_DESTROY) {
         PostQuitMessage(0);
         return 0;
@@ -624,7 +624,7 @@ LRESULT CALLBACK __windows_surface_opengl_proc(HWND hwnd, UINT uMsg, WPARAM wPar
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
-mla_bool_t __windows_opengl_ScreenPosition_to_client_position(const HWND &hwnd, POINT &cursorPos,
+mla_bool_t mla_private_windows_opengl_ScreenPosition_to_client_position(const HWND &hwnd, POINT &cursorPos,
                                                               mla_ui_surface_draw_point_t &out_clientPosition) {
     RECT clientRect;
     if (GetClientRect(hwnd, &clientRect)) {
@@ -644,7 +644,7 @@ mla_bool_t __windows_opengl_ScreenPosition_to_client_position(const HWND &hwnd, 
     return false;
 }
 
-mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui_surface_t &surface) {
+mla_ui_surface_input_states_t mla_private_windows_surface_opengl_input_states(const mla_ui_surface_t &surface) {
     
     mla_ui_surface_input_states_t inputStates = mla_ui_surface_input_states_empty();
     
@@ -659,7 +659,7 @@ mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui
     POINT cursorPos;
     if (GetCursorPos(&cursorPos)) {
         if (ScreenToClient(window_surface->hwnd, &cursorPos)) {
-            __windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
+            mla_private_windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, inputStates.cursorPosition);
         }
     }
     
@@ -690,12 +690,12 @@ mla_ui_surface_input_states_t __windows_surface_opengl_input_states(const mla_ui
     return inputStates;
 }
 
-mla_bool_t __windows_create_windows_opengl_surface(mla_windows_window_surface_opengl_t *surface) {
+mla_bool_t mla_private_windows_create_windows_opengl_surface(mla_windows_window_surface_opengl_t *surface) {
     const char CLASS_NAME[] = "MLA_Window_OpenGL_Class";
     
     WNDCLASSEXA wc = {};
     wc.cbSize = sizeof(WNDCLASSEXA);
-    wc.lpfnWndProc = __windows_surface_opengl_proc;
+    wc.lpfnWndProc = mla_private_windows_surface_opengl_proc;
     wc.hInstance = GetModuleHandleA(nullptr);
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = LoadCursorA(nullptr, IDC_ARROW);
@@ -766,7 +766,7 @@ mla_bool_t __windows_create_windows_opengl_surface(mla_windows_window_surface_op
     
     wglMakeCurrent(hdc, hglrc);
     
-    surface->renderCache = __mla_global_ui_surface_windows_opengl_cache_empty();
+    surface->renderCache = mla_private_global_ui_surface_windows_opengl_cache_empty();
     surface->is_initialized = true;
     surface->hwnd = hwnd;
     surface->hdc = hdc;
@@ -777,7 +777,7 @@ mla_bool_t __windows_create_windows_opengl_surface(mla_windows_window_surface_op
     return true;
 }
 
-mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
+mla_ui_surface_draw_size_t mla_private_windows_surface_opengl_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
     mla_ui_surface_draw_size_t size = {0, 0};
     
     if (mla_string_is_empty(text)) {
@@ -791,7 +791,7 @@ mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_
     }
     
     mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
-        __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+        mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
             window_surface->renderCache, window_surface->hdc, font_type);
     
     if (fontItem && fontItem->resources && fontItem->resources->hFont) {
@@ -813,7 +813,7 @@ mla_ui_surface_draw_size_t __windows_surface_opengl_calc_text_size(const mla_ui_
     return size;
 }
 
-mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t &surface,
+mla_bool_t mla_private_windows_surface_opengl_render_draw_commands(const mla_ui_surface_t &surface,
                                                          const mla_array_list_t<mla_ui_surface_draw_command_t,
                                                              mla_ui_surface_draw_command_initializer_t> &drawCommands,
                                                          mla_array_list_t<mla_ui_surface_input_event_t,
@@ -824,7 +824,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     }
     
     if (!window_surface->is_initialized) {
-        if (!__windows_create_windows_opengl_surface(window_surface)) {
+        if (!mla_private_windows_create_windows_opengl_surface(window_surface)) {
             mla_warning("Failed to initialize Windows OpenGL UI surface for drawing.");
             return false;
         }
@@ -841,7 +841,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                 POINT cursorPos = {physicalX, physicalY};
                 mla_ui_surface_input_event_t clickEvent = mla_ui_surface_input_event_empty();
                 clickEvent.kind = MLA_UI_SURFACE_INPUT_EVENT_KIND_CLICK;
-                __windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, clickEvent.click.position);
+                mla_private_windows_opengl_ScreenPosition_to_client_position(window_surface->hwnd, cursorPos, clickEvent.click.position);
 
                 if (msg.message == WM_LBUTTONUP) {
                     clickEvent.click.button = MLA_UI_SURFACE_INPUT_EVENT_CLICK_BUTTON_LEFT;
@@ -990,27 +990,27 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     glShadeModel(GL_SMOOTH);
                     
                     if (rect.rx > 0 || rect.ry > 0) {
-                        __gl_draw_rounded_rect(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry);
+                        mla_private_gl_draw_rounded_rect(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry);
                     } else {
                         glBegin(GL_QUADS);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, x, y);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, x, y);
                             glVertex2f(x, y);
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, x + w, y);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, x + w, y);
                             glVertex2f(x + w, y);
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, x + w, y + h);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, x + w, y + h);
                             glVertex2f(x + w, y + h);
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, x, y + h);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, x, y + h);
                             glVertex2f(x, y + h);
                         } else {
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, x, y);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, x, y);
                             glVertex2f(x, y);
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, x + w, y);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, x + w, y);
                             glVertex2f(x + w, y);
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, x + w, y + h);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, x + w, y + h);
                             glVertex2f(x + w, y + h);
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, x, y + h);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, x, y + h);
                             glVertex2f(x, y + h);
                         }
                         
@@ -1020,9 +1020,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     glShadeModel(GL_FLAT);
                 } else {
                     // Solid color fill
-                    __gl_set_color(rect.color);
+                    mla_private_gl_set_color(rect.color);
                     if (rect.rx > 0 || rect.ry > 0) {
-                        __gl_draw_rounded_rect(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry);
+                        mla_private_gl_draw_rounded_rect(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry);
                     } else {
                         glBegin(GL_QUADS);
                         glVertex2f(x, y);
@@ -1035,9 +1035,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                 
                 // Stroke
                 if (rect.stroke_width > 0) {
-                    __gl_set_color(rect.stroke);
+                    mla_private_gl_set_color(rect.stroke);
                     if (rect.rx > 0 || rect.ry > 0) {
-                        __gl_draw_rounded_rect_outline(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry, (GLfloat)rect.stroke_width);
+                        mla_private_gl_draw_rounded_rect_outline(x, y, w, h, (GLfloat)rect.rx, (GLfloat)rect.ry, (GLfloat)rect.stroke_width);
                     } else {
                         glLineWidth((GLfloat)rect.stroke_width);
                         glBegin(GL_LINE_LOOP);
@@ -1065,35 +1065,35 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     GLfloat r = (GLfloat)circle.r;
                     
                     if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                        __gl_apply_linear_gradient(window_surface->renderCache.gradientState, cx, cy);
+                        mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, cx, cy);
                     } else {
-                        __gl_apply_radial_gradient(window_surface->renderCache.gradientState, cx, cy);
+                        mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, cx, cy);
                     }
                     glVertex2f(cx, cy);
                     
                     for (int i = 0; i <= 64; i++) {
                         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / 64.0f;
-                        GLfloat px = cx + r * __gl_cosf(angle);
-                        GLfloat py = cy + r * __gl_sinf(angle);
+                        GLfloat px = cx + r * mla_private_gl_cosf(angle);
+                        GLfloat py = cy + r * mla_private_gl_sinf(angle);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
                         } else {
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, px, py);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, px, py);
                         }
                         glVertex2f(px, py);
                     }
                     glEnd();
                     glShadeModel(GL_FLAT);
                 } else {
-                    __gl_set_color(circle.fill);
-                    __gl_draw_circle((GLfloat)circle.cx, (GLfloat)circle.cy, (GLfloat)circle.r);
+                    mla_private_gl_set_color(circle.fill);
+                    mla_private_gl_draw_circle((GLfloat)circle.cx, (GLfloat)circle.cy, (GLfloat)circle.r);
                 }
                 
                 if (circle.stroke_width > 0) {
-                    __gl_set_color(circle.stroke);
+                    mla_private_gl_set_color(circle.stroke);
                     glLineWidth((GLfloat)circle.stroke_width);
-                    __gl_draw_circle_outline((GLfloat)circle.cx, (GLfloat)circle.cy, (GLfloat)circle.r);
+                    mla_private_gl_draw_circle_outline((GLfloat)circle.cx, (GLfloat)circle.cy, (GLfloat)circle.r);
                 }
                 break;
             }
@@ -1113,42 +1113,42 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     GLfloat ry = (GLfloat)ellipse.ry;
                     
                     if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                        __gl_apply_linear_gradient(window_surface->renderCache.gradientState, cx, cy);
+                        mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, cx, cy);
                     } else {
-                        __gl_apply_radial_gradient(window_surface->renderCache.gradientState, cx, cy);
+                        mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, cx, cy);
                     }
                     glVertex2f(cx, cy);
                     
                     for (int i = 0; i <= 64; i++) {
                         GLfloat angle = 2.0f * (GLfloat)mla_math_pi * (GLfloat)i / 64.0f;
-                        GLfloat px = cx + rx * __gl_cosf(angle);
-                        GLfloat py = cy + ry * __gl_sinf(angle);
+                        GLfloat px = cx + rx * mla_private_gl_cosf(angle);
+                        GLfloat py = cy + ry * mla_private_gl_sinf(angle);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, px, py);
                         } else {
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, px, py);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, px, py);
                         }
                         glVertex2f(px, py);
                     }
                     glEnd();
                     glShadeModel(GL_FLAT);
                 } else {
-                    __gl_set_color(ellipse.fill);
-                    __gl_draw_ellipse((GLfloat)ellipse.cx, (GLfloat)ellipse.cy, (GLfloat)ellipse.rx, (GLfloat)ellipse.ry);
+                    mla_private_gl_set_color(ellipse.fill);
+                    mla_private_gl_draw_ellipse((GLfloat)ellipse.cx, (GLfloat)ellipse.cy, (GLfloat)ellipse.rx, (GLfloat)ellipse.ry);
                 }
                 
                 if (ellipse.stroke_width > 0) {
-                    __gl_set_color(ellipse.stroke);
+                    mla_private_gl_set_color(ellipse.stroke);
                     glLineWidth((GLfloat)ellipse.stroke_width);
-                    __gl_draw_ellipse_outline((GLfloat)ellipse.cx, (GLfloat)ellipse.cy, (GLfloat)ellipse.rx, (GLfloat)ellipse.ry);
+                    mla_private_gl_draw_ellipse_outline((GLfloat)ellipse.cx, (GLfloat)ellipse.cy, (GLfloat)ellipse.rx, (GLfloat)ellipse.ry);
                 }
                 break;
             }
             
             case MLA_UI_SURFACE_DRAW_COMMAND_KIND_LINE: {
                 const auto &line = cmd.line;
-                __gl_set_color(line.stroke);
+                mla_private_gl_set_color(line.stroke);
                 glLineWidth((GLfloat)line.stroke_width);
                 glBegin(GL_LINES);
                 glVertex2f((GLfloat)line.x1, (GLfloat)line.y1);
@@ -1161,7 +1161,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                 const auto &polyline = cmd.polyline;
                 if (mla_array_list_size(polyline.points) < 2) break;
                 
-                __gl_set_color(polyline.stroke);
+                mla_private_gl_set_color(polyline.stroke);
                 glLineWidth((GLfloat)polyline.stroke_width);
                 glBegin(GL_LINE_STRIP);
                 for (mla_size_t j = 0; j < mla_array_list_size(polyline.points); j++) {
@@ -1186,9 +1186,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                         const mla_ui_surface_draw_point_t &point = mla_array_list_get_unsafe(polygon.points, j);
                         
                         if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                            __gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                            mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                         } else {
-                            __gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                            mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                         }
                         glVertex2f((GLfloat)point.x, (GLfloat)point.y);
                     }
@@ -1196,7 +1196,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     glShadeModel(GL_FLAT);
                 } else {
                     // Solid fill
-                    __gl_set_color(polygon.fill);
+                    mla_private_gl_set_color(polygon.fill);
                     glBegin(GL_POLYGON);
                     for (mla_size_t j = 0; j < mla_array_list_size(polygon.points); j++) {
                         const mla_ui_surface_draw_point_t &point = mla_array_list_get_unsafe(polygon.points, j);
@@ -1207,7 +1207,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                 
                 // Stroke
                 if (polygon.stroke_width > 0) {
-                    __gl_set_color(polygon.stroke);
+                    mla_private_gl_set_color(polygon.stroke);
                     glLineWidth((GLfloat)polygon.stroke_width);
                     glBegin(GL_LINE_LOOP);
                     for (mla_size_t j = 0; j < mla_array_list_size(polygon.points); j++) {
@@ -1246,11 +1246,11 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                             startY = currentY;
                             
                             if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                                __gl_apply_linear_gradient(window_surface->renderCache.gradientState, currentX, currentY);
+                                mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, currentX, currentY);
                             } else if (window_surface->renderCache.gradientState.has_radial_gradient) {
-                                __gl_apply_radial_gradient(window_surface->renderCache.gradientState, currentX, currentY);
+                                mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, currentX, currentY);
                             } else {
-                                __gl_set_color(path.fill);
+                                mla_private_gl_set_color(path.fill);
                             }
                             
                             glVertex2f(currentX, currentY);
@@ -1262,9 +1262,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                             currentY = (GLfloat)pathCmd.line_to.y;
                             
                             if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                                __gl_apply_linear_gradient(window_surface->renderCache.gradientState, currentX, currentY);
+                                mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, currentX, currentY);
                             } else if (window_surface->renderCache.gradientState.has_radial_gradient) {
-                                __gl_apply_radial_gradient(window_surface->renderCache.gradientState, currentX, currentY);
+                                mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, currentX, currentY);
                             }
                             
                             glVertex2f(currentX, currentY);
@@ -1277,12 +1277,12 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                             
                             for (int k = 1; k <= MLA_BEZIER_SEGMENTS; k++) {
                                 mla_double_t t = (mla_double_t)k / (mla_double_t)MLA_BEZIER_SEGMENTS;
-                                mla_vec2 point = __bezier_quadratic_point(p0, p1, p2, t);
+                                mla_vec2 point = mla_private_bezier_quadratic_point(p0, p1, p2, t);
                                 
                                 if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                                    __gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                                    mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                                 } else if (window_surface->renderCache.gradientState.has_radial_gradient) {
-                                    __gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                                    mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                                 }
                                 
                                 glVertex2f((GLfloat)point.x, (GLfloat)point.y);
@@ -1301,12 +1301,12 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                             
                             for (int k = 1; k <= MLA_BEZIER_SEGMENTS; k++) {
                                 mla_double_t t = (mla_double_t)k / (mla_double_t)MLA_BEZIER_SEGMENTS;
-                                mla_vec2 point = __bezier_cubic_point(p0, p1, p2, p3, t);
+                                mla_vec2 point = mla_private_bezier_cubic_point(p0, p1, p2, p3, t);
                                 
                                 if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                                    __gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                                    mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                                 } else if (window_surface->renderCache.gradientState.has_radial_gradient) {
-                                    __gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
+                                    mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, point.x, point.y);
                                 }
                                 
                                 glVertex2f((GLfloat)point.x, (GLfloat)point.y);
@@ -1318,7 +1318,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                         }
                         
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_ARC_TO: {
-                            __gl_draw_arc(currentX, currentY,
+                            mla_private_gl_draw_arc(currentX, currentY,
                                         pathCmd.arc_to.x, pathCmd.arc_to.y,
                                         pathCmd.arc_to.rx, pathCmd.arc_to.ry,
                                         pathCmd.arc_to.x_axis_rotation,
@@ -1334,9 +1334,9 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                         case MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH:
                             if (pathStarted) {
                                 if (window_surface->renderCache.gradientState.has_linear_gradient) {
-                                    __gl_apply_linear_gradient(window_surface->renderCache.gradientState, startX, startY);
+                                    mla_private_gl_apply_linear_gradient(window_surface->renderCache.gradientState, startX, startY);
                                 } else if (window_surface->renderCache.gradientState.has_radial_gradient) {
-                                    __gl_apply_radial_gradient(window_surface->renderCache.gradientState, startX, startY);
+                                    mla_private_gl_apply_radial_gradient(window_surface->renderCache.gradientState, startX, startY);
                                 }
                                 glVertex2f(startX, startY);
                             }
@@ -1347,7 +1347,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                 
                 // Stroke pass with proper bezier curves
                 if (path.stroke_width > 0) {
-                    __gl_set_color(path.stroke);
+                    mla_private_gl_set_color(path.stroke);
                     glLineWidth((GLfloat)path.stroke_width);
                     glBegin(GL_LINE_STRIP);
                     
@@ -1385,7 +1385,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                                 
                                 for (int k = 1; k <= MLA_BEZIER_SEGMENTS; k++) {
                                     mla_double_t t = (mla_double_t)k / (mla_double_t)MLA_BEZIER_SEGMENTS;
-                                    mla_vec2 point = __bezier_quadratic_point(p0, p1, p2, t);
+                                    mla_vec2 point = mla_private_bezier_quadratic_point(p0, p1, p2, t);
                                     glVertex2f((GLfloat)point.x, (GLfloat)point.y);
                                 }
                                 
@@ -1402,7 +1402,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                                 
                                 for (int k = 1; k <= MLA_BEZIER_SEGMENTS; k++) {
                                     mla_double_t t = (mla_double_t)k / (mla_double_t)MLA_BEZIER_SEGMENTS;
-                                    mla_vec2 point = __bezier_cubic_point(p0, p1, p2, p3, t);
+                                    mla_vec2 point = mla_private_bezier_cubic_point(p0, p1, p2, p3, t);
                                     glVertex2f((GLfloat)point.x, (GLfloat)point.y);
                                 }
                                 
@@ -1412,7 +1412,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                             }
                             
                             case MLA_UI_SURFACE_DRAW_PATH_COMMAND_ARC_TO: {
-                                __gl_draw_arc(currentX, currentY,
+                                mla_private_gl_draw_arc(currentX, currentY,
                                             pathCmd.arc_to.x, pathCmd.arc_to.y,
                                             pathCmd.arc_to.rx, pathCmd.arc_to.ry,
                                             pathCmd.arc_to.x_axis_rotation,
@@ -1444,12 +1444,12 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
                     break;
                 
                 mla_global_ui_surface_windows_opengl_font_cache_item* fontItem = 
-                    __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+                    mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
                         window_surface->renderCache, window_surface->hdc, cmd.text.font_type);
                 
                 if (fontItem && fontItem->resources && fontItem->resources->displayListBase != 0) {
                     // Set text color
-                    __gl_set_color(cmd.text.fill);
+                    mla_private_gl_set_color(cmd.text.fill);
                     
                     // Save current matrix
                     glPushMatrix();
@@ -1577,7 +1577,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     // Draw FPS counter using OpenGL
     mla_ui_surface_font_type_t debugFontType = { mla_string_const("Arial"), 15.0, false, false };
     mla_global_ui_surface_windows_opengl_font_cache_item* debugFont = 
-        __mla_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
+        mla_private_global_ui_surface_windows_opengl_font_cache_getOrCreateFont(
             window_surface->renderCache, window_surface->hdc, debugFontType);
     
     if (debugFont && debugFont->resources && debugFont->resources->displayListBase != 0) {
@@ -1603,7 +1603,7 @@ mla_bool_t __windows_surface_opengl_render_draw_commands(const mla_ui_surface_t 
     return true;
 }
 
-mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
+mla_buffer_cleanup_mode mla_private_windows_surface_opengl_buffer_cleanup(
     mla_platform_pointer_t data, const mla_dynamic_data_t& userData) {
     (void)userData;
     
@@ -1612,7 +1612,7 @@ mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
     if (window_surface != nullptr) {
         
         // Cleanup OpenGL resources
-        window_surface->renderCache = __mla_global_ui_surface_windows_opengl_cache_empty();
+        window_surface->renderCache = mla_private_global_ui_surface_windows_opengl_cache_empty();
         
         if (window_surface->hglrc) {
             wglMakeCurrent(nullptr, nullptr);
@@ -1633,7 +1633,7 @@ mla_buffer_cleanup_mode __windows_surface_opengl_buffer_cleanup(
     return CLEAN_UP_NEEDED;
 }
 
-mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
+mla_bool_t mla_private_windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
     
     mla_windows_window_surface_opengl_t *window_surface = mla_s_cast<mla_windows_window_surface_opengl_t *>(mla_platform_malloc(sizeof(mla_windows_window_surface_opengl_t)));
     
@@ -1652,18 +1652,18 @@ mla_bool_t __windows_create_opengl_surface(mla_ui_surface_t &outSurface) {
 #endif
     
     outSurface.resource = window_surface;
-    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, __windows_surface_opengl_buffer_cleanup, mla_dynamic_data_empty());
-    outSurface.get_size = __windows_surface_opengl_get_size;
-    outSurface.set_size = __windows_surface_opengl_set_size;
-    outSurface.render_draw_commands = __windows_surface_opengl_render_draw_commands;
-    outSurface.calc_text_size = __windows_surface_opengl_calc_text_size;
-    outSurface.get_input_states = __windows_surface_opengl_input_states;
+    outSurface.resourceOwner = mla_buffer_reference_create(window_surface, true, mla_private_windows_surface_opengl_buffer_cleanup, mla_dynamic_data_empty());
+    outSurface.get_size = mla_private_windows_surface_opengl_get_size;
+    outSurface.set_size = mla_private_windows_surface_opengl_set_size;
+    outSurface.render_draw_commands = mla_private_windows_surface_opengl_render_draw_commands;
+    outSurface.calc_text_size = mla_private_windows_surface_opengl_calc_text_size;
+    outSurface.get_input_states = mla_private_windows_surface_opengl_input_states;
     
     return true;
 }
 
 mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
-    __windows_create_opengl_surface
+    mla_private_windows_create_opengl_surface
 };
 
 
@@ -1672,18 +1672,18 @@ mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Initialize OpenGL (call once at startup)
-void __windows_opengl_init() {
+void mla_private_windows_opengl_init() {
     SetProcessDPIAware();
 }
 
 // Cleanup OpenGL (call at shutdown)
-void __windows_opengl_shutdown() {
+void mla_private_windows_opengl_shutdown() {
     // OpenGL contexts are cleaned up per-surface
 }
 
 struct MlaOpenGLAutoInit {
-    MlaOpenGLAutoInit() { __windows_opengl_init(); }
-    ~MlaOpenGLAutoInit() { __windows_opengl_shutdown(); }
+    MlaOpenGLAutoInit() { mla_private_windows_opengl_init(); }
+    ~MlaOpenGLAutoInit() { mla_private_windows_opengl_shutdown(); }
 };
 
 // Single global instance

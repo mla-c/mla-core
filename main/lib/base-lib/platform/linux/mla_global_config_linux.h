@@ -8,7 +8,7 @@
 #include "../../core/config/mla_config.h"
 
 #if !defined(mla_max_config_size)
-#define mla_max_config_size (16 * 1024) // 16KB is default
+#define mla_max_config_size (16L * 1024) // 16KB is default
 #endif
 
 #include <unistd.h>
@@ -33,7 +33,7 @@ void get_config_filename(char* buffer, ssize_t bufferSize) {
             lastDot = p;
             break;
         }
-        if (*p == '/') break;
+        if (*p == '/') { break; }
     }
 
     if (lastDot != nullptr) {
@@ -43,7 +43,7 @@ void get_config_filename(char* buffer, ssize_t bufferSize) {
 
     // Append .config
     const char* suffix = ".config";
-    for (const char* s = suffix; *s && len < bufferSize - 1; s++, len++) {
+    for (const char* s = suffix; *s != '\0' && len < bufferSize - 1; s++, len++) {
         buffer[len] = *s;
     }
     buffer[len] = '\0';
@@ -52,7 +52,7 @@ void get_config_filename(char* buffer, ssize_t bufferSize) {
 // On Linux the configuration is just an file in the application directory
 // The file can be read and written using standard file operations
 
-mla_bytes_t __linux_read_config_input() {
+mla_bytes_t mla_linux_read_config_input() {
 
     char configFilename[PATH_MAX];
     get_config_filename(configFilename, PATH_MAX);
@@ -86,12 +86,12 @@ mla_bytes_t __linux_read_config_input() {
 }
 
 
-mla_bytes_t __linux_create_config_output_buffer() {
+mla_bytes_t mla_linux_create_config_output_buffer() {
 
     return mla_bytes(mla_max_config_size);
 }
 
-mla_bool_t __linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
+mla_bool_t mla_linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_bytes) {
 
     char configPath[PATH_MAX];
     char tempPath[PATH_MAX];
@@ -101,7 +101,7 @@ mla_bool_t __linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_b
 
     // Build temp and backup paths
     size_t len = 0;
-    while (configPath[len] && len < PATH_MAX - 5) {
+    while (configPath[len] != '\0' && len < PATH_MAX - 5) {
         tempPath[len] = configPath[len];
         backupPath[len] = configPath[len];
         len++;
@@ -111,14 +111,14 @@ mla_bool_t __linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_b
 
     const char* tmpSuffix = ".tmp";
     const char* bakSuffix = ".bak";
-    for (const char* s = tmpSuffix; *s && len < PATH_MAX - 1; s++) {
+    for (const char* s = tmpSuffix; *s != '\0' && len < PATH_MAX - 1; s++) {
         tempPath[len++] = *s;
     }
     tempPath[len] = '\0';
 
     len = 0;
-    while (configPath[len]) len++;
-    for (const char* s = bakSuffix; *s && len < PATH_MAX - 1; s++, len++) {
+    while (configPath[len] != '\0') { len++; }
+    for (const char* s = bakSuffix; *s != '\0' && len < PATH_MAX - 1; s++, len++) {
         backupPath[len] = *s;
     }
     backupPath[len] = '\0';
@@ -166,7 +166,7 @@ mla_bool_t __linux_commit_config_output(mla_bytes_t& output, mla_size_t unused_b
     return true;
 }
 
-mla_bool_t __linux_reset() {
+mla_bool_t mla_linux_reset() {
 
     char configFilename[PATH_MAX];
     get_config_filename(configFilename, PATH_MAX);
@@ -175,10 +175,10 @@ mla_bool_t __linux_reset() {
 
 
 mla_config_low_level_operations_t g_config_low_level_operations = {
-    __linux_read_config_input,
-    __linux_create_config_output_buffer,
-    __linux_commit_config_output,
-    __linux_reset
+    mla_linux_read_config_input,
+    mla_linux_create_config_output_buffer,
+    mla_linux_commit_config_output,
+    mla_linux_reset
 };
 
 #endif

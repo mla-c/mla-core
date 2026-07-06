@@ -10,7 +10,7 @@
 
 
 
-mla_test_uint64_t __current_nanoseconds_esp8266() {
+mla_test_uint64_t mla_private_current_nanoseconds_esp8266() {
 
     static unsigned int last_us = 0;   // 32-bit
     static mla_test_uint64_t high = 0; // Oberes 32-bit, akkumuliert Overflows
@@ -28,7 +28,7 @@ mla_test_uint64_t __current_nanoseconds_esp8266() {
 }
 
 mla_benchmark_timer_t g_benchmark_timer = {
-    __current_nanoseconds_esp8266
+    mla_private_current_nanoseconds_esp8266
 };
 
 #endif

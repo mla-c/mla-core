@@ -58,11 +58,11 @@ struct mla_task_manager_pthread_data_t {
     }
 };
 
-mla_platform_pointer_t __mla_task_manager_pthread_worker(mla_platform_pointer_t payload) {
+mla_platform_pointer_t mla_private_task_manager_pthread_worker(mla_platform_pointer_t payload) {
 
     mla_task_manager_pthread_data_t* thread_data = mla_s_cast<mla_task_manager_pthread_data_t*>(payload);
 
-    if (thread_data) {
+    if (thread_data != nullptr) {
 
         mla_task_shared_states* shared_states = mla_pointer_get_data<mla_task_shared_states>(thread_data->sharedStates);
 
@@ -188,7 +188,7 @@ mla_bool_t mla_task_manager_pthread_create_task(
     int result = pthread_create(
         &thread_data->thread,                       // Pointer to pthread_t structure
         nullptr,
-        __mla_task_manager_pthread_worker, // Thread function
+        mla_private_task_manager_pthread_worker, // Thread function
         thread_data
     );
 
@@ -272,7 +272,7 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(const mla_pointer_t& mutexResourc
     timeout.tv_sec += timeoutms / 1000;
 
     // Add remaining milliseconds converted to nanoseconds
-    timeout.tv_nsec += (timeoutms % 1000) * 1000000;
+    timeout.tv_nsec += (long)(timeoutms % 1000) * 1000000;
 
     // Handle nanosecond overflow
     if (timeout.tv_nsec >= 1000000000) {
@@ -339,7 +339,7 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
     return __atomic_compare_exchange_n(&value.value, &expectedValue, newValue, false, mla_atomic_memory_order, __ATOMIC_SEQ_CST);
 }
 
-void __mla_task_manager_pthread_destroy_task_local(const mla_native_resource_t& userData) {
+void mla_private_task_manager_pthread_destroy_task_local(const mla_native_resource_t& userData) {
     pthread_key_delete((pthread_key_t)userData.asUint32);
 }
 
@@ -352,7 +352,7 @@ mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t& outTaskLoca
     }
 
     mla_native_resource_t resource = mla_dynamic_data_from_uint32((mla_uint32_t)key);
-    outTaskLocal = mla_native_resource_to_managed_pointer(resource, __mla_task_manager_pthread_destroy_task_local);
+    outTaskLocal = mla_native_resource_to_managed_pointer(resource, mla_private_task_manager_pthread_destroy_task_local);
 
     if (mla_pointer_is_null(outTaskLocal)) {
         pthread_key_delete(key);

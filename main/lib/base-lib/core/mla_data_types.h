@@ -123,6 +123,75 @@ struct mla_pointer_t {
 
 mla_platform_pointer_t mla_pointer_get_platform_pointer(const mla_pointer_t& ptr);
 
+// NOLINTBEGIN(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
+
+// -------------------------------------------------------------
+// Framework Reference Forwarding (Replacement for std::forward)
+// -------------------------------------------------------------
+
+// Used to deduce the raw type by stripping references
+template<class T> struct mla_remove_reference { typedef T type; };
+template<class T> struct mla_remove_reference<T&> { typedef T type; };
+template<class T> struct mla_remove_reference<T&&> { typedef T type; };
+
+// Equivalent to std::forward for lvalues
+template<class T>
+inline T&& mla_forward(typename mla_remove_reference<T>::type& t) {
+    return static_cast<T&&>(t);
+}
+
+// Equivalent to std::forward for rvalues
+template<class T>
+inline T&& mla_forward(typename mla_remove_reference<T>::type&& t) {
+    return static_cast<T&&>(t);
+}
+
+// -------------------------------------------------------------
+// Cast Templates
+// -------------------------------------------------------------
+// These templates abstract away the choice between C-style casts and C++ casts based on the global configuration.
+// `mla_r_cast` is for reinterpret casts, `mla_s_cast` for static casts, `mla_d_cast` for dynamic casts, and `mla_c_cast` for const casts.
+// Depending on the value of `mla_global_config_data_type_use_c_style_casts`,
+// these will either use C-style casts or the appropriate C++ cast operator.
+
+template<typename T, typename U>
+inline T mla_r_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return reinterpret_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_s_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return static_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_d_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return dynamic_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+template<typename T, typename U>
+inline T mla_c_cast(U&& data) {
+#if mla_global_config_data_type_use_c_style_casts == 1
+    return (T)(mla_forward<U>(data));
+#else
+    return const_cast<T>(mla_forward<U>(data));
+#endif
+}
+
+// NOLINTEND(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
+
 template <typename T>
 T* mla_pointer_get_data(const mla_pointer_t& ptr) {
     return mla_s_cast<T*>(mla_pointer_get_platform_pointer(ptr));
@@ -194,75 +263,6 @@ typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla
 #define mla_volatile volatile
 
 #define mla_thread_local thread_local
-
-// NOLINTBEGIN(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
-
-// -------------------------------------------------------------
-// Framework Reference Forwarding (Replacement for std::forward)
-// -------------------------------------------------------------
-
-// Used to deduce the raw type by stripping references
-template<class T> struct mla_remove_reference { typedef T type; };
-template<class T> struct mla_remove_reference<T&> { typedef T type; };
-template<class T> struct mla_remove_reference<T&&> { typedef T type; };
-
-// Equivalent to std::forward for lvalues
-template<class T>
-inline T&& mla_forward(typename mla_remove_reference<T>::type& t) {
-    return static_cast<T&&>(t);
-}
-
-// Equivalent to std::forward for rvalues
-template<class T>
-inline T&& mla_forward(typename mla_remove_reference<T>::type&& t) {
-    return static_cast<T&&>(t);
-}
-
-// -------------------------------------------------------------
-// Cast Templates
-// -------------------------------------------------------------
-// These templates abstract away the choice between C-style casts and C++ casts based on the global configuration.
-// `mla_r_cast` is for reinterpret casts, `mla_s_cast` for static casts, `mla_d_cast` for dynamic casts, and `mla_c_cast` for const casts.
-// Depending on the value of `mla_global_config_data_type_use_c_style_casts`,
-// these will either use C-style casts or the appropriate C++ cast operator.
-
-template<typename T, typename U>
-inline T mla_r_cast(U&& data) {
-#if mla_global_config_data_type_use_c_style_casts == 1
-    return (T)(mla_forward<U>(data));
-#else
-    return reinterpret_cast<T>(mla_forward<U>(data));
-#endif
-}
-
-template<typename T, typename U>
-inline T mla_s_cast(U&& data) {
-#if mla_global_config_data_type_use_c_style_casts == 1
-    return (T)(mla_forward<U>(data));
-#else
-    return static_cast<T>(mla_forward<U>(data));
-#endif
-}
-
-template<typename T, typename U>
-inline T mla_d_cast(U&& data) {
-#if mla_global_config_data_type_use_c_style_casts == 1
-    return (T)(mla_forward<U>(data));
-#else
-    return dynamic_cast<T>(mla_forward<U>(data));
-#endif
-}
-
-template<typename T, typename U>
-inline T mla_c_cast(U&& data) {
-#if mla_global_config_data_type_use_c_style_casts == 1
-    return (T)(mla_forward<U>(data));
-#else
-    return const_cast<T>(mla_forward<U>(data));
-#endif
-}
-
-// NOLINTEND(clang-analyzer-core.StackAddressEscape, clang-diagnostic-return-stack-address)
 
 // Atomic types
 struct mla_atomic_int32_t {

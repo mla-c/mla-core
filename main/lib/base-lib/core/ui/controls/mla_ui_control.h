@@ -151,10 +151,10 @@ mla_bool_t mla_ui_control_has_focus(const mla_ui_control_t &control);
 #define mla_ui_control_render_children_draw_commands(context, control, output, inputAreas) \
 mla_size_t childrenCount = mla_array_list_size((control).children); \
 if (childrenCount > 0) { \
-    mla_ui_control_context_t __childContext = mla_ui_control_create_context_for_children(context, control); \
-    for (mla_size_t __i = 0; __i < childrenCount; __i++) { \
-        mla_ui_control_t& __child = mla_array_list_get_unsafe((control).children, __i); \
-        if (!mla_ui_control_render_to_draw_commands(__childContext, __child, output, inputAreas)) {\
+    mla_ui_control_context_t mla_private_childContext = mla_ui_control_create_context_for_children(context, control); \
+    for (mla_size_t mla_private_i = 0; mla_private_i < childrenCount; mla_private_i++) { \
+        mla_ui_control_t& mla_private_child = mla_array_list_get_unsafe((control).children, mla_private_i); \
+        if (!mla_ui_control_render_to_draw_commands(mla_private_childContext, mla_private_child, output, inputAreas)) {\
             return false; \
         } \
     } \

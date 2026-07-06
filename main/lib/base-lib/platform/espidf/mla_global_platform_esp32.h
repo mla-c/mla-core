@@ -21,9 +21,9 @@
 
 #include "../generic/mla_global_platform_fast_float.h"
 
-#define mla_platform_strtod __fast_float_strtod
-#define mla_platform_strtoll __fast_float_strtoll
-#define mla_platform_strtoull __fast_float_strtoull
+#define mla_platform_strtod mla_private_fast_float_strtod
+#define mla_platform_strtoll mla_private_fast_float_strtoll
+#define mla_platform_strtoull mla_private_fast_float_strtoull
 
 #else
 
@@ -33,13 +33,13 @@
 
 #endif
 
-void __esp32_sleep(mla_uint32_t milliseconds) {
+void mla_private_esp32_sleep(mla_uint32_t milliseconds) {
 
     vTaskDelay(pdMS_TO_TICKS(milliseconds));
 
 }
 
-mla_uint64_t __esp32_system_time_ms() {
+mla_uint64_t mla_private_esp32_system_time_ms() {
 
     return pdTICKS_TO_MS(xTaskGetTickCount());
 
@@ -61,8 +61,8 @@ mla_low_level_operations_t g_low_level_access {
         mla_platform_strtod,
         mla_platform_strtoll,
         mla_platform_strtoull,
-        __esp32_sleep,
-        __esp32_system_time_ms
+        mla_private_esp32_sleep,
+        mla_private_esp32_system_time_ms
     };
 
 void mla_boot_os_application() {

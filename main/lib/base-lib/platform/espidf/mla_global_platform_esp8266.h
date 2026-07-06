@@ -16,7 +16,7 @@
 
 
 
-void __esp8266_sleep(mla_uint32_t milliseconds) {
+void mla_private_esp8266_sleep(mla_uint32_t milliseconds) {
 
     vTaskDelay(milliseconds * configTICK_RATE_HZ / 1000);
 
@@ -38,7 +38,7 @@ mla_low_level_operations_t g_low_level_access {
         mla_private_generic_strtod,
         mla_private_generic_strtoll,
         mla_private_generic_strtoull,
-        __esp8266_sleep,
+        mla_private_esp8266_sleep,
     };
 
 void mla_boot_os_application() {

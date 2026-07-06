@@ -379,7 +379,7 @@ struct mla_esp32_surface_t {
 };
 
 // Cleanup function
-inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
+inline mla_buffer_cleanup_mode mla_private_esp32_surface_cleanup(mla_platform_pointer_t data, mla_callback_userdata userData) {
     (void) userData;
     mla_esp32_surface_t *surface = (mla_esp32_surface_t *) data;
     if (surface) {
@@ -396,18 +396,18 @@ inline mla_buffer_cleanup_mode __esp32_surface_cleanup(mla_platform_pointer_t da
     return CLEAN_UP_NEEDED;
 }
 
-inline mla_ui_surface_size_t __esp32_surface_get_size(const mla_ui_surface_t &surface) {
+inline mla_ui_surface_size_t mla_private_esp32_surface_get_size(const mla_ui_surface_t &surface) {
      mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) surface.resource;
      if(!esp_surface) return {0,0};
      return esp_surface->size;
 }
 
-inline mla_bool_t __esp32_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
+inline mla_bool_t mla_private_esp32_surface_set_size(const mla_ui_surface_t &surface, mla_ui_surface_size_t size) {
     (void) surface; (void) size;
     return false; // Cannot resize physical display
 }
 
-inline mla_ui_surface_draw_size_t __esp32_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
+inline mla_ui_surface_draw_size_t mla_private_esp32_surface_calc_text_size(const mla_ui_surface_t &surface, const mla_ui_surface_font_type_t &font_type, const mla_string_t &text) {
      (void) surface; (void) font_type;
      // Basic 5x7 font calculation
      mla_ui_surface_draw_size_t size;
@@ -423,13 +423,13 @@ inline mla_ui_surface_draw_size_t __esp32_surface_calc_text_size(const mla_ui_su
      return size;
 }
 
-inline mla_ui_surface_input_states_t __esp32_surface_get_input_states(const mla_ui_surface_t &surface) {
+inline mla_ui_surface_input_states_t mla_private_esp32_surface_get_input_states(const mla_ui_surface_t &surface) {
     (void) surface;
     // TODO: Implement GT911 touch driver reading
     return mla_ui_surface_input_states_empty();
 }
 
-inline mla_bool_t __esp32_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
+inline mla_bool_t mla_private_esp32_surface_render_draw_commands(const mla_ui_surface_t& surface, const mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t>& eventsSinceLastFame) {
     (void) eventsSinceLastFame;
     mla_esp32_surface_t *esp_surface = (mla_esp32_surface_t *) surface.resource;
     if (!esp_surface)
@@ -515,16 +515,16 @@ inline mla_bool_t __esp32_surface_render_draw_commands(const mla_ui_surface_t& s
 static bool s_is_initialized = false;
 static mla_esp32_surface_t *s_global_surface = nullptr;
 
-inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
+inline mla_bool_t mla_private_esp32_create_surface(mla_ui_surface_t &outSurface) {
     if (s_is_initialized && s_global_surface) {
          // Return existing
          outSurface.resource = s_global_surface;
-         outSurface.resourceOwner = mla_buffer_reference(s_global_surface, false, __esp32_surface_cleanup);
-         outSurface.get_size = __esp32_surface_get_size;
-         outSurface.set_size = __esp32_surface_set_size;
-         outSurface.render_draw_commands = __esp32_surface_render_draw_commands;
-         outSurface.calc_text_size = __esp32_surface_calc_text_size;
-         outSurface.get_input_states = __esp32_surface_get_input_states;
+         outSurface.resourceOwner = mla_buffer_reference(s_global_surface, false, mla_private_esp32_surface_cleanup);
+         outSurface.get_size = mla_private_esp32_surface_get_size;
+         outSurface.set_size = mla_private_esp32_surface_set_size;
+         outSurface.render_draw_commands = mla_private_esp32_surface_render_draw_commands;
+         outSurface.calc_text_size = mla_private_esp32_surface_calc_text_size;
+         outSurface.get_input_states = mla_private_esp32_surface_get_input_states;
          return true;
     }
 
@@ -626,12 +626,12 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
     mla_esp32_software_renderer_clear(&esp_surface->renderer, 0x0000);
 
     outSurface.resource = esp_surface;
-    outSurface.resourceOwner = mla_buffer_reference(esp_surface, false, __esp32_surface_cleanup);
-    outSurface.get_size = __esp32_surface_get_size;
-    outSurface.set_size = __esp32_surface_set_size;
-    outSurface.render_draw_commands = __esp32_surface_render_draw_commands;
-    outSurface.calc_text_size = __esp32_surface_calc_text_size;
-    outSurface.get_input_states = __esp32_surface_get_input_states;
+    outSurface.resourceOwner = mla_buffer_reference(esp_surface, false, mla_private_esp32_surface_cleanup);
+    outSurface.get_size = mla_private_esp32_surface_get_size;
+    outSurface.set_size = mla_private_esp32_surface_set_size;
+    outSurface.render_draw_commands = mla_private_esp32_surface_render_draw_commands;
+    outSurface.calc_text_size = mla_private_esp32_surface_calc_text_size;
+    outSurface.get_input_states = mla_private_esp32_surface_get_input_states;
 
     s_global_surface = esp_surface;
     s_is_initialized = true;
@@ -645,7 +645,7 @@ inline mla_bool_t __esp32_create_surface(mla_ui_surface_t &outSurface) {
 }
 
 mla_ui_display_surface_low_level_access_t g_ui_display_surface_low_level_access = {
-    __esp32_create_surface
+    mla_private_esp32_create_surface
 };
 
 #endif
