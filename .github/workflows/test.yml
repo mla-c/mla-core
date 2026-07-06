@@ -6,8 +6,6 @@ on:
   #push:
   #  branches:
   #    - main
-  schedule:
-    - cron: '0 0 * * *' # Run at 00:00 UTC every day
   workflow_dispatch:
     inputs:
       allocation_failure_seed_count:
