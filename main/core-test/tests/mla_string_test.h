@@ -261,6 +261,26 @@ void ToCStringFromBuffer_No_Force_CopyTest() {
     }
 }
 
+void CStringDataAccessorTest() {
+    mla_string_t str = mla_string("hello");
+    mla_c_string_t cStr = mla_string_to_cString(str);
+    const mla_char_t *data = mla_c_string_data(cStr);
+
+    assert_true(data != nullptr, "C-string data accessor should return valid pointer");
+    if (data != nullptr) {
+        assert_equal(mla_strlen(data), (mla_size_t)5, "C-string data should have expected length");
+    }
+}
+
+void StringFromCStringWithLengthTest() {
+    mla_char_t data[11] = "hello-world";
+    mla_string_t str = mla_string_from_c_string(mla_platform_pointer_to_managed_pointer(data), 5);
+
+    assert_equal(mla_string_length(str), (mla_size_t)5, "String length should match provided length");
+    assert_equal(mla_string_get_memory_layout(str), MLA_STRING_MEMORY_LAYOUT_C_STRING, "String should use C-string layout");
+    assert_true(mla_string_equals(str, mla_string("hello")), "String content should match the provided prefix");
+}
+
 void AccessCharTest() {
     mla_string_t mla_str = mla_string("Hello, World!");
     const mla_char_t* data = mla_string_data(mla_str);
@@ -1096,6 +1116,20 @@ void SplitTest() {
 
 }
 
+void JoinTest() {
+    mla_array_list_t<mla_string_t, mla_string_initializer> parts = mla_array_list<mla_string_t, mla_string_initializer>(3);
+    mla_array_list_add(parts, mla_string("apple"));
+    mla_array_list_add(parts, mla_string("banana"));
+    mla_array_list_add(parts, mla_string("cherry"));
+
+    mla_string_t joined = mla_string_join(parts, mla_string(","));
+    assert_true(mla_string_equals(joined, mla_string("apple,banana,cherry")), "Join should concatenate with delimiter");
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> emptyParts = mla_array_list<mla_string_t, mla_string_initializer>(0);
+    mla_string_t emptyJoin = mla_string_join(emptyParts, mla_string(","));
+    assert_true(mla_string_is_empty(emptyJoin), "Join on empty list should return empty string");
+}
+
 void RepeatTest() {
     // Test basic repetition
     mla_string_t str = mla_string("ab");
@@ -1201,6 +1235,15 @@ void StringHashTest() {
     mla_string_t str = mla_string("hello");
     mla_size_t h = mla_string_hash_t::hash(str);
     assert_true(h != 0, "Hash should not be zero");
+}
+
+void StringHashRawApiTest() {
+    mla_string_t str = mla_string("hello");
+    mla_size_t rawHash = mla_string_hash(mla_string_data(str), mla_string_length(str));
+    mla_size_t wrappedHash = mla_string_hash_t::hash(str);
+
+    assert_true(rawHash != 0, "Raw hash should not be zero");
+    assert_equal(rawHash, wrappedHash, "Raw hash API should match hash wrapper");
 }
 
 void StringConstTest() {
@@ -1436,6 +1479,12 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("ToCStringFromBuffer_No_Force_Copy", test_category, ToCStringFromBuffer_No_Force_CopyTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("CStringDataAccessor", test_category, CStringDataAccessorTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("FromCStringWithLength", test_category, StringFromCStringWithLengthTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
     test = mla_test("AccessChar", test_category, AccessCharTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -1532,6 +1581,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("Split", test_category, SplitTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
+    test = mla_test("Join", test_category, JoinTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
     test = mla_test("Repeat", test_category, RepeatTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -1557,6 +1609,9 @@ void RegisterStringTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Hash", test_category, StringHashTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("HashRawApi", test_category, StringHashRawApiTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Const", test_category, StringConstTest);
