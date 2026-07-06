@@ -8,6 +8,28 @@
 #include "../../lib/base-lib/test-support/mla_test_executor.h"
 #include "../../lib/base-lib/core/filesystem/mla_file_system.h"
 
+mla_bool_t mla_file_system_test_write_string(const mla_string_t& path, const mla_string_t& content) {
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+
+    if (!mla_fs_open_file(path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, stream) || stream.write == nullptr) {
+        return false;
+    }
+
+    mla_size_t length = mla_string_length(content);
+    return stream.write(stream, 0, length, mla_r_cast<const mla_byte_t*>(mla_string_data(content))) == length;
+}
+
+mla_string_t mla_file_system_test_read_string(const mla_string_t& path) {
+    mla_file_system_stream_t stream = mla_file_system_stream_empty();
+
+    if (!mla_fs_open_file(path, MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, stream) || stream.length == nullptr) {
+        return mla_string_empty();
+    }
+
+    mla_stream_input_t input = mla_file_system_stream_as_input(stream);
+    return mla_string_from_stream(input, stream.length(stream) + 1);
+}
+
 void FileSystemIsDirectoryPathTest() {
     // Valid directory paths (must start and end with slash)
     assert_true(mla_fs_is_directory_path(mla_string("/")),
@@ -468,6 +490,244 @@ void FileSystemReadWriteDataTest() {
     mla_fs_delete_directory(mla_string("/rwtest/"));
 }
 
+void FileSystemEmptyFactoriesTest() {
+    mla_file_system_stream_t emptyStream = mla_file_system_stream_empty();
+    mla_file_system_stream_t initStream = mla_file_system_stream_t::init();
+    mla_file_system_t emptyFileSystem = mla_file_system_empty();
+
+    assert_true(mla_string_is_empty(emptyStream.path), "Empty stream path should be empty");
+    assert_true(emptyStream.seek == nullptr, "Empty stream seek should be null");
+    assert_true(emptyStream.position == nullptr, "Empty stream position should be null");
+    assert_true(emptyStream.length == nullptr, "Empty stream length should be null");
+    assert_true(emptyStream.set_length == nullptr, "Empty stream set_length should be null");
+    assert_true(emptyStream.read == nullptr, "Empty stream read should be null");
+    assert_true(emptyStream.write == nullptr, "Empty stream write should be null");
+    assert_true(mla_pointer_is_null(emptyStream.resource), "Empty stream resource should be null");
+
+    assert_true(mla_string_is_empty(initStream.path), "Initialized stream path should be empty");
+    assert_true(initStream.read == nullptr, "Initialized stream read should be null");
+    assert_true(initStream.write == nullptr, "Initialized stream write should be null");
+    assert_true(mla_pointer_is_null(initStream.resource), "Initialized stream resource should be null");
+
+    assert_true(emptyFileSystem.file_exists == nullptr, "Empty file system file_exists should be null");
+    assert_true(emptyFileSystem.open_file == nullptr, "Empty file system open_file should be null");
+    assert_true(emptyFileSystem.delete_file == nullptr, "Empty file system delete_file should be null");
+    assert_true(emptyFileSystem.list_files == nullptr, "Empty file system list_files should be null");
+    assert_true(emptyFileSystem.create_directory == nullptr, "Empty file system create_directory should be null");
+    assert_true(emptyFileSystem.directory_exists == nullptr, "Empty file system directory_exists should be null");
+    assert_true(emptyFileSystem.delete_directory == nullptr, "Empty file system delete_directory should be null");
+    assert_true(emptyFileSystem.list_directory == nullptr, "Empty file system list_directory should be null");
+    assert_true(emptyFileSystem.os_absolute_path == nullptr, "Empty file system os_absolute_path should be null");
+    assert_true(mla_pointer_is_null(emptyFileSystem.resource), "Empty file system resource should be null");
+}
+
+void FileSystemStreamWrapperTest() {
+    assert_true(mla_fs_create_directory(mla_string("/streamwrap/")),
+                "Should create stream wrapper test directory");
+
+    mla_file_system_stream_t writeStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/streamwrap/data.txt"),
+                                 MLA_FILE_SYSTEM_FILE_OPEN_MODE_WRITE, writeStream),
+                "Should open file in write mode");
+
+    mla_stream_input_t noopInput = mla_file_system_stream_as_input(writeStream);
+    mla_byte_t noopReadBuffer[4] = {0};
+    assert_equal(noopInput.read(noopInput, 0, sizeof(noopReadBuffer), noopReadBuffer), (mla_size_t)0,
+                 "Write-only stream should map to a no-op input stream");
+
+    mla_stream_output_t output = mla_file_system_stream_as_output(writeStream);
+    mla_string_t writtenText = mla_string_const("stream wrapper");
+    mla_size_t writtenLength = mla_string_length(writtenText);
+    assert_equal(output.write(output, 0, writtenLength,
+                              mla_r_cast<const mla_byte_t*>(mla_string_data(writtenText))), writtenLength,
+                 "Output wrapper should forward writes");
+
+    writeStream = mla_file_system_stream_empty();
+
+    mla_file_system_stream_t readStream = mla_file_system_stream_empty();
+    assert_true(mla_fs_open_file(mla_string("/streamwrap/data.txt"),
+                                 MLA_FILE_SYSTEM_FILE_OPEN_MODE_READ, readStream),
+                "Should open file in read mode");
+
+    mla_stream_input_t input = mla_file_system_stream_as_input(readStream);
+    assert_true(input.remaining_bytes != nullptr, "Readable stream should expose remaining bytes");
+    assert_equal(input.remaining_bytes(input), writtenLength,
+                 "Readable stream remaining bytes should match file length");
+
+    mla_byte_t readBuffer[32] = {0};
+    assert_equal(input.read(input, 0, sizeof(readBuffer), readBuffer), writtenLength,
+                 "Input wrapper should read the written bytes");
+    assert_equal((mla_test_int32_t)mla_memcmp(readBuffer, mla_string_data(writtenText), writtenLength),
+                 (mla_test_int32_t)0, "Input wrapper should return the written content");
+
+    mla_stream_output_t noopOutput = mla_file_system_stream_as_output(readStream);
+    assert_equal(noopOutput.write(noopOutput, 0, writtenLength,
+                                  mla_r_cast<const mla_byte_t*>(mla_string_data(writtenText))), writtenLength,
+                 "Read-only stream should map to a no-op output stream");
+
+    mla_fs_delete_file(mla_string("/streamwrap/data.txt"));
+    mla_fs_delete_directory(mla_string("/streamwrap/"));
+}
+
+void FileSystemLifecycleTest() {
+    mla_bool_t wasLocked = mla_file_system_is_locked();
+
+    if (wasLocked) {
+        mla_file_system_unlock();
+    }
+
+    mla_bool_t unlocked = !mla_file_system_is_locked();
+    mla_bool_t invalidMountRejected = !mla_file_system_initialize(mla_string("invalid"), mla_file_system_empty());
+    mla_bool_t mounted = mla_file_system_initialize(mla_string("/apitest/"), mla_file_system_empty());
+    mla_bool_t removed = mla_file_system_deinitialize(mla_string("/APITEST/"));
+    mla_bool_t missingMountRejected = !mla_file_system_deinitialize(mla_string("/apitest/"));
+
+    if (mounted && !removed) {
+        (void)mla_file_system_deinitialize(mla_string("/apitest/"));
+    }
+
+    mla_file_system_lock();
+    mla_bool_t locked = mla_file_system_is_locked();
+    mla_bool_t lockedMountRejected = !mla_file_system_initialize(mla_string("/locked/"), mla_file_system_empty());
+
+    if (!wasLocked) {
+        mla_file_system_unlock();
+    }
+
+    assert_true(unlocked, "File system should unlock");
+    assert_true(invalidMountRejected, "Invalid mount path should be rejected");
+    assert_true(mounted, "Valid mount path should be accepted while unlocked");
+    assert_true(removed, "Mounted file system should be removable");
+    assert_true(missingMountRejected, "Removing a missing mount should fail");
+    assert_true(locked, "File system should lock");
+    assert_true(lockedMountRejected, "Mounting while locked should fail");
+    assert_equal(mla_file_system_is_locked(), wasLocked, "Lock state should be restored");
+}
+
+void FileSystemCountFilesTest() {
+    assert_true(mla_fs_create_directory(mla_string("/countfiles/")),
+                "Should create count files directory");
+    assert_true(mla_fs_create_directory(mla_string("/countfiles/subdir/")),
+                "Should create nested directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/countfiles/one.txt"), mla_string_const("1")),
+                "Should create first file");
+    assert_true(mla_file_system_test_write_string(mla_string("/countfiles/two.txt"), mla_string_const("22")),
+                "Should create second file");
+
+    mla_size_t count = 0;
+    assert_true(mla_fs_count_files(mla_string("/countfiles/"), count),
+                "Should count files in directory");
+    assert_equal(count, (mla_size_t)2, "Should count only files");
+
+    mla_fs_delete_file(mla_string("/countfiles/one.txt"));
+    mla_fs_delete_file(mla_string("/countfiles/two.txt"));
+    mla_fs_delete_directory(mla_string("/countfiles/subdir/"));
+    mla_fs_delete_directory(mla_string("/countfiles/"));
+}
+
+void FileSystemCountDirectoryTest() {
+    assert_true(mla_fs_create_directory(mla_string("/countdirs/")),
+                "Should create count directories root");
+    assert_true(mla_fs_create_directory(mla_string("/countdirs/first/")),
+                "Should create first child directory");
+    assert_true(mla_fs_create_directory(mla_string("/countdirs/second/")),
+                "Should create second child directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/countdirs/file.txt"), mla_string_const("content")),
+                "Should create sibling file");
+
+    mla_size_t count = 0;
+    assert_true(mla_fs_count_directory(mla_string("/countdirs/"), count),
+                "Should count directories");
+    assert_equal(count, (mla_size_t)2, "Should count only directories");
+
+    mla_fs_delete_file(mla_string("/countdirs/file.txt"));
+    mla_fs_delete_directory(mla_string("/countdirs/first/"));
+    mla_fs_delete_directory(mla_string("/countdirs/second/"));
+    mla_fs_delete_directory(mla_string("/countdirs/"));
+}
+
+void FileSystemCopyApisTest() {
+    mla_string_t sourceContent = mla_string_const("copy me");
+
+    assert_true(mla_fs_create_directory(mla_string("/copytest/")),
+                "Should create copy test directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/copytest/source.txt"), sourceContent),
+                "Should create source file");
+
+    assert_true(mla_fs_copy_file_to(mla_string("/copytest/source.txt"), mla_string("/copytest/destination.txt")),
+                "Should copy file to file");
+    assert_true(mla_string_equals(mla_file_system_test_read_string(mla_string("/copytest/destination.txt")), sourceContent),
+                "Copied destination file should match source content");
+
+    mla_memory_stream_t copiedToStream = mla_memory_stream_empty();
+    assert_true(mla_fs_copy_file_to_stream(mla_string("/copytest/source.txt"), copiedToStream.output),
+                "Should copy file to output stream");
+    assert_true(mla_memory_stream_set_position(copiedToStream, 0), "Should rewind copied stream");
+    assert_true(mla_string_equals(
+                    mla_string_from_stream(copiedToStream.input, mla_memory_stream_get_size(copiedToStream) + 1),
+                    sourceContent),
+                "Copied stream content should match source content");
+
+    mla_stream_input_t sourceStream = mla_stream_input_from_string(mla_string_const("stream copy"));
+    assert_true(mla_fs_copy_stream_to_file(sourceStream, mla_string("/copytest/from-stream.txt")),
+                "Should copy input stream to file");
+    assert_true(mla_string_equals(mla_file_system_test_read_string(mla_string("/copytest/from-stream.txt")),
+                                  mla_string_const("stream copy")),
+                "Copied file should match stream content");
+
+    mla_fs_delete_file(mla_string("/copytest/source.txt"));
+    mla_fs_delete_file(mla_string("/copytest/destination.txt"));
+    mla_fs_delete_file(mla_string("/copytest/from-stream.txt"));
+    mla_fs_delete_directory(mla_string("/copytest/"));
+}
+
+void FileSystemRelativePathTest() {
+    mla_string_t childPath = mla_fs_get_relative_path(mla_string("/root/base/"),
+                                                      mla_string("/root/base/file.txt"), false);
+    assert_true(mla_string_equals(childPath, mla_string("/file.txt")),
+                "Direct child relative path should keep the leading slash");
+
+    mla_string_t siblingPath = mla_fs_get_relative_path(mla_string("/root/base/"),
+                                                        mla_string("/root/other/file.txt"), true);
+    assert_true(mla_string_equals(siblingPath, mla_string("/../other/file.txt")),
+                "Relative path should navigate up when requested");
+
+    mla_string_t noMatch = mla_fs_get_relative_path(mla_string("/root/base/"),
+                                                    mla_string("/other/file.txt"), false);
+    assert_true(mla_string_is_empty(noMatch), "Unrelated paths should return empty without upward navigation");
+}
+
+void FileSystemAbsolutePathTest() {
+    assert_true(mla_fs_create_directory(mla_string("/abstest/")),
+                "Should create absolute path test directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/abstest/file.txt"), mla_string_const("absolute")),
+                "Should create file for absolute path test");
+
+    mla_string_t existingPath = mla_fs_get_complete_os_absolute_path(mla_string("/abstest/file.txt"));
+    assert_false(mla_string_is_empty(existingPath), "Existing file should resolve to an OS path");
+    assert_true(mla_string_ends_with(existingPath, mla_string("/abstest/file.txt")),
+                "Resolved path should end with the original file path");
+
+    mla_string_t uncheckedPath = mla_fs_get_complete_os_absolute_path(mla_string("/abstest/missing.txt"), false);
+    assert_false(mla_string_is_empty(uncheckedPath), "Unchecked missing file should still resolve");
+    assert_true(mla_string_ends_with(uncheckedPath, mla_string("/abstest/missing.txt")),
+                "Unchecked resolved path should end with the missing file path");
+
+    mla_fs_delete_file(mla_string("/abstest/file.txt"));
+    mla_fs_delete_directory(mla_string("/abstest/"));
+}
+
+void FileSystemApiCoverageTest() {
+    FileSystemEmptyFactoriesTest();
+    FileSystemStreamWrapperTest();
+    FileSystemLifecycleTest();
+    FileSystemCountFilesTest();
+    FileSystemCountDirectoryTest();
+    FileSystemCopyApisTest();
+    FileSystemRelativePathTest();
+    FileSystemAbsolutePathTest();
+}
+
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -512,6 +772,9 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ApiCoverage", test_category, FileSystemApiCoverageTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
