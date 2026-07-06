@@ -496,28 +496,28 @@ void FileSystemEmptyFactoriesTest() {
     mla_file_system_t emptyFileSystem = mla_file_system_empty();
 
     assert_true(mla_string_is_empty(emptyStream.path), "Empty stream path should be empty");
-    assert_null(emptyStream.seek, "Empty stream seek should be null");
-    assert_null(emptyStream.position, "Empty stream position should be null");
-    assert_null(emptyStream.length, "Empty stream length should be null");
-    assert_null(emptyStream.set_length, "Empty stream set_length should be null");
-    assert_null(emptyStream.read, "Empty stream read should be null");
-    assert_null(emptyStream.write, "Empty stream write should be null");
+    assert_true(emptyStream.seek == nullptr, "Empty stream seek should be null");
+    assert_true(emptyStream.position == nullptr, "Empty stream position should be null");
+    assert_true(emptyStream.length == nullptr, "Empty stream length should be null");
+    assert_true(emptyStream.set_length == nullptr, "Empty stream set_length should be null");
+    assert_true(emptyStream.read == nullptr, "Empty stream read should be null");
+    assert_true(emptyStream.write == nullptr, "Empty stream write should be null");
     assert_true(mla_pointer_is_null(emptyStream.resource), "Empty stream resource should be null");
 
     assert_true(mla_string_is_empty(initStream.path), "Initialized stream path should be empty");
-    assert_null(initStream.read, "Initialized stream read should be null");
-    assert_null(initStream.write, "Initialized stream write should be null");
+    assert_true(initStream.read == nullptr, "Initialized stream read should be null");
+    assert_true(initStream.write == nullptr, "Initialized stream write should be null");
     assert_true(mla_pointer_is_null(initStream.resource), "Initialized stream resource should be null");
 
-    assert_null(emptyFileSystem.file_exists, "Empty file system file_exists should be null");
-    assert_null(emptyFileSystem.open_file, "Empty file system open_file should be null");
-    assert_null(emptyFileSystem.delete_file, "Empty file system delete_file should be null");
-    assert_null(emptyFileSystem.list_files, "Empty file system list_files should be null");
-    assert_null(emptyFileSystem.create_directory, "Empty file system create_directory should be null");
-    assert_null(emptyFileSystem.directory_exists, "Empty file system directory_exists should be null");
-    assert_null(emptyFileSystem.delete_directory, "Empty file system delete_directory should be null");
-    assert_null(emptyFileSystem.list_directory, "Empty file system list_directory should be null");
-    assert_null(emptyFileSystem.os_absolute_path, "Empty file system os_absolute_path should be null");
+    assert_true(emptyFileSystem.file_exists == nullptr, "Empty file system file_exists should be null");
+    assert_true(emptyFileSystem.open_file == nullptr, "Empty file system open_file should be null");
+    assert_true(emptyFileSystem.delete_file == nullptr, "Empty file system delete_file should be null");
+    assert_true(emptyFileSystem.list_files == nullptr, "Empty file system list_files should be null");
+    assert_true(emptyFileSystem.create_directory == nullptr, "Empty file system create_directory should be null");
+    assert_true(emptyFileSystem.directory_exists == nullptr, "Empty file system directory_exists should be null");
+    assert_true(emptyFileSystem.delete_directory == nullptr, "Empty file system delete_directory should be null");
+    assert_true(emptyFileSystem.list_directory == nullptr, "Empty file system list_directory should be null");
+    assert_true(emptyFileSystem.os_absolute_path == nullptr, "Empty file system os_absolute_path should be null");
     assert_true(mla_pointer_is_null(emptyFileSystem.resource), "Empty file system resource should be null");
 }
 
@@ -550,7 +550,7 @@ void FileSystemStreamWrapperTest() {
                 "Should open file in read mode");
 
     mla_stream_input_t input = mla_file_system_stream_as_input(readStream);
-    assert_not_null(input.remaining_bytes, "Readable stream should expose remaining bytes");
+    assert_true(input.remaining_bytes != nullptr, "Readable stream should expose remaining bytes");
     assert_equal(input.remaining_bytes(input), writtenLength,
                  "Readable stream remaining bytes should match file length");
 
@@ -717,6 +717,17 @@ void FileSystemAbsolutePathTest() {
     mla_fs_delete_directory(mla_string("/abstest/"));
 }
 
+void FileSystemApiCoverageTest() {
+    FileSystemEmptyFactoriesTest();
+    FileSystemStreamWrapperTest();
+    FileSystemLifecycleTest();
+    FileSystemCountFilesTest();
+    FileSystemCountDirectoryTest();
+    FileSystemCopyApisTest();
+    FileSystemRelativePathTest();
+    FileSystemAbsolutePathTest();
+}
+
 void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_t test = mla_test("IsDirectoryPath", test_category, FileSystemIsDirectoryPathTest);
     mla_test_executor_register_test(p_TestExecutor, test);
@@ -763,28 +774,7 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     test = mla_test("ReadWriteData", test_category, FileSystemReadWriteDataTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
-    test = mla_test("EmptyFactories", test_category, FileSystemEmptyFactoriesTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("StreamWrapper", test_category, FileSystemStreamWrapperTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("Lifecycle", test_category, FileSystemLifecycleTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("CountFiles", test_category, FileSystemCountFilesTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("CountDirectory", test_category, FileSystemCountDirectoryTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("CopyApis", test_category, FileSystemCopyApisTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("RelativePath", test_category, FileSystemRelativePathTest);
-    mla_test_executor_register_test(p_TestExecutor, test);
-
-    test = mla_test("AbsolutePath", test_category, FileSystemAbsolutePathTest);
+    test = mla_test("ApiCoverage", test_category, FileSystemApiCoverageTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 }
 
