@@ -1,7 +1,7 @@
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/build/default-toolchain.cmake")
 
 cmake_minimum_required(VERSION 3.25)
-project(MLA_C_BASE_LIB)
+project(mla-base-lib)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/lib/base-lib/build/default-compile-config.cmake")
 

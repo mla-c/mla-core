@@ -655,7 +655,31 @@ mla_bool_t mla_private_cli_commit_line(mla_cli_app_t &app, mla_stream_output_t &
 
     if (!mla_string_is_empty(line)) {
         mla_array_list_add(app.history, mla_string_copy(line));
-        success = mla_private_cli_parser_parse_and_execute_command(app, line, outputStream);
+
+        // Split the command using the && operator into multiple commands
+        mla_array_list_t<mla_string_t, mla_string_initializer> commands = mla_string_split(line, mla_string_const("&&"));
+
+        mla_size_t commandCount = mla_array_list_size(commands);
+
+        if (commandCount == 0) {
+            // Should never happen, but just in case
+            success = mla_private_cli_parser_parse_and_execute_command(app, line, outputStream);
+        } else {
+
+            for (mla_size_t i = 0; i < commandCount; ++i) {
+
+                mla_string_t& command = mla_array_list_get_unsafe(commands, i);
+
+                success = mla_private_cli_parser_parse_and_execute_command(app, command, outputStream);
+
+                if (!success) {
+                    break;
+                }
+
+            }
+
+        }
+
     }
 
     mla_private_cli_write_module_prompt(app, outputStream);
