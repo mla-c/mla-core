@@ -23,6 +23,25 @@ inline mla_bool_t test_command_execute(const mla_cli_command_t& command, const m
     return true;
 }
 
+// Variables for count-based execution
+static mla_int32_t test_command_execute_count = 0;
+
+inline mla_bool_t test_command_execute_counter(const mla_cli_command_t& command, const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>& parameters, const mla_cli_command_execute_outstream_t& out) {
+    (void)command;
+    (void)parameters;
+    test_command_execute_count++;
+    out.write(out.userdata, mla_string("Command executed"));
+    return true;
+}
+
+inline mla_bool_t test_command_execute_fail(const mla_cli_command_t& command, const mla_hash_map_t<mla_string_t, mla_string_t, mla_string_hash_t, mla_string_initializer, mla_string_initializer>& parameters, const mla_cli_command_execute_outstream_t& out) {
+    (void)command;
+    (void)parameters;
+    test_command_execute_count++;
+    out.write(out.userdata, mla_string("Command failed"));
+    return false;
+}
+
 inline void SimpleNavigationTest() {
 
     mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
@@ -446,6 +465,42 @@ inline void MultipleCommandsTest() {
     assert_equal(test_command_executed, false, "Non-existent command should not execute");
 }
 
+inline void JoinCommandsTest() {
+    test_command_execute_count = 0;
+
+    mla_cli_module_t root = mla_cli_module(mla_string_const("Root"));
+
+    // Create commands
+    mla_cli_command_t cmd1 = mla_cli_command(mla_string_const("cmd1"), test_command_execute_counter);
+    mla_cli_command_t cmd2 = mla_cli_command(mla_string_const("cmd2"), test_command_execute_counter);
+    mla_cli_command_t cmdfail = mla_cli_command(mla_string_const("cmdfail"), test_command_execute_fail);
+    mla_cli_command_t cmd3 = mla_cli_command(mla_string_const("cmd3"), test_command_execute_counter);
+
+    mla_array_list_add(root.availableCommands, cmd1);
+    mla_array_list_add(root.availableCommands, cmd2);
+    mla_array_list_add(root.availableCommands, cmdfail);
+    mla_array_list_add(root.availableCommands, cmd3);
+
+    mla_stream_output_t noopOutput = mla_stream_noop_output();
+    mla_cli_app_t app = mla_cli_app_init(root, noopOutput);
+
+    // Test successful joined execution
+    mla_string_t buffer = mla_string("cmd1&&cmd2\n");
+    mla_stream_input_t input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
+    assert_equal(test_command_execute_count, (mla_int32_t)2, "Both joined commands should execute");
+
+    test_command_execute_count = 0;
+
+    // Test early exit on failure
+    buffer = mla_string("cmd1&&cmdfail&&cmd3\n");
+    input = mla_stream_input_from_buffer(mla_r_cast<mla_byte_t*>(mla_c_cast<mla_char_t*>(mla_string_data(buffer))), mla_string_length(buffer));
+    noopOutput = mla_stream_noop_output();
+    mla_cli_app_update_and_process_input(app, input, noopOutput);
+    assert_equal(test_command_execute_count, (mla_int32_t)2, "Third command should not execute because second failed");
+}
+
 // Feed a raw byte sequence to the CLI line editor as a single non-blocking read.
 inline void FeedCliInput(mla_cli_app_t& app, mla_stream_output_t& output, const mla_string_t& data) {
     mla_stream_input_t input = mla_stream_input_from_buffer(
@@ -606,6 +661,9 @@ inline void RegisterCliAppTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MultipleCommands", test_category, MultipleCommandsTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("JoinCommands", test_category, JoinCommandsTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("HistoryNavigation", test_category, HistoryNavigationTest);
