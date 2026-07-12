@@ -457,6 +457,8 @@ struct mla_ui_surface_draw_command_polyline_t {
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
 
+    static mla_ui_surface_draw_command_polyline_t init();
+
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_command_polyline_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_polyline_t>(obj);
 
@@ -494,17 +496,17 @@ struct mla_ui_surface_draw_command_polyline_t {
 
 mla_ui_surface_draw_command_polyline_t mla_ui_surface_draw_command_polyline_empty();
 
-struct mla_ui_surface_draw_command_polyline_initializer_t {
-    static mla_ui_surface_draw_command_polyline_t init() {
-        return mla_ui_surface_draw_command_polyline_empty();
-    }
-};
+inline mla_ui_surface_draw_command_polyline_t mla_ui_surface_draw_command_polyline_t::init() {
+    return mla_ui_surface_draw_command_polyline_empty();
+}
 
 struct mla_ui_surface_draw_command_polygon_t {
     mla_array_list_t<mla_ui_surface_draw_point_t> points;
     mla_ui_surface_draw_command_color_t fill;
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
+
+    static mla_ui_surface_draw_command_polygon_t init();
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_command_polygon_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_polygon_t>(obj);
@@ -543,11 +545,9 @@ struct mla_ui_surface_draw_command_polygon_t {
 
 mla_ui_surface_draw_command_polygon_t mla_ui_surface_draw_command_polygon_empty();
 
-struct mla_ui_surface_draw_command_polygon_initializer_t {
-    static mla_ui_surface_draw_command_polygon_t init() {
-        return mla_ui_surface_draw_command_polygon_empty();
-    }
-};
+inline mla_ui_surface_draw_command_polygon_t mla_ui_surface_draw_command_polygon_t::init() {
+    return mla_ui_surface_draw_command_polygon_empty();
+}
 
 // Path Command Structures
 
@@ -780,6 +780,12 @@ struct mla_ui_surface_draw_path_command_t {
         mla_ui_surface_draw_path_command_arc_to_t arc_to;
     };
 
+    static mla_ui_surface_draw_path_command_t init() {
+        mla_ui_surface_draw_path_command_t cmd;
+        cmd.kind = MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH;
+        return cmd;
+    }
+
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_path_command_t* self = mla_pointer_get_data<const mla_ui_surface_draw_path_command_t>(obj);
 
@@ -828,19 +834,13 @@ struct mla_ui_surface_draw_path_command_t {
     }
 };
 
-struct mla_ui_surface_draw_path_command_initializer_t {
-    static mla_ui_surface_draw_path_command_t init() {
-        mla_ui_surface_draw_path_command_t cmd;
-        cmd.kind = MLA_UI_SURFACE_DRAW_PATH_COMMAND_CLOSE_PATH;
-        return cmd;
-    }
-};
-
 struct mla_ui_surface_draw_command_path_t {
-    mla_array_list_t<mla_ui_surface_draw_path_command_t, mla_ui_surface_draw_path_command_initializer_t> commands;
+    mla_array_list_t<mla_init_struct(mla_ui_surface_draw_path_command_t)> commands;
     mla_ui_surface_draw_command_color_t fill;
     mla_ui_surface_draw_command_color_t stroke;
     mla_double_t stroke_width;
+
+    static mla_ui_surface_draw_command_path_t init();
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_command_path_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_path_t>(obj);
@@ -879,11 +879,9 @@ struct mla_ui_surface_draw_command_path_t {
 
 mla_ui_surface_draw_command_path_t mla_ui_surface_draw_command_path_empty();
 
-struct mla_ui_surface_draw_command_path_initializer_t {
-    static mla_ui_surface_draw_command_path_t init() {
-        return mla_ui_surface_draw_command_path_empty();
-    }
-};
+inline mla_ui_surface_draw_command_path_t mla_ui_surface_draw_command_path_t::init() {
+    return mla_ui_surface_draw_command_path_empty();
+}
 
 struct mla_ui_surface_draw_command_text_t {
     mla_double_t x;
@@ -891,6 +889,8 @@ struct mla_ui_surface_draw_command_text_t {
     mla_string_t content;
     mla_ui_surface_font_type_t font_type;
     mla_ui_surface_draw_command_color_t fill;
+
+    static mla_ui_surface_draw_command_text_t init();
 
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_command_text_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_text_t>(obj);
@@ -932,11 +932,9 @@ struct mla_ui_surface_draw_command_text_t {
 
 mla_ui_surface_draw_command_text_t mla_ui_surface_draw_command_text_empty();
 
-struct mla_ui_surface_draw_command_text_initializer_t {
-    static mla_ui_surface_draw_command_text_t init() {
-        return mla_ui_surface_draw_command_text_empty();
-    }
-};
+inline mla_ui_surface_draw_command_text_t mla_ui_surface_draw_command_text_t::init() {
+    return mla_ui_surface_draw_command_text_empty();
+}
 
 struct mla_ui_surface_draw_command_linear_gradient_t {
     mla_double_t x1;
@@ -1079,6 +1077,8 @@ struct mla_ui_surface_draw_command_t {
     mla_ui_surface_draw_command_polyline_t polyline;
     mla_ui_surface_draw_command_polygon_t polygon;
 
+    static mla_ui_surface_draw_command_t init();
+
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_draw_command_t* self = mla_pointer_get_data<const mla_ui_surface_draw_command_t>(obj);
 
@@ -1152,13 +1152,11 @@ struct mla_ui_surface_draw_command_t {
 
 mla_ui_surface_draw_command_t mla_ui_surface_draw_command_empty();
 
-struct mla_ui_surface_draw_command_initializer_t {
-    static mla_ui_surface_draw_command_t init() {
-        return mla_ui_surface_draw_command_empty();
-    }
-};
+inline mla_ui_surface_draw_command_t mla_ui_surface_draw_command_t::init() {
+    return mla_ui_surface_draw_command_empty();
+}
 
-void mla_ui_surface_draw_commands_scale(mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_double_t scaleX, mla_double_t scaleY);
+void mla_ui_surface_draw_commands_scale(mla_array_list_t<mla_init_struct(mla_ui_surface_draw_command_t)>& drawCommands, mla_double_t scaleX, mla_double_t scaleY);
 void mla_ui_surface_draw_command_scale(mla_ui_surface_draw_command_t& command, mla_double_t scaleX, mla_double_t scaleY);
 
 mla_bool_t mla_ui_surface_parse_color_from_hex_string(const mla_string_t& colorStr, mla_ui_surface_draw_command_color_t& outColor);
@@ -1284,6 +1282,8 @@ struct mla_ui_surface_input_event_t {
         mla_ui_surface_input_event_char_input_t char_input;
     };
 
+    static mla_ui_surface_input_event_t init();
+
     static mla_bool_t serialize(mla_serializer_t& serializer, const mla_pointer_t& obj) {
         const mla_ui_surface_input_event_t* self = mla_pointer_get_data<const mla_ui_surface_input_event_t>(obj);
 
@@ -1321,10 +1321,8 @@ struct mla_ui_surface_input_event_t {
 
 mla_ui_surface_input_event_t mla_ui_surface_input_event_empty();
 
-struct mla_ui_surface_input_event_initializer_t {
-    static mla_ui_surface_input_event_t init() {
-        return mla_ui_surface_input_event_empty();
-    }
-};
+inline mla_ui_surface_input_event_t mla_ui_surface_input_event_t::init() {
+    return mla_ui_surface_input_event_empty();
+}
 
 #endif

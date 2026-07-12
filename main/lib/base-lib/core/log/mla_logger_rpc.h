@@ -98,20 +98,19 @@ struct mla_logger_rpc_log_entry_t {
         mla_reflection_struct_metadata_freeze(meta);
         return meta;
     }
+
+    static mla_logger_rpc_log_entry_t init();
 };
 
 
 mla_logger_rpc_log_entry_t mla_logger_rpc_log_entry_empty();
 
-
-struct mla_logger_rpc_log_entry_initializer {
-    static mla_logger_rpc_log_entry_t init() {
-        return mla_logger_rpc_log_entry_empty();
-    }
-};
+inline mla_logger_rpc_log_entry_t mla_logger_rpc_log_entry_t::init() {
+    return mla_logger_rpc_log_entry_empty();
+}
 
 struct mla_logger_rpc_log_messages_t {
-    mla_array_list_t<mla_logger_rpc_log_entry_t, mla_logger_rpc_log_entry_initializer> entries;
+    mla_array_list_t<mla_init_struct(mla_logger_rpc_log_entry_t)> entries;
 
     static mla_bool_t serialize(mla_serializer_t &serializer, const mla_pointer_t &obj) {
         const mla_logger_rpc_log_messages_t *logMessages = mla_pointer_get_data<const

@@ -12,6 +12,8 @@ typedef mla_uint16_t mla_user_data_id;
 
 struct mla_user_data_t {
     mla_pointer_t data;
+
+    static mla_user_data_t init();
 };
 
 mla_user_data_id mla_get_next_user_data_id();
@@ -19,6 +21,10 @@ mla_user_data_id mla_get_next_user_data_id();
 #define mla_user_data_id_init(name) const static mla_user_data_id name = mla_get_next_user_data_id();
 
 mla_user_data_t mla_user_data_empty();
+
+inline mla_user_data_t mla_user_data_t::init() {
+    return mla_user_data_empty();
+}
 mla_user_data_t mla_user_data_copy(const mla_user_data_t& other);
 
 mla_bool_t mla_user_data_remove(mla_user_data_t& target, mla_user_data_id id);
@@ -164,11 +170,6 @@ T mla_user_data_get_callback(const mla_user_data_t& userData, mla_user_data_id i
 
 }
 
-struct mla_user_data_initializer {
 
-    static mla_user_data_t init() {
-        return mla_user_data_empty();
-    }
-};
 
 #endif
