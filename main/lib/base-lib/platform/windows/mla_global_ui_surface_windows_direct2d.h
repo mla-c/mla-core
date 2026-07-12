@@ -32,12 +32,6 @@ struct mla_global_ui_surface_windows_direct2d_font_cache_item {
 
 };
 
-struct mla_global_ui_surface_windows_direct2d_font_cache_item_initializer {
-    static mla_global_ui_surface_windows_direct2d_font_cache_item init() {
-        return mla_global_ui_surface_windows_direct2d_font_cache_item::init();
-    }
-};
-
 // Render cache structure for performance optimization
 struct la_global_ui_surface_windows_direct2d_Cache {
     // Reusable brushes
@@ -45,15 +39,13 @@ struct la_global_ui_surface_windows_direct2d_Cache {
     D2D1_COLOR_F currentFillColor;
 
     // Font cache
-    mla_array_list_t<mla_global_ui_surface_windows_direct2d_font_cache_item,
-        mla_global_ui_surface_windows_direct2d_font_cache_item_initializer> fontCache;
+    mla_array_list_t<mla_init_struct(mla_global_ui_surface_windows_direct2d_font_cache_item)> fontCache;
 
     static la_global_ui_surface_windows_direct2d_Cache init() {
         return {
             mla_pointer_null(),
             {0, 0, 0, 0},
-            mla_array_list_empty<mla_global_ui_surface_windows_direct2d_font_cache_item,
-                mla_global_ui_surface_windows_direct2d_font_cache_item_initializer>()
+            mla_array_list_empty<mla_init_struct(mla_global_ui_surface_windows_direct2d_font_cache_item)>()
         };
     }
 

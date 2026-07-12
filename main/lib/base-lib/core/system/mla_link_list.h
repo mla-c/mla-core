@@ -33,6 +33,8 @@ struct mla_link_list_t {
     mla_pointer_t tailOwner; // Reference to the tail node's buffer
     mla_link_list_data_t<T, TInit>* data;
     mla_pointer_t dataOwner; // Reference to the data buffer
+
+    static mla_link_list_t init();
 };
 
 template < mla_list_list_template >
@@ -77,9 +79,14 @@ inline mla_link_list_t<T, TInit>  mla_link_list_empty() {
         mla_pointer_null(),
         mla_pointer_null(),
         nullptr,
-        mla_pointer_null() // Initialize with no data owner
+        mla_pointer_null()
     };
 
+}
+
+template < typename T, typename TInit >
+inline mla_link_list_t<T, TInit> mla_link_list_t<T, TInit>::init() {
+    return mla_link_list_empty<T, TInit>();
 }
 
 template < mla_list_list_template >

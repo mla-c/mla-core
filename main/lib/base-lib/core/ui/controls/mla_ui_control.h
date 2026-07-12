@@ -41,24 +41,21 @@ struct mla_ui_control_value_t {
         mla_bool_t boolValue;
         mla_platform_pointer_t pointerValue;
     };
+
+    static mla_ui_control_value_t init();
 };
 
 mla_ui_control_value_t mla_ui_control_value_empty();
 
-struct mla_ui_control_value_initializer_t {
-    static mla_ui_control_value_t init() {
-        return mla_ui_control_value_empty();
-    }
-};
+inline mla_ui_control_value_t mla_ui_control_value_t::init() {
+    return mla_ui_control_value_empty();
+}
 
 struct mla_ui_control_input_area_t;
-struct mla_ui_control_input_area_initializer_t;
 
-struct mla_ui_control_initializer_t;
-
-typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas);
-typedef mla_bool_t (*mla_ui_control_process_click_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData);
-typedef mla_bool_t (*mla_ui_control_process_char_input_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_user_data_t& userData);
+typedef mla_bool_t (*mla_ui_control_render_to_draw_commands_t)(const mla_ui_control_context_t &context, const mla_ui_control_t &element, mla_array_list_t<mla_init_struct(mla_ui_surface_draw_command_t)>& drawCommands, mla_array_list_t<mla_init_struct(mla_ui_control_input_area_t)> &inputAreas);
+typedef mla_bool_t (*mla_ui_control_process_click_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_click_t &clickEvent, const mla_ui_control_input_area_t &inputArea, mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, mla_user_data_t& userData);
+typedef mla_bool_t (*mla_ui_control_process_char_input_event_t)(mla_ui_control_t &control, const mla_ui_surface_input_event_char_input_t &charInputEvent, mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, mla_user_data_t& userData);
 
 struct mla_ui_control_layout_t {
     mla_double_t x;
@@ -72,21 +69,21 @@ mla_ui_control_layout_t mla_ui_control_layout_empty();
 struct mla_ui_control_t {
     mla_string_t id;
     mla_ui_control_layout_t layout;
-    mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> children;
+    mla_array_list_t<mla_init_struct(mla_ui_control_t)> children;
     mla_ui_control_render_to_draw_commands_t renderToDrawCommands;
     mla_ui_control_process_click_event_t processClickEvent;
     mla_ui_control_process_char_input_event_t processCharInputEvent;
-    mla_array_list_t<mla_ui_control_value_t, mla_ui_control_value_initializer_t> values;
+    mla_array_list_t<mla_init_struct(mla_ui_control_value_t)> values;
+
+    static mla_ui_control_t init();
 };
 
 mla_ui_control_t mla_ui_control();
 mla_ui_control_t mla_ui_control_empty();
 
-struct mla_ui_control_initializer_t {
-    static mla_ui_control_t init() {
-        return mla_ui_control_empty();
-    }
-};
+inline mla_ui_control_t mla_ui_control_t::init() {
+    return mla_ui_control_empty();
+}
 
 
 
@@ -97,17 +94,17 @@ struct mla_ui_control_input_area_t {
     mla_string_t event_name;
     mla_user_data_t userData;
     mla_ui_surface_input_event_kind acceptedEvents; // Bitmask of accepted event kinds
+
+    static mla_ui_control_input_area_t init();
 };
 
 mla_ui_control_input_area_t mla_ui_control_input_area_empty();
 mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name, mla_ui_surface_input_event_kind acceptedEvents);
 mla_ui_control_input_area_t mla_ui_control_input_area(const mla_string_t &controlId, mla_ui_control_layout_t position, const mla_string_t& event_name, mla_ui_surface_input_event_kind acceptedEvents, mla_user_data_t& userData);
 
-struct mla_ui_control_input_area_initializer_t {
-    static mla_ui_control_input_area_t init() {
-        return mla_ui_control_input_area_empty();
-    }
-};
+inline mla_ui_control_input_area_t mla_ui_control_input_area_t::init() {
+    return mla_ui_control_input_area_empty();
+}
 
 mla_uint8_t mla_ui_control_get_value_as_uint8(const mla_ui_control_t &control, const mla_string_t &name, mla_uint8_t defaultValue = 0);
 mla_int8_t mla_ui_control_get_value_as_int8(const mla_ui_control_t &control, const mla_string_t &name, mla_int8_t defaultValue = 0);
@@ -137,11 +134,11 @@ mla_bool_t mla_ui_control_set_value_as_string(mla_ui_control_t &control, const m
 mla_bool_t mla_ui_control_set_value_as_bool(mla_ui_control_t &control, const mla_string_t &name, mla_bool_t value);
 mla_bool_t mla_ui_control_set_value_as_pointer(mla_ui_control_t &control, const mla_string_t &name, mla_platform_pointer_t value);
 
-void mla_ui_control_reset_values(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &name);
+void mla_ui_control_reset_values(const mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, const mla_string_t &name);
 
 mla_bool_t mla_ui_control_add_child(mla_ui_control_t &parent, const mla_ui_control_t &child);
-mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_ui_control_t &control, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas);
-mla_bool_t mla_ui_controls_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_array_list_t<mla_ui_surface_draw_command_t, mla_ui_surface_draw_command_initializer_t>& drawCommands, mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas);
+mla_bool_t mla_ui_control_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_ui_control_t &control, mla_array_list_t<mla_init_struct(mla_ui_surface_draw_command_t)>& drawCommands, mla_array_list_t<mla_init_struct(mla_ui_control_input_area_t)> &inputAreas);
+mla_bool_t mla_ui_controls_render_to_draw_commands(const mla_ui_control_context_t &context, const mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, mla_array_list_t<mla_init_struct(mla_ui_surface_draw_command_t)>& drawCommands, mla_array_list_t<mla_init_struct(mla_ui_control_input_area_t)> &inputAreas);
 
 mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_t &control);
 mla_bool_t mla_ui_control_is_hovered(const mla_ui_control_context_t& context, const mla_ui_control_layout_t &layout);
@@ -160,10 +157,10 @@ if (childrenCount > 0) { \
     } \
 } \
 
-mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_string_t &controlId, mla_ui_control_t* &outControl);
-mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, mla_ui_control_t* &outControl);
+mla_bool_t mla_ui_control_find_by_id(const mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, const mla_string_t &controlId, mla_ui_control_t* &outControl);
+mla_bool_t mla_ui_control_find_focused_control(const mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, mla_ui_control_t* &outControl);
 
-void mla_ui_control_process_input_events(mla_array_list_t<mla_ui_control_t, mla_ui_control_initializer_t> &uiControls, const mla_array_list_t<mla_ui_surface_input_event_t, mla_ui_surface_input_event_initializer_t> &inputEvents, const mla_array_list_t<mla_ui_control_input_area_t, mla_ui_control_input_area_initializer_t> &inputAreas, mla_user_data_t& userData);
+void mla_ui_control_process_input_events(mla_array_list_t<mla_init_struct(mla_ui_control_t)> &uiControls, const mla_array_list_t<mla_init_struct(mla_ui_surface_input_event_t)> &inputEvents, const mla_array_list_t<mla_init_struct(mla_ui_control_input_area_t)> &inputAreas, mla_user_data_t& userData);
 
 
 #endif

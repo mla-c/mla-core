@@ -440,8 +440,8 @@ mla_bool_t mla_private_esp32_bind_and_listen(mla_network_listener_t &listener, c
     return true;
 }
 
-mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> mla_private_esp32_get_local_ip_addresses() {
-    mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t> ipAddresses = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
+mla_array_list_t<mla_init_struct(mla_network_ip_address_t)> mla_private_esp32_get_local_ip_addresses() {
+    mla_array_list_t<mla_init_struct(mla_network_ip_address_t)> ipAddresses = mla_array_list_empty<mla_init_struct(mla_network_ip_address_t)>();
 
     esp_netif_t *netif = nullptr;
     // Use the unsafe variant as esp_netif_next is deprecated

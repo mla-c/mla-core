@@ -56,9 +56,7 @@ struct mla_arduino_gfx_font_cache_item {
     mla_ui_surface_font_type_t font_type;
     const GFXfont *gfx_font;
     mla_uint8_t font_size_index;
-};
 
-struct mla_arduino_gfx_font_cache_item_initializer {
     static mla_arduino_gfx_font_cache_item init() {
         return {
             mla_ui_surface_font_type_empty(),
@@ -70,8 +68,7 @@ struct mla_arduino_gfx_font_cache_item_initializer {
 
 // Render cache structure
 struct mla_arduino_gfx_render_cache {
-    mla_array_list_t<mla_arduino_gfx_font_cache_item,
-        mla_arduino_gfx_font_cache_item_initializer> fontCache;
+    mla_array_list_t<mla_init_struct(mla_arduino_gfx_font_cache_item)> fontCache;
     mla_uint16_t currentFillColor;
     mla_uint16_t currentStrokeColor;
 };

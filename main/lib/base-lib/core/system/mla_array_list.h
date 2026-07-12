@@ -19,6 +19,8 @@ template <mla_array_list_template>
 struct mla_array_list_t {
     mla_size_t size;
     mla_pointer_t items;
+
+    static mla_array_list_t init();
 };
 
 template <mla_array_list_template>
@@ -68,6 +70,11 @@ template <mla_array_list_template>
 mla_array_list_t<T, TInit> mla_array_list_empty() {
 
     return { 0, mla_pointer_null() };
+}
+
+template <typename T, typename TInit>
+inline mla_array_list_t<T, TInit> mla_array_list_t<T, TInit>::init() {
+    return mla_array_list_empty<T, TInit>();
 }
 
 template <mla_array_list_template>
@@ -495,12 +502,6 @@ void mla_array_list_sort(mla_array_list_t<T, TInit>& list, mla_int32_t (*compare
     mla_private_array_list_quicksort_partition<T, TInit>(items, 0, mla_s_cast<mla_int32_t>(list.size - 1), compare);
 }
 
-template <mla_array_list_template>
-struct mla_array_list_initializer {
 
-    static mla_array_list_t<T, TInit> init() {
-        return mla_array_list_empty<T, TInit>();
-    }
-};
 
 #endif

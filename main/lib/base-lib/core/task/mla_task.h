@@ -24,12 +24,10 @@ struct mla_task_t {
 
     // States
     mla_pointer_t sharedStates; // Shared states for the task (mla_task_shared_states)
-};
 
-struct mla_task_initializer_t {
     static mla_task_t init() {
         return {
-            mla_string_empty(),
+            mla_string_t::init(),
             nullptr,
             mla_user_data_empty(),
             TASK_PRIO_NORMAL,
