@@ -7,7 +7,7 @@
 
 #include "../../core/config/mla_config.h"
 
-#if !defined(mla_max_config_size)
+#ifndef mla_max_config_size
 #define mla_max_config_size (16L * 1024) // 16KB is default
 #endif
 

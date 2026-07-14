@@ -76,6 +76,6 @@ Checks: >-
 # by default, so projects can adopt the checks incrementally.
 WarningsAsErrors: '*'
 SystemHeaders: false
-HeaderFilterRegex: '(^|.*[\\/])(mla-core|main)[\\/]'
+HeaderFilterRegex: '(^|.*[\\/])(mla-core|main|base-lib|workspace)[\\/]'
 FormatStyle: none
 ...

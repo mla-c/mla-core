@@ -272,7 +272,7 @@ mla_bool_t mla_task_manager_pthread_lock_mutex(const mla_pointer_t& mutexResourc
     timeout.tv_sec += timeoutms / 1000;
 
     // Add remaining milliseconds converted to nanoseconds
-    timeout.tv_nsec += (long)(timeoutms % 1000) * 1000000;
+    timeout.tv_nsec += mla_s_cast<long>(timeoutms % 1000) * 1000000;
 
     // Handle nanosecond overflow
     if (timeout.tv_nsec >= 1000000000) {
@@ -340,7 +340,7 @@ mla_bool_t mla_task_manager_pthread_atomic_int32_compare_exchange(mla_atomic_int
 }
 
 void mla_private_task_manager_pthread_destroy_task_local(const mla_native_resource_t& userData) {
-    pthread_key_delete((pthread_key_t)userData.asUint32);
+    pthread_key_delete(mla_s_cast<pthread_key_t>(userData.asUint32));
 }
 
 mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t& outTaskLocal) {
@@ -351,7 +351,7 @@ mla_bool_t mla_task_manager_pthread_create_task_local(mla_pointer_t& outTaskLoca
         return false;
     }
 
-    mla_native_resource_t resource = mla_dynamic_data_from_uint32((mla_uint32_t)key);
+    mla_native_resource_t resource = mla_dynamic_data_from_uint32(mla_s_cast<mla_uint32_t>(key));
     outTaskLocal = mla_native_resource_to_managed_pointer(resource, mla_private_task_manager_pthread_destroy_task_local);
 
     if (mla_pointer_is_null(outTaskLocal)) {
@@ -369,7 +369,7 @@ mla_bool_t mla_task_manager_pthread_set_task_local(const mla_pointer_t& taskLoca
         return false;
     }
 
-    return pthread_setspecific((pthread_key_t)data->asUint32, value) == 0;
+    return pthread_setspecific(mla_s_cast<pthread_key_t>(data->asUint32), value) == 0;
 }
 
 mla_platform_pointer_t mla_task_manager_pthread_get_task_local(const mla_pointer_t& taskLocal) {
@@ -379,7 +379,7 @@ mla_platform_pointer_t mla_task_manager_pthread_get_task_local(const mla_pointer
         return nullptr;
     }
 
-    return pthread_getspecific((pthread_key_t)data->asUint32);
+    return pthread_getspecific(mla_s_cast<pthread_key_t>(data->asUint32));
 }
 
 mla_task_manager_low_level_access g_task_low_level_access = {

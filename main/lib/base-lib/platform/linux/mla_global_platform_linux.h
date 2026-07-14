@@ -47,7 +47,7 @@ mla_uint64_t mla_private_linux_system_time_ms() {
     struct timespec ts;
     // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    return (mla_uint64_t)ts.tv_sec * 1000 + (mla_uint64_t)ts.tv_nsec / 1000000;
+    return (mla_s_cast<mla_uint64_t>(ts.tv_sec) * 1000) + (mla_s_cast<mla_uint64_t>(ts.tv_nsec) / 1000000);
 
 }
 
@@ -77,7 +77,7 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     while (count < size - 1) {
         ch = getchar();
         if (ch == EOF) { break; }
-        buffer[count++] = (mla_char_t) ch;
+        buffer[count++] = mla_s_cast<mla_char_t>(ch);
     }
 
     buffer[count] = '\0';
