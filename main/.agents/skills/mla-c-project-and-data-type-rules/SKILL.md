@@ -53,6 +53,23 @@ Use MLA-defined limits instead of standard library constants:
 
 Available for all integer types (e.g., `mla_int8_min`, `mla_int8_max`, `mla_uint64_max`)
 
+### 4. Casting Rules
+
+To enforce type safety and avoid compiler warnings across different configurations, **NEVER** use C-style casts (e.g., `(int)x`) or direct C++ cast operators (e.g., `static_cast<int>(x)`). Always use the MLA framework's cast templates defined in `mla_data_types.h`:
+- `mla_s_cast<T>(x)`: For static casts (e.g. converting between integer/character types, pointer-to-void-pointer cast).
+- `mla_r_cast<T>(x)`: For reinterpret casts (e.g. converting between pointer types of different struct types, raw pointer to integer).
+- `mla_c_cast<T>(x)`: For const casts (to add or remove `const` qualifiers).
+- `mla_d_cast<T>(x)`: For dynamic casts (downcasting in a class/struct hierarchy).
+
+Example:
+```cpp
+// ❌ C-style cast
+mla_char_t ch = (mla_char_t)integer_value;
+
+// ✅ Correct
+mla_char_t ch = mla_s_cast<mla_char_t>(integer_value);
+```
+
 ## Memory Operations
 
 ### Use MLA Memory Functions

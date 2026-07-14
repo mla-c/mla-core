@@ -51,7 +51,7 @@ static mla_test_uint64_t mla_private_current_nanoseconds_std() {
 static mla_test_uint64_t mla_private_current_nanoseconds_std() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return static_cast<mla_test_uint64_t>(ts.tv_sec) * 1000000000ULL
+    return (static_cast<mla_test_uint64_t>(ts.tv_sec) * 1000000000ULL)
          + static_cast<mla_test_uint64_t>(ts.tv_nsec);
 }
 

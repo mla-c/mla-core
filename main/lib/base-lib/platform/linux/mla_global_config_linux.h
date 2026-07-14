@@ -69,7 +69,7 @@ mla_bytes_t mla_linux_read_config_input() {
     }
 
     mla_bytes_t config_data = mla_bytes(st.st_size);
-    if (config_data.size != (mla_size_t)st.st_size) {
+    if (config_data.size != mla_s_cast<mla_size_t>(st.st_size)) {
         close(fd);
         return config_data;
     }
@@ -138,7 +138,7 @@ mla_bool_t mla_linux_commit_config_output(mla_bytes_t& output, mla_size_t unused
     ssize_t bytesWritten = write(fd, output_ptr, bytesToWrite);
     close(fd);
 
-    if (bytesWritten != (ssize_t)bytesToWrite) {
+    if (bytesWritten != mla_s_cast<ssize_t>(bytesToWrite)) {
         unlink(tempPath);
         mla_bytes_destroy(output);
         return false;

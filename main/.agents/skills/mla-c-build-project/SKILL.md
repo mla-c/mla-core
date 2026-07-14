@@ -3,64 +3,107 @@ name: 'mla-c-build-project'
 description: 'Instructions on how to build the project and run tests/benchmarks'
 ---
 
-# Build Instructions
+# Build and Run Instructions
 
-## Project Structure and Build System
+This project uses **CMake** as its primary build system. Native platform builds are supported on Linux, Windows, and WebAssembly.
 
-The project has no fixed main file and can be built with any build infrastructure (e.g., CMake, Zig, etc.). The repository contains a `sources.cmake` file which lists the source files, but note that it uses a `lib/` prefix for paths which might not exist physically in the file system. The actual directories (`core`, `platform`, `core-test`, `test-support`) are located directly at the repository root.
+## Prerequisites
 
-**Note:** These instructions are only valid if the repository contains no other built infrastructure. If the repository is imported as a git submodule or similar technology, the main repository is responsible for the build.
+- CMake (version 3.25 or higher)
+- A C++11 compatible compiler (GCC, Clang, or MSVC)
+- A build generator (e.g., Ninja or Make)
 
-## Building for Testing
+## Compiler Compatibility
 
-To build the project for testing or benchmarking, you need to create your own temporary `main` file and choose a build infrastructure that works for your environment.
+To maintain the portability of the MLA framework, the codebase must remain strictly compatible with all supported compiler toolchains across different platforms:
 
-### 1. Platform Headers
-First, you must include all necessary platform headers for the low-level API. For a Linux environment, these typically include:
+- **Linux:**
+  - **GCC** (GNU Compiler Collection)
+  - **Clang** (LLVM Clang compiler)
+  - **Fil-C** (Memory-safe C/C++ compiler, `filcc`/`filcpp`)
+  - **Zig** (Zig compiler in C/C++ mode)
+- **Windows:**
+  - **MSVC** (Microsoft Visual C++ compiler)
+  - **Clang** (LLVM on Windows)
+  - **Zig** (Zig compiler on Windows)
+- **WebAssembly (WASM):**
+  - **Emscripten** (`emcc`/`em++`)
 
-```cpp
-#include "lib/base-lib/platform/linux/mla_global_platform_linux.h"
-#include "lib/base-lib/platform/linux/mla_global_config_linux.h"
-#include "lib/base-lib/platform/linux/mla_global_network_linux.h"
-#include "lib/base-lib/platform/linux/mla_global_file_system_linux.h"
-#include "lib/base-lib/platform/linux/mla_global_platform_task_manager_linux.h"
-#include "lib/base-lib/test-support/platform/mla_test_memory_malloc.h"
-#include "lib/base-lib/test-support/platform/mla_benchmark_timer_std.h"
-#include "lib/base-lib/test-support/platform/mla_test_print_std.h"
-#include "lib/base-lib/test-support/platform/mla_test_mutex_std.h"
+Code changes must not use compiler-specific or non-standard features unless they are properly guarded behind platform/compiler macros, ensuring clean compilation across all of the above tools.
 
-#include "lib/base-lib/test-support/mla_test_cli_utils.h"
-#include "lib/core-test/main_test.h"
-#include "lib/base-lib/test-support/mla_test_data_types.h"
+## Building the Project Natively
+
+To build the test suites and example applications natively:
+
+1. **Configure the build directory:**
+   Using Ninja (recommended):
+   ```bash
+   cmake -G Ninja -B build
+   ```
+   Or using standard Makefiles:
+   ```bash
+   cmake -B build
+   ```
+
+2. **Compile all targets:**
+   ```bash
+   cmake --build build -j$(nproc)
+   ```
+
+### Major Build Targets
+
+> [!NOTE]
+> The actual build target names might differ depending on the parent repository or project configuration.
+
+Depending on your platform, CMake generates the following targets:
+- `MLA_C_Test_Linux_Single_Thread`: Linux unit/integration tests running in single-threaded mode.
+- `MLA_C_Test_Linux_Multi_Thread`: Linux unit/integration tests running in multi-threaded mode.
+- `MLA_C_App_Linux`: Example application demonstrating framework features on Linux.
+- `MLA_C_Test_Windows_Single_Thread` / `MLA_C_Test_Windows_Multi_Thread`: Windows test suites.
+- `MLA_C_App_Windows`: Windows example application (D2D/OpenGL).
+- `MLA_C_Test_WASM_Single_Thread`: WebAssembly test suite via Emscripten.
+
+---
+
+## Running Tests
+
+To run the test suite, invoke the corresponding test binary with the `--test` flag:
+
+```bash
+./build/MLA_C_Test_Linux_Single_Thread --test
 ```
 
-*Note: Depending on your include path configuration, you may need to adjust these paths or ensure the compiler can find them.*
+Or for multi-threaded testing:
 
-### 2. General Main File Template
+```bash
+./build/MLA_C_Test_Linux_Multi_Thread --test
+```
 
-Below is a general `main` file template that sets up the environment and runs tests/benchmarks:
+---
 
-```cpp
-int main(int argc, char** argv) {
+## Running Benchmarks
 
-    mla_test_bool_t runTest;
-    mla_test_bool_t runBenchmark;
-    mla_test_output_format_t benchmarkOutputFormat;
+To run the micro-benchmarks, invoke the test binary with the `--benchmark` flag:
 
-    mla_test_parse_cmd(argc, argv, runTest, runBenchmark, benchmarkOutputFormat);
+```bash
+./build/MLA_C_Test_Linux_Single_Thread --benchmark
+```
 
-    // Setup the file system
-    mla_file_system_t fs = mla_file_system_native_create_data_restricted(mla_string_const("Test"));
-    mla_file_system_initialize(mla_string_const("/"), fs);
+By default, this will run all registered benchmarks and print the timing results to console.
 
-    mla_boot_os_application();
-    return run(runTest, runBenchmark, benchmarkOutputFormat);
-}
+---
+
+## Static Analysis (Clang-Tidy)
+
+Clang-tidy is integrated into the build system and enabled by default (`MLA_ENABLE_CLANG_TIDY=ON`). It automatically analyzes code during compilation using the config in `lib/base-lib/build/.clang-tidy`.
+
+To disable clang-tidy for faster builds:
+```bash
+cmake -DMLA_ENABLE_CLANG_TIDY=OFF -B build
 ```
 
 ## Critical Rules
 
-1.  **Never commit temporary build files.**
-2.  **Never commit the temporary main file.**
-3.  Ensure you have the necessary platform implementations linked or included in your build.
-
+1. **Never commit build artifacts** (always use `build/` directory which is gitignored).
+2. **Never check in custom binary files or main templates.**
+3. Verify that all tests pass locally before proposing changes.

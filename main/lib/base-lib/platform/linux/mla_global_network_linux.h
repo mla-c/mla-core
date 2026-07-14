@@ -48,7 +48,7 @@ mla_bool_t mla_linux_resolve_host(mla_network_host_t &host, const mla_string_t &
 
     // Extract IP address from first result
     if (result->ai_family == AF_INET) {
-        struct sockaddr_in *addr = (struct sockaddr_in *) result->ai_addr;
+        struct sockaddr_in *addr = mla_r_cast<struct sockaddr_in *>(result->ai_addr);
         char ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
 
@@ -56,7 +56,7 @@ mla_bool_t mla_linux_resolve_host(mla_network_host_t &host, const mla_string_t &
         host.address.is_ipv6 = false;
         host.port = port;
     } else if (result->ai_family == AF_INET6) {
-        struct sockaddr_in6 *addr = (struct sockaddr_in6 *) result->ai_addr;
+        struct sockaddr_in6 *addr = mla_r_cast<struct sockaddr_in6 *>(result->ai_addr);
         char ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
 
@@ -71,7 +71,7 @@ mla_bool_t mla_linux_resolve_host(mla_network_host_t &host, const mla_string_t &
 
 void mla_linux_socket_cleanup(const mla_dynamic_data_t& userData) {
 
-    int sock = (int)userData.asInt32;
+    int sock = mla_s_cast<int>(userData.asInt32);
     if (sock >= 0) {
         close(sock);
     }
@@ -85,12 +85,12 @@ mla_size_t mla_linux_socket_read(mla_stream_input_t& input, mla_size_t offset, m
         return 0;
     }
 
-    ssize_t bytesRead = recv(sock, (char*)buffer + offset, length, 0);
+    ssize_t bytesRead = recv(sock, mla_r_cast<char*>(buffer) + offset, length, 0);
     if (bytesRead <= 0) {
         return 0;
     }
 
-    return (mla_size_t)bytesRead;
+    return mla_s_cast<mla_size_t>(bytesRead);
 }
 
 mla_size_t mla_linux_socket_remaining_bytes(mla_stream_input_t& input) {
@@ -120,15 +120,15 @@ mla_size_t mla_linux_socket_write(mla_stream_output_t& output, mla_size_t offset
 
     mla_size_t total_sent = 0;
     mla_size_t bytes_remaining = length;
-    const char* ptr = (const char*)buffer + offset;
+    const char* ptr = mla_r_cast<const char*>(buffer) + offset;
 
     while (bytes_remaining > 0) {
         // MSG_NOSIGNAL prevents SIGPIPE if the other end closes the connection
         ssize_t sent = send(sock, ptr + total_sent, bytes_remaining, MSG_NOSIGNAL);
 
         if (sent > 0) {
-            total_sent += (mla_size_t)sent;
-            bytes_remaining -= (mla_size_t)sent;
+            total_sent += mla_s_cast<mla_size_t>(sent);
+            bytes_remaining -= mla_s_cast<mla_size_t>(sent);
         } else {
             if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
                 // Socket buffer is full; wait for it to become writable
@@ -190,13 +190,13 @@ mla_bool_t mla_linux_connect(mla_network_connection_t &connection, const mla_net
     }
 
     if (host.address.is_ipv6) {
-        struct sockaddr_in6 *addr6 = (struct sockaddr_in6*)&addr;
+        struct sockaddr_in6 *addr6 = mla_r_cast<struct sockaddr_in6*>(&addr);
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = htons(host.port);
         inet_pton(AF_INET6, cAddress_c_str, &addr6->sin6_addr);
         addrLen = sizeof(struct sockaddr_in6);
     } else {
-        struct sockaddr_in *addr4 = (struct sockaddr_in*)&addr;
+        struct sockaddr_in *addr4 = mla_r_cast<struct sockaddr_in*>(&addr);
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
         inet_pton(AF_INET, cAddress_c_str, &addr4->sin_addr);
@@ -204,7 +204,7 @@ mla_bool_t mla_linux_connect(mla_network_connection_t &connection, const mla_net
     }
 
     // Attempt connection
-    int result = connect(sock, (struct sockaddr*)&addr, addrLen);
+    int result = connect(sock, mla_r_cast<struct sockaddr*>(&addr), addrLen);
 
     if (result < 0) {
         if (errno == EINPROGRESS) {
@@ -215,7 +215,7 @@ mla_bool_t mla_linux_connect(mla_network_connection_t &connection, const mla_net
 
             struct timeval timeout = {0, 0};
             timeout.tv_sec = timeout_ms / 1000;
-            timeout.tv_usec = (long)(timeout_ms % 1000) * 1000;
+            timeout.tv_usec = mla_s_cast<long>(timeout_ms % 1000) * 1000;
 
             result = select(sock + 1, nullptr, &writeSet, nullptr, &timeout);
             if (result <= 0) {
@@ -279,7 +279,7 @@ mla_bool_t mla_linux_accept_connection(const mla_network_listener_t& listener, m
     struct sockaddr_storage clientAddr;
     socklen_t clientLen = sizeof(clientAddr);
 
-    int clientSock = accept(listenSock, (struct sockaddr*)&clientAddr, &clientLen);
+    int clientSock = accept(listenSock, mla_r_cast<struct sockaddr*>(&clientAddr), &clientLen);
     if (clientSock < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             // No pending connection; non-blocking accept
@@ -302,13 +302,13 @@ mla_bool_t mla_linux_accept_connection(const mla_network_listener_t& listener, m
     char ip6[INET6_ADDRSTRLEN] = {0};
 
     if (clientAddr.ss_family == AF_INET) {
-        struct sockaddr_in* a4 = (struct sockaddr_in*)&clientAddr;
+        struct sockaddr_in* a4 = mla_r_cast<struct sockaddr_in*>(&clientAddr);
         inet_ntop(AF_INET, &a4->sin_addr, ip4, sizeof(ip4));
         peer.address.address = mla_string_copy(ip4, mla_strlen(ip4));
         peer.address.is_ipv6 = false;
         peer.port = ntohs(a4->sin_port);
     } else if (clientAddr.ss_family == AF_INET6) {
-        struct sockaddr_in6* a6 = (struct sockaddr_in6*)&clientAddr;
+        struct sockaddr_in6* a6 = mla_r_cast<struct sockaddr_in6*>(&clientAddr);
         inet_ntop(AF_INET6, &a6->sin6_addr, ip6, sizeof(ip6));
         peer.address.address = mla_string_copy(ip6, mla_strlen(ip6));
         peer.address.is_ipv6 = true;
@@ -373,7 +373,7 @@ mla_bool_t mla_linux_bind_and_listen(mla_network_listener_t &listener, const mla
     }
 
     if (host.address.is_ipv6) {
-        struct sockaddr_in6* addr6 = (struct sockaddr_in6*)&ss;
+        struct sockaddr_in6* addr6 = mla_r_cast<struct sockaddr_in6*>(&ss);
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = htons(host.port);
         mla_bool_t ok = (inet_pton(AF_INET6, cAddress_c_str, &addr6->sin6_addr) == 1);
@@ -382,7 +382,7 @@ mla_bool_t mla_linux_bind_and_listen(mla_network_listener_t &listener, const mla
         }
         addrLen = sizeof(struct sockaddr_in6);
     } else {
-        struct sockaddr_in* addr4 = (struct sockaddr_in*)&ss;
+        struct sockaddr_in* addr4 = mla_r_cast<struct sockaddr_in*>(&ss);
         addr4->sin_family = AF_INET;
         addr4->sin_port = htons(host.port);
         mla_bool_t ok = (inet_pton(AF_INET, cAddress_c_str, &addr4->sin_addr) == 1);
@@ -392,7 +392,7 @@ mla_bool_t mla_linux_bind_and_listen(mla_network_listener_t &listener, const mla
         addrLen = sizeof(struct sockaddr_in);
     }
 
-    if (bind(sock, (struct sockaddr*)&ss, addrLen) < 0) {
+    if (bind(sock, mla_r_cast<struct sockaddr*>(&ss), addrLen) < 0) {
         close(sock);
         return false;
     }
@@ -438,7 +438,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
 
         int family = ifa->ifa_addr->sa_family;
         if (family == AF_INET) {
-            struct sockaddr_in *addr = (struct sockaddr_in *)ifa->ifa_addr;
+            struct sockaddr_in *addr = mla_r_cast<struct sockaddr_in *>(ifa->ifa_addr);
             char ip[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
 
@@ -448,7 +448,7 @@ mla_array_list_t<mla_network_ip_address_t, mla_network_ip_address_initializer_t>
             mla_array_list_add(local_ip_addresses, ip_address);
 
         } else if (family == AF_INET6) {
-            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)ifa->ifa_addr;
+            struct sockaddr_in6 *addr = mla_r_cast<struct sockaddr_in6 *>(ifa->ifa_addr);
             char ip[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, &(addr->sin6_addr), ip, INET6_ADDRSTRLEN);
 

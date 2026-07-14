@@ -129,6 +129,12 @@ void cli_init() {
     mla_task_manager_register_task(task);
 }
 ```
+## Command Chaining
+
+The CLI app supports command chaining using the `&&` operator. Multiple commands can be run sequentially in a single line input. If a command in the chain fails (i.e., returns `false` from its execute callback), execution is aborted immediately and subsequent commands in the chain are not run.
+
+Example input:
+`network connect --host 127.0.0.1 && network status`
 
 ## Step 5 — Attach User Data to a Command (Optional)
 

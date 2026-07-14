@@ -65,9 +65,11 @@ A handler receives a request and populates a response. It returns `true` on succ
 ```cpp
 static mla_bool_t api_status_handler(
     mla_http_server_t& http_server,
+    const mla_user_data_t &userdata,
     const mla_http_request_t &request,
     mla_http_response_t &response)
 {
+    (void)userdata;
     response.statusCode = mla_http_status_ok;
     response.statusMessage = mla_string_const("OK");
     mla_http_headers_add(response.headers,
@@ -84,18 +86,72 @@ static mla_bool_t api_status_handler(
 ### Step 3 — Register Handlers
 
 ```cpp
+mla_user_data_t userdata = mla_user_data_empty();
+
 // Match GET requests whose path starts with "/api/"
 mla_http_server_handler_item_t handler =
     mla_http_server_handler_starts_with(
         mla_http_method_get,
+        userdata,
         mla_string_const("/api/"),
         api_status_handler);
 mla_http_server_register_handler(server, handler);
 
 // Match all POST requests (any path)
 mla_http_server_handler_item_t postAll =
-    mla_http_server_handler_all(mla_http_method_post, post_handler);
+    mla_http_server_handler_all(mla_http_method_post, userdata, post_handler);
 mla_http_server_register_handler(server, postAll);
+```
+
+### Using Struct-Based Handlers (Static Dispatch)
+
+For more complex handlers, you can define a struct with `http_request_check` and `http_request_handle` static methods, enabling static dispatch via class templates for better performance and type safety.
+
+```cpp
+struct my_custom_handler_t {
+    mla_int32_t counter;
+
+    static my_custom_handler_t init() {
+        return { 0 };
+    }
+
+    static mla_bool_t http_request_check(
+        my_custom_handler_t** self,
+        const mla_user_data_t &userdata,
+        const mla_string_t& url,
+        mla_http_request_handler_checker_compare_mode_t compare_mode)
+    {
+        (void)self; (void)userdata; (void)compare_mode;
+        return mla_string_starts_with(url, mla_string_const("/custom/"));
+    }
+
+    static mla_bool_t http_request_handle(
+        my_custom_handler_t& self,
+        mla_http_server_t& http_server,
+        const mla_user_data_t &userdata,
+        const mla_http_request_t &request,
+        mla_http_response_t &response)
+    {
+        (void)http_server; (void)userdata; (void)request;
+        self.counter++;
+        response.statusCode = mla_http_status_ok;
+        response.statusMessage = mla_string_const("OK");
+        response.content = mla_stream_input_from_string(mla_string_const("Custom response"));
+        return true;
+    }
+};
+
+// Registration using template helper:
+mla_user_data_t userdata = mla_user_data_empty();
+my_custom_handler_t handler_struct = my_custom_handler_t::init();
+
+mla_http_server_handler_item_t item =
+    mla_http_server_handler_struct_starts_with<my_custom_handler_t>(
+        mla_http_method_get,
+        userdata,
+        mla_string_const("/custom/"),
+        handler_struct);
+mla_http_server_register_handler(server, item);
 ```
 
 ### Step 4 — Start and Stop

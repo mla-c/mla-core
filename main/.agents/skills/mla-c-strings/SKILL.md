@@ -224,7 +224,7 @@ mla_hash_map_push(map, mla_string_const("key"), 42);
 - Use `mla_string_equals_const(value, "literal")` for quick comparisons against literals.
 - String well be destroyed automatically when going out of scope
 - Do not access `mla_string_data(str)` beyond `mla_string_length(str)` — the buffer may not be null-terminated.
-- When passing strings to C APIs, convert with `mla_string_to_cString` and destroy the result afterwards.
+- When passing strings to C APIs, convert with `mla_string_to_cString` and obtain the raw data via `mla_c_string_data`.
 
 ## Incorrect Usage
 
@@ -239,9 +239,5 @@ int cmp = strcmp(mla_string_data(a), mla_string_data(b));
 // ❌ Assuming null-termination
 const char* raw = mla_string_data(str);
 printf("%s", raw); // may crash — use mla_string_to_cString instead
-
-// ❌ Forgetting to destroy owned strings
-mla_string_t copy = mla_string_copy(original);
-// … never destroyed — memory leak
 ```
 
