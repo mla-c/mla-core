@@ -49,6 +49,10 @@ mla_size_t mla_private_generic_print(const mla_char_t* format, mla_size_t length
     return mla_s_cast<mla_size_t>(fwrite(format, 1, length, stdout));
 }
 
+mla_size_t mla_private_generic_std_read(mla_char_t* buffer, mla_size_t size) {
+    return mla_s_cast<mla_size_t>(fread(buffer, 1, size, stdin));
+}
+
 void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
 
     // Use direct writes to stderr without formatting that might allocate

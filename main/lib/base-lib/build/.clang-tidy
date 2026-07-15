@@ -43,6 +43,7 @@
 #     headers that are outside the project's control.
 Checks: >-
   bugprone-*,
+  -bugprone-dynamic-static-initializers,
   -bugprone-easily-swappable-parameters,
   -bugprone-branch-clone,
   -bugprone-signed-char-misuse,

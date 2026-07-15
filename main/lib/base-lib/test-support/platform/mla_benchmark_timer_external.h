@@ -8,7 +8,7 @@
 #include "../Benchmark/mla_benchmark.h"
 
 extern "C" {
-    __attribute__((import_module("mla_test"), import_name("external_test_current_nanoseconds")))
+    mla_wasm_import("mla_test", "external_test_current_nanoseconds")
     mla_test_uint64_t external_test_current_nanoseconds();
 }
 

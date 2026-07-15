@@ -21,7 +21,7 @@ mla_uint64_t mla_private_wasm_system_time_ms() {
     struct timespec ts;
     // Uses a faster, less precise clock source usually sufficient for millisecond-level timing
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    return (mla_uint64_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+    return (mla_s_cast<mla_uint64_t>(ts.tv_sec) * 1000) + (mla_s_cast<mla_uint64_t>(ts.tv_nsec) / 1000000);
 }
 
 // Initialize low-level memory operations with default implementations

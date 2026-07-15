@@ -16,7 +16,11 @@
 #include "../lib/base-lib/test-support/mla_test_cli_utils.h"
 #include "main_test.h"
 
-extern "C" int main(int argc, char** argv) {
+#ifdef __EMSCRIPTEN__
+int main(int argc, char** argv) {
+#else
+extern "C" int main(int argc, char** argv) { // NOLINT
+#endif
 
     mla_test_bool_t runTest;
     mla_test_bool_t runBenchmark;

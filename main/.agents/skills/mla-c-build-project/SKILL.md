@@ -67,29 +67,66 @@ Depending on your platform, CMake generates the following targets:
 
 ## Running Tests
 
-To run the test suite, invoke the corresponding test binary with the `--test` flag:
+To run individual test suites, invoke the corresponding test binary with the `--test` flag:
 
 ```bash
-./build/MLA_C_Test_Linux_Single_Thread --test
+./build/gcc/MLA_C_Test_Linux_Single_Thread --test
 ```
 
-Or for multi-threaded testing:
+To run all tests across all compiled compiler configurations automatically, use the provided helper script:
 
 ```bash
-./build/MLA_C_Test_Linux_Multi_Thread --test
+./run_all_tests.sh
+```
+
+You can also run tests for a specific compiler configuration by passing its name:
+
+```bash
+./run_all_tests.sh gcc
 ```
 
 ---
 
 ## Running Benchmarks
 
-To run the micro-benchmarks, invoke the test binary with the `--benchmark` flag:
+To run individual micro-benchmarks, invoke the test binary with the `--benchmark` flag:
 
 ```bash
-./build/MLA_C_Test_Linux_Single_Thread --benchmark
+./build/gcc/MLA_C_Test_Linux_Single_Thread --benchmark
 ```
 
-By default, this will run all registered benchmarks and print the timing results to console.
+By default, this will run all registered benchmarks and print the timing results to the console.
+
+> [!WARNING]
+> Benchmarks are slow and can take several minutes to run, especially for all configurations.
+
+To run all benchmarks across all compiled compiler configurations automatically, use the helper script:
+
+```bash
+./run_all_benchmarks.sh
+```
+
+You can also run benchmarks for a specific compiler configuration by passing its name:
+
+```bash
+./run_all_benchmarks.sh gcc
+```
+
+---
+
+## Common Configurations
+
+All build and runner scripts share a common configuration file:
+
+- `configs.sh` (defines `BUILD_CONFIGS` and `RUN_SUITES`)
+
+The core execution logic is separated and stored within the base library tools folder:
+
+- [build_all_impl.sh](file:///workspace/lib/base-lib/build/tools/build_all_impl.sh)
+- [run_tests_impl.sh](file:///workspace/lib/base-lib/build/tools/run_tests_impl.sh)
+- [run_benchmarks_impl.sh](file:///workspace/lib/base-lib/build/tools/run_benchmarks_impl.sh)
+
+The root scripts (`build_all.sh`, `run_all_tests.sh`, and `run_all_benchmarks.sh`) act as clean entry points that configure the environment by sourcing `configs.sh` and then delegate execution to the implementation scripts.
 
 ---
 

@@ -35,7 +35,7 @@ endfunction()
 ## LINUX
 ##########################################################
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 
     ## TEST SINGLE THREAD
     ############################
@@ -83,7 +83,7 @@ endif()
 ## WASM
 ##########################################################
 
-if (MLA_EMSDK_PATH OR MLA_WASM_STANDALONE)
+if (MLA_EMSDK_PATH AND NOT MLA_WASM_STANDALONE)
     ## TEST SINGLE THREAD
     ############################
     set(SOURCE_FILES_WASM_SINGLE_THREAD
@@ -103,6 +103,8 @@ if (MLA_EMSDK_PATH OR MLA_WASM_STANDALONE)
     set(SOURCE_FILES_WASM_APP
             core-example-app/main_app_wasm.cpp
             ${SOURCE_FILES}
+            ${SOURCE_NETWORK_FILES}
+            ${SOURCE_UI_FILES}
     )
     add_executable(MLA_C_App_WASM ${SOURCE_FILES_WASM_APP})
     target_link_libraries(MLA_C_App_WASM)
@@ -123,6 +125,9 @@ if (MLA_WASM_STANDALONE OR MLA_EMSDK_PATH)
     add_executable(MLA_C_Test_WASM_Single_Thread_Standalone ${SOURCE_FILES_WASM_SINGLE_THREAD_STANDALONE})
     mla_enable_clang_tidy(MLA_C_Test_WASM_Single_Thread_Standalone)
     target_link_libraries(MLA_C_Test_WASM_Single_Thread_Standalone)
+    if (EMSCRIPTEN)
+        target_link_options(MLA_C_Test_WASM_Single_Thread_Standalone PRIVATE "-sERROR_ON_UNDEFINED_SYMBOLS=0")
+    endif()
 
     # Add target-specific compile definition to disable network for WASM test only
     target_compile_definitions(MLA_C_Test_WASM_Single_Thread_Standalone PRIVATE mla_test_disable_network=1 mla_test_disable_file_system=1 mla_benchmark_std=0 mla_benchmark_cstring=0 mla_test_disable_external_task=1)

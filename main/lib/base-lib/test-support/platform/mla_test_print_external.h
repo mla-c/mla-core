@@ -8,7 +8,7 @@
 #include "../mla_test_data_types.h"
 
 extern "C" {
-    __attribute__((import_module("mla_test"), import_name("external_test_print")))
+    mla_wasm_import("mla_test", "external_test_print")
     void external_test_print(const mla_test_char_t* str, mla_test_uint32_t length);
 }
 

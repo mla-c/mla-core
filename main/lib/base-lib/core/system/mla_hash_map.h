@@ -152,7 +152,10 @@ mla_hash_map_push_result mla_hash_map_push(mla_hash_map_t<mla_hash_map_t_param_f
                             auto& item = mla_array_list_get_unsafe(oldBucket.items, j);
 
                             // Calculate the new hash index
-                            mla_size_t newIndex = Hasher::hash(item.key) % newBucketCount;
+                            mla_size_t newIndex = 0;
+                            if (newBucketCount > 0) {
+                                newIndex = Hasher::hash(item.key) % newBucketCount;
+                            }
 
                             // Add the item to the new bucket
                             auto& newBucket = mla_array_list_get_unsafe(newBuckets, newIndex);

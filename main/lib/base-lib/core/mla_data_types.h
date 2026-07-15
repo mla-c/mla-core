@@ -264,6 +264,21 @@ typedef void(*mla_pointer_cleanup_hook_t)(mla_platform_pointer_t data, const mla
 
 #define mla_thread_local thread_local
 
+// WebAssembly host import helper attributes
+#ifdef __has_attribute
+#  if __has_attribute(import_module) && __has_attribute(import_name)
+#    define mla_wasm_import(mod, name) __attribute__((import_module(mod), import_name(name)))
+#  else
+#    define mla_wasm_import(mod, name)
+#  endif
+#else
+#  ifdef __wasm__
+#    define mla_wasm_import(mod, name) __attribute__((import_module(mod), import_name(name)))
+#  else
+#    define mla_wasm_import(mod, name)
+#  endif
+#endif
+
 // Atomic types
 struct mla_atomic_int32_t {
     mla_volatile mla_int32_t value;

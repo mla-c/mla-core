@@ -51,7 +51,8 @@ struct mla_private_linux_external_task_native_resource_t {
 
 void mla_private_linux_external_task_child_fail(mla_int32_t p_StatusPipeFd) {
     mla_uint8_t childError = 1;
-    write(p_StatusPipeFd, &childError, sizeof(childError));
+    ssize_t bytes_written = write(p_StatusPipeFd, &childError, sizeof(childError));
+    (void)bytes_written;
     kill(getpid(), SIGKILL);
     while (true) {
         pause();

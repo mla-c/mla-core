@@ -14,53 +14,53 @@
 extern "C" {
 
     // Memory operations
-    __attribute__((import_module("mla"), import_name("external_memcpy")))
+    mla_wasm_import("mla", "external_memcpy")
     void* external_memcpy(void* dest, const void* src, unsigned int size);
-    __attribute__((import_module("mla"), import_name("external_memset")))
+    mla_wasm_import("mla", "external_memset")
     void* external_memset(void* dest, unsigned char value, unsigned int size);
-    __attribute__((import_module("mla"), import_name("external_memcmp")))
+    mla_wasm_import("mla", "external_memcmp")
     int external_memcmp(const void* dest, const void* src, unsigned int size);
-    __attribute__((import_module("mla"), import_name("external_memmove")))
+    mla_wasm_import("mla", "external_memmove")
     void* external_memmove(void* dest, const void* src, unsigned int size);
 
     // String operations
-    __attribute__((import_module("mla"), import_name("external_strcpy")))
+    mla_wasm_import("mla", "external_strcpy")
     char* external_strcpy(char* dest, const char* src);
-    __attribute__((import_module("mla"), import_name("external_strlen")))
+    mla_wasm_import("mla", "external_strlen")
     unsigned int external_strlen(const char* str);
-    __attribute__((import_module("mla"), import_name("external_strstr")))
+    mla_wasm_import("mla", "external_strstr")
     const char* external_strstr(const char* str, const char* substr);
 
     // Memory allocation
-    __attribute__((import_module("mla"), import_name("external_malloc")))
+    mla_wasm_import("mla", "external_malloc")
     void* external_malloc(unsigned int size);
-    __attribute__((import_module("mla"), import_name("external_free")))
+    mla_wasm_import("mla", "external_free")
     void external_free(void* ptr);
 
     // I/O operations
-    __attribute__((import_module("mla"), import_name("external_print")))
+    mla_wasm_import("mla", "external_print")
     unsigned int external_print(const char* str, unsigned int length);
-    __attribute__((import_module("mla"), import_name("external_std_read")))
+    mla_wasm_import("mla", "external_std_read")
     unsigned int external_std_read(char* buffer, unsigned int size);
 
     // Parsing functions
-    __attribute__((import_module("mla"), import_name("external_strtod")))
+    mla_wasm_import("mla", "external_strtod")
     int external_strtod(const char* str, unsigned int length, double* out_value);
-    __attribute__((import_module("mla"), import_name("external_strtoll")))
+    mla_wasm_import("mla", "external_strtoll")
     int external_strtoll(const char* str, unsigned int length, long long* out_value);
-    __attribute__((import_module("mla"), import_name("external_strtoull")))
+    mla_wasm_import("mla", "external_strtoull")
     int external_strtoull(const char* str, unsigned int length, unsigned long long* out_value);
 
     // Timing
-    __attribute__((import_module("mla"), import_name("external_sleep")))
+    mla_wasm_import("mla", "external_sleep")
     void external_sleep(unsigned int milliseconds);
 
-    __attribute__((import_module("mla"), import_name("external_system_time_ms")))
+    mla_wasm_import("mla", "external_system_time_ms")
     unsigned long long external_system_time_ms();
 }
 
 // In a standalone WASM environment, we typically don't exit, so this can be a no-op.
-extern "C" int __cxa_atexit(void (*func)(void*), void* arg, void* dso_handle) {
+extern "C" int __cxa_atexit(void (*func)(void*), void* arg, void* dso_handle) { // NOLINT(bugprone-reserved-identifier)
     (void)func;
     (void)arg;
     (void)dso_handle;
@@ -112,7 +112,7 @@ mla_uint32_t mla_private_wasm_standalone_print(const mla_char_t* str, mla_size_t
 void mla_private_wasm_standalone_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
     external_print("Memory allocation failed: ", 26);
     // Convert the size to string
-    char size_str[10]; // Enough for 32-bit size
+    mla_char_t size_str[10]; // Enough for 32-bit size
     mla_size_t index = 0;
     mla_size_t temp_size = size;
     if (temp_size == 0) {
@@ -120,13 +120,13 @@ void mla_private_wasm_standalone_on_malloc_failure(mla_size_t size, const mla_ch
     } else {
         mla_size_t start_index = index;
         while (temp_size > 0) {
-            size_str[index++] = '0' + (temp_size % 10);
+            size_str[index++] = mla_s_cast<mla_char_t>('0' + (temp_size % 10));
             temp_size /= 10;
         }
         // Reverse the string
         mla_size_t end_index = index - 1;
         while (start_index < end_index) {
-            char temp = size_str[start_index];
+            mla_char_t temp = size_str[start_index];
             size_str[start_index] = size_str[end_index];
             size_str[end_index] = temp;
             start_index++;
@@ -173,7 +173,6 @@ mla_low_level_operations_t g_low_level_access = {
     mla_private_wasm_standalone_memset,
     mla_private_wasm_standalone_memcmp,
     mla_private_wasm_standalone_memmove,
-    mla_private_wasm_standalone_strcpy,
     mla_private_wasm_standalone_strlen,
     mla_private_wasm_standalone_strstr,
     mla_private_wasm_standalone_malloc,

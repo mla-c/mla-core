@@ -60,7 +60,7 @@ elseif (MLA_EMSDK_PATH)
         # Disable exceptions to reduce binary size
         add_compile_options(-Wall -Wextra -Wpedantic -Werror -fno-exceptions)
 
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=1 -sWASM=0 -sNO_FILESYSTEM=1 -sASSERTIONS=0")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sMALLOC=emmalloc -sALLOW_MEMORY_GROWTH=1 -sWASM=0 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sERROR_ON_UNDEFINED_SYMBOLS=0")
         message(STATUS "Configured Emscripten Compiler for Standalone JS ${CMAKE_CXX_COMPILER}")
     else()
 
@@ -83,7 +83,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Set Options for static linking libc++.dll and libstdc++.dll and libwinpthread-1.dll Even if we dont need it
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
     message(STATUS "Configured MSVC Compiler ${CMAKE_CXX_COMPILER}")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER MATCHES "filc")
 
     # Enable all warnings and treat them as errors
     # Disable exceptions to reduce binary size
@@ -96,6 +96,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         message("Enabling Address Sanitizer for Debug Build")
         add_compile_options(-fsanitize=address)
         add_link_options(-fsanitize=address)
+    endif()
+
+    if(CMAKE_CXX_COMPILER MATCHES "filc" OR CMAKE_C_COMPILER MATCHES "filc")
+        add_compile_options(-Qunused-arguments)
     endif()
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

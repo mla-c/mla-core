@@ -17,11 +17,13 @@ mla_test_pointer_t mla_private_test_single_thread_create_mutex() {
 // Lock the mutex identified by the pointer value
 mla_test_bool_t mla_private_test_single_thread_lock_mutex(mla_test_pointer_t mutex_id) {
 
-    if (mutex_id == nullptr)
+    if (mutex_id == nullptr) {
         return false;
+    }
 
-    if (*((mla_test_uint32_t*)(mutex_id)) != 100)
+    if (*mla_s_cast<mla_test_uint32_t*>(mutex_id) != 100) {
         return false;
+    }
 
     return true; // Always succeeds in single-threaded environment
 }
