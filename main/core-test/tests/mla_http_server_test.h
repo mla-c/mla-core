@@ -453,7 +453,6 @@ void StartSimpleHttpServerTest_Setup() {
 void StartSimpleHttpServerTest_TearDown() {
     mla_http_server_stop(test_server);
     test_server = mla_http_server_invalid();
-    mla_task_manager_cleanup();
 }
 
 void SimpleHttpServerBenchmark() {
@@ -499,7 +498,6 @@ void WebSocketEchoServerBenchmark_TearDown() {
     benchmark_ws_client = mla_websocket_client_invalid();
     mla_http_server_stop(test_server);
     test_server = mla_http_server_invalid();
-    mla_task_manager_cleanup();
 }
 
 void WebSocketEchoServerBenchmark() {
@@ -518,21 +516,7 @@ void WebSocketEchoServerBenchmark() {
 }
 
 void RegisterHttpServerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
-    if (mla_is_native_multi_tasking) {
-        mla_benchmark_t benchmark = mla_benchmark("SimpleHttpServer", benchmark_category, SimpleHttpServerBenchmark,
-                                                  StartSimpleHttpServerTest_Setup,
-                                                  StartSimpleHttpServerTest_TearDown);
-        mla_benchmark_set_iteration_division(benchmark, 1000);
-        mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
-
-        mla_benchmark_t benchmark_ws = mla_benchmark("WebSocketEchoServer", benchmark_category,
-                                                     WebSocketEchoServerBenchmark,
-                                                     WebSocketEchoServerBenchmark_Setup,
-                                                     WebSocketEchoServerBenchmark_TearDown);
-        mla_benchmark_set_iteration_division(benchmark_ws, 1000);
-
-        mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark_ws);
-    }
+    (void)p_BenchmarkExecutor;
 }
 
 #endif

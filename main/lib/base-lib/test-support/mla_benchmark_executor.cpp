@@ -12,7 +12,7 @@ mla_benchmark_executor_t mla_benchmark_executor() {
     executor.count = 0;
     executor.benchmarks = static_cast<mla_benchmark_t *>(mla_test_malloc(sizeof(mla_benchmark_t) * executor.capacity));
     for (mla_test_uint32_t i = 0; i < executor.capacity; ++i) {
-        executor.benchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
+        executor.benchmarks[i] = {nullptr, nullptr, 0, false, nullptr, nullptr, nullptr};
     }
     return executor;
 }
@@ -146,7 +146,7 @@ void mla_benchmark_executor_register(mla_benchmark_executor_t &executor, mla_ben
 
         // Initialize new slots
         for (mla_test_uint32_t i = executor.count; i < newCapacity; ++i) {
-            newBenchmarks[i] = {nullptr, nullptr, 0, nullptr, nullptr, nullptr};
+            newBenchmarks[i] = {nullptr, nullptr, 0, false, nullptr, nullptr, nullptr};
         }
 
         mla_test_free(executor.benchmarks);

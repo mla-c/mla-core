@@ -305,7 +305,7 @@ async function loadWasmModule(wasmFilePath) {
 /**
  * Execute main function
  */
-function executeMain() {
+function executeMain(wasmArgs) {
     if (!moduleLoaded) {
         log('No module loaded\n', 'error');
         return false;
@@ -315,7 +315,7 @@ function executeMain() {
     stats.status = 'Running...';
     startTime = Date.now();
 
-    worker.postMessage({type: 'run'});
+    worker.postMessage({type: 'run', wasmArgs: wasmArgs || []});
     return true;
 }
 
@@ -329,7 +329,8 @@ function parseArgs() {
         customJs: null,
         verbose: false,
         noRun: false,
-        help: false
+        help: false,
+        wasmArgs: []
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -341,6 +342,8 @@ function parseArgs() {
             options.verbose = true;
         } else if (arg === '--no-run') {
             options.noRun = true;
+        } else if (arg === '--test' || arg === '--benchmark') {
+            options.wasmArgs.push(arg);
         } else if (arg === '-c' || arg === '--custom') {
             if (i + 1 < args.length) {
                 options.customJs = args[++i];
@@ -409,7 +412,7 @@ async function main() {
 
     // Execute main function unless --no-run is specified
     if (!options.noRun) {
-        executeMain();
+        executeMain(options.wasmArgs);
     } else {
         log('Module loaded successfully (not executing due to --no-run)\n', 'success');
         showStats();

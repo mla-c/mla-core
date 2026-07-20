@@ -87,6 +87,9 @@ mla_bool_t mla_private_xml_write_escaped(mla_stream_output_t &out, const mla_str
 
 mla_bool_t mla_private_xml_close_tag_if_open(mla_serializer_t &inst) {
     mla_xml_serializer_state_t *state = mla_private_xml_ser_get_state(inst);
+    if (state == nullptr) {
+        return false;
+    }
     if (state->in_open_tag) {
         if (!mla_private_xml_write_str(inst.output, mla_string_const(">"))) {
             return false;
@@ -103,6 +106,9 @@ mla_bool_t mla_xml_serializer_write_start_struct(mla_serializer_t &inst) {
     }
 
     mla_xml_serializer_state_t *state = mla_private_xml_ser_get_state(inst);
+    if (state == nullptr) {
+        return false;
+    }
 
     // Determine tag name: use property name if available, otherwise "item"
     mla_string_t tag_name = mla_string_empty();
@@ -770,6 +776,9 @@ static mla_xml_deser_state_t *mla_private_xml_deser_get_state(mla_deserializer_t
 
 static mla_bool_t mla_private_xml_read_char(mla_deserializer_t &inst, mla_char_t &c) {
     mla_xml_deser_state_t *state = mla_private_xml_deser_get_state(inst);
+    if (state == nullptr) {
+        return false;
+    }
 
     if (state->buffered_count > 0) {
         c = state->buffered_chars[--state->buffered_count];
@@ -781,7 +790,7 @@ static mla_bool_t mla_private_xml_read_char(mla_deserializer_t &inst, mla_char_t
 
 static void mla_private_xml_unread_char(mla_deserializer_t &inst, mla_char_t c) {
     mla_xml_deser_state_t *state = mla_private_xml_deser_get_state(inst);
-    if (state->buffered_count < 16) {
+    if (state != nullptr && state->buffered_count < 16) {
         state->buffered_chars[state->buffered_count++] = c;
     }
 }
@@ -899,6 +908,10 @@ static void mla_private_xml_parse_val(mla_deserializer_t &inst, const mla_string
 
 mla_bool_t mla_xml_deserializer_read_next(mla_deserializer_t &inst) {
     mla_xml_deser_state_t *state = mla_private_xml_deser_get_state(inst);
+    if (state == nullptr) {
+        inst.current_token.type = MLA_DESERIALIZER_STRUCT_END;
+        return false;
+    }
 
     inst.current_token.complex = {mla_string_empty(), mla_string_empty(), mla_bytes_empty()};
     inst.current_token.simple = {false};

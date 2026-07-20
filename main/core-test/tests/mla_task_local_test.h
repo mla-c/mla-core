@@ -98,6 +98,7 @@ void TaskLocalSetGetBenchmark() {
 
 void RegisterTaskLocalBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     mla_benchmark_t benchmark = mla_benchmark("TaskLocalCreate", benchmark_category, TaskLocalCreateDestroyBenchmark);
+    mla_benchmark_set_bypass_arena(benchmark, true);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("TaskLocalSetGet", benchmark_category, TaskLocalSetGetBenchmark);

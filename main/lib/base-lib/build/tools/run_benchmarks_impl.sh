@@ -10,6 +10,14 @@ if [ -n "$1" ]; then
     target_config="$1"
 fi
 
+# Execute build phase before running benchmarks
+source "${WORKSPACE_DIR}/lib/base-lib/build/tools/build_all_impl.sh" "$@"
+build_exit_code=$?
+if [ $build_exit_code -ne 0 ]; then
+    echo "Error: Build phase failed with exit code $build_exit_code — aborting benchmarks."
+    return $build_exit_code 2>/dev/null || exit $build_exit_code
+fi
+
 passed_count=0
 failed_count=0
 skipped_count=0
@@ -52,6 +60,22 @@ for suite in "${RUN_SUITES[@]}"; do
                 continue
             fi
             ;;
+        node_wasm_dir)
+            if [ -n "$NODE_BIN" ]; then
+                binary_dir="$(dirname "$full_binary_path")"
+                binary_name="$(basename "$full_binary_path")"
+                (cd "$binary_dir" && "$NODE_BIN" "$binary_name" --benchmark)
+                exit_code=$?
+            else
+                echo "Warning: Node.js not found, cannot run $binary_path — skipping."
+                skipped_count=$((skipped_count + 1))
+                continue
+            fi
+            ;;
+        wasm)
+            "$WORKSPACE_DIR/lib/base-lib/build/tools/run_wasm_standalone_test.sh" "$full_binary_path" --benchmark
+            exit_code=$?
+            ;;
         none)
             echo "Skipping $binary_path (runner type 'none' — no standalone runner available)."
             skipped_count=$((skipped_count + 1))
@@ -84,8 +108,8 @@ if [ ${#failed_suites[@]} -ne 0 ]; then
     for s in "${failed_suites[@]}"; do
         echo "    - $s"
     done
-    exit 1
+    return 1 2>/dev/null || exit 1
 else
     echo "All benchmark suites completed successfully!"
-    exit 0
+    return 0 2>/dev/null || exit 0
 fi

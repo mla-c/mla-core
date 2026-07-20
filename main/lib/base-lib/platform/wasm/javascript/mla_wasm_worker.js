@@ -33,6 +33,7 @@ let memoryBuffer = null;
 let heapBase = 0;
 let heapPointer = 0;
 let customFunctions = {}; // Store custom functions loaded from external JS
+let currentArgs = ['program']; // Store command-line arguments for WASM
 
 // Text encoder/decoder for string operations
 const textEncoder = new TextEncoder();
@@ -293,7 +294,7 @@ const mlaImports = {
 
     external_system_time_ms: () => {
         // Return current time in milliseconds
-        return Date.now();
+        return BigInt(Date.now());
     }
 };
 
@@ -359,10 +360,75 @@ addMessageListener(async (data) => {
 
             const module = await WebAssembly.compile(msgData);
 
+            const wasiImports = {
+                proc_exit: (code) => {
+                    postMessageToParent({ type: 'stopped', message: `Program exited with code ${code}\n` });
+                },
+                fd_write: (fd, iov, iovcnt, pnum) => {
+                    let num = 0;
+                    const memory = getMemoryView();
+                    const view = new DataView(wasmMemory.buffer);
+                    for (let i = 0; i < iovcnt; i++) {
+                        const ptr = view.getUint32(iov + i * 8, true);
+                        const len = view.getUint32(iov + i * 8 + 4, true);
+                        const bytes = memory.slice(ptr, ptr + len);
+                        const str = textDecoder.decode(bytes);
+                        postMessageToParent({ type: 'output', message: str });
+                        num += len;
+                    }
+                    view.setUint32(pnum, num, true);
+                    return 0;
+                },
+                fd_seek: (fd, offset, whence, newOffset) => {
+                    return 0;
+                },
+                fd_close: (fd) => {
+                    return 0;
+                },
+                args_get: (argv, argv_buf) => {
+                    const view = new DataView(wasmMemory.buffer);
+                    const memory = getMemoryView();
+                    let offset = 0;
+                    
+                    currentArgs.forEach((arg, i) => {
+                        const ptr = argv_buf + offset;
+                        view.setUint32(argv + i * 4, ptr, true);
+                        
+                        const bytes = textEncoder.encode(arg + '\0');
+                        memory.set(bytes, ptr);
+                        offset += bytes.length;
+                    });
+                    return 0;
+                },
+                args_sizes_get: (pargc, pargv_buf_size) => {
+                    const view = new DataView(wasmMemory.buffer);
+                    view.setUint32(pargc, currentArgs.length, true);
+                    
+                    let totalLen = 0;
+                    for (const arg of currentArgs) {
+                        totalLen += textEncoder.encode(arg).length + 1;
+                    }
+                    view.setUint32(pargv_buf_size, totalLen, true);
+                    return 0;
+                }
+            };
+
+            const envImports = {
+                emscripten_notify_memory_growth: (memoryIndex) => {
+                    memoryBuffer = null;
+                }
+            };
+
             const importObject = {
                 mla: { ...mlaImports, ...(customFunctions.mla || {}) },
                 env: {
-                    memory: wasmMemory
+                    memory: wasmMemory,
+                    ...envImports,
+                    ...(customFunctions.env || {})
+                },
+                wasi_snapshot_preview1: {
+                    ...wasiImports,
+                    ...(customFunctions.wasi_snapshot_preview1 || {})
                 }
             };
 
@@ -384,8 +450,8 @@ addMessageListener(async (data) => {
                 heapBase = instance.exports.__heap_base.value;
                 heapPointer = heapBase;
             } else {
-                heapBase = 65536;
-                heapPointer = 65536;
+                heapBase = wasmMemory.buffer.byteLength;
+                heapPointer = heapBase;
             }
 
             postMessageToParent({ type: 'loaded', message: 'WASM module loaded successfully\n' });
@@ -398,7 +464,50 @@ addMessageListener(async (data) => {
             postMessageToParent({ type: 'log', message: 'Executing main function...\n' });
 
             if (wasmInstance.exports.main) {
-                const result = wasmInstance.exports.main();
+                const wasmArgs = data.wasmArgs || [];
+                const argStrings = ['program', ...wasmArgs];
+                currentArgs = argStrings;
+                const argc = argStrings.length;
+
+                // Write arg strings into WASM memory
+                const stringPtrs = argStrings.map(arg => {
+                    const bytes = textEncoder.encode(arg + '\0');
+                    const ptr = heapPointer;
+                    heapPointer += bytes.length;
+                    
+                    const currentPages = wasmMemory.buffer.byteLength / 65536;
+                    const requiredPages = Math.ceil(heapPointer / 65536);
+                    if (requiredPages > currentPages) {
+                        wasmMemory.grow(requiredPages - currentPages);
+                        memoryBuffer = null;
+                    }
+                    
+                    const memory = getMemoryView();
+                    memory.set(bytes, ptr);
+                    return ptr;
+                });
+
+                // Align to 4 bytes
+                heapPointer = (heapPointer + 3) & ~3;
+
+                // Write argv array into WASM memory
+                const argvPtr = heapPointer;
+                heapPointer += (argc + 1) * 4;
+
+                const currentPages = wasmMemory.buffer.byteLength / 65536;
+                const requiredPages = Math.ceil(heapPointer / 65536);
+                if (requiredPages > currentPages) {
+                    wasmMemory.grow(requiredPages - currentPages);
+                    memoryBuffer = null;
+                }
+
+                const view = new DataView(wasmMemory.buffer);
+                stringPtrs.forEach((ptr, i) => {
+                    view.setUint32(argvPtr + i * 4, ptr, true);
+                });
+                view.setUint32(argvPtr + argc * 4, 0, true);
+
+                const result = wasmInstance.exports.main(argc, argvPtr);
                 postMessageToParent({
                     type: 'completed',
                     message: `Main function executed successfully. Return value: ${result}\n`,

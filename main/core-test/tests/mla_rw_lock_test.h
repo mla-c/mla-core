@@ -258,6 +258,11 @@ void WriteLockBenchmark() {
     mla_rw_unlock_write(WriteLockBenchmarkLock);
 }
 
+void TearDownRwLockBenchmarks() {
+    ReadLockBenchmarkLock = mla_rw_lock_invalid();
+    WriteLockBenchmarkLock = mla_rw_lock_invalid();
+}
+
 void RegisterReadWriteLockBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
     mla_benchmark_t benchmark = mla_benchmark("RwLockReadLock", benchmark_category, ReadLockBenchmark);

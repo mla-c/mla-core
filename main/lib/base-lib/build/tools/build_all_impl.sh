@@ -27,7 +27,7 @@ if [ -n "$target_config" ]; then
             IFS=';' read -r config_name c_compiler cxx_compiler extra_flags <<< "$config"
             echo "  - $config_name"
         done
-        exit 1
+        return 1 2>/dev/null || exit 1
     fi
 fi
 
@@ -106,8 +106,8 @@ if [ ${#skipped_configs[@]} -ne 0 ]; then
 fi
 if [ ${#failed_configs[@]} -ne 0 ]; then
     echo "  Failed: ${failed_configs[*]}"
-    exit 1
+    return 1 2>/dev/null || exit 1
 else
     echo "All built configurations completed successfully!"
-    exit 0
+    return 0 2>/dev/null || exit 0
 fi

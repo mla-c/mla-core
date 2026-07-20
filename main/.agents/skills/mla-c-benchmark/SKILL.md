@@ -150,6 +150,23 @@ volatile mla_byte_t temp = buffer[0];
 (void)temp;
 ```
 
+## Running Benchmarks
+
+To execute all benchmark suites across compiler configurations:
+
+```bash
+./run_all_benchmarks.sh
+```
+
+Or for a specific compiler configuration:
+
+```bash
+./run_all_benchmarks.sh gcc
+```
+
+> [!NOTE]
+> `run_all_benchmarks.sh` (via `run_benchmarks_impl.sh`) automatically executes `build_all_impl.sh` to compile the project before running benchmark suites.
+
 ## Rules
 
 - Benchmark functions must be **deterministic** — no random input or wall-clock dependencies.

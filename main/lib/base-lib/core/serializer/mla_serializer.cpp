@@ -89,6 +89,10 @@ mla_bool_t mla_deserializer_token_type_is_value(const mla_deserializer_token_typ
 mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
 
+    if (mla_serializer_is_invalid(serializer)) {
+        return false;
+    }
+
     if (!serializer.write_start_struct(serializer)) {
         return false;
     }
@@ -106,6 +110,10 @@ mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const 
 
 mla_bool_t mla_serializer_write_data_struct(mla_serializer_t &serializer, const mla_string_t &name, const mla_pointer_t& value,
                                  const mla_serialize_definition_write_function_t &write_function) {
+    if (mla_serializer_is_invalid(serializer)) {
+        return false;
+    }
+
     if (!serializer.write_property_name(serializer, name)) {
         return false;
     }

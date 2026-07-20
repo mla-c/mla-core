@@ -439,10 +439,21 @@ void LinkListWithValueConstStructTest() {
     assert_null(mla_link_list_get_ref(list, 3), "linkList should return null for index 3 (out of bounds)");
 }
 
+void LinkListDestructionCycleTest() {
+    mla_link_list_t<int> list = mla_link_list<int>();
+    mla_link_list_add(list, 10);
+    mla_link_list_add(list, 20);
+    mla_link_list_add(list, 30);
+    assert_equal(mla_link_list_size(list), (mla_size_t)3, "List size should be 3 before destruction");
+}
+
 
 void RegisterLinkListTests(mla_test_executor_t &p_TestExecutor) {
 
-    mla_test_t test = mla_test("ContainsMlaString", test_category, LinkListContainsMlaStringTest);
+    mla_test_t test = mla_test("DestructionCycle", test_category, LinkListDestructionCycleTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ContainsMlaString", test_category, LinkListContainsMlaStringTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("Contains", test_category, LinkListContainsTest);
@@ -517,8 +528,8 @@ void LinkListAddMuchItemsBenchmark() {
 
 void RegisterLinkListBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
 
-    mla_benchmark_t benchmark = mla_benchmark("Contains", benchmark_category, LinkListContainsBenchmark);
-    mla_benchmark_set_iteration_division(benchmark, 100);
+    mla_benchmark_t benchmark = mla_benchmark("Contains", benchmark_category, LinkListContainsBenchmark, SetupLinkListContainsBenchmark, TearDownLinkListContainsBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 5000);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("AddMuchItems", benchmark_category, LinkListAddMuchItemsBenchmark);

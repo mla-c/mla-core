@@ -18,7 +18,7 @@ You are working in the `mla-core/main` repository, which contains the `mla-c` fr
    - Use MLA framework containers like `mla_array_list_t` and `mla_string_t`.
    - Do not include standard headers like `<string>`, `<vector>`, or `<stdio.h>`.
 4. **Data Ownership**: Use `mla_pointer_t` for owning heap-allocated data. It provides automatic reference-counted cleanup. Use `mla_platform_pointer_t` (raw void pointer) strictly for short-lived, non-owning data access.
-5. **Testing**: Any behavior change or feature needs tests. Ensure that tests are added/updated to cover changes and that all tests pass across all supported compiler toolchains.
+5. **Testing & Definition of Done**: Any behavior change or feature needs tests. As an explicit **Definition of Done**, at the end of every task, ALL unit tests (`./run_all_tests.sh`) and ALL benchmarks (`./run_all_benchmarks.sh`) MUST be executed and pass successfully across all supported compiler toolchains before declaring completion.
 
 ## Detailed Instructions / Skills
 Detailed instructions about specific framework modules (array lists, strings, memory, networking, tests, etc.) have been converted into Antigravity skills and are available under the `.gemini/skills/` directory. The AI assistant can consult these dynamically based on the task.

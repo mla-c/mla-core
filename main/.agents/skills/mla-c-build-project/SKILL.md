@@ -85,6 +85,9 @@ You can also run tests for a specific compiler configuration by passing its name
 ./run_all_tests.sh gcc
 ```
 
+> [!NOTE]
+> `run_all_tests.sh` (via `run_tests_impl.sh`) automatically executes `build_all_impl.sh` to compile the target configuration before running test suites.
+
 ---
 
 ## Running Benchmarks
@@ -112,6 +115,9 @@ You can also run benchmarks for a specific compiler configuration by passing its
 ./run_all_benchmarks.sh gcc
 ```
 
+> [!NOTE]
+> `run_all_benchmarks.sh` (via `run_benchmarks_impl.sh`) automatically executes `build_all_impl.sh` to compile the target configuration before running benchmarks.
+
 ---
 
 ## Common Configurations
@@ -123,8 +129,8 @@ All build and runner scripts share a common configuration file:
 The core execution logic is separated and stored within the base library tools folder:
 
 - [build_all_impl.sh](file:///workspace/lib/base-lib/build/tools/build_all_impl.sh)
-- [run_tests_impl.sh](file:///workspace/lib/base-lib/build/tools/run_tests_impl.sh)
-- [run_benchmarks_impl.sh](file:///workspace/lib/base-lib/build/tools/run_benchmarks_impl.sh)
+- [run_tests_impl.sh](file:///workspace/lib/base-lib/build/tools/run_tests_impl.sh) (automatically executes `build_all_impl.sh` before running tests)
+- [run_benchmarks_impl.sh](file:///workspace/lib/base-lib/build/tools/run_benchmarks_impl.sh) (automatically executes `build_all_impl.sh` before running benchmarks)
 
 The root scripts (`build_all.sh`, `run_all_tests.sh`, and `run_all_benchmarks.sh`) act as clean entry points that configure the environment by sourcing `configs.sh` and then delegate execution to the implementation scripts.
 
@@ -144,3 +150,4 @@ cmake -DMLA_ENABLE_CLANG_TIDY=OFF -B build
 1. **Never commit build artifacts** (always use `build/` directory which is gitignored).
 2. **Never check in custom binary files or main templates.**
 3. Verify that all tests pass locally before proposing changes.
+4. **Definition of Done**: At the end of every task, all unit tests (`./run_all_tests.sh`) and all benchmarks (`./run_all_benchmarks.sh`) MUST be executed and pass successfully across all supported compiler toolchains before declaring success.

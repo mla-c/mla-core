@@ -522,10 +522,10 @@ void TearDownHashMapContainsBenchmark() {
 
 void HashMapAddMuchItemsBenchmark() {
 
-    mla_map = mla_hash_map<short, short, mla_int16_hash_t>(16);
+    mla_hash_map_t<short, short, mla_int16_hash_t> local_map = mla_hash_map<short, short, mla_int16_hash_t>(16);
 
     for (short i = 0; i < 1000; ++i) {
-        mla_hash_map_push(mla_map, i, i);
+        mla_hash_map_push(local_map, i, i);
     }
 }
 

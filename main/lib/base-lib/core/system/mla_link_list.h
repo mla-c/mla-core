@@ -59,13 +59,14 @@ void mla_private_link_list_data_cleanup_hook(mla_platform_pointer_t p_Data, cons
         return;
     }
 
-    // Iterate through the linked list and clean up each node
     mla_link_list_node_t<T, TInit>* current = data->head;
+    mla_pointer_t activeOwner = mla_pointer_null();
     while (current) {
-        mla_link_list_node_t<T, TInit>* nextNode = current->next;
-        current->nextOwner = mla_pointer_null();
+        mla_pointer_t nextOwner = current->nextOwner;
         current->prevOwner = mla_pointer_null();
-        current = nextNode; // Move to the next node
+        current->nextOwner = mla_pointer_null();
+        current = mla_pointer_get_data<mla_link_list_node_t<T, TInit>>(nextOwner);
+        activeOwner = nextOwner;
     }
 }
 

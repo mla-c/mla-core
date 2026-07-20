@@ -334,8 +334,20 @@ inline void XmlSerializerAllTypesTest() {
     AllTypesTest(serializer, deserializer);
 }
 
+inline void InvalidSerializerTest() {
+    mla_serializer_t serializer = mla_serializer_invalid();
+    assert_true(mla_serializer_is_invalid(serializer), "Serializer should report itself invalid");
+
+    mla_pointer_t val = mla_pointer_null();
+    assert_false(mla_serializer_write_data_struct(serializer, val, nullptr), "Writing should return false");
+    assert_false(mla_serializer_write_data_struct(serializer, mla_string_const("test"), val, nullptr), "Writing with name should return false");
+}
+
 void RegisterSerializerTests(mla_test_executor_t &p_TestExecutor) {
-    mla_test_t test = mla_test("BinarySerializerAllTypes", test_category, BinarySerializerAllTypesTest,
+    mla_test_t test = mla_test("InvalidSerializerSafety", test_category, InvalidSerializerTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("BinarySerializerAllTypes", test_category, BinarySerializerAllTypesTest,
                                SetupSerializerTest, TearDownSerializerTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
@@ -374,8 +386,8 @@ static mla_all_types_struct g_benchmarkAllTypes = {
 };
 
 inline void SetupSerializerBenchmark() {
-    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(1024));
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(8192));
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
 
     g_benchmarkAllTypes = {
         true,
@@ -476,6 +488,9 @@ inline void SetupDeserializerBenchmark(mla_serializer_t serializer) {
 
     mla_pointer_t prepare_benchmarkAllTypes_ptr = mla_platform_pointer_to_managed_pointer(&prepare_benchmarkAllTypes);
     mla_serializer_write_data_struct(serializer, prepare_benchmarkAllTypes_ptr, mla_all_types_struct::serialize);
+    if (serializer.write_end_struct != nullptr) {
+        serializer.write_end_struct(serializer);
+    }
 }
 
 inline void TearDownDeserializerBenchmark() {
@@ -508,10 +523,7 @@ inline void AllTypesSerializerBenchmark(mla_serializer_t serializer) {
 
 inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
     deserializer.read_next(deserializer);
-    mla_pointer_t data_ptr = mla_platform_pointer_to_managed_pointer(&g_benchmarkAllTypes);
-    mla_deserializer_read_struct_read_function(deserializer, data_ptr,
-                                               mla_all_types_struct::deserialize);
-    g_benchmarkAllTypes = {
+    mla_all_types_struct local_struct = {
         false,
         -1,
         -1,
@@ -529,6 +541,9 @@ inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
         mla_array_list_empty<mla_int32_t>(),
         mla_array_list_empty<mla_all_types_inner_struct>()
     };
+    mla_pointer_t data_ptr = mla_platform_pointer_to_managed_pointer(&local_struct);
+    mla_deserializer_read_struct_read_function(deserializer, data_ptr,
+                                               mla_all_types_struct::deserialize);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -537,7 +552,7 @@ inline void AllTypesDeserializerBenchmark(mla_deserializer_t deserializer) {
 
 
 inline void BinarySerializerBenchmark() {
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
 
     mla_serializer_t serializer = mla_binary_serializer(stream_output);
     AllTypesSerializerBenchmark(serializer);
@@ -545,57 +560,57 @@ inline void BinarySerializerBenchmark() {
 
 
 inline void SetupBinaryDeserializerBenchmark() {
-    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(1024));
-    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(8192));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
     mla_serializer_t serializer = mla_binary_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
 }
 
 
 inline void BinaryDeserializerBenchmark() {
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 8192);
 
     mla_deserializer_t deserializer = mla_binary_deserializer(stream_input);
     AllTypesDeserializerBenchmark(deserializer);
 }
 
 inline void JsonSerializerBenchmark() {
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
 
     mla_serializer_t serializer = mla_json_serializer(stream_output);
     AllTypesSerializerBenchmark(serializer);
 }
 
 inline void SetupJsonDeserializerBenchmark() {
-    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(1024));
-    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(8192));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
     mla_serializer_t serializer = mla_json_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
 }
 
 inline void JsonDeserializerBenchmark() {
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 8192);
 
     mla_deserializer_t deserializer = mla_json_deserializer(stream_input);
     AllTypesDeserializerBenchmark(deserializer);
 }
 
 inline void XmlSerializerBenchmark() {
-    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_stream_output_t stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
 
     mla_serializer_t serializer = mla_xml_serializer(stream_output);
     AllTypesSerializerBenchmark(serializer);
 }
 
 inline void SetupXmlDeserializerBenchmark() {
-    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(1024));
-    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 1024);
+    mla_serializer_buffer = mla_s_cast<mla_byte_t *>(mla_platform_malloc(8192));
+    mla_stream_output_t prepare_stream_output = mla_stream_output_to_buffer(mla_serializer_buffer, 8192);
     mla_serializer_t serializer = mla_xml_serializer(prepare_stream_output);
     SetupDeserializerBenchmark(serializer);
 }
 
 inline void XmlDeserializerBenchmark() {
-    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 1024);
+    mla_stream_input_t stream_input = mla_stream_input_from_buffer(mla_serializer_buffer, 8192);
 
     mla_deserializer_t deserializer = mla_xml_deserializer(stream_input);
     AllTypesDeserializerBenchmark(deserializer);
@@ -604,27 +619,33 @@ inline void XmlDeserializerBenchmark() {
 void RegisterSerializerBenchmarks(mla_benchmark_executor_t &p_BenchmarkExecutor) {
     mla_benchmark_t benchmark = mla_benchmark("BinarySerializer", benchmark_category, BinarySerializerBenchmark,
                                               SetupSerializerBenchmark, TearDownSerializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("BinaryDeserializer", benchmark_category, BinaryDeserializerBenchmark,
-                              SetupBinaryDeserializerBenchmark, TearDownDeserializerBenchmark);
+                                              SetupBinaryDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
 
     benchmark = mla_benchmark("JsonSerializer", benchmark_category, JsonSerializerBenchmark, SetupSerializerBenchmark,
                               TearDownSerializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("JsonDeserializer", benchmark_category, JsonDeserializerBenchmark,
                               SetupJsonDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("XmlSerializer", benchmark_category, XmlSerializerBenchmark, SetupSerializerBenchmark,
                               TearDownSerializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 
     benchmark = mla_benchmark("XmlDeserializer", benchmark_category, XmlDeserializerBenchmark,
                               SetupXmlDeserializerBenchmark, TearDownDeserializerBenchmark);
+    mla_benchmark_set_iteration_division(benchmark, 10);
     mla_benchmark_executor_register(p_BenchmarkExecutor, benchmark);
 }
 

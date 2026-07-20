@@ -90,20 +90,26 @@ mla_benchmark_t mla_benchmark(const mla_test_char_t *name,
         name,
         category,
         1,
+        false,
         run,
         setUp,
         tearDown
-};
+    };
 }
 
 void mla_benchmark_set_iteration_division(mla_benchmark_t& benchmark, mla_test_uint32_t division) {
     benchmark.iterationDivision = division;
 }
 
+void mla_benchmark_set_bypass_arena(mla_benchmark_t& benchmark, mla_test_bool_t bypass) {
+    benchmark.bypass_arena = bypass;
+}
+
 void mla_benchmark_destroy(mla_benchmark_t &benchmark) {
     benchmark.name = nullptr;
     benchmark.category = nullptr;
     benchmark.iterationDivision = 0;
+    benchmark.bypass_arena = false;
     benchmark.run = nullptr;
     benchmark.setUp = nullptr;
     benchmark.tearDown = nullptr;
@@ -593,11 +599,17 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     }
 
     mla_test_uint32_t warmupIterations = CONST_CPU_WARMUP_ITERATIONS / benchmark.iterationDivision;
+    if (warmupIterations == 0) {
+        warmupIterations = 1;
+    }
     for (mla_test_uint32_t i = 0; i < warmupIterations; ++i) {
         benchmark.run();
     }
 
     mla_test_uint32_t benchmarkIterations = CONST_BENCHMARK_ITERATIONS / benchmark.iterationDivision;
+    if (benchmarkIterations == 0) {
+        benchmarkIterations = 1;
+    }
 
 #if (mla_test_global_feature_flag_benchmark_use_median == 1)
     // Min, Max, and Median time tracking
@@ -872,7 +884,7 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     }
 
     // Start the benchmark one more time but inside an memory arena
-    if (benchmarkIterations > 0) {
+    if (benchmarkIterations > 0 && !benchmark.bypass_arena) {
         mla_benchmark_run_in_arena(benchmark, static_cast<mla_test_uint32_t>(mla_benchmark_allocated_memory / benchmarkIterations), output_format);
     }
 

@@ -80,5 +80,17 @@ mla_file_system_stream_t stream;
 assert_true(mla_fs_open_file(path, mode, stream), "Failed to open file");
 ```
 
+### Running Created Tests
+To execute all test suites (including newly created ones), run:
+```bash
+./run_all_tests.sh
+```
+Or for a specific compiler configuration:
+```bash
+./run_all_tests.sh gcc
+```
+> [!NOTE]
+> `run_all_tests.sh` (via `run_tests_impl.sh`) automatically executes `build_all_impl.sh` to compile the project before running tests.
+
 ### Header Guards
 Use #ifndef [FILENAME]_H format matching the filename

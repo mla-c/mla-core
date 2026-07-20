@@ -15,18 +15,18 @@ fi
 # Build configurations definitions
 # Format: "config_name;C_COMPILER;CXX_COMPILER;EXTRA_CMAKE_FLAGS"
 BUILD_CONFIGS=(
-    "gcc;gcc;g++;"
-    "clang;clang;clang++;"
-    "filc;filcc;filcpp;"
-    "zig_native;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cc.sh;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cxx.sh;"
-    "emscripten_std;emcc;em++;-DMLA_EMSDK_PATH=/opt/emsdk"
-    "emscripten_js;emcc;em++;-DMLA_EMSDK_PATH=/opt/emsdk -DMLA_JS_STANDALONE=ON"
-    "zig_wasm;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cc.sh;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cxx.sh;-DMLA_WASM_STANDALONE=ON"
+    "gcc;gcc;g++;-DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
+    "clang;clang;clang++;-DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
+    "filc;filcc;fil++;-DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=1000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=1000"
+    "zig_native;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cc.sh;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cxx.sh;-DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
+    "emscripten_std;emcc;em++;-DMLA_EMSDK_PATH=/opt/emsdk -DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
+    "emscripten_js;emcc;em++;-DMLA_EMSDK_PATH=/opt/emsdk -DMLA_JS_STANDALONE=ON -DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
+    "zig_wasm;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cc.sh;${WORKSPACE_DIR}/lib/base-lib/build/tools/zig/zig-cxx.sh;-DMLA_WASM_STANDALONE=ON -DCMAKE_C_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000 -DCMAKE_CXX_FLAGS=-Dmla_test_global_config_benchmark_iterations=10000"
 )
 
 # Test/Benchmark suite executable definitions
 # Format: "config_name;runner_type;binary_relative_path"
-# runner_type can be: native, node, none
+# runner_type can be: native, node, node_wasm_dir, wasm, none
 RUN_SUITES=(
     "gcc;native;build/gcc/MLA_C_Test_Linux_Single_Thread"
     "gcc;native;build/gcc/MLA_C_Test_Linux_Multi_Thread"
@@ -37,8 +37,6 @@ RUN_SUITES=(
     "filc;native;build/filc/MLA_C_Test_Linux_Single_Thread"
     "filc;native;build/filc/MLA_C_Test_Linux_Multi_Thread"
     "emscripten_std;node;build/emscripten_std/MLA_C_Test_WASM_Single_Thread.js"
-    "emscripten_std;none;build/emscripten_std/MLA_C_Test_WASM_Single_Thread_Standalone.js"
     "emscripten_js;node;build/emscripten_js/MLA_C_Test_WASM_Single_Thread.js"
-    "emscripten_js;none;build/emscripten_js/MLA_C_Test_WASM_Single_Thread_Standalone.js"
-    "zig_wasm;none;build/zig_wasm/MLA_C_Test_WASM_Single_Thread_Standalone.wasm"
+    "zig_wasm;wasm;build/zig_wasm/MLA_C_Test_WASM_Single_Thread_Standalone.wasm"
 )
