@@ -259,7 +259,8 @@ mla_http_server_t mla_http_server_invalid() {
         mla_mutex_invalid(),
         mla_pointer_null(),
         MLA_HTTP_SERVER_STATUS_STOPPED,
-        0
+        0,
+        mla_network_security_config_none()
     };
 }
 
@@ -276,7 +277,8 @@ mla_http_server_t mla_http_server(const mla_network_host_t &host) {
                                     mla_string_from_uint16(host.port)), true),
         mla_pointer_null(),
         MLA_HTTP_SERVER_STATUS_STOPPED,
-        mla_global_config_default_http_timeout_ms
+        mla_global_config_default_http_timeout_ms,
+        mla_network_security_config_none()
     };
 }
 
@@ -917,7 +919,8 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
         return false;
     }
 
-    if (!mla_network_listener_bind_and_listen(server.listener, server.host, mla_connection_type_tcp)) {
+    if (!mla_network_listener_bind_and_listen_secure(server.listener, server.host, mla_connection_type_tcp,
+                                                     server.security_config)) {
         server.status = MLA_HTTP_SERVER_STATUS_ERROR;
         mla_mutex_unlock(server.listenerLock);
         mla_error(
@@ -987,6 +990,19 @@ mla_bool_t mla_http_server_running(const mla_http_server_t &server) {
 
 void mla_http_server_set_timeout(mla_http_server_t &server, mla_int32_t timeout_ms) {
     server.timeout_ms = timeout_ms;
+}
+
+void mla_http_server_set_security_config(mla_http_server_t &server,
+                                         const mla_network_security_config_t &security_config) {
+    server.security_config = security_config;
+}
+
+void mla_http_server_enable_tls(mla_http_server_t &server, const mla_network_tls_config_t &tls_config) {
+    server.security_config = mla_network_security_config_tls(tls_config);
+}
+
+void mla_http_server_disable_security(mla_http_server_t &server) {
+    server.security_config = mla_network_security_config_none();
 }
 
 mla_bool_t mla_http_server_stop(mla_http_server_t &server) {

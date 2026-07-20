@@ -151,6 +151,7 @@ inline void NetworkHostResolveTest() {
 inline void NetworkConnectionConnectTest() {
     mla_network_low_level_operations_t original = g_network_low_level_operations;
     g_network_low_level_operations.connect = mock_connect;
+    g_network_low_level_operations.connect_secure = nullptr;
 
     mock_connect_called = false;
     mock_connect_result = true;
@@ -197,6 +198,7 @@ static mla_bool_t mock_accept_connection(const mla_network_listener_t& listener,
 inline void NetworkListenerTest() {
     mla_network_low_level_operations_t original = g_network_low_level_operations;
     g_network_low_level_operations.bind_and_listen = mock_bind_and_listen;
+    g_network_low_level_operations.bind_and_listen_secure = nullptr;
 
     mock_bind_and_listen_called = false;
     mock_bind_and_listen_result = true;

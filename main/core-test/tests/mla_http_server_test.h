@@ -411,6 +411,28 @@ inline void WebSocketEchoServerCompressedTest() {
     server = mla_http_server_invalid();
 }
 
+inline void HttpsServerStartWithoutTlsBackendTest() {
+    mla_http_server_t server = mla_http_server(test_server_host);
+    mla_http_server_set_timeout(server, 2000);
+    mla_http_server_enable_tls(server, mla_network_tls_config_default());
+
+    assert_false(mla_http_server_start(server, 1),
+                 "HTTPS server should fail to start when secure transport is unavailable");
+    assert_equal(server.status, MLA_HTTP_SERVER_STATUS_ERROR,
+                 "HTTPS server status should be error when secure start fails");
+
+    server = mla_http_server_invalid();
+}
+
+inline void WssClientConnectWithoutTlsBackendTest() {
+    mla_websocket_client_t client = mla_websocket_client_invalid();
+
+    assert_false(mla_websocket_client_connect(client, mla_string_const("wss://127.0.0.1:41258/echo"), 2000, false),
+                 "WSS client should fail to connect when secure transport is unavailable");
+    assert_false(mla_websocket_client_is_connected(client),
+                 "WSS client should remain disconnected after failed secure connect");
+}
+
 
 void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
     // Only run HTTP server tests in native multi-tasking environments
@@ -429,6 +451,12 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("WebSocketEchoServerCompressed", test_category, WebSocketEchoServerCompressedTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("HttpsServerStartWithoutTlsBackend", test_category, HttpsServerStartWithoutTlsBackendTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("WssClientConnectWithoutTlsBackend", test_category, WssClientConnectWithoutTlsBackendTest);
         mla_test_executor_register_test(p_TestExecutor, test);
     }
 }

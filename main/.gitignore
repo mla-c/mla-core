@@ -99,6 +99,9 @@ install_manifest.txt
 # JIRA plugin
 atlassian-ide-plugin.xml
 
+#Junie
+.junie/
+
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 crashlytics.properties
@@ -201,3 +204,5 @@ _codeql_detected_source_root
 core-os-web-ui/
 
 /build/
+
+.output.txt

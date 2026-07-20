@@ -188,6 +188,7 @@ struct mla_http_server_t {
     mla_pointer_t serverOwner;
     mla_http_server_status_t status;
     mla_int32_t timeout_ms;
+    mla_network_security_config_t security_config;
 };
 
 // Lifecycle Methods
@@ -198,6 +199,9 @@ mla_bool_t mla_http_server_start(mla_http_server_t &server, mla_uint8_t number_o
 mla_bool_t mla_http_server_stop(mla_http_server_t &server);
 
 void mla_http_server_set_timeout(mla_http_server_t &server, mla_int32_t timeout_ms);
+void mla_http_server_set_security_config(mla_http_server_t &server, const mla_network_security_config_t &security_config);
+void mla_http_server_enable_tls(mla_http_server_t &server, const mla_network_tls_config_t &tls_config);
+void mla_http_server_disable_security(mla_http_server_t &server);
 
 // Registration Methods
 mla_bool_t mla_http_server_register_handler(mla_http_server_t &server, const mla_http_server_handler_item_t& handlerItem);

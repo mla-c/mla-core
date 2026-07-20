@@ -77,6 +77,14 @@ void mla_http_client_set_timeout(mla_http_client_t &client, mla_int32_t timeout_
     client.timeout_ms = timeout_ms;
 }
 
+mla_bool_t mla_private_http_client_is_https_url(const mla_url_t &url) {
+    return mla_string_equals_const(url.scheme, "https");
+}
+
+mla_bool_t mla_private_http_client_is_supported_url_scheme(const mla_url_t &url) {
+    return mla_string_equals_const(url.scheme, "http") || mla_private_http_client_is_https_url(url);
+}
+
 
 mla_bool_t mla_private_http_client_resolve_host(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_url_t& url, mla_network_host_t & host) {
 
@@ -89,7 +97,9 @@ mla_bool_t mla_private_http_client_resolve_host(const mla_http_client_t &client,
     return client.resolve_host(client, response, url, host);
 }
 
-mla_bool_t mla_private_http_client_connect(const mla_http_client_t &client, mla_http_client_response_t& response, const mla_network_host_t & host, mla_network_connection_t & connection) {
+mla_bool_t mla_private_http_client_connect(const mla_http_client_t &client, mla_http_client_response_t& response,
+                                           const mla_url_t &url, const mla_network_host_t & host,
+                                           mla_network_connection_t & connection) {
 
     if (client.connect == nullptr) {
         response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN;
@@ -97,7 +107,26 @@ mla_bool_t mla_private_http_client_connect(const mla_http_client_t &client, mla_
         return false;
     }
 
-    return client.connect(client, response, host, connection);
+    if (client.connect != mla_private_http_client_default_connect) {
+        return client.connect(client, response, host, connection);
+    }
+
+    mla_network_security_config_t security_config = mla_network_security_config_none();
+
+    if (mla_private_http_client_is_https_url(url)) {
+        mla_network_tls_config_t tls_config = mla_network_tls_config_default();
+        mla_network_tls_config_set_server_name(tls_config, url.host);
+        security_config = mla_network_security_config_tls(tls_config);
+    }
+
+    if (!mla_network_connection_connect_secure(connection, host, mla_connection_type_tcp, client.timeout_ms,
+                                               security_config)) {
+        response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED;
+        response.errorMessage = mla_string_concat("Failed to connect to host: ", host.address.address);
+        return false;
+    }
+
+    return true;
 }
 
 mla_bool_t mla_private_http_client_send_header(mla_http_client_response_t& response, const mla_url_t& url, mla_http_request_t & request, mla_stream_output_t & connection) {
@@ -293,6 +322,13 @@ mla_bool_t mla_private_http_client_parse_url(mla_http_client_response_t& respons
         response.errorMessage = mla_string_concat("Failed to parse URL: ", urlString);
         return false;
     }
+
+    if (!mla_private_http_client_is_supported_url_scheme(url)) {
+        response.status = MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL;
+        response.errorMessage = mla_string_concat("Unsupported URL scheme: ", url.scheme);
+        return false;
+    }
+
     return true;
 }
 
@@ -324,7 +360,7 @@ mla_http_client_response_t mla_http_client_send_request(const mla_http_client_t 
     // Open Connection
     mla_network_connection_t connection = mla_network_connection_disconnected();
 
-    if (!mla_private_http_client_connect(client, response, host, connection)) {
+    if (!mla_private_http_client_connect(client, response, url, host, connection)) {
         return response;
     }
 

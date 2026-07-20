@@ -165,6 +165,56 @@ mla_http_server_stop(server);
 mla_http_server_destroy(server);
 ```
 
+### Enable HTTPS / WSS on the Same Server
+
+Use TLS server configuration before `mla_http_server_start`. The same handler and WebSocket pipeline is reused; only the transport becomes secure.
+
+```cpp
+mla_network_tls_config_t tls = mla_network_tls_config_default();
+mla_network_tls_config_set_certificate(tls, server_certificate_pem);
+mla_network_tls_config_set_private_key(tls, server_private_key_pem);
+
+// Optional: provide custom CA chain if needed by your TLS backend
+mla_network_tls_config_set_ca_certificate(tls, mla_string_empty());
+
+mla_http_server_enable_tls(server, tls);
+
+// HTTPS and WSS now run through the same HTTP server instance
+mla_http_server_start(server, 4);
+```
+
+To go back to plain `http` / `ws` transport:
+
+```cpp
+mla_http_server_disable_security(server);
+```
+
+### Example — Consume Let’s Encrypt Certificates
+
+Let’s Encrypt usually provides:
+- `fullchain.pem` (server cert + intermediates)
+- `privkey.pem` (private key)
+
+Load PEM text from the mounted file system and pass it into `mla_network_tls_config_t`:
+
+```cpp
+// App-level helper: read full file content as UTF-8 text.
+// Implement this helper using your platform/file-system module.
+mla_string_t fullchain_pem = app_read_text_file(
+    mla_string_const("/etc/letsencrypt/live/example.com/fullchain.pem"));
+mla_string_t privkey_pem = app_read_text_file(
+    mla_string_const("/etc/letsencrypt/live/example.com/privkey.pem"));
+
+mla_network_tls_config_t tls = mla_network_tls_config_default();
+mla_network_tls_config_set_certificate(tls, fullchain_pem);
+mla_network_tls_config_set_private_key(tls, privkey_pem);
+
+mla_http_server_enable_tls(server, tls);
+mla_http_server_start(server, 4);
+```
+
+If secure transport is not supported by the active platform backend, secure start/connect fails deterministically.
+
 ### WebSocket Support
 
 Register a WebSocket handler for a specific path:
@@ -255,6 +305,32 @@ client.timeout_ms = 10000; // 10 seconds
 mla_http_client_response_t result = mla_http_client_send_request(client, request);
 ```
 
+### HTTPS Requests
+
+`mla_http_client_send_request` selects secure transport automatically when the URL scheme is `https://`.
+
+```cpp
+mla_http_request_t request = mla_http_get_request(
+    mla_string_const("https://example.com/api/status"));
+
+mla_http_client_response_t result = mla_http_client_send_request(request);
+```
+
+### WSS Client Connections
+
+`mla_websocket_client_connect` selects secure transport automatically for `wss://` URLs.
+
+```cpp
+#include "../http/mla_websocket_client.h"
+
+mla_websocket_client_t ws = mla_websocket_client_invalid();
+mla_bool_t connected = mla_websocket_client_connect(
+    ws,
+    mla_string_const("wss://example.com/ws"),
+    5000,
+    false);
+```
+
 ### Client Response Status Codes
 
 | Enum | Meaning |
@@ -297,6 +373,9 @@ mla_bool_t hasJson = mla_http_headers_has_header_value(
 - Use `mla_http_server_handler_starts_with` for prefix-based URL matching and `mla_http_server_handler_all` for catch-all handlers.
 - WebSocket message handlers must return `true` to keep the connection open and `false` to close it.
 - Use `mla_stream_input_from_string` to set a string body on a request or response.
+- Use `mla_http_server_enable_tls` to enable HTTPS/WSS transport on the server and `mla_http_server_disable_security` to revert to plaintext.
+- Use `https://` and `wss://` URL schemes in clients to trigger secure transport selection.
+- Handle deterministic secure-transport failures (`MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED`) on platforms without TLS backend support.
 
 ## Incorrect Usage
 

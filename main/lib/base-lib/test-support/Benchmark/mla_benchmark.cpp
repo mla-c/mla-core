@@ -29,6 +29,22 @@ static mla_test_uint32_t g_mla_benchmark_memory_arena_offset = 0;
 static mla_test_bool_t g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
 static mla_test_pointer_t g_mla_benchmark_arena_mutex = nullptr;
 
+void mla_private_benchmark_print_memory_allocation_failed(const mla_benchmark_t &benchmark,
+                                                          mla_test_output_format_t output_format) {
+    if (output_format == mla_test_output_format_text) {
+        mla_test_print("|", 1);
+        mla_test_print("Benchmark aborted: memory allocation failed for ", 48);
+        mla_test_print(benchmark.name, static_cast<mla_test_uint32_t>(mla_test_strlen(benchmark.name)));
+        mla_test_print("\n", 1);
+        return;
+    }
+
+    if (output_format == mla_test_output_format_json) {
+        mla_test_print("  \"Error\": \"Memory allocation failed\"\n", 38);
+        mla_test_print("}", 1);
+    }
+}
+
 mla_test_uint32_t mla_align_up(mla_test_uint32_t value, mla_test_uint32_t alignment) {
     return (value + (alignment - 1U)) & ~(alignment - 1U);
 }
@@ -38,10 +54,12 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
     mla_benchmark_allocated_memory += size;
 
     if (g_mla_benchmark_memory_arena == nullptr) {
+        g_mla_benchmark_memory_arena_out_of_memory_triggered = true;
         return nullptr;
     }
 
     if (!g_test_mutex.lock_mutex(g_mla_benchmark_arena_mutex)) {
+        g_mla_benchmark_memory_arena_out_of_memory_triggered = true;
         return nullptr;
     }
 
@@ -51,6 +69,7 @@ mla_test_pointer_t mla_benchmark_malloc_in_arena_hook(mla_test_uint32_t size) {
     // Bounds check including padding
     if (aligned_offset + size > g_mla_benchmark_memory_arena_size) {
         g_mla_benchmark_memory_arena_out_of_memory_triggered = true;
+        g_test_mutex.unlock_mutex(g_mla_benchmark_arena_mutex);
         return nullptr;
     }
 
@@ -197,15 +216,6 @@ static mla_test_uint64_t mla_private_benchmark_calculate_median(mla_test_uint64_
 
 void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_uint32_t arena_size, mla_test_uint32_t benchmarkIterations, mla_test_output_format_t output_format) {
 
-    if (output_format == mla_test_output_format_text) {
-        mla_test_print("AAA|", 4);
-    } else if (output_format == mla_test_output_format_json) {
-        mla_test_print(",\n", 2);
-        mla_test_print("{\n", 2);
-        mla_test_print("  \"WithMemoryArena\": true,\n", 27);
-    }
-
-
     if (benchmark.setUp != nullptr) {
         benchmark.setUp();
     }
@@ -215,6 +225,25 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     g_mla_benchmark_memory_arena = mla_platform_malloc(arena_size);
     g_mla_benchmark_memory_arena_out_of_memory_triggered = false;
     g_mla_benchmark_arena_mutex = g_test_mutex.create_mutex();
+
+    if (g_mla_benchmark_memory_arena == nullptr || g_mla_benchmark_arena_mutex == nullptr) {
+        if (benchmark.tearDown != nullptr) {
+            benchmark.tearDown();
+        }
+        mla_platform_free(g_mla_benchmark_memory_arena);
+        g_mla_benchmark_memory_arena = nullptr;
+        g_mla_benchmark_arena_mutex = nullptr;
+        mla_private_benchmark_print_memory_allocation_failed(benchmark, output_format);
+        return;
+    }
+
+    if (output_format == mla_test_output_format_text) {
+        mla_test_print("AAA|", 4);
+    } else if (output_format == mla_test_output_format_json) {
+        mla_test_print(",\n", 2);
+        mla_test_print("{\n", 2);
+        mla_test_print("  \"WithMemoryArena\": true,\n", 27);
+    }
 
     mla_benchmark_malloc_hook_original = g_low_level_access.malloc;
     g_low_level_access.malloc = mla_benchmark_malloc_in_arena_hook;
@@ -230,6 +259,22 @@ void mla_benchmark_run_in_arena_fixed_size(mla_benchmark_t &benchmark, mla_test_
     
     // Allocate array for timing measurements to calculate median
     mla_test_uint64_t* times = static_cast<mla_test_uint64_t *>(mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations));
+
+    if (times == nullptr) {
+        g_low_level_access.free = mla_benchmark_free_hook_original;
+        mla_benchmark_free_hook_original = nullptr;
+        g_low_level_access.malloc = mla_benchmark_malloc_hook_original;
+        mla_benchmark_malloc_hook_original = nullptr;
+        g_test_mutex.destroy_mutex(g_mla_benchmark_arena_mutex);
+        g_mla_benchmark_arena_mutex = nullptr;
+        if (benchmark.tearDown != nullptr) {
+            benchmark.tearDown();
+        }
+        mla_platform_free(g_mla_benchmark_memory_arena);
+        g_mla_benchmark_memory_arena = nullptr;
+        mla_private_benchmark_print_memory_allocation_failed(benchmark, output_format);
+        return;
+    }
     
     mla_test_uint32_t actualIterations = 0;
 
@@ -618,6 +663,14 @@ void mla_benchmark_run(mla_benchmark_t &benchmark, mla_test_output_format_t outp
     
     // Allocate array for timing measurements to calculate median
     mla_test_uint64_t* times = static_cast<mla_test_uint64_t*>(mla_test_malloc(sizeof(mla_test_uint64_t) * benchmarkIterations));
+
+    if (times == nullptr) {
+        if (benchmark.tearDown != nullptr) {
+            benchmark.tearDown();
+        }
+        mla_private_benchmark_print_memory_allocation_failed(benchmark, output_format);
+        return;
+    }
 
     for (mla_test_uint32_t i = 0; i < benchmarkIterations; ++i) {
         auto start = g_benchmark_timer.current_nanoseconds();

@@ -55,12 +55,24 @@ mla_bool_t mla_websocket_client_is_deflate_compression_supported(const mla_webso
     return client.supports_deflate_compression;
 }
 
+mla_bool_t mla_private_websocket_client_is_secure_scheme(const mla_url_t &url) {
+    return mla_string_equals_const(url.scheme, "wss");
+}
+
+mla_bool_t mla_private_websocket_client_is_supported_scheme(const mla_url_t &url) {
+    return mla_string_equals_const(url.scheme, "ws") || mla_private_websocket_client_is_secure_scheme(url);
+}
+
 mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const mla_string_t& url,
                                         mla_size_t timeout_ms, mla_bool_t supports_deflate_compression) {
 
     mla_url_t parsed_url = mla_url_empty();
 
     if (!mla_url_parse(url, parsed_url)) {
+        return false;
+    }
+
+    if (!mla_private_websocket_client_is_supported_scheme(parsed_url)) {
         return false;
     }
 
@@ -72,7 +84,17 @@ mla_bool_t mla_websocket_client_connect(mla_websocket_client_t &client, const ml
 
     // Create TCP connection
     mla_network_connection_t connection = mla_network_connection_disconnected();
-    if (!mla_network_connection_connect(connection, host, mla_connection_type_tcp, timeout_ms)) {
+
+    mla_network_security_config_t security_config = mla_network_security_config_none();
+
+    if (mla_private_websocket_client_is_secure_scheme(parsed_url)) {
+        mla_network_tls_config_t tls_config = mla_network_tls_config_default();
+        mla_network_tls_config_set_server_name(tls_config, parsed_url.host);
+        security_config = mla_network_security_config_tls(tls_config);
+    }
+
+    if (!mla_network_connection_connect_secure(connection, host, mla_connection_type_tcp, timeout_ms,
+                                               security_config)) {
         return false;
     }
 

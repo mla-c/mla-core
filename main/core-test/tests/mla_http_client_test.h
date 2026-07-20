@@ -287,6 +287,38 @@ void MockConnectFailureTest() {
     mla_http_client_response_destroy(response);
 }
 
+// Test: HTTPS uses secure transport and fails deterministically when TLS backend is unavailable
+void HttpsSecureTransportUnavailableTest() {
+
+    mla_http_client_t client = mla_http_client();
+    client.timeout_ms = 25;
+    client.resolve_host = mock_resolve_host_success;
+
+    mla_http_request_t request = mla_http_get_request(mla_string_const("https://example.com"));
+    mla_http_client_response_t response = mla_http_client_send_request(client, request);
+
+    assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED,
+                "HTTPS should fail with connection failed when secure transport is unavailable");
+    assert_true(!mla_string_is_empty(response.errorMessage),
+                "Should have error message for HTTPS secure transport failure");
+
+    mla_http_client_response_destroy(response);
+}
+
+// Test: Unsupported URL scheme
+void UnsupportedUrlSchemeTest() {
+
+    mla_http_client_t client = mla_http_client();
+
+    mla_http_request_t request = mla_http_get_request(mla_string_const("ftp://example.com"));
+    mla_http_client_response_t response = mla_http_client_send_request(client, request);
+
+    assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL,
+                "Unsupported scheme should fail with wrong protocol error");
+
+    mla_http_client_response_destroy(response);
+}
+
 // Test: Invalid URL parsing
 void InvalidUrlTest() {
 
@@ -392,6 +424,12 @@ void RegisterHttpClientTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("MockConnectFailure", test_category, MockConnectFailureTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("HttpsSecureTransportUnavailable", test_category, HttpsSecureTransportUnavailableTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("UnsupportedUrlScheme", test_category, UnsupportedUrlSchemeTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("InvalidUrl", test_category, InvalidUrlTest);
