@@ -55,7 +55,7 @@ mla_size_t mla_private_generic_std_read(mla_char_t* buffer, mla_size_t size) {
 
 void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* filename, const mla_char_t* function_name) {
 
-    // Use direct writes to stderr without formatting that might allocate
+    // Use direct writes to stdout without formatting that might allocate
     const char* prefix = "Memory allocation failed: ";
     const char* bytes_str = " bytes in ";
     const char* parenthesis_open = " (";
@@ -87,10 +87,28 @@ void mla_private_generic_on_malloc_failure(mla_size_t size, const mla_char_t* fi
 
     fwrite(size_buffer, 1, size_len, stdout);
     fwrite(bytes_str, 1, strlen(bytes_str), stdout);
-    fwrite(filename, 1, strlen(filename), stdout);
+    if (filename != nullptr) {
+        fwrite(filename, 1, strlen(filename), stdout);
+    }
     fwrite(parenthesis_open, 1, strlen(parenthesis_open), stdout);
-    fwrite(function_name, 1, strlen(function_name), stdout);
+    if (function_name != nullptr) {
+        fwrite(function_name, 1, strlen(function_name), stdout);
+    }
     fwrite(parenthesis_close, 1, strlen(parenthesis_close), stdout);
+
+    if (g_low_level_access.get_stack_trace != nullptr) {
+        const char* stack_prefix = "Stack trace:\n";
+        fwrite(stack_prefix, 1, strlen(stack_prefix), stdout);
+
+        mla_char_t stack_buf[4096];
+        const mla_size_t stack_len = g_low_level_access.get_stack_trace(stack_buf, sizeof(stack_buf));
+        if (stack_len > 0) {
+            fwrite(stack_buf, 1, stack_len, stdout);
+        } else {
+            const char* unavailable = "<stack trace unavailable>\n";
+            fwrite(unavailable, 1, strlen(unavailable), stdout);
+        }
+    }
 
     // Ensure output is flushed
     fflush(stdout);

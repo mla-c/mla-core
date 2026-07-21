@@ -72,6 +72,7 @@ bool mla_private_windows_is_internal_exception_frame(const char* name) {
         return false;
     }
     if (mla_strstr(name, "mla_private_windows_get_stack_trace") != nullptr ||
+        mla_strstr(name, "mla_private_generic_on_malloc_failure") != nullptr ||
         mla_strstr(name, "mla_private_windows_signal_handler") != nullptr ||
         mla_strstr(name, "mla_private_windows_unhandled_exception_filter") != nullptr ||
         mla_strstr(name, "KiUserExceptionDispatcher") != nullptr ||

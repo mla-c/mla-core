@@ -14,8 +14,6 @@
 #include "modules/main_app_main_window.h"
 #include "modules/main_app_background_task.h"
 
-#include <cstring>
-
 void mla_private_main_app_make_crash() {
     // NOLINTBEGIN(clang-analyzer-core.NullDereference, clang-diagnostic-null-dereference)
     volatile int* null_ptr = nullptr;
@@ -23,6 +21,9 @@ void mla_private_main_app_make_crash() {
     // NOLINTEND(clang-analyzer-core.NullDereference, clang-diagnostic-null-dereference)
 }
 
+void mla_private_main_app_make_malloc_fail() {
+    g_low_level_access.on_malloc_failure(1048576, "main_app.h", "mla_private_main_app_make_malloc_fail");
+}
 
 int run(int argc = 0, char** argv = nullptr) {
 
@@ -31,9 +32,12 @@ int run(int argc = 0, char** argv = nullptr) {
 
     if (argv != nullptr) {
         for (int i = 1; i < argc; ++i) {
-            if (argv[i] != nullptr && std::strcmp(argv[i], "crash") == 0) {
+            if (argv[i] != nullptr && mla_strstr(argv[i], "crash") != nullptr) {
                 mla_info("Crash argument detected! Triggering segmentation fault...");
                 mla_private_main_app_make_crash();
+            } else if (argv[i] != nullptr && mla_strstr(argv[i], "malloc_fail") != nullptr) {
+                mla_info("Malloc_fail argument detected! Triggering malloc failure handler...");
+                mla_private_main_app_make_malloc_fail();
             }
         }
     }
