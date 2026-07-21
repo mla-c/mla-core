@@ -374,6 +374,9 @@ typedef struct mla_low_level_operations_t {
     void (*sleep)(mla_uint32_t milliseconds);
     mla_uint64_t (*system_time_ms)(); // System time in milliseconds
 
+    // Stacktrace handling (Optional. If Platform does not support it, set to null)
+    mla_size_t (*get_stack_trace)(mla_char_t* buffer, mla_size_t buffer_size);
+
 } mla_low_level_operations_t;
 
 // Global variable to hold the low-level memory operations

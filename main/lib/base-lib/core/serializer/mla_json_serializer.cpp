@@ -444,7 +444,7 @@ mla_bool_t mla_private_json_deserializer_read_string_data(mla_deserializer_t &in
         }
 
         if (charBuffer[position] < 0x20) {
-            mla_error("Control character in string")
+            mla_error("Control character in string");
             return false;
         }
 
@@ -495,7 +495,7 @@ mla_bool_t mla_private_json_deserializer_read_string_data(mla_deserializer_t &in
                         } else if (hex_digit >= 'A' && hex_digit <= 'F') {
                             unicode_val |= (hex_digit - 'A' + 10);
                         } else {
-                            mla_error("Invalid Unicode escape sequence")
+                            mla_error("Invalid Unicode escape sequence");
                             return false;
                         }
                     }
@@ -511,7 +511,7 @@ mla_bool_t mla_private_json_deserializer_read_string_data(mla_deserializer_t &in
 
                         // Check if the next sequence is \uXXXX
                         if (next_chars[0] != '\\' || next_chars[1] != 'u') {
-                            mla_error("Expected low surrogate pair after high surrogate")
+                            mla_error("Expected low surrogate pair after high surrogate");
                             return false;
                         }
 
@@ -528,14 +528,14 @@ mla_bool_t mla_private_json_deserializer_read_string_data(mla_deserializer_t &in
                             } else if (hex_digit >= 'A' && hex_digit <= 'F') {
                                 low_surrogate |= (hex_digit - 'A' + 10);
                             } else {
-                                mla_error("Invalid Unicode escape sequence in low surrogate")
+                                mla_error("Invalid Unicode escape sequence in low surrogate");
                                 return false;
                             }
                         }
 
                         // Validate low surrogate
                         if (low_surrogate < 0xDC00 || low_surrogate > 0xDFFF) {
-                            mla_error("Invalid low surrogate value")
+                            mla_error("Invalid low surrogate value");
                             return false;
                         }
 
@@ -592,7 +592,7 @@ mla_bool_t mla_private_json_deserializer_read_string_data(mla_deserializer_t &in
                     break;
                 }
                 default:
-                    mla_error("Invalid Unicode escape sequence")
+                    mla_error("Invalid Unicode escape sequence");
                     return false;
             }
         } else {
@@ -830,7 +830,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                     instance.current_token.simple.bool_value = true;
                     return true;
                 }
-                mla_error("Expected 'true'")
+                mla_error("Expected 'true'");
                 return false;
 
             case 'f':
@@ -840,7 +840,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                     instance.current_token.simple.bool_value = false;
                     return true;
                 }
-                mla_error("Expected 'false'")
+                mla_error("Expected 'false'");
                 return false;
 
             case 'n':
@@ -849,7 +849,7 @@ mla_bool_t mla_json_deserializer_read_read_next(mla_deserializer_t &instance) {
                     instance.current_token.type = MLA_DESERIALIZER_NULL;
                     return true;
                 }
-                mla_error("Expected 'null'")
+                mla_error("Expected 'null'");
                 return false;
 
             case '-':

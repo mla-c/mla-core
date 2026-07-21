@@ -153,6 +153,7 @@ if(WIN32)
     target_link_libraries(MLA_C_Test_Windows_Single_Thread PRIVATE
             ws2_32
             Iphlpapi
+            dbghelp
             # ... other libraries
     )
     configure_zlib_for_target(MLA_C_Test_Windows_Single_Thread)
@@ -172,6 +173,7 @@ if(WIN32)
     target_link_libraries(MLA_C_Test_Windows_Multi_Thread PRIVATE
             ws2_32
             Iphlpapi
+            dbghelp
             # ... other libraries
     )
     configure_zlib_for_target(MLA_C_Test_Windows_Multi_Thread)
@@ -189,6 +191,7 @@ if(WIN32)
     target_link_libraries(MLA_C_App_Windows PRIVATE
             ws2_32
             Iphlpapi
+            dbghelp
 
             # For openGL
             #opengl32

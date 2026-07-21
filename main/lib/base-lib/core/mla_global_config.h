@@ -23,9 +23,24 @@
 #define mla_global_config_data_type_use_typedefs 1
 #endif
 
+/**
+ * @brief Flag to determine whether to use C-style casts for data type conversions.
+ * If set to 1, the framework will use C-style casts (e.g., `(mla_int32_t)42`).
+ * If set to 0, it will use mla-style casts (e.g., `mla_c_cast<mla_int32_t>(42)`).
+ */
 #ifndef mla_global_config_data_type_use_c_style_casts
 #define mla_global_config_data_type_use_c_style_casts 0
 #endif
+
+
+/////////////////////////////////////////////////
+/// Stacktrace Configuration
+/////////////////////////////////////////////////
+
+#ifndef mla_global_config_stack_trace_max_size
+#define mla_global_config_stack_trace_max_size 1024
+#endif
+
 
 /////////////////////////////////////////////////
 // Logger Configuration
