@@ -184,7 +184,8 @@ mla_low_level_operations_t g_low_level_access = {
     mla_private_wasm_standalone_strtoll,
     mla_private_wasm_standalone_strtoull,
     mla_private_wasm_standalone_sleep,
-    mla_private_wasm_standalone_system_time_ms
+    mla_private_wasm_standalone_system_time_ms,
+    nullptr
 };
 
 void mla_boot_os_application() {

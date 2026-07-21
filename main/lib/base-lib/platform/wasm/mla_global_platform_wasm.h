@@ -41,7 +41,8 @@ mla_low_level_operations_t g_low_level_access ={
     mla_private_generic_strtoll,
     mla_private_generic_strtoull,
     mla_private_wasm_sleep,
-    mla_private_wasm_system_time_ms
+    mla_private_wasm_system_time_ms,
+    nullptr
 };
 
 

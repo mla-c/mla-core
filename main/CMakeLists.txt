@@ -48,7 +48,7 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
             ${SOURCE_TEST_FILES}
     )
     add_executable(MLA_C_Test_Linux_Single_Thread ${SOURCE_FILES_LINUX_SINGLE_THREAD})
-    target_link_libraries(MLA_C_Test_Linux_Single_Thread)
+    target_link_libraries(MLA_C_Test_Linux_Single_Thread PRIVATE ${CMAKE_DL_LIBS})
     configure_zlib_for_target(MLA_C_Test_Linux_Single_Thread)
 
     ## LINUX TEST MULTI THREAD
@@ -63,7 +63,7 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
     )
     add_executable(MLA_C_Test_Linux_Multi_Thread ${SOURCE_FILES_LINUX_MULTI_THREAD})
     mla_enable_clang_tidy(MLA_C_Test_Linux_Multi_Thread)
-    target_link_libraries(MLA_C_Test_Linux_Multi_Thread)
+    target_link_libraries(MLA_C_Test_Linux_Multi_Thread PRIVATE ${CMAKE_DL_LIBS})
     configure_zlib_for_target(MLA_C_Test_Linux_Multi_Thread)
 
     ## APP
@@ -75,7 +75,7 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
             ${SOURCE_UI_FILES}
     )
     add_executable(MLA_C_App_Linux ${SOURCE_FILES_LINUX_APP})
-    target_link_libraries(MLA_C_App_Linux)
+    target_link_libraries(MLA_C_App_Linux PRIVATE ${CMAKE_DL_LIBS})
 
 endif()
 

@@ -14,6 +14,11 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <execinfo.h>
+#include <cxxabi.h>
+#include <dlfcn.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #if mla_use_fast_float == 1
 
@@ -89,6 +94,102 @@ mla_size_t mla_private_linux_std_read(mla_char_t* buffer, mla_size_t size) {
     return count;
 }
 
+bool mla_private_linux_is_internal_exception_frame(const char* name) {
+    if (name == nullptr) {
+        return false;
+    }
+    if (mla_strstr(name, "mla_private_linux_get_stack_trace") != nullptr ||
+        mla_strstr(name, "mla_private_generic_on_malloc_failure") != nullptr ||
+        mla_strstr(name, "mla_private_linux_signal_handler") != nullptr ||
+        mla_strstr(name, "__restore_rt") != nullptr ||
+        mla_strstr(name, "backtrace") != nullptr) {
+        return true;
+    }
+    return false;
+}
+
+mla_size_t mla_private_linux_get_stack_trace(mla_char_t* buffer, mla_size_t buffer_size) {
+
+    if (buffer == nullptr || buffer_size == 0) {
+        return 0;
+    }
+
+    buffer[0] = '\0';
+
+    constexpr int max_frames = 64;
+    void* frames[max_frames];
+    const int frame_count = backtrace(frames, max_frames);
+    if (frame_count <= 0) {
+        return 0;
+    }
+
+    bool skipping_internal_frames = true;
+    unsigned int user_frame_index = 0;
+    mla_size_t written = 0;
+
+    for (int frame_index = 0; frame_index < frame_count && written < buffer_size - 1; ++frame_index) {
+        void* addr = frames[frame_index];
+        Dl_info info;
+        const char* symbol_name = nullptr;
+        char demangled_buf[1024];
+        char line[1024];
+        int line_length = 0;
+        unsigned long long offset = 0;
+
+        if (dladdr(addr, &info) != 0 && info.dli_sname != nullptr) {
+            symbol_name = info.dli_sname;
+            offset = mla_s_cast<unsigned long long>(mla_r_cast<uintptr_t>(addr) - mla_r_cast<uintptr_t>(info.dli_saddr));
+
+            int status = -1;
+            char* demangled = abi::__cxa_demangle(symbol_name, demangled_buf, nullptr, &status);
+            if (status == 0 && demangled != nullptr) {
+                symbol_name = demangled;
+            }
+        }
+
+        if (skipping_internal_frames) {
+            if (symbol_name != nullptr && mla_private_linux_is_internal_exception_frame(symbol_name)) {
+                continue;
+            }
+            skipping_internal_frames = false;
+        }
+
+        if (symbol_name != nullptr) {
+            line_length = snprintf(
+                line,
+                sizeof(line),
+                "#%u %s + 0x%llx\n",
+                user_frame_index,
+                symbol_name,
+                offset);
+        } else {
+            line_length = snprintf(
+                line,
+                sizeof(line),
+                "#%u 0x%llx\n",
+                user_frame_index,
+                mla_s_cast<unsigned long long>(mla_r_cast<uintptr_t>(addr)));
+        }
+
+        if (line_length <= 0) {
+            continue;
+        }
+
+        mla_size_t copy_length = mla_s_cast<mla_size_t>(line_length);
+        const mla_size_t remaining = buffer_size - 1 - written;
+        if (copy_length > remaining) {
+            copy_length = remaining;
+        }
+
+        mla_private_generic_memcpy(buffer + written, line, copy_length);
+        written += copy_length;
+        buffer[written] = '\0';
+        user_frame_index++;
+    }
+
+    return written;
+}
+
 // Initialize low-level memory operations with default implementations
 mla_low_level_operations_t g_low_level_access ={
     mla_private_generic_memcpy,
@@ -106,16 +207,66 @@ mla_low_level_operations_t g_low_level_access ={
         mla_platform_strtoll,
         mla_platform_strtoull,
     mla_private_linux_sleep,
-    mla_private_linux_system_time_ms
+    mla_private_linux_system_time_ms,
+    mla_private_linux_get_stack_trace
 };
 
+// NOLINTBEGIN(bugprone-signal-handler)
+extern "C" void mla_private_linux_signal_handler(int sig, siginfo_t* info, void* ucontext) {
+    (void)ucontext;
+
+    const char* sig_name = nullptr;
+    switch (sig) {
+        case SIGSEGV: sig_name = "SIGSEGV (Segmentation Fault)"; break;
+        case SIGABRT: sig_name = "SIGABRT (Abort)"; break;
+        case SIGFPE: sig_name = "SIGFPE (Floating Point Exception)"; break;
+        case SIGILL: sig_name = "SIGILL (Illegal Instruction)"; break;
+        case SIGBUS: sig_name = "SIGBUS (Bus Error)"; break;
+        default: sig_name = "Unknown Signal"; break;
+    }
+
+    const void* fault_addr = (info != nullptr) ? info->si_addr : nullptr;
+
+    fprintf(stderr, "\n=================================================================\n");
+    fprintf(stderr, "[MLA CRASH HANDLER] Signal Caught!\n");
+    fprintf(stderr, "Signal: %d (%s)\n", sig, sig_name);
+    fprintf(stderr, "Fault Address: 0x%p\n", fault_addr);
+    fprintf(stderr, "=================================================================\n");
+    fprintf(stderr, "Stack Trace:\n");
+
+    mla_char_t stack_buf[4096];
+    mla_private_linux_get_stack_trace(stack_buf, sizeof(stack_buf));
+    if (stack_buf[0] != '\0') {
+        fprintf(stderr, "%s", stack_buf);
+    } else {
+        fprintf(stderr, "<stack trace unavailable>\n");
+    }
+    fprintf(stderr, "=================================================================\n");
+    fflush(stderr);
+
+    struct sigaction sa;
+    sa.sa_handler = SIG_DFL;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(sig, &sa, nullptr);
+    raise(sig);
+}
 
 void mla_boot_os_application() {
-    // This function can be used to perform any additional bootstrapping
-    // required for the OS application, such as initializing logging or other subsystems.
+    struct sigaction sa;
+    sa.sa_sigaction = mla_private_linux_signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_SIGINFO;
+
+    sigaction(SIGSEGV, &sa, nullptr);
+    sigaction(SIGABRT, &sa, nullptr);
+    sigaction(SIGFPE, &sa, nullptr);
+    sigaction(SIGILL, &sa, nullptr);
+    sigaction(SIGBUS, &sa, nullptr);
 
     // Finish boot
     mla_lifecycle_fire_boot_events();
 }
+// NOLINTEND(bugprone-signal-handler)
 
 #endif

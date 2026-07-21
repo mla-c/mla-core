@@ -39,6 +39,8 @@ mla_low_level_operations_t g_low_level_access {
         mla_private_generic_strtoll,
         mla_private_generic_strtoull,
         mla_private_esp8266_sleep,
+        nullptr,
+        nullptr
     };
 
 void mla_boot_os_application() {
