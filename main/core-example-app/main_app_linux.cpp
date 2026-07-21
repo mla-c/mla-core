@@ -11,9 +11,9 @@
 
 #include "main_app.h"
 
-int main()
+int main(int argc, char** argv)
 {
 
     mla_boot_os_application();
-    return run();
+    return run(argc, argv);
 }

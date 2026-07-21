@@ -14,10 +14,29 @@
 #include "modules/main_app_main_window.h"
 #include "modules/main_app_background_task.h"
 
-int run() {
+#include <cstring>
+
+void mla_private_main_app_make_crash() {
+    // NOLINTBEGIN(clang-analyzer-core.NullDereference, clang-diagnostic-null-dereference)
+    volatile int* null_ptr = nullptr;
+    *null_ptr = 42;
+    // NOLINTEND(clang-analyzer-core.NullDereference, clang-diagnostic-null-dereference)
+}
+
+
+int run(int argc = 0, char** argv = nullptr) {
 
     // Low Level Setup
     mla_log_to_console_activate();
+
+    if (argv != nullptr) {
+        for (int i = 1; i < argc; ++i) {
+            if (argv[i] != nullptr && std::strcmp(argv[i], "crash") == 0) {
+                mla_info("Crash argument detected! Triggering segmentation fault...");
+                mla_private_main_app_make_crash();
+            }
+        }
+    }
 
     mla_info("Starting Test Application...");
     mla_info("Test Application started successfully!");
