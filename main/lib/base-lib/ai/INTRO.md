@@ -1,8 +1,3 @@
----
-name: 'mla-c-framework-rules'
-description: 'Core coding rules and architectural guidelines for the MLA-C framework'
----
-
 # MLA-C Framework Project Rules & Information
 
 You are working in the `mla-core/main` repository, which contains the `mla-c` framework's `base-lib`. This is a specialized C++ framework designed with strict coding conventions.
@@ -22,4 +17,4 @@ You are working in the `mla-core/main` repository, which contains the `mla-c` fr
 6. **Testing & Definition of Done**: Any behavior change or feature needs tests. As an explicit **Definition of Done**, at the end of every task, ALL unit tests (`./run_all_tests.sh`) and ALL benchmarks (`./run_all_benchmarks.sh`) MUST be executed and pass successfully across all supported compiler toolchains before declaring completion.
 
 ## Detailed Instructions / Skills
-Detailed instructions about specific framework modules (array lists, strings, memory, networking, tests, etc.) have been converted into Antigravity skills and are available under the `.gemini/skills/` directory. The AI assistant can consult these dynamically based on the task.
+Detailed instructions about framework modules (array lists, strings, memory, networking, tests, etc.) are available as skills.
