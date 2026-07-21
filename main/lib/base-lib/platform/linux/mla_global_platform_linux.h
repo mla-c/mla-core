@@ -20,6 +20,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include <string.h>
+#include <elf.h>
+
 #if mla_use_fast_float == 1
 
 // Using fast-float library for optimized float parsing
@@ -108,6 +111,141 @@ bool mla_private_linux_is_internal_exception_frame(const char* name) {
     return false;
 }
 
+inline bool mla_private_linux_resolve_elf_symbol(const char* binary_path, uintptr_t relative_addr, char* out_func, size_t func_size) {
+    if (out_func == nullptr || func_size == 0) {
+        return false;
+    }
+    out_func[0] = '\0';
+
+    if (binary_path == nullptr || binary_path[0] == '\0') {
+        binary_path = "/proc/self/exe";
+    }
+
+    int fd = open(binary_path, O_RDONLY);
+    if (fd < 0) {
+        return false;
+    }
+
+    Elf64_Ehdr ehdr;
+    if (read(fd, &ehdr, sizeof(ehdr)) != mla_s_cast<ssize_t>(sizeof(ehdr))) {
+        close(fd);
+        return false;
+    }
+
+    if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
+        ehdr.e_ident[EI_MAG2] != ELFMAG2 || ehdr.e_ident[EI_MAG3] != ELFMAG3) {
+        close(fd);
+        return false;
+    }
+
+    if (ehdr.e_shoff == 0 || ehdr.e_shentsize != sizeof(Elf64_Shdr)) {
+        close(fd);
+        return false;
+    }
+
+    const size_t shdr_size = ehdr.e_shnum * sizeof(Elf64_Shdr);
+    Elf64_Shdr* shdrs = mla_r_cast<Elf64_Shdr*>(malloc(shdr_size));
+    if (shdrs == nullptr) {
+        close(fd);
+        return false;
+    }
+
+    if (lseek(fd, mla_s_cast<off_t>(ehdr.e_shoff), SEEK_SET) < 0 ||
+        read(fd, shdrs, shdr_size) != mla_s_cast<ssize_t>(shdr_size)) {
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    const Elf64_Shdr* symtab_sh = nullptr;
+    const Elf64_Shdr* strtab_sh = nullptr;
+
+    for (uint16_t i = 0; i < ehdr.e_shnum; ++i) {
+        if (shdrs[i].sh_type == SHT_SYMTAB) {
+            symtab_sh = &shdrs[i];
+            if (symtab_sh->sh_link < ehdr.e_shnum) {
+                strtab_sh = &shdrs[symtab_sh->sh_link];
+            }
+            break;
+        }
+    }
+
+    if (symtab_sh == nullptr || strtab_sh == nullptr || symtab_sh->sh_entsize != sizeof(Elf64_Sym)) {
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    Elf64_Sym* syms = mla_r_cast<Elf64_Sym*>(malloc(symtab_sh->sh_size));
+    if (syms == nullptr) {
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    if (lseek(fd, mla_s_cast<off_t>(symtab_sh->sh_offset), SEEK_SET) < 0 ||
+        read(fd, syms, symtab_sh->sh_size) != mla_s_cast<ssize_t>(symtab_sh->sh_size)) {
+        free(syms);
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    char* strtab = mla_r_cast<char*>(malloc(strtab_sh->sh_size));
+    if (strtab == nullptr) {
+        free(syms);
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    if (lseek(fd, mla_s_cast<off_t>(strtab_sh->sh_offset), SEEK_SET) < 0 ||
+        read(fd, strtab, strtab_sh->sh_size) != mla_s_cast<ssize_t>(strtab_sh->sh_size)) {
+        free(strtab);
+        free(syms);
+        free(shdrs);
+        close(fd);
+        return false;
+    }
+
+    const size_t num_syms = symtab_sh->sh_size / sizeof(Elf64_Sym);
+    const char* matched_name = nullptr;
+
+    for (size_t i = 0; i < num_syms; ++i) {
+        const uint8_t type = ELF64_ST_TYPE(syms[i].st_info);
+        if (type == STT_FUNC || type == STT_NOTYPE) {
+            if (syms[i].st_value != 0 && syms[i].st_name < strtab_sh->sh_size) {
+                const uintptr_t start = mla_s_cast<uintptr_t>(syms[i].st_value);
+                const uintptr_t end = start + (syms[i].st_size > 0 ? mla_s_cast<uintptr_t>(syms[i].st_size) : 1);
+                if (relative_addr >= start && relative_addr < end) {
+                    matched_name = strtab + syms[i].st_name;
+                    break;
+                }
+            }
+        }
+    }
+
+    bool found = false;
+    if (matched_name != nullptr && matched_name[0] != '\0') {
+        int status = -1;
+        char demangled_buf[1024];
+        size_t demangled_len = sizeof(demangled_buf);
+        char* demangled = abi::__cxa_demangle(matched_name, demangled_buf, &demangled_len, &status);
+        if (status == 0 && demangled != nullptr) {
+            snprintf(out_func, func_size, "%s", demangled);
+        } else {
+            snprintf(out_func, func_size, "%s", matched_name);
+        }
+        found = true;
+    }
+
+    free(strtab);
+    free(syms);
+    free(shdrs);
+    close(fd);
+    return found;
+}
+
 mla_size_t mla_private_linux_get_stack_trace(mla_char_t* buffer, mla_size_t buffer_size) {
 
     if (buffer == nullptr || buffer_size == 0) {
@@ -132,18 +270,28 @@ mla_size_t mla_private_linux_get_stack_trace(mla_char_t* buffer, mla_size_t buff
         Dl_info info;
         const char* symbol_name = nullptr;
         char demangled_buf[1024];
+        char elf_func_buf[512] = {0};
         char line[1024];
         int line_length = 0;
         unsigned long long offset = 0;
 
-        if (dladdr(addr, &info) != 0 && info.dli_sname != nullptr) {
-            symbol_name = info.dli_sname;
-            offset = mla_s_cast<unsigned long long>(mla_r_cast<uintptr_t>(addr) - mla_r_cast<uintptr_t>(info.dli_saddr));
+        if (dladdr(addr, &info) != 0) {
+            if (info.dli_sname != nullptr) {
+                symbol_name = info.dli_sname;
+                offset = mla_s_cast<unsigned long long>(mla_r_cast<uintptr_t>(addr) - mla_r_cast<uintptr_t>(info.dli_saddr));
 
-            int status = -1;
-            char* demangled = abi::__cxa_demangle(symbol_name, demangled_buf, nullptr, &status);
-            if (status == 0 && demangled != nullptr) {
-                symbol_name = demangled;
+                int status = -1;
+                char* demangled = abi::__cxa_demangle(symbol_name, demangled_buf, nullptr, &status);
+                if (status == 0 && demangled != nullptr) {
+                    symbol_name = demangled;
+                }
+            } else if (info.dli_fbase != nullptr) {
+                uintptr_t rel_addr = mla_r_cast<uintptr_t>(addr) - mla_r_cast<uintptr_t>(info.dli_fbase);
+                const char* target_path = (info.dli_fname != nullptr && info.dli_fname[0] != '\0') ? info.dli_fname : "/proc/self/exe";
+                if (mla_private_linux_resolve_elf_symbol(target_path, rel_addr, elf_func_buf, sizeof(elf_func_buf))) {
+                    symbol_name = elf_func_buf;
+                    offset = mla_s_cast<unsigned long long>(rel_addr);
+                }
             }
         }
 
