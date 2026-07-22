@@ -41,6 +41,9 @@ mla_string_t mla_private_file_system_native_file_path_to_full_path(mla_file_syst
     mla_string_t correctedPath = mla_string_replace(path, mla_string_const("\\"), mla_linux_fs_directory_seperator);
 
     if (mla_string_length(fs->basePath) == 0) {
+        if (!mla_string_starts_with(correctedPath, mla_linux_fs_directory_seperator)) {
+            return mla_string_concat(mla_linux_fs_directory_seperator, correctedPath);
+        }
         return correctedPath;
     }
 
