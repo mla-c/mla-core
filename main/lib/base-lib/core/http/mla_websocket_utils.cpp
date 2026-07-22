@@ -608,9 +608,11 @@ mla_websocket_transport_message_receive_type_t mla_websocket_transport_receive_m
     mla_memory_stream_t payload_data = mla_memory_stream_empty();
     do {
 
-        // At the first call we dont wait for any timeouts we just look if there is something
-        if (!mla_private_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, 0)) {
-            return MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE;
+        // Wait for the beginning of a frame for the requested receive window.
+        if (!mla_private_websocket_client_read(input, sizeof(mla_uint8_t), &fin_and_opcode, timeout_ms)) {
+            return timeout_ms == 0
+                ? MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE
+                : MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT;
         }
 
         is_final_frame = (fin_and_opcode & mla_websocket_fin_bit) != 0;

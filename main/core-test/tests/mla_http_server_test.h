@@ -433,6 +433,126 @@ inline void WssClientConnectWithoutTlsBackendTest() {
                  "WSS client should remain disconnected after failed secure connect");
 }
 
+// Proxy test ports (separate from test_server_host on 41258 to avoid TIME_WAIT conflicts)
+static mla_network_host_t proxy_test_proxy_host    = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41270);
+static mla_string_t       proxy_test_proxy_url     = mla_string_const("http://127.0.0.1:41270");
+static mla_string_t       proxy_test_proxy_url_ws  = mla_string_const("ws://127.0.0.1:41270");
+static mla_network_host_t proxy_test_target_host   = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41271);
+static mla_string_t       proxy_test_target_url    = mla_string_const("http://127.0.0.1:41271");
+
+static mla_network_host_t subdomain_proxy_host     = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41272);
+static mla_string_t       subdomain_proxy_url      = mla_string_const("http://127.0.0.1:41272");
+static mla_network_host_t subdomain_target_host    = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41273);
+static mla_string_t       subdomain_target_url     = mla_string_const("http://127.0.0.1:41273");
+
+static mla_network_host_t ws_proxy_host            = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41274);
+static mla_string_t       ws_proxy_url             = mla_string_const("http://127.0.0.1:41274");
+static mla_string_t       ws_proxy_url_ws          = mla_string_const("ws://127.0.0.1:41274");
+static mla_network_host_t ws_target_host           = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41275);
+static mla_string_t       ws_target_url            = mla_string_const("http://127.0.0.1:41275");
+
+inline mla_bool_t proxy_target_response_handler(mla_http_server_t& http_server, const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_response_t &response) {
+    (void)http_server; (void)userdata; (void)request;
+    response.statusCode = mla_http_status_ok;
+    response.statusMessage = mla_string_const("OK");
+    return true;
+}
+
+inline void HttpServerProxyTest() {
+    // 1. Target Server on 41271
+    mla_http_server_t target_server = mla_http_server(proxy_test_target_host);
+    mla_user_data_t target_ud = mla_user_data_empty();
+    mla_http_server_handler_item_t target_item = mla_http_server_handler_all(mla_string_empty(), target_ud, proxy_target_response_handler);
+    assert_true(mla_http_server_register_handler(target_server, target_item), "Should register target handler");
+    assert_true(mla_http_server_start(target_server, 1), "Should start target server");
+
+    // 2. Proxy Server on 41270
+    mla_http_server_t proxy_server = mla_http_server(proxy_test_proxy_host);
+    assert_true(mla_http_server_register_proxy(proxy_server, mla_string_const("/proxy/"), proxy_test_target_url), "Should register proxy handler");
+    assert_true(mla_http_server_start(proxy_server, 1), "Should start proxy server");
+
+    // 3. Client request to proxy server
+    mla_http_request_t request = mla_http_get_request(mla_string_concat(proxy_test_proxy_url, mla_string_const("/proxy/test")));
+    mla_http_client_t client = mla_http_client();
+    mla_http_client_set_timeout(client, 2000);
+
+    mla_http_client_response_t response = mla_http_client_send_request(client, request);
+    assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK, "Proxy request should succeed");
+    assert_equal(response.response.statusCode, mla_http_status_ok, "Proxy response should be 200 OK");
+
+    mla_http_server_stop(proxy_server);
+    mla_http_server_stop(target_server);
+    proxy_server = mla_http_server_invalid();
+    target_server = mla_http_server_invalid();
+}
+
+inline void HttpServerHostSubdomainProxyTest() {
+    // 1. Target Server on 41273 (unique port to avoid TIME_WAIT from HttpServerProxyTest)
+    mla_http_server_t target_server = mla_http_server(subdomain_target_host);
+    mla_user_data_t target_ud = mla_user_data_empty();
+    mla_http_server_handler_item_t target_item = mla_http_server_handler_all(mla_string_empty(), target_ud, proxy_target_response_handler);
+    assert_true(mla_http_server_register_handler(target_server, target_item), "Should register target handler");
+    assert_true(mla_http_server_start(target_server, 1), "Should start target server");
+
+    // 2. Proxy Server on 41272 matching exact host "127.0.0.1" (as sent by the HTTP client from the URL)
+    //    This tests that the virtual_host_pattern matching correctly routes based on Host header.
+    mla_http_server_t proxy_server = mla_http_server(subdomain_proxy_host);
+    assert_true(mla_http_server_register_proxy(proxy_server, mla_string_const("127.0.0.1"), mla_string_const("/api/"), subdomain_target_url), "Should register host proxy handler");
+    assert_true(mla_http_server_start(proxy_server, 1), "Should start proxy server");
+
+    // 3. Client request - the HTTP client automatically sets Host: 127.0.0.1 from the URL
+    mla_http_request_t request = mla_http_get_request(mla_string_concat(subdomain_proxy_url, mla_string_const("/api/resource")));
+    mla_http_client_t client = mla_http_client();
+    mla_http_client_set_timeout(client, 2000);
+
+    mla_http_client_response_t response = mla_http_client_send_request(client, request);
+    assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_OK, "Host proxy request should succeed");
+    assert_equal(response.response.statusCode, mla_http_status_ok, "Host proxy response should be 200 OK");
+
+    mla_http_server_stop(proxy_server);
+    mla_http_server_stop(target_server);
+    proxy_server = mla_http_server_invalid();
+    target_server = mla_http_server_invalid();
+}
+
+inline void WebSocketServerProxyTest() {
+    // 1. Target WS Echo Server on 41275 (unique port to avoid TIME_WAIT conflicts)
+    mla_http_server_t target_server = mla_http_server(ws_target_host);
+    mla_http_server_websocket_handler_item_t ws_handler = mla_http_server_websocket_handler_path_equals(
+        mla_string_const("/echo"), mla_websocket_echo_handler, mla_websocket_binary_echo_handler);
+    assert_true(mla_http_server_register_websocket_handler(target_server, ws_handler), "Should register target WS handler");
+    assert_true(mla_http_server_start(target_server, 1), "Should start target WS server");
+
+    // 2. Proxy WS Server on 41274
+    mla_http_server_t proxy_server = mla_http_server(ws_proxy_host);
+    assert_true(mla_http_server_register_proxy(proxy_server, mla_string_const("/ws/"), ws_target_url), "Should register WS proxy handler");
+    assert_true(mla_http_server_start(proxy_server, 1), "Should start proxy WS server");
+
+    // 3. Connect WS Client to Proxy
+    mla_websocket_client_t client = mla_websocket_client_invalid();
+    mla_string_t ws_conn_url = mla_string_concat(ws_proxy_url_ws, mla_string_const("/ws/echo"));
+    assert_true(mla_websocket_client_connect(client, ws_conn_url, 2000, false), "Should connect WS client to proxy");
+
+    if (mla_websocket_client_is_connected(client)) {
+        mla_string_t msg = mla_string_const("hello_proxy_ws");
+        assert_true(mla_websocket_client_send_text_message(client, msg), "Should send text message through WS proxy");
+
+        mla_websocket_text_message_t text_rx = mla_websocket_text_message_empty();
+        mla_websocket_binary_message_t bin_rx = mla_websocket_binary_message_empty();
+        // Use a longer timeout to give the upstream forwarding task time to relay the echo
+        mla_websocket_client_message_receive_type_t rx_type = mla_websocket_client_receive_message(client, 5000, text_rx, bin_rx);
+
+        assert_equal(rx_type, MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT, "Should receive echo text message through proxy");
+        assert_true(mla_string_equals(text_rx.message, msg), "Echoed WS message should match sent text");
+
+        mla_websocket_client_disconnect(client);
+    }
+
+    mla_http_server_stop(proxy_server);
+    mla_http_server_stop(target_server);
+    proxy_server = mla_http_server_invalid();
+    target_server = mla_http_server_invalid();
+}
 
 void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
     // Only run HTTP server tests in native multi-tasking environments
@@ -457,6 +577,15 @@ void RegisterHttpServerTests(mla_test_executor_t &p_TestExecutor) {
         mla_test_executor_register_test(p_TestExecutor, test);
 
         test = mla_test("WssClientConnectWithoutTlsBackend", test_category, WssClientConnectWithoutTlsBackendTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("HttpServerProxy", test_category, HttpServerProxyTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("HttpServerHostSubdomainProxy", test_category, HttpServerHostSubdomainProxyTest);
+        mla_test_executor_register_test(p_TestExecutor, test);
+
+        test = mla_test("WebSocketServerProxy", test_category, WebSocketServerProxyTest);
         mla_test_executor_register_test(p_TestExecutor, test);
     }
 }

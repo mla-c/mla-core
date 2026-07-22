@@ -218,6 +218,7 @@ mla_bool_t mla_private_http_client_send_body(mla_http_client_response_t& respons
         return false;
     }
 
+    mla_stream_output_flush_buffered_wrapper(connection);
     return true;
 }
 

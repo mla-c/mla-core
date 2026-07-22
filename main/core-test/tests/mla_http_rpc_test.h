@@ -10,8 +10,17 @@
 #include "../../lib/base-lib/core/rpc/mla_rpc_http_client.h"
 #include "../../lib/base-lib/test-support/mla_test_executor.h"
 
-static mla_network_host_t rpc_test_server_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41258);
-static mla_string_t rpc_test_server_url = mla_string_const("http://127.0.0.1:41258");
+static mla_network_host_t rpc_test_binary_host       = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41290);
+static mla_string_t       rpc_test_binary_url        = mla_string_const("http://127.0.0.1:41290");
+
+static mla_network_host_t rpc_test_json_host         = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41281);
+static mla_string_t       rpc_test_json_url          = mla_string_const("http://127.0.0.1:41281");
+
+static mla_network_host_t rpc_test_large_binary_host = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41282);
+static mla_string_t       rpc_test_large_binary_url  = mla_string_const("http://127.0.0.1:41282");
+
+static mla_network_host_t rpc_test_large_json_host   = mla_network_host_ip4(mla_string_const("127.0.0.1"), 41283);
+static mla_string_t       rpc_test_large_json_url    = mla_string_const("http://127.0.0.1:41283");
 
 struct my_http_rpc_test_large_data_t {
     mla_string_t large_string;
@@ -83,7 +92,6 @@ struct my_http_rpc_test_input_t {
         } else {
             return MLA_DESERIALIZER_READ_SKIPPED;
         }
-
     }
 
     static mla_reflection_struct_metadata_t metadata() {
@@ -148,7 +156,7 @@ mla_bool_t my_http_rpc_test_large_procedure_handler(const my_http_rpc_test_large
 }
 
 #define mla_http_rpc_procedure_math_sum_name "http/math/sum"
-#define mla_http_rpc_procedure_math_sum_signature my_rpc_test_input_t, my_rpc_test_output_t
+#define mla_http_rpc_procedure_math_sum_signature my_http_rpc_test_input_t, my_http_rpc_test_output_t
 mla_rpc_auto_register_procedure(mla_http_rpc_procedure_math_sum_name, my_http_rpc_test_input_t, my_http_rpc_test_output_t, my_http_rpc_test_procedure_handler)
 
 #define mla_http_rpc_procedure_large_ping_name "http/large/ping"
@@ -156,12 +164,12 @@ mla_rpc_auto_register_procedure(mla_http_rpc_procedure_math_sum_name, my_http_rp
 mla_rpc_auto_register_procedure(mla_http_rpc_procedure_large_ping_name, my_http_rpc_test_large_data_t, my_http_rpc_test_large_data_t, my_http_rpc_test_large_procedure_handler)
 
 
-inline void ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type content_type) {
+inline void ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type content_type, const mla_network_host_t &host, const mla_string_t &url) {
 
-    mla_http_server_t server = mla_http_server(rpc_test_server_host);
+    mla_http_server_t server = mla_http_server(host);
     assert_true(mla_rpc_http_server_initialize(server), "Should initialize HTTP RPC server");
     assert_true(mla_http_server_start(server, 1), "Should start simple HTTP server");
-    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(rpc_test_server_url, "/rpc/"), content_type);
+    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(url, mla_string_const("/rpc/")), content_type);
     assert_true(mla_rpc_remote_endpoint_valid(endpoint), "Should create valid HTTP RPC remote endpoint");
 
     my_http_rpc_test_input_t input = { 3, 4 };
@@ -172,24 +180,25 @@ inline void ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type content_type) 
 
     assert_true(mla_rpc_unregister_remote_endpoint(endpoint), "Should unregister HTTP RPC remote endpoint");
 
+    mla_http_server_stop(server);
     server = mla_http_server_invalid();
 
 }
 
 inline void ExecuteHttpRpcProcedureBinaryModeTest() {
-    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_binary);
+    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_binary, rpc_test_binary_host, rpc_test_binary_url);
 }
 
 inline void ExecuteHttpRpcProcedureJsonModeTest() {
-    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_json);
+    ExecuteHttpRpcProcedureTest(mla_http_rpc_content_type_json, rpc_test_json_host, rpc_test_json_url);
 }
 
-inline void ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type content_type) {
+inline void ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type content_type, const mla_network_host_t &host, const mla_string_t &url) {
 
-    mla_http_server_t server = mla_http_server(rpc_test_server_host);
+    mla_http_server_t server = mla_http_server(host);
     assert_true(mla_rpc_http_server_initialize(server), "Should initialize HTTP RPC server");
     assert_true(mla_http_server_start(server, 1), "Should start simple HTTP server");
-    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(rpc_test_server_url, "/rpc/"), content_type);
+    mla_rpc_remote_endpoint_t endpoint = mla_rpc_http_register_endpoint(mla_string_concat(url, mla_string_const("/rpc/")), content_type);
     assert_true(mla_rpc_remote_endpoint_valid(endpoint), "Should create valid HTTP RPC remote endpoint");
 
     my_http_rpc_test_large_data_t input = {
@@ -209,16 +218,17 @@ inline void ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type conte
 
     assert_true(mla_rpc_unregister_remote_endpoint(endpoint), "Should unregister HTTP RPC remote endpoint");
 
+    mla_http_server_stop(server);
     server = mla_http_server_invalid();
 
 }
 
 inline void ExecuteHttpRpcLargeDataProcedureBinaryModeTest() {
-    ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type_binary);
+    ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type_binary, rpc_test_large_binary_host, rpc_test_large_binary_url);
 }
 
 inline void ExecuteHttpRpcLargeDataProcedureJsonModeTest() {
-    ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type_json);
+    ExecuteHttpRpcLargeDataProcedureTest(mla_http_rpc_content_type_json, rpc_test_large_json_host, rpc_test_large_json_url);
 }
 
 void RegisterHttpRpcTests(mla_test_executor_t &p_TestExecutor) {

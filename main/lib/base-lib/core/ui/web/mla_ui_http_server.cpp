@@ -231,7 +231,7 @@ mla_string_t mla_private_ui_http_server_web_surface_path_from_surface_name(const
     return mla_string_concat(mla_ui_web_socket_surface_path_prefix, surface_name);
 }
 
-mla_bool_t mla_private_ui_http_server_web_surface_path_checker(const mla_user_data_t &userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+mla_bool_t mla_private_ui_http_server_web_surface_path_checker(const mla_user_data_t &userdata, const mla_http_request_t &request, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_ui_http_server_web_surface_data_t* task_data = mla_user_data_get_pointer_data<mla_ui_http_server_web_surface_data_t>(userdata, mla_ui_http_server_web_surface_data_user_data_name);
 
@@ -239,6 +239,7 @@ mla_bool_t mla_private_ui_http_server_web_surface_path_checker(const mla_user_da
         return false;
     }
 
+    const mla_string_t &url = request.url;
     mla_string_t final_url = mla_private_ui_http_server_web_surface_path_from_surface_name(task_data->surfaceName);
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {

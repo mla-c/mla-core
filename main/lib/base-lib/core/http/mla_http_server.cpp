@@ -12,6 +12,9 @@
 #include "mla_websocket_utils.h"
 #include "../hash/mla_sha1.h"
 #include "../http/mla_http_chunked_stream.h"
+#include "mla_http_client.h"
+#include "mla_websocket_client.h"
+#include "../url/mla_url.h"
 
 #define mla_handler_item_array_param mla_http_server_handler_item_t, mla_http_server_handler_item_initializer
 #define mla_websocket_handler_item_array_param mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer
@@ -47,7 +50,7 @@ struct mla_http_server_path_checker_userdata_t {
 mla_user_data_id_init(mla_http_server_handler_path_data_user_data_name)
 
 mla_bool_t mla_private_http_server_handler_starts_with_checker(const mla_user_data_t& userdata,
-                                                         const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+                                                         const mla_http_request_t &request, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
 
@@ -58,11 +61,11 @@ mla_bool_t mla_private_http_server_handler_starts_with_checker(const mla_user_da
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
-        return mla_string_starts_with(url, checker_userdata_ptr->path_data);
+        return mla_string_starts_with(request.url, checker_userdata_ptr->path_data);
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
-        return mla_string_starts_with(checker_userdata_ptr->path_data, url);
+        return mla_string_starts_with(checker_userdata_ptr->path_data, request.url);
     }
 
     return false;
@@ -70,7 +73,7 @@ mla_bool_t mla_private_http_server_handler_starts_with_checker(const mla_user_da
 }
 
 mla_bool_t mla_private_http_server_handler_equals_checker(const mla_user_data_t &userdata,
-                                                    const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+                                                    const mla_http_request_t &request, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     mla_pointer_t checker_userdata = mla_user_data_get_pointer(userdata, mla_http_server_handler_path_data_user_data_name);
 
@@ -81,11 +84,11 @@ mla_bool_t mla_private_http_server_handler_equals_checker(const mla_user_data_t 
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
-        return mla_string_equals(url, checker_userdata_ptr->path_data);
+        return mla_string_equals(request.url, checker_userdata_ptr->path_data);
     }
 
     if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
-        return mla_string_starts_with(url, checker_userdata_ptr->path_data);
+        return mla_string_starts_with(request.url, checker_userdata_ptr->path_data);
     }
 
     return false;
@@ -115,9 +118,9 @@ mla_http_server_handler_item_t mla_http_server_handler_starts_with(const mla_str
     };
 }
 
-mla_bool_t mla_private_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_string_t &url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+mla_bool_t mla_private_http_server_handler_all_checker(const mla_user_data_t& userdata, const mla_http_request_t &request, mla_http_request_handler_checker_compare_mode_t compare_mode) {
     (void) userdata;
-    (void) url;
+    (void) request;
     (void) compare_mode;
     return true;
 }
@@ -537,34 +540,43 @@ mla_task_process_result_state mla_private_http_server_handler_new_request(mla_us
     response.statusCode = 404; // Default to Not Found
     response.statusMessage = mla_string_const("Not Found");
 
+    // Detect WebSocket upgrade requests BEFORE HTTP handler matching.
+    // A WebSocket upgrade MUST be routed to the WS handler path, not the HTTP handler loop,
+    // even if an HTTP handler (e.g. a proxy with empty method) would otherwise match.
+    mla_string_t upgrade_header = mla_http_headers_get_value(request.headers, mla_string_const("Upgrade"));
+    mla_bool_t is_websocket_upgrade = mla_string_equals_ignore_case(upgrade_header, mla_string_const("websocket"));
+
     mla_bool_t processed = false;
 
-    // Find a handler for the request
-    for (mla_size_t i = 0; i < mla_array_list_size(copyHandlers); i++) {
-        mla_http_server_handler_item_t &handlerItem = mla_array_list_get_unsafe(copyHandlers, i);
+    // Find a handler for the request (skip for WebSocket upgrades)
+    if (!is_websocket_upgrade) {
+        for (mla_size_t i = 0; i < mla_array_list_size(copyHandlers); i++) {
+            mla_http_server_handler_item_t &handlerItem = mla_array_list_get_unsafe(copyHandlers, i);
 
-        if (handlerItem.checker == nullptr) {
-            continue; // No checker function, skip
-        }
-
-        if (!mla_string_equals(request.method, handlerItem.method)) {
-            continue;
-        }
-
-        if (!handlerItem.checker(handlerItem.userdata, request.url, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
-            continue; // Checker returned false, skip
-        }
-
-        if (handlerItem.executor != nullptr) {
-            if (!handlerItem.executor(server, handlerItem.userdata, request, response)) {
-                mla_warning(mla_string_concat("Handler executor failed for URL: ", request.url));
-                response.statusCode = 500; // Internal Server Error
-                response.statusMessage = mla_string_const("Internal Server Error");
+            if (handlerItem.checker == nullptr) {
+                continue; // No checker function, skip
             }
-        }
-        processed = true;
 
-        break;
+            // Empty method means "match any HTTP method" (used by proxy and catch-all handlers)
+            if (!mla_string_is_empty(handlerItem.method) && !mla_string_equals(request.method, handlerItem.method)) {
+                continue;
+            }
+
+            if (!handlerItem.checker(handlerItem.userdata, request, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
+                continue; // Checker returned false, skip
+            }
+
+            if (handlerItem.executor != nullptr) {
+                if (!handlerItem.executor(server, handlerItem.userdata, request, response)) {
+                    mla_warning(mla_string_concat("Handler executor failed for URL: ", request.url));
+                    response.statusCode = 500; // Internal Server Error
+                    response.statusMessage = mla_string_const("Internal Server Error");
+                }
+            }
+            processed = true;
+
+            break;
+        }
     }
 
     if (server.status != MLA_HTTP_SERVER_STATUS_RUNNING) {
@@ -587,7 +599,7 @@ mla_task_process_result_state mla_private_http_server_handler_new_request(mla_us
                 continue; // No checker function, skip
             }
 
-            if (!handlerItem.checker(handlerItem.userdata, request.url, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
+            if (!handlerItem.checker(handlerItem.userdata, request, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH)) {
                 continue; // Checker returned false, skip
             }
 
@@ -799,7 +811,7 @@ mla_task_process_result_state mla_private_http_server_handler_websocket_messages
         mla_string_t textMessage = mla_string_empty();
         mla_bytes_t binaryMessage = mla_bytes_empty();
 
-        mla_websocket_transport_message_receive_type_t receive_type = mla_websocket_transport_receive_message(connection.connection, server.timeout_ms, textMessage, binaryMessage, false);
+        mla_websocket_transport_message_receive_type_t receive_type = mla_websocket_transport_receive_message(connection.connection, 20, textMessage, binaryMessage, false);
 
         enum mla_websocket_connection_action_t: mla_uint8_t {
             MLA_WEBSOCKET_CONNECTION_NONE,
@@ -839,7 +851,7 @@ mla_task_process_result_state mla_private_http_server_handler_websocket_messages
                 // Ignore pong messages
                 break;
             case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_TIMEOUT:
-                action = MLA_WEBSOCKET_CONNECTION_CLOSE;
+                action = MLA_WEBSOCKET_CONNECTION_NONE;
                 break;
             case MLA_WEBSOCKET_TRANSPORT_MESSAGE_RECEIVE_TYPE_NO_MESSAGE:
                 // No message received -> Nothing to do
@@ -1037,6 +1049,10 @@ mla_bool_t mla_http_server_stop(mla_http_server_t &server) {
             mla_websocket_transport_send_close_frame(connection.connection.outputStream, mla_websocket_close_normal, mla_string_const("Server shutting down"), false);
             mla_stream_output_flush_buffered_wrapper(connection.connection.outputStream);
         }
+
+        if (connection.closed_executor != nullptr) {
+            connection.closed_executor(connection);
+        }
     }
 
     mla_array_list_clear(server.websocketConnections);
@@ -1137,11 +1153,13 @@ mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_webso
 
     mla_array_list_t<mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer> result = mla_array_list_empty<mla_http_server_websocket_handler_item_t, mla_http_server_websocket_handler_item_initializer>();
 
+    mla_http_request_t path_request = mla_http_request(path, mla_http_method_get);
+
     for (mla_size_t i = 0; i < mla_array_list_size(server.websocketHandlers); ++i) {
 
         mla_http_server_websocket_handler_item_t &handlerItem = mla_array_list_get_unsafe(server.websocketHandlers, i);
 
-        if (handlerItem.checker != nullptr && handlerItem.checker(handlerItem.userdata, path, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX)) {
+        if (handlerItem.checker != nullptr && handlerItem.checker(handlerItem.userdata, path_request, MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX)) {
             mla_array_list_add(result, handlerItem);
         }
     }
@@ -1385,4 +1403,508 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &
 
     return mla_http_server_try_send_websocket_binary_message(connection, message, connection_lock_timeout, use_deflate_compression_if_supported);
 
+}
+
+////////////////////////////////////////////////////////////////
+/// Proxy Handler & Virtual Host Implementation
+////////////////////////////////////////////////////////////////
+
+mla_http_server_proxy_target_t mla_http_server_proxy_target(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    mla_int32_t timeout_ms,
+    mla_bool_t preserve_host_header)
+{
+    mla_url_t url = mla_url_empty();
+    mla_network_host_t host = mla_network_host_invalid();
+    if (mla_url_parse(upstream_target_url, url) && !mla_string_is_empty(url.host)) {
+        mla_network_host_resolve(host, url.host, url.port > 0 ? url.port : 80);
+    }
+
+    return {
+        virtual_host_pattern,
+        incoming_path_prefix,
+        upstream_target_url,
+        host,
+        timeout_ms,
+        preserve_host_header
+    };
+}
+
+mla_http_server_proxy_target_t mla_http_server_proxy_target(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    mla_int32_t timeout_ms,
+    mla_bool_t preserve_host_header)
+{
+    return mla_http_server_proxy_target(mla_string_empty(), incoming_path_prefix, upstream_target_url, timeout_ms, preserve_host_header);
+}
+
+mla_bool_t mla_private_http_server_match_host_pattern(
+    const mla_string_t &host_header_value,
+    const mla_string_t &host_pattern)
+{
+    if (mla_string_is_empty(host_pattern) || mla_string_equals(host_pattern, mla_string_const("*"))) {
+        return true; // Match any host
+    }
+
+    if (mla_string_is_empty(host_header_value)) {
+        return false;
+    }
+
+    // Strip port from Host header if present (e.g. "api.example.com:8080" -> "api.example.com")
+    mla_string_t domain = host_header_value;
+    mla_int32_t colon_idx = mla_string_index_of(host_header_value, mla_string_const(":"));
+    if (colon_idx >= 0) {
+        domain = mla_string_substr(host_header_value, 0, mla_s_cast<mla_size_t>(colon_idx));
+    }
+
+    // Wildcard subdomain matching (e.g. "*.example.com")
+    if (mla_string_starts_with(host_pattern, mla_string_const("*."))) {
+        mla_string_t suffix = mla_string_substr(host_pattern, 1); // ".example.com"
+        return mla_string_ends_with_ignore_case(domain, suffix);
+    }
+
+    // Exact domain matching (case-insensitive)
+    return mla_string_equals_ignore_case(domain, host_pattern);
+}
+
+struct mla_http_server_proxy_context_t {
+    mla_http_server_proxy_target_t target;
+
+    static mla_http_server_proxy_context_t init() {
+        return {
+            mla_http_server_proxy_target(mla_string_empty(), mla_string_empty(), mla_string_empty())
+        };
+    }
+};
+
+mla_user_data_id_init(mla_http_server_proxy_context_user_data_name)
+
+static mla_bool_t mla_private_http_server_proxy_checker(
+    const mla_user_data_t &userdata,
+    const mla_http_request_t &request,
+    mla_http_request_handler_checker_compare_mode_t compare_mode)
+{
+    mla_pointer_t ctx_ptr = mla_user_data_get_pointer(userdata, mla_http_server_proxy_context_user_data_name);
+    mla_http_server_proxy_context_t *ctx = mla_pointer_get_data<mla_http_server_proxy_context_t>(ctx_ptr);
+
+    if (ctx == nullptr) {
+        return false;
+    }
+
+    // 1. Virtual Host pattern matching against Host header
+    mla_string_t host_hdr = mla_http_headers_get_value(request.headers, mla_string_const("Host"));
+    if (!mla_private_http_server_match_host_pattern(host_hdr, ctx->target.virtual_host_pattern)) {
+        return false;
+    }
+
+    // 2. Incoming path prefix matching
+    if (mla_string_is_empty(ctx->target.incoming_path_prefix)) {
+        return true;
+    }
+
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PERFECT_MATCH) {
+        return mla_string_starts_with(request.url, ctx->target.incoming_path_prefix);
+    }
+
+    if (compare_mode == MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX) {
+        return mla_string_starts_with(ctx->target.incoming_path_prefix, request.url);
+    }
+
+    return false;
+}
+
+static mla_bool_t mla_private_http_server_proxy_executor(
+    mla_http_server_t &http_server,
+    const mla_user_data_t &userdata,
+    const mla_http_request_t &request,
+    mla_http_response_t &response)
+{
+    mla_pointer_t ctx_ptr = mla_user_data_get_pointer(userdata, mla_http_server_proxy_context_user_data_name);
+    mla_http_server_proxy_context_t *ctx = mla_pointer_get_data<mla_http_server_proxy_context_t>(ctx_ptr);
+
+    if (ctx == nullptr) {
+        response.statusCode = mla_http_status_internal_server_error;
+        response.statusMessage = mla_string_const("Internal Server Error");
+        return false;
+    }
+
+    // Path rewriting
+    mla_string_t subpath = request.url;
+    if (!mla_string_is_empty(ctx->target.incoming_path_prefix) && mla_string_starts_with(request.url, ctx->target.incoming_path_prefix)) {
+        subpath = mla_string_substr(request.url, mla_string_length(ctx->target.incoming_path_prefix));
+    }
+
+    mla_string_t base_url = ctx->target.upstream_target_url;
+    mla_string_t target_url = mla_string_empty();
+
+    if (!mla_string_is_empty(base_url)) {
+        if (mla_string_ends_with(base_url, mla_string_const("/")) && mla_string_starts_with(subpath, mla_string_const("/"))) {
+            target_url = mla_string_concat(base_url, mla_string_substr(subpath, 1));
+        } else if (!mla_string_ends_with(base_url, mla_string_const("/")) && !mla_string_starts_with(subpath, mla_string_const("/")) && !mla_string_is_empty(subpath)) {
+            target_url = mla_string_concat(base_url, mla_string_const("/"), subpath);
+        } else {
+            target_url = mla_string_concat(base_url, subpath);
+        }
+    } else {
+        mla_string_t host_str = mla_string_concat(
+            mla_string_const("http://"),
+            ctx->target.upstream_network_host.address.address,
+            mla_string_const(":"),
+            mla_string_from_uint16(ctx->target.upstream_network_host.port)
+        );
+        if (mla_string_starts_with(subpath, mla_string_const("/"))) {
+            target_url = mla_string_concat(host_str, subpath);
+        } else {
+            target_url = mla_string_concat(host_str, mla_string_const("/"), subpath);
+        }
+    }
+
+    // Build target HTTP client request
+    mla_http_request_t target_req = mla_http_request(target_url, request.method);
+    target_req.version = request.version;
+    target_req.content = request.content; // Stream payload pipe
+
+    // Filter hop-by-hop headers and copy rest
+    for (mla_size_t i = 0; i < mla_array_list_size(request.headers); ++i) {
+        const mla_http_header_t &hdr = mla_array_list_get_unsafe(request.headers, i);
+        if (mla_string_equals_ignore_case(hdr.name, mla_string_const("Connection")) ||
+            mla_string_equals_ignore_case(hdr.name, mla_string_const("Keep-Alive")) ||
+            mla_string_equals_ignore_case(hdr.name, mla_string_const("Transfer-Encoding")) ||
+            mla_string_equals_ignore_case(hdr.name, mla_string_const("Upgrade")) ||
+            mla_string_equals_ignore_case(hdr.name, mla_string_const("Proxy-Authorization"))) {
+            continue;
+        }
+        if (mla_string_equals_ignore_case(hdr.name, mla_string_const("Host")) && !ctx->target.preserve_host_header) {
+            continue;
+        }
+        mla_http_headers_add(target_req.headers, hdr.name, mla_http_headers_get_value(request.headers, hdr.name));
+    }
+
+    if (!ctx->target.preserve_host_header) {
+        mla_url_t parsed_target_url = mla_url_empty();
+        mla_url_parse(target_url, parsed_target_url);
+        mla_string_t host_val = parsed_target_url.host;
+        if (parsed_target_url.port != 80 && parsed_target_url.port != 443 && parsed_target_url.port > 0) {
+            host_val = mla_string_concat(host_val, mla_string_const(":"), mla_string_from_uint16(parsed_target_url.port));
+        }
+        mla_http_headers_add(target_req.headers, mla_string_const("Host"), host_val);
+    }
+
+    mla_http_headers_add(target_req.headers, mla_string_const("X-Forwarded-Proto"), mla_string_const("http"));
+
+    mla_http_client_t client = mla_http_client();
+    if (ctx->target.timeout_ms > 0) {
+        mla_http_client_set_timeout(client, ctx->target.timeout_ms);
+    } else {
+        mla_http_client_set_timeout(client, http_server.timeout_ms);
+    }
+
+    mla_http_client_response_t client_resp = mla_http_client_send_request(client, target_req);
+    if (client_resp.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK) {
+        response.statusCode = mla_http_status_bad_gateway;
+        response.statusMessage = mla_string_const("Bad Gateway");
+        return true;
+    }
+
+    response.statusCode = client_resp.response.statusCode;
+    response.statusMessage = client_resp.response.statusMessage;
+
+    for (mla_size_t i = 0; i < mla_array_list_size(client_resp.response.headers); ++i) {
+        const mla_http_header_t &hdr = mla_array_list_get_unsafe(client_resp.response.headers, i);
+        if (mla_string_equals_ignore_case(hdr.name, mla_string_const("Connection")) ||
+            mla_string_equals_ignore_case(hdr.name, mla_string_const("Transfer-Encoding"))) {
+            continue;
+        }
+        mla_http_headers_add(response.headers, hdr.name, mla_http_headers_get_value(client_resp.response.headers, hdr.name));
+    }
+
+    response.content = client_resp.response.content;
+    return true;
+}
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_string_t &http_method,
+    const mla_user_data_t &userdata)
+{
+    mla_http_server_proxy_target_t target = mla_http_server_proxy_target(virtual_host_pattern, incoming_path_prefix, upstream_target_url);
+    return mla_http_server_proxy_handler_starts_with(target, http_method, userdata);
+}
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_string_t &http_method,
+    const mla_user_data_t &userdata)
+{
+    return mla_http_server_proxy_handler_starts_with(mla_string_empty(), incoming_path_prefix, upstream_target_url, http_method, userdata);
+}
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_network_host_t &upstream_network_host,
+    const mla_string_t &target_base_path,
+    const mla_string_t &http_method,
+    const mla_user_data_t &userdata)
+{
+    mla_string_t target_url = mla_string_concat(
+        mla_string_const("http://"),
+        upstream_network_host.address.address,
+        mla_string_const(":"),
+        mla_string_from_uint16(upstream_network_host.port),
+        target_base_path
+    );
+    return mla_http_server_proxy_handler_starts_with(virtual_host_pattern, incoming_path_prefix, target_url, http_method, userdata);
+}
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_http_server_proxy_target_t &proxy_target,
+    const mla_string_t &http_method,
+    const mla_user_data_t &userdata)
+{
+    mla_pointer_t ctx_ptr = mla_malloc_struct(mla_http_server_proxy_context_t);
+    mla_http_server_proxy_context_t *ctx = mla_pointer_get_data<mla_http_server_proxy_context_t>(ctx_ptr);
+    if (ctx == nullptr) {
+        return mla_http_server_handler_invalid();
+    }
+    ctx->target = proxy_target;
+    mla_user_data_t ud_copy = userdata;
+    mla_user_data_set_pointer(ud_copy, mla_http_server_proxy_context_user_data_name, ctx_ptr);
+
+    return {
+        ud_copy,
+        mla_string_to_upper(http_method),
+        mla_private_http_server_proxy_checker,
+        mla_private_http_server_proxy_executor
+    };
+}
+
+struct mla_websocket_proxy_context_t {
+    mla_websocket_client_t client;
+    mla_string_t receive_task_name; // Name for aborting task via mla_task_manager_abort_task
+
+    static mla_websocket_proxy_context_t init() {
+        return {
+            mla_websocket_client_invalid(),
+            mla_string_empty()
+        };
+    }
+};
+
+mla_user_data_id_init(mla_websocket_proxy_context_user_data_name)
+
+struct mla_websocket_proxy_task_userdata_t {
+    mla_http_server_websocket_connection_t connection;
+    mla_websocket_client_t upstream_client;
+
+    static mla_websocket_proxy_task_userdata_t init() {
+        return {
+            mla_http_server_websocket_connection_invalid(),
+            mla_websocket_client_invalid()
+        };
+    }
+};
+
+static mla_task_process_result_state mla_private_websocket_proxy_forward_upstream(mla_user_data_t &userData) {
+    mla_pointer_t task_ud_ptr = mla_user_data_get_pointer(userData, mla_http_task_user_data_server_name);
+    mla_websocket_proxy_task_userdata_t *task_ud = mla_pointer_get_data<mla_websocket_proxy_task_userdata_t>(task_ud_ptr);
+    if (task_ud == nullptr) {
+        return TASK_PROCESS_RESULT_DONE;
+    }
+
+    if (!mla_http_server_is_websocket_connection_open(task_ud->connection) || !mla_websocket_client_is_connected(task_ud->upstream_client)) {
+        return TASK_PROCESS_RESULT_DONE;
+    }
+
+    mla_websocket_text_message_t text_msg = mla_websocket_text_message_empty();
+    mla_websocket_binary_message_t bin_msg = mla_websocket_binary_message_empty();
+
+    mla_websocket_client_message_receive_type_t rx_type = mla_websocket_client_receive_message(task_ud->upstream_client, 20, text_msg, bin_msg);
+    if (rx_type == MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_TEXT) {
+        mla_http_server_send_websocket_text_message(task_ud->connection, text_msg.message, false);
+    } else if (rx_type == MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_BINARY) {
+        mla_http_server_send_websocket_binary_message(task_ud->connection, bin_msg.message, false);
+    } else if (rx_type == MLA_WEBSOCKET_CLIENT_MESSAGE_RECEIVE_TYPE_CLOSED) {
+        mla_http_server_close_websocket_connection(task_ud->connection, 1000, mla_string_const("Upstream closed"));
+        return TASK_PROCESS_RESULT_DONE;
+    }
+
+    return TASK_PROCESS_RESULT_CONTINUE;
+}
+
+static mla_bool_t mla_private_websocket_proxy_open(mla_http_server_websocket_connection_t &connection) {
+    mla_pointer_t ctx_ptr = mla_user_data_get_pointer(connection.userdata, mla_http_server_proxy_context_user_data_name);
+    mla_http_server_proxy_context_t *proxy_ctx = mla_pointer_get_data<mla_http_server_proxy_context_t>(ctx_ptr);
+    if (proxy_ctx == nullptr) {
+        return false;
+    }
+
+    mla_string_t base_target_url = proxy_ctx->target.upstream_target_url;
+    mla_string_t subpath = connection.endpoint;
+    if (!mla_string_is_empty(proxy_ctx->target.incoming_path_prefix) && mla_string_starts_with(subpath, proxy_ctx->target.incoming_path_prefix)) {
+        subpath = mla_string_substr(subpath, mla_string_length(proxy_ctx->target.incoming_path_prefix));
+    }
+
+    mla_string_t target_url = mla_string_empty();
+    if (mla_string_is_empty(subpath)) {
+        target_url = base_target_url;
+    } else if (mla_string_ends_with(base_target_url, mla_string_const("/")) && mla_string_starts_with(subpath, mla_string_const("/"))) {
+        target_url = mla_string_concat(base_target_url, mla_string_substr(subpath, 1));
+    } else if (mla_string_ends_with(base_target_url, mla_string_const("/")) || mla_string_starts_with(subpath, mla_string_const("/"))) {
+        target_url = mla_string_concat(base_target_url, subpath);
+    } else {
+        target_url = mla_string_concat(base_target_url, mla_string_const("/"), subpath);
+    }
+
+    mla_string_t ws_url = target_url;
+    if (mla_string_starts_with(ws_url, mla_string_const("http://"))) {
+        ws_url = mla_string_concat(mla_string_const("ws://"), mla_string_substr(ws_url, 7));
+    } else if (mla_string_starts_with(ws_url, mla_string_const("https://"))) {
+        ws_url = mla_string_concat(mla_string_const("wss://"), mla_string_substr(ws_url, 8));
+    }
+
+    mla_pointer_t ws_ctx_ptr = mla_malloc_struct(mla_websocket_proxy_context_t);
+    mla_websocket_proxy_context_t *ws_ctx = mla_pointer_get_data<mla_websocket_proxy_context_t>(ws_ctx_ptr);
+    if (ws_ctx == nullptr) {
+        return false;
+    }
+
+    ws_ctx->client = mla_websocket_client_invalid();
+    mla_int32_t connect_timeout_ms = proxy_ctx->target.timeout_ms > 0
+        ? proxy_ctx->target.timeout_ms
+        : connection.server->timeout_ms;
+    if (!mla_websocket_client_connect(ws_ctx->client, ws_url, mla_s_cast<mla_size_t>(connect_timeout_ms), false)) {
+        return false;
+    }
+
+    mla_pointer_t task_ud_ptr = mla_malloc_struct(mla_websocket_proxy_task_userdata_t);
+    mla_websocket_proxy_task_userdata_t *task_ud = mla_pointer_get_data<mla_websocket_proxy_task_userdata_t>(task_ud_ptr);
+    if (task_ud == nullptr) {
+        mla_websocket_client_disconnect(ws_ctx->client);
+        return false;
+    }
+
+    task_ud->connection = connection;
+    task_ud->upstream_client = ws_ctx->client;
+
+    mla_user_data_t task_ud_container = mla_user_data_empty();
+    if (!mla_user_data_set_pointer(task_ud_container, mla_http_task_user_data_server_name, task_ud_ptr)) {
+        mla_websocket_client_disconnect(ws_ctx->client);
+        return false;
+    }
+
+    mla_user_data_set_pointer(connection.userdata, mla_websocket_proxy_context_user_data_name, ws_ctx_ptr);
+    ws_ctx->receive_task_name = mla_string_concat(mla_string_const("WSProxyTask_"), connection.id);
+    mla_task_t receive_task = mla_task_repeating(ws_ctx->receive_task_name, mla_private_websocket_proxy_forward_upstream, task_ud_container);
+    if (!mla_task_manager_register_task(receive_task)) {
+        mla_websocket_client_disconnect(ws_ctx->client);
+        return false;
+    }
+
+    return true;
+}
+
+static mla_bool_t mla_private_websocket_proxy_text(mla_http_server_websocket_connection_t &connection, const mla_string_t &message) {
+    mla_pointer_t ws_ctx_ptr = mla_user_data_get_pointer(connection.userdata, mla_websocket_proxy_context_user_data_name);
+    mla_websocket_proxy_context_t *ws_ctx = mla_pointer_get_data<mla_websocket_proxy_context_t>(ws_ctx_ptr);
+    if (ws_ctx == nullptr || !mla_websocket_client_is_connected(ws_ctx->client)) {
+        return false;
+    }
+    return mla_websocket_client_send_text_message(ws_ctx->client, message);
+}
+
+static mla_bool_t mla_private_websocket_proxy_binary(mla_http_server_websocket_connection_t &connection, const mla_bytes_t &message) {
+    mla_pointer_t ws_ctx_ptr = mla_user_data_get_pointer(connection.userdata, mla_websocket_proxy_context_user_data_name);
+    mla_websocket_proxy_context_t *ws_ctx = mla_pointer_get_data<mla_websocket_proxy_context_t>(ws_ctx_ptr);
+    if (ws_ctx == nullptr || !mla_websocket_client_is_connected(ws_ctx->client)) {
+        return false;
+    }
+    return mla_websocket_client_send_binary_message(ws_ctx->client, message);
+}
+
+static void mla_private_websocket_proxy_closed(const mla_http_server_websocket_connection_t &connection) {
+    mla_pointer_t ws_ctx_ptr = mla_user_data_get_pointer(connection.userdata, mla_websocket_proxy_context_user_data_name);
+    mla_websocket_proxy_context_t *ws_ctx = mla_pointer_get_data<mla_websocket_proxy_context_t>(ws_ctx_ptr);
+    if (ws_ctx != nullptr) {
+        if (mla_websocket_client_is_connected(ws_ctx->client)) {
+            mla_websocket_client_disconnect(ws_ctx->client);
+        }
+        if (!mla_string_is_empty(ws_ctx->receive_task_name)) {
+            mla_task_manager_abort_task(ws_ctx->receive_task_name);
+        }
+    }
+}
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_user_data_t &userdata)
+{
+    mla_http_server_proxy_target_t target = mla_http_server_proxy_target(virtual_host_pattern, incoming_path_prefix, upstream_target_url);
+    mla_pointer_t ctx_ptr = mla_malloc_struct(mla_http_server_proxy_context_t);
+    mla_http_server_proxy_context_t *ctx = mla_pointer_get_data<mla_http_server_proxy_context_t>(ctx_ptr);
+    if (ctx == nullptr) {
+        return mla_http_server_websocket_handler_invalid();
+    }
+    ctx->target = target;
+    mla_user_data_t ud_copy = userdata;
+    mla_user_data_set_pointer(ud_copy, mla_http_server_proxy_context_user_data_name, ctx_ptr);
+
+    mla_http_server_websocket_handler_item_t item = {
+        ud_copy,
+        mla_private_http_server_proxy_checker,
+        mla_private_websocket_proxy_open,
+        mla_private_websocket_proxy_text,
+        mla_private_websocket_proxy_binary,
+        mla_private_websocket_proxy_closed
+    };
+    return item;
+}
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_proxy_handler_starts_with(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_user_data_t &userdata)
+{
+    return mla_http_server_websocket_proxy_handler_starts_with(mla_string_empty(), incoming_path_prefix, upstream_target_url, userdata);
+}
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url)
+{
+    mla_http_server_proxy_target_t target = mla_http_server_proxy_target(virtual_host_pattern, incoming_path_prefix, upstream_target_url);
+    return mla_http_server_register_proxy(server, target);
+}
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url)
+{
+    return mla_http_server_register_proxy(server, mla_string_empty(), incoming_path_prefix, upstream_target_url);
+}
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_http_server_proxy_target_t &proxy_target)
+{
+    mla_user_data_t http_ud = mla_user_data_empty();
+    mla_http_server_handler_item_t http_item = mla_http_server_proxy_handler_starts_with(proxy_target, mla_string_empty(), http_ud);
+    if (!mla_http_server_register_handler(server, http_item)) {
+        return false;
+    }
+
+    mla_user_data_t ws_ud = mla_user_data_empty();
+    mla_http_server_websocket_handler_item_t ws_item = mla_http_server_websocket_proxy_handler_starts_with(proxy_target.virtual_host_pattern, proxy_target.incoming_path_prefix, proxy_target.upstream_target_url, ws_ud);
+    return mla_http_server_register_websocket_handler(server, ws_item);
 }

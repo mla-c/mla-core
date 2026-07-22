@@ -25,7 +25,7 @@ enum mla_http_request_handler_checker_compare_mode_t: mla_uint8_t {
     MLA_HTTP_REQUEST_HANDLER_CHECKER_COMPARE_MODE_PREFIX, // Will return true if the handler can potentially serve the URL. For example, a handler with path prefix "/api/" can potentially serve the URL "/api/users/1" but not "/static/index.html"
 };
 
-typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &userdata, const mla_string_t& url, mla_http_request_handler_checker_compare_mode_t compare_mode);
+typedef mla_bool_t (*mla_http_request_handler_checker_t)(const mla_user_data_t &userdata, const mla_http_request_t& request, mla_http_request_handler_checker_compare_mode_t compare_mode);
 
 ///////////////////////////////////
 /// HTTP Server Handler Item
@@ -48,7 +48,7 @@ mla_http_server_handler_item_t mla_http_server_handler_all(const mla_string_t &h
 mla_user_data_id_init(mla_http_server_handler_struct_user_data_id)
 
 template<typename T>
-mla_bool_t mla_http_request_handler_checker_execute(const mla_user_data_t &userdata, const mla_string_t& url, mla_http_request_handler_checker_compare_mode_t compare_mode) {
+mla_bool_t mla_http_request_handler_checker_execute(const mla_user_data_t &userdata, const mla_http_request_t& request, mla_http_request_handler_checker_compare_mode_t compare_mode) {
 
     T* handler_struct = mla_user_data_get_struct_data<T>(userdata, mla_http_server_handler_struct_user_data_id);
 
@@ -56,7 +56,7 @@ mla_bool_t mla_http_request_handler_checker_execute(const mla_user_data_t &userd
         return false;
     }
 
-    return T::http_request_check(&handler_struct, userdata, url, compare_mode);
+    return T::http_request_check(&handler_struct, userdata, request.url, compare_mode);
 }
 
 template<typename T>
@@ -340,5 +340,94 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 // connection_lock_timeout: Maximum time in milliseconds to wait for the connection lock.
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
 mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
+
+////////////////////////////////////////////////////////////////
+/// Proxy Handlers & Virtual Host Support
+////////////////////////////////////////////////////////////////
+
+struct mla_http_server_proxy_target_t {
+    mla_string_t virtual_host_pattern;
+    mla_string_t incoming_path_prefix;
+    mla_string_t upstream_target_url;
+    mla_network_host_t upstream_network_host;
+    mla_int32_t timeout_ms;
+    mla_bool_t preserve_host_header;
+};
+
+mla_http_server_proxy_target_t mla_http_server_proxy_target(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    mla_int32_t timeout_ms = 0,
+    mla_bool_t preserve_host_header = false
+);
+
+mla_http_server_proxy_target_t mla_http_server_proxy_target(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    mla_int32_t timeout_ms = 0,
+    mla_bool_t preserve_host_header = false
+);
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_string_t &http_method = mla_string_empty(),
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_string_t &http_method = mla_string_empty(),
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_network_host_t &upstream_network_host,
+    const mla_string_t &target_base_path = mla_string_empty(),
+    const mla_string_t &http_method = mla_string_empty(),
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_http_server_handler_item_t mla_http_server_proxy_handler_starts_with(
+    const mla_http_server_proxy_target_t &proxy_target,
+    const mla_string_t &http_method = mla_string_empty(),
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_proxy_handler_starts_with(
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_http_server_websocket_handler_item_t mla_http_server_websocket_proxy_handler_starts_with(
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url,
+    const mla_user_data_t &userdata = mla_user_data_empty()
+);
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_string_t &virtual_host_pattern,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url
+);
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_string_t &incoming_path_prefix,
+    const mla_string_t &upstream_target_url
+);
+
+mla_bool_t mla_http_server_register_proxy(
+    mla_http_server_t &server,
+    const mla_http_server_proxy_target_t &proxy_target
+);
 
 #endif
