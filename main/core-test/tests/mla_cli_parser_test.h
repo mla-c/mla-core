@@ -236,6 +236,45 @@ inline void ParseCommandWithMalformedParameters() {
     assert_false(result.isValid, "Command with missing parameter value should not be valid");
 }
 
+inline void ParseCommandWithFlagParameter() {
+    mla_cli_parser_t parser = mla_cli_parser();
+
+    mla_cli_command_t cmdHelp = mla_cli_command(mla_string_const("help"), nullptr);
+    mla_cli_command_add_parameter_verbose_output(cmdHelp);
+    mla_array_list_add(parser.availableCommands, cmdHelp);
+
+    auto result = mla_cli_parser_parse(parser, mla_string("help --verbose"));
+    assert_true(result.isValid, "Command with a flag parameter should be valid without a value");
+    assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)1,
+        "There should be one parsed flag parameter");
+    assert_true(mla_hash_map_contains(result.matchingParameters, mla_string_const("verbose")),
+        "Parameters should contain the verbose flag");
+    assert_true(mla_cli_command_parameter_verbose_output_active(result.matchingCommand, result.matchingParameters),
+        "Verbose output should be active when the flag is present");
+}
+
+inline void ParseFlagBeforeValueParameter() {
+    mla_cli_parser_t parser = mla_cli_parser();
+
+    mla_cli_command_t cmdExecute = mla_cli_command(mla_string_const("execute"), nullptr);
+    mla_cli_command_add_parameter(cmdExecute, mla_string_const("force"), false, true);
+    mla_cli_command_add_parameter(cmdExecute, mla_string_const("path"), true);
+    mla_array_list_add(parser.availableCommands, cmdExecute);
+
+    auto result = mla_cli_parser_parse(parser, mla_string("execute --force --path /usr/bin"));
+    assert_true(result.isValid, "A flag should be parsed before a value-taking parameter");
+    assert_equal(mla_hash_map_size(result.matchingParameters), (mla_size_t)2,
+        "There should be two parsed parameters");
+    assert_true(mla_hash_map_contains(result.matchingParameters, mla_string_const("force")),
+        "Parameters should contain the force flag");
+    mla_string_t *path = mla_hash_map_get_ref(result.matchingParameters, mla_string_const("path"));
+    assert_not_null(path, "The path parameter should be available");
+    if (path != nullptr) {
+        assert_struct_equal(mla_string_t, *path, mla_string("/usr/bin"),
+            "The value-taking parameter should retain its value");
+    }
+}
+
 inline void ParseCommandWithTrailingSpaces() {
     mla_cli_parser_t parser = mla_cli_parser();
 
@@ -327,6 +366,12 @@ void RegisterCliParserTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ParseCommandWithMalformedParameters", test_category, ParseCommandWithMalformedParameters);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseCommandWithFlagParameter", test_category, ParseCommandWithFlagParameter);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("ParseFlagBeforeValueParameter", test_category, ParseFlagBeforeValueParameter);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("ParseCommandWithTrailingSpaces", test_category, ParseCommandWithTrailingSpaces);

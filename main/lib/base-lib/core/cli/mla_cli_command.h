@@ -17,21 +17,27 @@ struct mla_cli_command_parameter_t {
     mla_string_t parameterName;
     mla_string_t description;
     mla_bool_t mandatory;
+    /** True when the parameter is activated by its presence and does not take a value. */
+    mla_bool_t is_flag;
 };
 
-inline mla_cli_command_parameter_t mla_cli_command_parameter(const mla_string_t& p_ParameterName, mla_bool_t p_Mandatory) {
+inline mla_cli_command_parameter_t mla_cli_command_parameter(const mla_string_t& p_ParameterName, mla_bool_t p_Mandatory,
+    mla_bool_t p_IsFlag = false) {
     return {
         p_ParameterName,
         mla_string_empty(),
-        p_Mandatory
+        p_Mandatory,
+        p_IsFlag
     };
 }
 
-inline mla_cli_command_parameter_t mla_cli_command_parameter(const mla_string_t& p_ParameterName, const mla_string_t& p_Description, mla_bool_t p_Mandatory) {
+inline mla_cli_command_parameter_t mla_cli_command_parameter(const mla_string_t& p_ParameterName,
+    const mla_string_t& p_Description, mla_bool_t p_Mandatory, mla_bool_t p_IsFlag = false) {
     return {
         p_ParameterName,
         p_Description,
-        p_Mandatory
+        p_Mandatory,
+        p_IsFlag
     };
 }
 
@@ -40,6 +46,7 @@ struct mla_cli_command_parameter_initializer {
         return {
             mla_string_empty(),
             mla_string_empty(),
+            false,
             false
         };
     }
@@ -119,12 +126,23 @@ inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_
     mla_cli_command_add_parameter(command, mla_cli_command_parameter(parameterName, mandatory));
 }
 
+inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_string_t &parameterName,
+    mla_bool_t mandatory, mla_bool_t isFlag) {
+    mla_cli_command_add_parameter(command, mla_cli_command_parameter(parameterName, mandatory, isFlag));
+}
+
 inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_string_t &parameterName, const mla_string_t &description, mla_bool_t mandatory) {
     mla_cli_command_add_parameter(command, mla_cli_command_parameter(parameterName, description, mandatory));
 }
 
+inline void mla_cli_command_add_parameter(mla_cli_command_t &command, const mla_string_t &parameterName,
+    const mla_string_t &description, mla_bool_t mandatory, mla_bool_t isFlag) {
+    mla_cli_command_add_parameter(command, mla_cli_command_parameter(parameterName, description, mandatory, isFlag));
+}
+
 inline void mla_cli_command_add_parameter_verbose_output(mla_cli_command_t &command) {
-    mla_cli_command_add_parameter(command, mla_string(mla_cli_command_verbose_parameter_name), mla_string("Enable verbose output"), false);
+    mla_cli_command_add_parameter(command, mla_string(mla_cli_command_verbose_parameter_name),
+        mla_string("Enable verbose output"), false, true);
 }
 
 inline mla_string_t mla_cli_command_get_parameter_value(const mla_cli_command_t &command,

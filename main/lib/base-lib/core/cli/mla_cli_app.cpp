@@ -150,8 +150,12 @@ mla_string_t mla_private_cli_format_command(const mla_cli_command_t &command) {
     // Add parameters to usage line
     for (mla_size_t i = 0; i < mla_array_list_size(command.parameters); ++i) {
         mla_cli_command_parameter_t *param = mla_array_list_get_ref(command.parameters, i);
-        if (param->mandatory) {
+        if (param->mandatory && param->is_flag) {
+            result = mla_string_concat(result, " --", param->parameterName);
+        } else if (param->mandatory) {
             result = mla_string_concat(result, " --", param->parameterName, " <value>");
+        } else if (param->is_flag) {
+            result = mla_string_concat(result, " [--", param->parameterName, "]");
         } else {
             result = mla_string_concat(result, " [--", param->parameterName, " <value>]");
         }

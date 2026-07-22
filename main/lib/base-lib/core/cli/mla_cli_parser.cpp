@@ -23,7 +23,8 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
 
     // We will parse the command char by char with following rules
     // 1. The command starts with the command name followed by a space
-    // 2. After the command name, we can have parameters in the form of --parameterName parameterValue
+    // 2. After the command name, parameters have the form --parameterName parameterValue.
+    //    Parameters declared as flags have the form --parameterName and do not take a value.
 
     // Parameter values can be sounded by quotes to allow spaces in the value
 
@@ -91,6 +92,30 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
             break;
         }
 
+        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
+
+        mla_bool_t isFlag = false;
+        for (mla_size_t i = 0; i < mla_array_list_size(result.matchingCommand.parameters); ++i) {
+            const mla_cli_command_parameter_t *commandParameter =
+                mla_array_list_get_ref(result.matchingCommand.parameters, i);
+            if (mla_string_equals(commandParameter->parameterName, paramName)) {
+                isFlag = commandParameter->is_flag;
+                break;
+            }
+        }
+
+        if (isFlag) {
+            mla_hash_map_push(result.matchingParameters, paramName, mla_string_empty());
+            matchedPositon = paramNameEnd;
+
+            // Skip whitespace between parameters
+            while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' &&
+                commandData[matchedPositon + 1] == ' ') {
+                matchedPositon++;
+            }
+            continue;
+        }
+
         if (commandLength <= paramNameEnd) {
             break;
         }
@@ -101,7 +126,6 @@ mla_cli_parser_result mla_cli_parser_parse(const mla_cli_parser_t &parser, const
         }
 
         matchedPositon = paramNameEnd;
-        mla_string_t paramName = mla_string_substr(command, paramNameStart, paramNameEnd - paramNameStart);
 
         // Skip whitespace between parameter name and value
         while (matchedPositon + 1 < commandLength && commandData[matchedPositon] == ' ' && commandData[matchedPositon + 1] == ' ') {

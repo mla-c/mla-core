@@ -75,6 +75,12 @@ static mla_cli_module_t build_network_module() {
         mla_string_const("Port number"),
         false // optional
     );
+    mla_cli_command_add_parameter(connectCmd,
+        mla_string_const("verbose"),
+        mla_string_const("Enable verbose output"),
+        false, // optional
+        true   // flag: no value required
+    );
     connectCmd.execute = connect_execute;
     mla_cli_module_add_command(module, connectCmd);
 
@@ -190,7 +196,8 @@ Always end output lines with `\n` for proper terminal display.
 - Do not store a pointer to the `p_Parameters` map after the callback returns — it is stack-allocated.
 - Each module name must be unique within the CLI app.
 - Each command name must be unique within its module.
-- Parameters are always passed as `mla_string_t` values; convert to numbers using `mla_string_to_int32` or similar utilities.
+- Value-taking parameters are passed as `mla_string_t` values; convert to numbers using `mla_string_to_int32` or similar utilities.
+- Flag parameters are added to the parameter map with an empty value when present. Read them with `mla_cli_command_get_switch_value`.
 
 ## Incorrect Usage
 
