@@ -672,7 +672,12 @@ mla_bool_t mla_private_cli_commit_line(mla_cli_app_t &app, mla_stream_output_t &
 
             for (mla_size_t i = 0; i < commandCount; ++i) {
 
-                mla_string_t& command = mla_array_list_get_unsafe(commands, i);
+                mla_string_t& raw_command = mla_array_list_get_unsafe(commands, i);
+                mla_string_t command = mla_string_trim(raw_command);
+
+                if (mla_string_is_empty(command)) {
+                    continue;
+                }
 
                 success = mla_private_cli_parser_parse_and_execute_command(app, command, outputStream);
 

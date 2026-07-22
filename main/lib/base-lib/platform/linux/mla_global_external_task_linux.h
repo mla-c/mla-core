@@ -20,12 +20,16 @@ struct mla_private_linux_external_task_native_resource_t {
     pid_t pid;
     mla_int32_t stdin_write_fd;
     mla_int32_t stdout_read_fd;
+    mla_int32_t exit_code;
+    mla_bool_t is_stopped;
 
     static mla_private_linux_external_task_native_resource_t init() {
         return {
             -1, // pid
             -1, // stdin_write_fd
-            -1  // stdout_read_fd
+            -1, // stdout_read_fd
+            -1, // exit_code
+            false // is_stopped
         };
     }
 
@@ -138,7 +142,7 @@ mla_bool_t mla_private_linux_external_task_create_process(mla_pointer_t& p_OutTa
         close(stdinPipe[1]);
         close(stdoutPipe[0]);
 
-        if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0 || getppid() == 1) {
+        if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0) {
             mla_private_linux_external_task_child_fail(statusPipe[1]);
         }
 
@@ -214,7 +218,15 @@ mla_external_task_state mla_private_linux_external_task_get_state(const mla_poin
 
     mla_private_linux_external_task_native_resource_t* processData = mla_linux_external_task_get_process_data(p_TaskResource);
 
-    if (processData == nullptr || processData->pid <= 0) {
+    if (processData == nullptr) {
+        return MLA_EXTERNAL_TASK_STATE_STOPPED;
+    }
+
+    if (processData->is_stopped) {
+        return MLA_EXTERNAL_TASK_STATE_STOPPED;
+    }
+
+    if (processData->pid <= 0) {
         return MLA_EXTERNAL_TASK_STATE_STOPPED;
     }
 
@@ -228,6 +240,8 @@ mla_external_task_state mla_private_linux_external_task_get_state(const mla_poin
         return MLA_EXTERNAL_TASK_STATE_RUNNING;
     }
 
+    processData->exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    processData->is_stopped = true;
     processData->pid = -1;
     mla_private_linux_external_task_cleanup_process_data(processData);
     return MLA_EXTERNAL_TASK_STATE_STOPPED;
@@ -247,6 +261,8 @@ void mla_private_linux_external_task_stop_process(const mla_pointer_t& p_TaskRes
         kill(processData->pid, SIGTERM);
         waitpid(processData->pid, nullptr, 0);
         processData->pid = -1;
+        processData->is_stopped = true;
+        processData->exit_code = -1;
     }
 }
 
@@ -304,7 +320,15 @@ mla_int32_t mla_private_linux_external_task_read_result_code(const mla_pointer_t
 
     mla_private_linux_external_task_native_resource_t* processData = mla_linux_external_task_get_process_data(p_TaskResource);
 
-    if (processData == nullptr || processData->pid <= 0) {
+    if (processData == nullptr) {
+        return -1;
+    }
+
+    if (processData->is_stopped) {
+        return processData->exit_code;
+    }
+
+    if (processData->pid <= 0) {
         return -1;
     }
 
@@ -318,14 +342,12 @@ mla_int32_t mla_private_linux_external_task_read_result_code(const mla_pointer_t
         return -1; // Still running
     }
 
+    processData->exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    processData->is_stopped = true;
     processData->pid = -1;
     mla_private_linux_external_task_cleanup_process_data(processData);
 
-    if (WIFEXITED(status)) {
-        return WEXITSTATUS(status);
-    } else {
-        return -1; // Abnormal termination
-    }
+    return processData->exit_code;
 }
 
 mla_external_task_management_t g_external_task_management = {

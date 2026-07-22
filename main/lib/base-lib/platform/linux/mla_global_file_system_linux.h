@@ -104,8 +104,9 @@ mla_bool_t mla_private_file_system_native_create_directory(mla_file_system_t& fi
     mla_string_t fullPath = mla_private_file_system_native_file_path_to_full_path(fs, path);
 
     int result = mkdir(mla_string_data(fullPath), 0755); // rwxr-xr-x permissions
+    int err = errno;
 
-    return result == 0 || errno == EEXIST;
+    return result == 0 || err == EEXIST;
 }
 
 mla_bool_t mla_private_file_system_native_directory_exists(mla_file_system_t& file_system, const mla_string_t& path) {
