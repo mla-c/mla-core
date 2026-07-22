@@ -88,16 +88,6 @@ mla_bool_t mla_bytes_is_empty(const mla_bytes_t& p_Bytes) {
 
 }
 
-void mla_bytes_destroy(mla_bytes_t& p_Bytes) {
-
-    if (!mla_pointer_is_null(p_Bytes.heap_data)) {
-        p_Bytes.heap_data = mla_pointer_null();
-    }
-
-    p_Bytes.size = 0; // Reset the length
-
-}
-
 mla_string_t mla_bytes_to_string(const mla_bytes_t& p_Bytes) {
 
     if (mla_bytes_is_empty(p_Bytes)) {

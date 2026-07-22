@@ -139,7 +139,7 @@ inline void BytesIsEmptyTest() {
 
 inline void BytesManualDestroyTest() {
     mla_bytes_t bytes = mla_bytes(10);
-    mla_bytes_destroy(bytes);
+    bytes = mla_bytes_empty();
     assert_true(mla_bytes_is_empty(bytes), "Destroyed bytes should be empty");
     assert_equal(mla_bytes_length(bytes), (mla_size_t)0, "Destroyed bytes size should be 0");
     assert_null(mla_bytes_get_data_readonly(bytes), "Destroyed bytes data should be null");

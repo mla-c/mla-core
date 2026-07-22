@@ -92,19 +92,6 @@ mla_array_list_t<T, TInit> mla_array_list(mla_size_t initialCapacity = mla_globa
 }
 
 template <mla_array_list_template>
-void mla_array_list_destroy(mla_array_list_t<T, TInit>& list) {
-
-    mla_array_list_buffer_header_t<T, TInit>* header = mla_pointer_get_data<mla_array_list_buffer_header_t<T, TInit>>(list.items);
-
-    if (header != nullptr) {
-        mla_private_array_list_cleanup_header<T, TInit>(header);
-        list.items = mla_pointer_null();
-    }
-
-    list.size = 0;
-}
-
-template <mla_array_list_template>
 mla_bool_t mla_array_list_resize(mla_array_list_t<T, TInit>& list, mla_size_t newSize) {
 
     if (newSize >= list.size) {

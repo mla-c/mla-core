@@ -71,7 +71,7 @@ void SimpleGetRequestWithoutDeflateTest() {
     }
 
     // Clean up
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 void SimpleGetRequestTest() {
@@ -135,7 +135,7 @@ void SimpleGetRequestTest() {
     }
 
     // Clean up
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 void GetRequestWithHeadersTest() {
@@ -158,7 +158,7 @@ void GetRequestWithHeadersTest() {
                 "Should receive a valid HTTP status code");
 
     // Clean up
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 void RequestTimeoutTest() {
@@ -176,7 +176,7 @@ void RequestTimeoutTest() {
     assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                 "Request with 1ms timeout should fail");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 
@@ -244,7 +244,7 @@ void MockSuccessfulConnectionTest() {
     assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_CONNECTION_FAILED,
                 "Connection should not fail with mock success");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Mocked resolve host failure
@@ -265,7 +265,7 @@ void MockResolveHostFailureTest() {
     assert_true(mla_string_contains(response.errorMessage, mla_string_const("resolve")),
                 "Error message should mention resolve");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Mocked connection failure
@@ -284,7 +284,7 @@ void MockConnectFailureTest() {
     assert_true(!mla_string_is_empty(response.errorMessage),
                 "Should have error message");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: HTTPS uses secure transport and fails deterministically when TLS backend is unavailable
@@ -302,7 +302,7 @@ void HttpsSecureTransportUnavailableTest() {
     assert_true(!mla_string_is_empty(response.errorMessage),
                 "Should have error message for HTTPS secure transport failure");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Unsupported URL scheme
@@ -316,7 +316,7 @@ void UnsupportedUrlSchemeTest() {
     assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL,
                 "Unsupported scheme should fail with wrong protocol error");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Invalid URL parsing
@@ -331,7 +331,7 @@ void InvalidUrlTest() {
     assert_equal(response.status, MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_WRONG_PROTOCOL,
                 "Should fail with wrong protocol error");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Empty URL
@@ -344,7 +344,7 @@ void HttpEmptyUrlTest() {
     assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                 "Should fail with empty URL");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 // Test: Missing HTTP method
@@ -363,7 +363,7 @@ void MissingHttpMethodTest() {
     assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                 "Should fail with empty method");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 
@@ -382,7 +382,7 @@ void NullClientFunctionsTest() {
     assert_true(!mla_string_is_empty(response.errorMessage),
                 "Should have error message about missing function");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 
@@ -399,7 +399,7 @@ void ZeroTimeoutTest() {
     assert_true(response.status != MLA_HTTP_CLIENT_RESPONSE_STATUS_OK,
                 "Should fail with zero timeout");
 
-    mla_http_client_response_destroy(response);
+    response = mla_http_client_response_invalid();
 }
 
 

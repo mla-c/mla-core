@@ -249,7 +249,7 @@ inline void HttpMultipartRoundTripTest() {
         assert_struct_equal(mla_string_t, response_body, file_data,
                             "Multipart upload roundtrip should echo the uploaded file content");
 
-        mla_http_client_response_destroy(response);
+        response = mla_http_client_response_invalid();
         mla_http_server_stop(server);
     } else {
         assert_fail("Should start multipart roundtrip HTTP server");

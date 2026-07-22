@@ -13,8 +13,13 @@ You are working in the `mla-core/main` repository, which contains the `mla-c` fr
    - Use MLA framework containers like `mla_array_list_t` and `mla_string_t`.
    - Do not include standard headers like `<string>`, `<vector>`, or `<stdio.h>`.
 4. **Data Ownership**: Use `mla_pointer_t` for owning heap-allocated data. It provides automatic reference-counted cleanup. Use `mla_platform_pointer_t` (raw void pointer) strictly for short-lived, non-owning data access.
-5. **Struct Encapsulation**: Never access struct fields directly in consumer code when access methods exist. Always use the framework API getters/setters (for example, TLS config access methods instead of direct `tls.certificate = ...` writes).
-6. **Testing & Definition of Done**: Any behavior change or feature needs tests. As an explicit **Definition of Done**, at the end of every task, ALL unit tests (`./run_all_tests.sh`) and ALL benchmarks (`./run_all_benchmarks.sh`) MUST be executed and pass successfully across all supported compiler toolchains before declaring completion.
+6. **DOCUMENTATION**: 
+    - Write clear and concise documentation for all public APIs and data structures.
+    - Use Doxygen-style comments for code documentation.
+    - Ensure documentation is up-to-date and accurate.
+    - Document the dataflow methodically.
+7. **Struct Encapsulation**: Never access struct fields directly in consumer code when access methods exist. Always use the framework API getters/setters (for example, TLS config access methods instead of direct `tls.certificate = ...` writes).
+8. **Testing & Definition of Done**: Any behavior change or feature needs tests. As an explicit **Definition of Done**, at the end of every task, ALL unit tests (`./run_all_tests.sh`) and ALL benchmarks (`./run_all_benchmarks.sh`) MUST be executed and pass successfully across all supported compiler toolchains before declaring completion.
 
 ## Detailed Instructions / Skills
 Detailed instructions about framework modules (array lists, strings, memory, networking, tests, etc.) are available as skills.

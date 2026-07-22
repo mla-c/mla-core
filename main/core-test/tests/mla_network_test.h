@@ -116,7 +116,6 @@ inline void NetworkGetLocalIpAddressesTest() {
         assert_true(mla_string_equals(ip.address, mla_string_const("127.0.0.1")), "IP address should match");
     }
 
-    mla_array_list_destroy(mock_local_ips);
     mock_local_ips = mla_array_list_empty<mla_network_ip_address_t, mla_network_ip_address_initializer_t>();
     g_network_low_level_operations = original;
 }

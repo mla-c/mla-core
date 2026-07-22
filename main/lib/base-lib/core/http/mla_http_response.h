@@ -99,10 +99,6 @@ inline mla_http_response_t mla_http_response_empty() {
     return {MLA_HTTP_VERSION_1_0, 0, mla_string_empty(), mla_array_list_empty<mla_http_header_t, mla_http_header_initializer>(), mla_stream_noop_input(), mla_http_response_content_writer_invalid()};
 }
 
-inline void mla_http_response_destroy(mla_http_response_t &response) {
-    response = mla_http_response_empty();
-}
-
 
 
 

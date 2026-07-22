@@ -293,12 +293,9 @@ mla_bool_t mla_config_manager_write(const mla_config_definition_t &definition, c
         }
     }
 
-    mla_bytes_destroy(input);
-
     // Something is wrong if there is no content
     if (unused_bytes == 0) {
         mla_error("Unknown error: No content in output buffer after serialization");
-        mla_bytes_destroy(output);
         return false;
     }
 

@@ -30,8 +30,6 @@ const mla_byte_t* mla_bytes_get_data_readonly(const mla_bytes_t& p_Bytes);
 mla_byte_t* mla_bytes_get_data_for_writing(mla_bytes_t& p_Bytes);
 mla_size_t mla_bytes_length(const mla_bytes_t& p_Bytes);
 
-void mla_bytes_destroy(mla_bytes_t& p_Bytes);
-
 mla_bool_t mla_bytes_is_empty(const mla_bytes_t& p_Bytes);
 
 #endif

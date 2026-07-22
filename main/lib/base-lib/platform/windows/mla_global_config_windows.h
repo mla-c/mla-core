@@ -90,8 +90,7 @@ mla_bytes_t mla_private_windows_read_config_input() {
 
     // Check if read was successful
     if (readResult == FALSE || (bytesRead != fileSize)) {
-        mla_bytes_destroy(config_data);
-        config_data = mla_bytes(0);
+        config_data = mla_bytes_empty();
     }
 
     return config_data;
@@ -166,7 +165,6 @@ mla_bool_t mla_private_windows_commit_config_output(mla_bytes_t& output, mla_siz
 
     if ((writeResult == FALSE) || bytesWritten != bytesToWrite) {
         DeleteFile(tempPath);
-        mla_bytes_destroy(output);
         return false;
     }
 
@@ -193,7 +191,6 @@ mla_bool_t mla_private_windows_commit_config_output(mla_bytes_t& output, mla_siz
 
             if (backupResult == FALSE) {
                 DeleteFile(tempPath);
-                mla_bytes_destroy(output);
                 return false;
             }
         }
@@ -203,7 +200,6 @@ mla_bool_t mla_private_windows_commit_config_output(mla_bytes_t& output, mla_siz
         if (!MoveFileEx(tempPath, configPath, MOVEFILE_REPLACE_EXISTING)) {
             MoveFileEx(backupPath, configPath, MOVEFILE_REPLACE_EXISTING);
             DeleteFile(tempPath);
-            mla_bytes_destroy(output);
             return false;
         }
 
@@ -211,7 +207,6 @@ mla_bool_t mla_private_windows_commit_config_output(mla_bytes_t& output, mla_siz
         DeleteFile(backupPath);
     }
 
-    mla_bytes_destroy(output);
     return true;
 }
 

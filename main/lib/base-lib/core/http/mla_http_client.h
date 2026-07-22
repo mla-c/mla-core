@@ -59,8 +59,8 @@ inline mla_http_client_response_t mla_http_client_send_request(mla_http_request_
     return mla_http_client_send_request(client, p_Request);
 }
 
-inline void mla_http_client_response_destroy(mla_http_client_response_t &response) {
-    response = {
+inline mla_http_client_response_t mla_http_client_response_invalid() {
+    return  {
         MLA_HTTP_CLIENT_RESPONSE_STATUS_ERROR_UNKNOWN,
         mla_string_empty(),
         mla_http_response_empty()

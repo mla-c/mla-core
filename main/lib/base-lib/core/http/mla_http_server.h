@@ -341,14 +341,4 @@ mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_web
 // Returns true if the message was sent successfully, false if the lock timed out or sending failed.
 mla_bool_t mla_http_server_try_send_websocket_binary_message(mla_http_server_t &server, const mla_string_t& connectionId, const mla_bytes_t& message, mla_int32_t connection_lock_timeout, mla_bool_t use_deflate_compression_if_supported = true);
 
-
-////////////////////////////////////////////////////////////////
-/// Helpers
-////////////////////////////////////////////////////////////////
-
-inline void mla_http_server_destroy(mla_http_server_t& server) {
-    mla_http_server_stop(server);
-    server = mla_http_server_invalid();
-}
-
 #endif

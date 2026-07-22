@@ -278,6 +278,11 @@ extern "C" void mla_private_windows_signal_handler(int sig) {
     fprintf(stderr, "=================================================================\n");
     fflush(stderr);
 
+    // If there is a debugger present, break into it
+    if (IsDebuggerPresent() == TRUE) {
+        DebugBreak();
+    }
+
     _exit(sig);
 }
 
