@@ -132,6 +132,18 @@ mla_bool_t mla_fs_delete_directory(const mla_string_t& path);
 mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
 mla_bool_t mla_fs_count_directory(const mla_string_t& path, mla_size_t& out_count);
 
+/**
+ * @brief Recursively copies a directory and all of its contents.
+ *
+ * Existing destination directories are merged and destination files with matching names are overwritten.
+ * Copying a directory onto itself or into one of its descendants is not supported.
+ *
+ * @param source_path The existing absolute virtual file-system directory path to copy.
+ * @param destination_path The absolute virtual file-system directory path to create or merge into.
+ * @return `true` if the complete directory tree was copied, otherwise `false`.
+ */
+mla_bool_t mla_fs_copy_directory(const mla_string_t& source_path, const mla_string_t& destination_path);
+
 // Helpers
 mla_bool_t mla_fs_is_directory_path(const mla_string_t& path);
 mla_string_t mla_fs_get_parent_directory(const mla_string_t& path);

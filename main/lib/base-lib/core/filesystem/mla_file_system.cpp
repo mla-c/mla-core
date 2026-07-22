@@ -410,6 +410,65 @@ mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_
     return file_system_mount.file_system.list_directory(file_system_mount.file_system, relative_path, out_entries);
 }
 
+mla_bool_t mla_fs_copy_directory(const mla_string_t& source_path, const mla_string_t& destination_path) {
+
+    if (!mla_fs_is_directory_path(source_path) ||
+        !mla_fs_is_directory_path(destination_path) ||
+        !mla_fs_directory_exists(source_path)) {
+        return false;
+    }
+
+    mla_string_t normalizedSourcePath = mla_string_to_lower(source_path);
+    mla_string_t normalizedDestinationPath = mla_string_to_lower(destination_path);
+
+    if (mla_string_equals(normalizedSourcePath, normalizedDestinationPath) ||
+        mla_string_starts_with(normalizedDestinationPath, normalizedSourcePath)) {
+        return false;
+    }
+
+    if (!mla_fs_create_directory(destination_path)) {
+        return false;
+    }
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> files =
+        mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!mla_fs_list_files(source_path, files)) {
+        return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(files); i++) {
+        const mla_string_t& fileName = mla_array_list_get_unsafe(files, i);
+        mla_string_t sourceFilePath = mla_string_concat(source_path, fileName);
+        mla_string_t destinationFilePath = mla_string_concat(destination_path, fileName);
+
+        if (!mla_fs_copy_file_to(sourceFilePath, destinationFilePath)) {
+            return false;
+        }
+    }
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> directories =
+        mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!mla_fs_list_directory(source_path, directories)) {
+        return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(directories); i++) {
+        const mla_string_t& directoryName = mla_array_list_get_unsafe(directories, i);
+        mla_string_t sourceDirectoryPath =
+            mla_string_concat(source_path, directoryName, mla_fs_directory_seperator);
+        mla_string_t destinationDirectoryPath =
+            mla_string_concat(destination_path, directoryName, mla_fs_directory_seperator);
+
+        if (!mla_fs_copy_directory(sourceDirectoryPath, destinationDirectoryPath)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 mla_bool_t mla_fs_count_directory(const mla_string_t& path, mla_size_t& out_count) {
 
     mla_array_list_t<mla_string_t, mla_string_initializer> entries = mla_array_list_empty<mla_string_t, mla_string_initializer>();

@@ -722,6 +722,47 @@ void FileSystemCopyApisTest() {
     mla_fs_delete_directory(mla_string("/copytest/"));
 }
 
+void FileSystemCopyDirectoryTest() {
+    assert_true(mla_fs_create_directory(mla_string("/copy-directory/source/empty/")),
+                "Should create the source directory tree");
+    assert_true(mla_fs_create_directory(mla_string("/copy-directory/source/nested/deep/")),
+                "Should create nested source directories");
+    assert_true(mla_file_system_test_write_string(
+                    mla_string("/copy-directory/source/root.txt"), mla_string_const("root")),
+                "Should create the source root file");
+    assert_true(mla_file_system_test_write_string(
+                    mla_string("/copy-directory/source/nested/deep/file.txt"), mla_string_const("deep")),
+                "Should create the nested source file");
+
+    assert_true(mla_fs_copy_directory(mla_string("/copy-directory/source/"),
+                                      mla_string("/copy-directory/destination/")),
+                "Should recursively copy a directory");
+    assert_true(mla_fs_directory_exists(mla_string("/copy-directory/destination/empty/")),
+                "Should copy empty directories");
+    assert_true(mla_string_equals(
+                    mla_file_system_test_read_string(mla_string("/copy-directory/destination/root.txt")),
+                    mla_string_const("root")),
+                "Should copy files from the source root");
+    assert_true(mla_string_equals(
+                    mla_file_system_test_read_string(
+                        mla_string("/copy-directory/destination/nested/deep/file.txt")),
+                    mla_string_const("deep")),
+                "Should copy files from nested directories");
+
+    assert_false(mla_fs_copy_directory(mla_string("/copy-directory/missing/"),
+                                       mla_string("/copy-directory/missing-copy/")),
+                 "Copying a missing directory should fail");
+    assert_false(mla_fs_copy_directory(mla_string("/copy-directory/source/"),
+                                       mla_string("/copy-directory/source/")),
+                 "Copying a directory onto itself should fail");
+    assert_false(mla_fs_copy_directory(mla_string("/copy-directory/source/"),
+                                       mla_string("/copy-directory/source/child-copy/")),
+                 "Copying a directory into its descendant should fail");
+
+    assert_true(mla_fs_delete_directory(mla_string("/copy-directory/")),
+                "Should clean up copied directory trees");
+}
+
 void FileSystemRelativePathTest() {
     mla_string_t childPath = mla_fs_get_relative_path(mla_string("/root/base/"),
                                                       mla_string("/root/base/file.txt"), false);
@@ -822,6 +863,9 @@ void RegisterFileSystemPathTests(mla_test_executor_t &p_TestExecutor) {
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("CopyApis", test_category, FileSystemCopyApisTest);
+    mla_test_executor_register_test(p_TestExecutor, test);
+
+    test = mla_test("CopyDirectory", test_category, FileSystemCopyDirectoryTest);
     mla_test_executor_register_test(p_TestExecutor, test);
 
     test = mla_test("RelativePath", test_category, FileSystemRelativePathTest);
