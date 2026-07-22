@@ -90,7 +90,7 @@ mla_bool_t mla_private_file_system_native_delete_file(mla_file_system_t& file_sy
 
     int result = unlink(mla_string_data(fullPath));
 
-    return result == 0;
+    return result == 0 || errno == ENOENT;
 }
 
 mla_bool_t mla_private_file_system_native_create_directory(mla_file_system_t& file_system, const mla_string_t& path) {
@@ -138,7 +138,7 @@ mla_bool_t mla_private_file_system_native_delete_directory(mla_file_system_t& fi
 
     int result = rmdir(mla_string_data(fullPath));
 
-    return result == 0;
+    return result == 0 || errno == ENOENT;
 }
 
 mla_bool_t mla_private_file_system_native_os_absolute_path(mla_file_system_t& file_system, const mla_string_t& path, mla_bool_t check_if_exists, mla_string_t& out) {
@@ -178,13 +178,26 @@ mla_bool_t mla_private_file_system_native_list_files(mla_file_system_t& file_sys
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        // Skip directories and special entries (. and ..)
-        if (entry->d_type != DT_REG) {
+        // Skip special entries (. and ..)
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
-        mla_string_t entryName = mla_string_copy(entry->d_name, mla_strlen(entry->d_name));
-        mla_array_list_add(out_entries, entryName);
+        mla_bool_t is_dir = false;
+        if (entry->d_type == DT_DIR) {
+            is_dir = true;
+        } else if (entry->d_type == DT_UNKNOWN || entry->d_type == DT_LNK) {
+            mla_string_t entryPath = mla_fs_combine_paths(fullPath, mla_string_const(entry->d_name));
+            struct stat statbuf;
+            if (stat(mla_string_data(entryPath), &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+                is_dir = true;
+            }
+        }
+
+        if (!is_dir) {
+            mla_string_t entryName = mla_string_copy(entry->d_name, mla_strlen(entry->d_name));
+            mla_array_list_add(out_entries, entryName);
+        }
     }
 
     closedir(dir);
@@ -214,8 +227,18 @@ mla_bool_t mla_private_file_system_native_list_directory(mla_file_system_t& file
             continue;
         }
 
-        // Only include directories
+        mla_bool_t is_dir = false;
         if (entry->d_type == DT_DIR) {
+            is_dir = true;
+        } else if (entry->d_type == DT_UNKNOWN || entry->d_type == DT_LNK) {
+            mla_string_t entryPath = mla_fs_combine_paths(fullPath, mla_string_const(entry->d_name));
+            struct stat statbuf;
+            if (stat(mla_string_data(entryPath), &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+                is_dir = true;
+            }
+        }
+
+        if (is_dir) {
             mla_string_t entryName = mla_string_copy(entry->d_name, mla_strlen(entry->d_name));
             mla_array_list_add(out_entries, entryName);
         }
