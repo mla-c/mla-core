@@ -347,7 +347,7 @@ mla_bool_t mla_private_fs_delete_directory_recursive(mla_file_system_t& file_sys
 
     for (mla_size_t i = 0; i < mla_array_list_size(files); i++) {
         const mla_string_t& fileName = mla_array_list_get_unsafe(files, i);
-        mla_string_t filePath = mla_string_concat(path, fileName);
+        mla_string_t filePath = mla_fs_combine_paths(path, fileName);
 
         if (!file_system.delete_file(file_system, filePath)) {
             return false;
@@ -363,7 +363,7 @@ mla_bool_t mla_private_fs_delete_directory_recursive(mla_file_system_t& file_sys
 
     for (mla_size_t i = 0; i < mla_array_list_size(directories); i++) {
         const mla_string_t& directoryName = mla_array_list_get_unsafe(directories, i);
-        mla_string_t directoryPath = mla_string_concat(path, directoryName, mla_fs_directory_seperator);
+        mla_string_t directoryPath = mla_fs_combine_paths(path, directoryName);
 
         if (!mla_private_fs_delete_directory_recursive(file_system, directoryPath)) {
             return false;
