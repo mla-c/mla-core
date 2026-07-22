@@ -113,7 +113,21 @@ mla_bool_t mla_fs_copy_stream_to_file(mla_stream_input_t& source_stream, const m
 
 //// Directory operations
 mla_bool_t mla_fs_directory_exists(const mla_string_t& path);
+
+/**
+ * @brief Creates a directory and any missing parent directories.
+ *
+ * @param path The absolute virtual file-system directory path to create.
+ * @return `true` if the complete directory path exists after the operation, otherwise `false`.
+ */
 mla_bool_t mla_fs_create_directory(const mla_string_t& path);
+
+/**
+ * @brief Deletes a directory recursively, including all contained files and subdirectories.
+ *
+ * @param path The absolute virtual file-system directory path to delete.
+ * @return `true` if the directory and all of its contents were deleted, otherwise `false`.
+ */
 mla_bool_t mla_fs_delete_directory(const mla_string_t& path);
 mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries);
 mla_bool_t mla_fs_count_directory(const mla_string_t& path, mla_size_t& out_count);

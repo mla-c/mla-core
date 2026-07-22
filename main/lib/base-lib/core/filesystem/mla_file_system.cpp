@@ -279,6 +279,27 @@ mla_bool_t mla_fs_count_files(const mla_string_t& path, mla_size_t& out_count) {
     return true;
 }
 
+mla_bool_t mla_private_fs_create_directory_recursive(mla_file_system_t& file_system, const mla_string_t& path) {
+
+    if (mla_string_length(path) == 0) {
+        return true;
+    }
+
+    if (file_system.directory_exists != nullptr && file_system.directory_exists(file_system, path)) {
+        return true;
+    }
+
+    mla_string_t parentPath = mla_fs_get_parent_directory(path);
+
+    if (!mla_string_equals(parentPath, mla_fs_root_directory) &&
+        !mla_string_equals(parentPath, path) &&
+        !mla_private_fs_create_directory_recursive(file_system, parentPath)) {
+        return false;
+    }
+
+    return file_system.create_directory(file_system, path);
+}
+
 mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
@@ -293,7 +314,7 @@ mla_bool_t mla_fs_create_directory(const mla_string_t& path) {
         return false;
     }
 
-    return file_system_mount.file_system.create_directory(file_system_mount.file_system, relative_path);
+    return mla_private_fs_create_directory_recursive(file_system_mount.file_system, relative_path);
 
 }
 
@@ -315,6 +336,43 @@ mla_bool_t mla_fs_directory_exists(const mla_string_t& path) {
 
 }
 
+mla_bool_t mla_private_fs_delete_directory_recursive(mla_file_system_t& file_system, const mla_string_t& path) {
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> files =
+        mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!file_system.list_files(file_system, path, files)) {
+        return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(files); i++) {
+        const mla_string_t& fileName = mla_array_list_get_unsafe(files, i);
+        mla_string_t filePath = mla_string_concat(path, fileName);
+
+        if (!file_system.delete_file(file_system, filePath)) {
+            return false;
+        }
+    }
+
+    mla_array_list_t<mla_string_t, mla_string_initializer> directories =
+        mla_array_list_empty<mla_string_t, mla_string_initializer>();
+
+    if (!file_system.list_directory(file_system, path, directories)) {
+        return false;
+    }
+
+    for (mla_size_t i = 0; i < mla_array_list_size(directories); i++) {
+        const mla_string_t& directoryName = mla_array_list_get_unsafe(directories, i);
+        mla_string_t directoryPath = mla_string_concat(path, directoryName, mla_fs_directory_seperator);
+
+        if (!mla_private_fs_delete_directory_recursive(file_system, directoryPath)) {
+            return false;
+        }
+    }
+
+    return file_system.delete_directory(file_system, path);
+}
+
 mla_bool_t mla_fs_delete_directory(const mla_string_t& path) {
 
     mla_file_system_mount_t file_system_mount = mla_file_system_mount_empty();
@@ -325,11 +383,14 @@ mla_bool_t mla_fs_delete_directory(const mla_string_t& path) {
 
     mla_string_t relative_path = mla_private_file_system_get_relative_path(path, file_system_mount.mount_path);
 
-    if (file_system_mount.file_system.delete_directory == nullptr) {
+    if (file_system_mount.file_system.delete_file == nullptr ||
+        file_system_mount.file_system.list_files == nullptr ||
+        file_system_mount.file_system.delete_directory == nullptr ||
+        file_system_mount.file_system.list_directory == nullptr) {
         return false;
     }
 
-    return file_system_mount.file_system.delete_directory(file_system_mount.file_system, relative_path);
+    return mla_private_fs_delete_directory_recursive(file_system_mount.file_system, relative_path);
 }
 
 mla_bool_t mla_fs_list_directory(const mla_string_t& path, mla_array_list_t<mla_string_t, mla_string_initializer>& out_entries) {

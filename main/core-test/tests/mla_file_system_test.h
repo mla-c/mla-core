@@ -287,7 +287,18 @@ void FileSystemCreateDirectoryTest() {
     assert_true(mla_fs_directory_exists(mla_string("/parent/child/")),
                 "Nested directory should exist");
 
+    // Create a nested directory without creating its parents first
+    assert_true(mla_fs_create_directory(mla_string("/recursive/parent/child/")),
+                "Should recursively create missing parent directories");
+    assert_true(mla_fs_directory_exists(mla_string("/recursive/")),
+                "Recursively created root parent should exist");
+    assert_true(mla_fs_directory_exists(mla_string("/recursive/parent/")),
+                "Recursively created direct parent should exist");
+    assert_true(mla_fs_directory_exists(mla_string("/recursive/parent/child/")),
+                "Recursively created child should exist");
+
     // Cleanup
+    mla_fs_delete_directory(mla_string("/recursive/"));
     mla_fs_delete_directory(mla_string("/parent/child/"));
     mla_fs_delete_directory(mla_string("/parent/"));
     mla_fs_delete_directory(mla_string("/newdir/"));
@@ -309,6 +320,23 @@ void FileSystemDeleteDirectoryTest() {
     // Try deleting non-existent directory
     assert_false(mla_fs_delete_directory(mla_string("/nonexistent/")),
                  "Deleting non-existent directory should fail");
+
+    // Delete a directory containing nested directories and files
+    assert_true(mla_fs_create_directory(mla_string("/recursive-delete/child/grandchild/")),
+                "Should create nested directories for recursive deletion");
+    assert_true(mla_file_system_test_write_string(mla_string("/recursive-delete/root.txt"), mla_string_const("root")),
+                "Should create a file in the root directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/recursive-delete/child/child.txt"), mla_string_const("child")),
+                "Should create a file in the child directory");
+    assert_true(mla_file_system_test_write_string(mla_string("/recursive-delete/child/grandchild/deep.txt"), mla_string_const("deep")),
+                "Should create a file in the deepest directory");
+
+    assert_true(mla_fs_delete_directory(mla_string("/recursive-delete/")),
+                "Should recursively delete a directory and all of its contents");
+    assert_false(mla_fs_directory_exists(mla_string("/recursive-delete/")),
+                 "Recursively deleted root directory should not exist");
+    assert_false(mla_fs_file_exists(mla_string("/recursive-delete/child/grandchild/deep.txt")),
+                 "Files in recursively deleted directories should not exist");
 }
 
 void FileSystemListDirectoryTest() {
